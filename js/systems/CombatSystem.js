@@ -15,7 +15,7 @@ import { spawnText } from '../ui/hud.js';
 import { AudioEngine } from '../audio.js';
 import { persistUnlocked } from '../save.js';
 import { world } from '../ecs/World.js';
-import { spawnEnemy } from '../spawn.js';
+import { SpawnSystem } from './SpawnSystem.js';
 import { createEntity, Position, Velocity } from '../ecs/components.js';
 
 export class CombatSystem extends System {
@@ -115,7 +115,7 @@ export function killEnemy(e, srcType) {
   if (p.boom > 0) boomExplosion(e.x, e.y, p);
   if (e.split) {
     for (let i = 0; i < e.split; i++) {
-      const mini = spawnEnemy('grub', { hpMul: e.splitHp });
+      const mini = SpawnSystem.spawnEnemy('grub', { hpMul: e.splitHp });
       mini.x = e.x + rand(-14, 14); mini.y = e.y + rand(-14, 14);
       mini.size = 5; mini.spd = 80; mini.dmg = e.dmg * 0.5;
     }

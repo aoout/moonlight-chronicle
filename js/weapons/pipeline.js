@@ -14,7 +14,7 @@ import { PROJECTILE_TYPES, resolveProjectileType } from './projectile_types.js';
 import { addFx, spawnBurst, spawnSpark, spawnGlow, spawnRing, spawnStar, spawnShard, spawnStreak } from '../fx.js';
 import { shakeScreen } from '../state.js';
 import { queryRadius } from '../spatial.js';
-import { damageEnemy } from '../enemies.js';
+import { CombatSystem } from '../systems/CombatSystem.js';
 import { AudioEngine } from '../audio.js';
 
 /* =========================================================
@@ -194,7 +194,7 @@ function tickMeteor(pr, dt, p) {
     shakeScreen(9);
     for (const e of queryRadius(pr.x, pr.y, pr.aoe || 130)) {
       if (e.dead) continue;
-      damageEnemy(e, pr.dmg * (1.4 - dist(e, pr) / (pr.aoe || 130)), RNG() < p.effCrit, 'meteor', pr.wId);
+      CombatSystem.damageEnemy(e, pr.dmg * (1.4 - dist(e, pr) / (pr.aoe || 130)), RNG() < p.effCrit, 'meteor', pr.wId);
     }
     pr.dead = true;
   }

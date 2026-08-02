@@ -6,7 +6,7 @@ import { RNG, dist } from '../utils.js';
 import { PALETTE } from '../palette.js';
 import { WEAPONS } from '../data/index.js';
 import { _neighborEnemies } from '../spatial.js';
-import { damageEnemy } from '../enemies.js';
+import { CombatSystem } from '../systems/CombatSystem.js';
 import { AudioEngine } from '../audio.js';
 import { addFx, spawnSpark, spawnGlow, spawnShard } from '../fx.js';
 
@@ -30,7 +30,7 @@ export function orbitTick(dt) {
         if (dist({ x: ox, y: oy }, e) < 20 + e.size * 0.6) {
           if (e._orbitT === undefined || e._orbitT < G.time - 0.25) {
             e._orbitT = G.time;
-            damageEnemy(e, WEAPONS.orbit.dmg(p, orbitW.lv) * dt * 8, RNG() < p.effCrit, 'orbit', 'orbit');
+            CombatSystem.damageEnemy(e, WEAPONS.orbit.dmg(p, orbitW.lv) * dt * 8, RNG() < p.effCrit, 'orbit', 'orbit');
             AudioEngine.playSfx('hit');
             spawnSpark(e.x, e.y, PALETTE.gold, 3, 130);
             spawnGlow(e.x, e.y, 10, PALETTE.gold, 0.3);

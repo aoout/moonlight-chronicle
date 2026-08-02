@@ -5,7 +5,7 @@ import { G } from './state.js';
 import { RNG, angTo, dist } from './utils.js';
 import { PROJECTILE_POOL } from './entity_pool.js';
 import { spawnBurst } from './fx.js';
-import { hurtPlayer, meleeHit } from './combat.js';
+import { CombatSystem } from './systems/CombatSystem.js';
 
 /** @type {Record<string, (e:import('./types/core.d.ts').EnemyInstance, dt:number, p:import('./types/core.d.ts').Player) => boolean|void>} */
 export const ENEMY_SKILLS = {
@@ -38,7 +38,7 @@ export const ENEMY_SKILLS = {
         if (e.skillP <= 0) {
           const sp = e.spd * 3.4;
           e.x += Math.cos(e.skillA) * sp * 0.24; e.y += Math.sin(e.skillA) * sp * 0.24;
-          meleeHit(e.x, e.y, 34, e.dmg * 1.5, { shake: 4 });
+          CombatSystem.meleeHit(e.x, e.y, 34, e.dmg * 1.5, { shake: 4 });
           return true;
         }
         return true;
@@ -55,7 +55,7 @@ export const ENEMY_SKILLS = {
         e.skillP -= dt;
         e.flash = 0.5;
         if (e.skillP <= 0) {
-          meleeHit(e.x, e.y, 92, e.dmg * 1.9, { shake: 11 });
+          CombatSystem.meleeHit(e.x, e.y, 92, e.dmg * 1.9, { shake: 11 });
           return true;
         }
         return true;
@@ -84,7 +84,7 @@ export const ENEMY_SKILLS = {
         e.x += Math.cos(e.skillA) * sp * dt * 0.8;
         e.y += Math.sin(e.skillA) * sp * dt * 0.8;
       }
-      if (e.skillP <= 0) { meleeHit(e.x, e.y, 40, e.dmg * 1.6, { shake: 6 }); }
+      if (e.skillP <= 0) { CombatSystem.meleeHit(e.x, e.y, 40, e.dmg * 1.6, { shake: 6 }); }
       return true;
     }
     return false;
@@ -101,7 +101,7 @@ export const ENEMY_SKILLS = {
       e.y = p.y + Math.sin(a) * 70;
       spawnBurst(e.x, e.y, '#7c6d9e', 12);
       if (dist(e, p) < 78) {
-        hurtPlayer(e, e.dmg * 1.2);
+        CombatSystem.hurtPlayer(e, e.dmg * 1.2);
         e.bleed = 3;
       }
       return true;
@@ -118,7 +118,7 @@ export const ENEMY_SKILLS = {
         e.flash = 0.6;
         if (e.skillP <= 0) {
           e.x += Math.cos(e.skillA) * 30; e.y += Math.sin(e.skillA) * 30;
-          meleeHit(e.x, e.y, 140, e.dmg * 2.2, { shake: 14 });
+          CombatSystem.meleeHit(e.x, e.y, 140, e.dmg * 2.2, { shake: 14 });
           return true;
         }
         return true;

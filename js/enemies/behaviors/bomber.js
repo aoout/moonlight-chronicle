@@ -4,8 +4,8 @@
 import { G } from '../../state.js';
 import { RNG, angTo, dist, clamp, rand } from '../../utils.js';
 import { addFx } from '../../fx.js';
-import { killEnemy } from '../../combat.js';
-import { explodeEnemy } from '../../drops.js';
+import { CombatSystem } from '../../systems/CombatSystem.js';
+import { DropSystem } from '../../systems/DropSystem.js';
 
 export function bomberMove(e, dt, p, slowF) {
   if (RNG() < 0.45) {
@@ -21,7 +21,7 @@ export function bomberMove(e, dt, p, slowF) {
   e.x += Math.cos(a) * sp * dt;
   e.y += Math.sin(a) * sp * dt;
   if (dist(e, p) < p.r + e.size + 4) {
-    explodeEnemy(e, true);
-    killEnemy(e, 'bomber');
+    DropSystem.explodeEnemy(e, true);
+    CombatSystem.killEnemy(e, 'bomber');
   }
 }

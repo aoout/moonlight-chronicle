@@ -4,8 +4,7 @@
    ========================================================= */
 import { RNG } from '../utils.js';
 import { PALETTE } from '../palette.js';
-import { damageEnemy } from '../enemies.js';
-import { hurtPlayer } from '../combat.js';
+import { CombatSystem } from '../systems/CombatSystem.js';
 import { AudioEngine } from '../audio.js';
 import { addFx, spawnImpact, spawnStar, spawnRing, spawnStreak, spawnGlow } from '../fx.js';
 import { chainLightning } from './chain_lightning.js';
@@ -23,11 +22,11 @@ export const ON_HIT = {
   /** 基础伤害（通用） */
   damage({ target, isPlayer, pr, p }) {
     if (isPlayer) {
-      hurtPlayer(target, pr.dmg);
+      CombatSystem.hurtPlayer(target, pr.dmg);
       pr.dead = true;
       return false;
     }
-    damageEnemy(target, pr.dmg, RNG() < p.effCrit, 'proj', pr.wId);
+    CombatSystem.damageEnemy(target, pr.dmg, RNG() < p.effCrit, 'proj', pr.wId);
     AudioEngine.playSfx('hit');
     spawnImpact(target.x, target.y, pr.color, 0);
     return true;

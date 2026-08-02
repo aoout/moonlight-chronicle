@@ -4,7 +4,7 @@
    ========================================================= */
 import { G, STATE, sm } from '../../state.js';
 import { EventBus } from '../../core/event_bus.js';
-import { computeDerived, addWeapon, upgradeWeapon, removeWeapon } from '../../player_fn.js';
+import { PlayerSystem } from '../../systems/PlayerSystem.js';
 import { codexAdd } from '../../codex.js';
 import { CONFIG, WEAPONS, SHOP_ITEMS, inflationRate, WEAPON_UPGRADE_COST } from '../../data/index.js';
 import { $, el, toast } from '../hud.js';
@@ -87,11 +87,11 @@ export function openShop() {
     if (G.gold < price) c.classList.add('cant-afford');
     c.onclick = () => {
       if (G.gold < price) { toast('金币不足'); return; }
-      if (o.kind === 'newWeapon' && !addWeapon(o.id)) { toast('武器栏已满（最多 5 件）'); return; }
+      if (o.kind === 'newWeapon' && !PlayerSystem.addWeapon(o.id)) { toast('武器栏已满（最多 5 件）'); return; }
       G.gold -= price;
       AudioEngine.playSfx('buy');
       if (o.kind === 'newWeapon') { if (def) toast(def.name + ' 已佩戴'); }
-      else if (o.kind === 'upWeapon') { upgradeWeapon(o.id); toast(title + ' 完成'); }
+      else if (o.kind === 'upWeapon') { PlayerSystem.upgradeWeapon(o.id); toast(title + ' 完成'); }
       else {
         it.apply(p);
         codexAdd('items', it.id);
@@ -100,7 +100,7 @@ export function openShop() {
         toast(title + ' 已生效' + (it.repeat && cnt > 1 ? ' x' + cnt : ''));
       }
       const pl = G.player;
-      if (pl) computeDerived(pl);
+      if (pl) PlayerSystem.computeDerived(pl);
       openShop();
     };
     cards.appendChild(c);

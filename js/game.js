@@ -4,10 +4,10 @@
    ========================================================= */
 import { G, STATE, sm, entityState } from './state.js';
 import { EventBus } from './core/event_bus.js';
-import { computeDerived, addWeapon, createPlayer, xpNeeded } from './player_fn.js';
+import { PlayerSystem } from './systems/PlayerSystem.js';
+import { SpawnSystem } from './systems/SpawnSystem.js';
 import { pick } from './utils.js';
 import { CONFIG, STAGE_NAMES, BOSS_POOLS, CURSES } from './data/index.js';
-import { spawnBoss, spawnEnemy } from './enemies.js';
 import { render } from './render/index.js';
 import { createSystemManager } from './systems/index.js';
 import { openShop } from './ui/shop.js';
@@ -36,11 +36,11 @@ export function startStage(n) {
   p.y = G.height / 2;
   p.invuln = 1.2;
   p.hp = Math.min(p.maxHp, p.hp);
-  computeDerived(p);
+  PlayerSystem.computeDerived(p);
   if (CONFIG.BOSS_STAGES.includes(n) || n === CONFIG.FINAL_STAGE) {
     const type = pick(BOSS_POOLS[n] || ['final']);   // 节点 Boss 池随机
-    spawnBoss(type);
-    for (let i = 0; i < 4; i++) spawnEnemy(pick(['grub', 'rat']), { hpMul: 0.6 });
+    SpawnSystem.spawnBoss(type);
+    for (let i = 0; i < 4; i++) SpawnSystem.spawnEnemy(pick(['grub', 'rat']), { hpMul: 0.6 });
   }
   EventBus.emit('stage:start', { stage: n, name: G.stageName, boss: G.boss !== null });
 }
@@ -50,7 +50,6 @@ export function startRun() {
   G.stage = 1;
   G.level = 1;
   G.xp = 0;
-  G.xpNeeded = xpNeeded(1);
   G.kills = 0;
   G.gold = 0;
   G.time = 0;
@@ -62,12 +61,13 @@ export function startRun() {
   G.levelUpOpen = false;
   G.shopOpen = false;
   G.paused = false;
+  G.xpNeeded = PlayerSystem.xpNeeded(1);
   // 蚀月深度 ≥1：随机施加一个蚀之诅咒
   G.curse = G.depth >= 1 ? pick(CURSES) : null;
-  G.player = createPlayer();
+  G.player = PlayerSystem.createPlayer();
   const p = G.player;
   if (G.curse && p) G.curse.apply(p);
-  addWeapon('moonRing');
+  PlayerSystem.addWeapon('moonRing');
   startStage(1);
   EventBus.emit('game:runStart', { depth: G.depth, curse: G.curse });
 }

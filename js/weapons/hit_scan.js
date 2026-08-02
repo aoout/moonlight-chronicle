@@ -5,8 +5,7 @@ import { G } from '../state.js';
 import { RNG, dist } from '../utils.js';
 import { PALETTE } from '../palette.js';
 import { _neighborEnemies } from '../spatial.js';
-import { damageEnemy } from '../enemies.js';
-import { hurtPlayer } from '../combat.js';
+import { CombatSystem } from '../systems/CombatSystem.js';
 import { AudioEngine } from '../audio.js';
 import { spawnImpact, spawnStar, spawnRing, spawnStreak, spawnGlow } from '../fx.js';
 
@@ -21,7 +20,7 @@ export function hitScanProjectile(pr, dt) {
     if (e.dead || pr.hit.has(e)) continue;
     if (dist(pr, e) < pr.r + e.size * 0.75) {
       pr.hit.add(e);
-      damageEnemy(e, pr.dmg, RNG() < p.effCrit, 'proj', pr.wId);
+      CombatSystem.damageEnemy(e, pr.dmg, RNG() < p.effCrit, 'proj', pr.wId);
       AudioEngine.playSfx('hit');
       spawnImpact(e.x, e.y, pr.color, 0);
       if (pr.wId === 'nova') {

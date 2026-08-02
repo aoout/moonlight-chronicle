@@ -2,7 +2,7 @@
    蚀月远征 · 敌人行为：远射魔（保持距离远程射击）
    ========================================================= */
 import { angTo, dist, clamp } from '../../utils.js';
-import { spawnEnemyProjectile } from '../../spawn.js';
+import { SpawnSystem } from '../../systems/SpawnSystem.js';
 
 export function spitterMove(e, dt, p, slowF) {
   const d = dist(e, p);
@@ -22,7 +22,7 @@ export function spitterMove(e, dt, p, slowF) {
       x: p.x + (p.vx || 0) * lead,
       y: p.y + (p.vy || 0) * lead,
     });
-    spawnEnemyProjectile(e, pa);
+    SpawnSystem.spawnEnemyProjectile(e, pa);
   }
   e.vx = Math.cos(a) * e.spd;
   e.vy = Math.sin(a) * e.spd;

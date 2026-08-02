@@ -5,7 +5,7 @@
 import { Component } from '../component.js';
 import { G, STATE, sm } from '../../state.js';
 import { EventBus } from '../../core/event_bus.js';
-import { computeDerived } from '../../player_fn.js';
+import { PlayerSystem } from '../../systems/PlayerSystem.js';
 import { CONFIG, pickBlessings } from '../../data/index.js';
 import { AudioEngine } from '../../audio.js';
 import { $, el, toast } from '../hud.js';
@@ -41,7 +41,7 @@ export class LevelUpPanel extends Component {
         this._close();
         if (G.levelQueue > 0) this.open(p);
         else sm.transition(STATE.PLAYING);
-        computeDerived(p);
+        PlayerSystem.computeDerived(p);
         toast(b.name + ' 已烙印');
       };
       cards.appendChild(c);

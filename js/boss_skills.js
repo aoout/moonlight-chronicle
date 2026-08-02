@@ -7,8 +7,8 @@ import { PROJECTILE_POOL } from './entity_pool.js';
 import { spawnBurst } from './fx.js';
 import { spawnText } from './ui/hud.js';
 import { AudioEngine } from './audio.js';
-import { spawnEnemy } from './spawn.js';
-import { meleeHit } from './combat.js';
+import { SpawnSystem } from './systems/SpawnSystem.js';
+import { CombatSystem } from './systems/CombatSystem.js';
 
 /* ---------- Boss 专属技能 ---------- */
 const BOSS_SKILLS = {
@@ -26,7 +26,7 @@ const BOSS_SKILLS = {
   /* 潮噬之母：产卵孵化潮虫群 */
   spawnTide(e) {
     for (let i = 0; i < 6; i++) {
-      const m = spawnEnemy('grub', { hpMul: 0.5 });
+      const m = SpawnSystem.spawnEnemy('grub', { hpMul: 0.5 });
       m.x = e.x + rand(-70, 70); m.y = e.y + rand(-70, 70);
       m.spd = 130; m.size = 7;
     }
@@ -41,7 +41,7 @@ const BOSS_SKILLS = {
   moonSlash(e) {
     const p = G.player;
     const a = angTo(e, p);
-    meleeHit(e.x + Math.cos(a) * 60, e.y + Math.sin(a) * 60, 110, e.dmg * 1.4, { shake: 10 });
+    CombatSystem.meleeHit(e.x + Math.cos(a) * 60, e.y + Math.sin(a) * 60, 110, e.dmg * 1.4, { shake: 10 });
     for (let i = -2; i <= 2; i++) {
       const ang = a + i * 0.35;
       G.projectiles.push(PROJECTILE_POOL.addWith({ x: e.x, y: e.y, vx: Math.cos(ang) * 380, vy: Math.sin(ang) * 380, r: 8, dmg: e.dmg * 0.8, color: '#b49ae8', hit: new Set(), enemy: true, life: 1.2 }));
@@ -126,7 +126,7 @@ export function bossWave(e) {
   shakeScreen(4);
 }
 export function bossMinions(e) {
-  for (let i = 0; i < 3; i++) spawnEnemy(pick(['grub', 'rat', 'wing', 'charger']), { hpMul: 0.7 });
+  for (let i = 0; i < 3; i++) SpawnSystem.spawnEnemy(pick(['grub', 'rat', 'wing', 'charger']), { hpMul: 0.7 });
 }
 export function bossDash(e) {
   const p = G.player;

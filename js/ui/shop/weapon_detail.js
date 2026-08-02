@@ -7,7 +7,7 @@ import { WEAPONS } from '../../data/index.js';
 import { $, toast } from '../hud.js';
 import { AudioEngine } from '../../audio.js';
 import { iconSVG } from '../../icons.js';
-import { removeWeapon } from '../../player_fn.js';
+import { PlayerSystem } from '../../systems/PlayerSystem.js';
 import { weaponFormulaText, weaponFormulaBreakdown, weaponProjInfo } from './formulas.js';
 import { openShop } from './open_shop.js';
 
@@ -113,7 +113,7 @@ function sellWeapon(id) {
     return;
   }
   G.gold += price;
-  removeWeapon(id);
+  PlayerSystem.removeWeapon(id);
   AudioEngine.playSfx('sell');
   _pwSellConfirm = 0;
   toast(def.name + ' 已出售 +' + price);

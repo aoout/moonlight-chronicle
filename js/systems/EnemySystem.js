@@ -6,7 +6,7 @@
 import { System } from '../core/system.js';
 import { G } from '../state.js';
 import { angTo, dist, clamp } from '../utils.js';
-import { hurtPlayer, killEnemy } from '../combat.js';
+import { CombatSystem } from './CombatSystem.js';
 import { bossTick } from '../boss_skills.js';
 import { ENEMY_SKILLS } from '../enemy_skills.js';
 import { ENEMY_MOVES } from '../enemies/behaviors/index.js';
@@ -28,7 +28,7 @@ function enemyTick(e, dt) {
     e.bleed -= dt;
     e.hp -= 1 + G.stage * 0.2;
     e.flash = 0.15;
-    if (e.hp <= 0) { killEnemy(e, 'bleed'); return; }
+    if (e.hp <= 0) { CombatSystem.killEnemy(e, 'bleed'); return; }
   }
   const type = e.type || '';
   const skill = ENEMY_SKILLS[type];
@@ -46,7 +46,7 @@ function enemyTick(e, dt) {
   if (e.hp > 0 && p.invuln <= 0) {
     const d = dist(e, p);
     if (d < p.r + e.size - 2) {
-      hurtPlayer(e, e.dmg);
+      CombatSystem.hurtPlayer(e, e.dmg);
       const a = angTo(e, p);
       e.x += Math.cos(a) * 16;
       e.y += Math.sin(a) * 16;

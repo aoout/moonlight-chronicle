@@ -3,7 +3,7 @@
    ========================================================= */
 import { G, STATE, sm } from './state.js';
 import { CURSES } from './data/index.js';
-import { computeDerived } from './player_fn.js';
+import { PlayerSystem } from './systems/PlayerSystem.js';
 import { startStage } from './game.js';
 
 /* ---------- 解锁进度存档（localStorage） ---------- */
@@ -69,7 +69,7 @@ export function loadRun() {
     G.weaponCd = {};
     G.weaponCdFull = {};
     G._resumeState = STATE.PLAYING;
-    computeDerived(G.player);
+    PlayerSystem.computeDerived(G.player);
     startStage(G.stage);
     sm.transition(STATE.PLAYING);
     return true;

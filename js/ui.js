@@ -6,7 +6,7 @@
 import { G, STATE, sm } from './state.js';
 import { EventBus } from './core/event_bus.js';
 import { RNG, pick } from './utils.js';
-import { computeDerived } from './player_fn.js';
+import { PlayerSystem } from './systems/PlayerSystem.js';
 import { clearRun, loadRun, loadRunMeta, saveRun } from './save.js';
 import { CONFIG, STAGE_NAMES, LEVELS, CURSES } from './data/index.js';
 import { iconSVG } from './icons.js';
