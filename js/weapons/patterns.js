@@ -7,6 +7,7 @@ import { RNG, rand } from '../utils.js';
 import { PROJECTILE_POOL, PHANTOM_POOL } from '../entity_pool.js';
 import { createEntity, Position, Velocity, Combat, Timer, Renderable, Projectile } from '../ecs/components.js';
 import { evalFormula } from '../data/parser.js';
+import { PROJECTILE_TYPES } from './projectile_types.js';
 
 /**
  * 发射模式注册表
@@ -113,6 +114,13 @@ function createProjectile(p, target, cfg, angle, baseDmg, wId, _idx, _total) {
   const color = projCfg.color || '#fff';
   const r = projCfg.radius || 6;
 
+  // 从注册表获取投射物类型配置
+  const typeName = projCfg.type || 'linear';
+  const typeDef = PROJECTILE_TYPES[typeName] || PROJECTILE_TYPES.linear;
+
+  // 创建上下文对象
+  const ctx = { angle, target, p, cfg, projCfg, wId, baseDmg, lv: cfg.lv || 1 };
+
   const pr = PROJECTILE_POOL.addWith(createEntity(
     Position(p.x, p.y),
     Velocity(Math.cos(angle) * speed, Math.sin(angle) * speed),
@@ -120,17 +128,11 @@ function createProjectile(p, target, cfg, angle, baseDmg, wId, _idx, _total) {
     Combat(baseDmg, pierce),
     Projectile(wId, range, speed, r),
     Timer(0, 0),
-    { dir: angle, hit: new Set(), dead: false,
-      // 类型标记
-      ...(projCfg.type === 'boomerang' ? { boomerang: true, spin: 0, ret: false } : {}),
-      ...(projCfg.type === 'homing' ? { homing: true, target: target.target } : {}),
-      ...(projCfg.type === 'beam' ? { beam: true, dir: angle, dur: 0.22 * (p.duration || 1), width: 14 } : {}),
-      ...(projCfg.type === 'aoe' ? { aoe: true, maxR: (projCfg.aoe || 200) * p.area, slow: projCfg.slow || 0 } : {}),
-      ...(projCfg.type === 'meteor' ? { meteor: true, delay: 0.55, aoe: (projCfg.aoe || 130) * p.area } : {}),
-      ...(projCfg.type === 'acid' ? { acid: true, life: 2 } : {}),
-      ...(projCfg.type === 'ground' ? { ground: true, delay: 0.8, r: projCfg.aoe || 90 } : {}),
-      ...(projCfg.type === 'breath' ? { breath: true, dir: angle, dur: projCfg.dur || 0.6, range: projCfg.range || 300, width: projCfg.width || 14 } : {}),
-      ...(projCfg.type === 'chain' ? { chain: true, chainCount: projCfg.chain || 3, chainFall: projCfg.chainFall || 0.65, chainRange: projCfg.chainRange || 340 } : {}),
+    {
+      dir: angle, hit: new Set(), dead: false,
+      // 使用注册表生成类型特定属性
+      ...typeDef.createFlags(ctx),
+      // 通用属性（不依赖类型）
       ...(projCfg.trail ? { trail: true } : {}),
       ...(projCfg.owner ? { owner: true } : {}),
     }

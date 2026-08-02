@@ -10,6 +10,7 @@ import { PATTERNS } from './patterns.js';
 import { MOVEMENT } from './movement.js';
 import { HIT_DETECTION } from './hit_detection.js';
 import { ON_HIT } from './on_hit.js';
+import { PROJECTILE_TYPES, resolveProjectileType } from './projectile_types.js';
 import { addFx, spawnBurst, spawnSpark, spawnGlow, spawnRing, spawnStar, spawnShard, spawnStreak } from '../fx.js';
 import { shakeScreen } from '../state.js';
 import { queryRadius } from '../spatial.js';
@@ -122,41 +123,26 @@ export function executeProjPipeline(pr, dt, p) {
   spawnTrailFx(pr, dt, moveType);
 }
 
+/* 确定投射物类型配置（从注册表获取） */
+function getTypeConfig(pr) {
+  const typeName = resolveProjectileType(pr);
+  return PROJECTILE_TYPES[typeName] || PROJECTILE_TYPES.linear;
+}
+
 /* 确定运动类型 */
 function getMoveType(pr) {
-  if (pr.meteor) return 'meteor';
-  if (pr.acid) return 'acid';
-  if (pr.ground) return 'ground';
-  if (pr.breath) return 'breath';
-  if (pr.boomerang) return 'boomerang';
-  if (pr.homing) return 'homing';
-  if (pr.beam || pr.aoe) return 'stationary';
-  return 'linear';
+  return getTypeConfig(pr).movement;
 }
 
 /* 确定碰撞检测类型 */
 function getHitType(pr) {
-  if (pr.acid) return 'point';
-  if (pr.ground) return 'point';
-  if (pr.beam) return 'beam';
-  if (pr.aoe) return 'aoe';
-  if (pr.boomerang || pr.homing || pr.vx !== undefined) return 'point';
-  return 'point';
+  return getTypeConfig(pr).hit;
 }
 
 /* 确定命中效果列表 */
 function getOnHitEffects(pr) {
-  const effects = [];
-  if (pr.chain) {
-    // 连锁武器（弧光引雷）：链式闪电处理所有伤害，避免重复
-    effects.push(ON_HIT.weaponSpecific);
-    return effects;
-  }
-  effects.push(ON_HIT.damage);
-  if (pr.slow) effects.push(ON_HIT.slow);
-  if (pr.beam) effects.push(ON_HIT.beam);
-  effects.push(ON_HIT.weaponSpecific);
-  return effects;
+  const cfg = getTypeConfig(pr);
+  return cfg.onHit.map(name => ON_HIT[name]).filter(Boolean);
 }
 
 /* 穿透处理 */
