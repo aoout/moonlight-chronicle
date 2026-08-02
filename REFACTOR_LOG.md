@@ -239,6 +239,66 @@ systems/index.js
 
 ---
 
+---
+
+## V3 重构日志（2026-08-03）
+
+> 在 V2（工具链 + 数据驱动 + 管线架构）基础上，重塑核心架构的优雅性。
+> 核心哲学：**真正的 ECS** 替代伪 ECS，**依赖注入**消除全局 G 依赖，**策略模式**消除条件爆炸。
+
+### Phase 1: 核心基础设施 — ECS World + 依赖注入
+
+- [x] 创建 `js/ecs/World.js` — ECS World 类，封装所有 EntityPool
+- [x] 改造 `System` 基类 — 构造函数接收 `(world, eventBus, config)`
+- [x] 改造 `SystemManager` — 依赖注入容器，自动注入依赖
+- [x] 验证：`npm run build` 零错误
+
+### Phase 2: 武器系统简化 — 策略模式注册表
+
+- [x] 创建 `PROJECTILE_TYPE_REGISTRY` — 投射物类型策略注册表
+- [x] 简化 `pipeline.js` — 用注册表替代 if-else 链
+- [x] 验证：`npm run build` 零错误
+
+### Phase 3: 系统迁移 — 消除 G 全局依赖
+
+- [x] 迁移所有系统（StageTimer, BossCheck, Spatial, Drop, Particle, Orbit, Enemy, Spawn, Projectile, Combat, Player）到 `World` + 依赖注入
+- [x] 更新 `game.js` 入口 — 使用新的 SystemManager
+- [x] 验证：`npm run build` 零错误
+
+### Phase 4: 渲染与逻辑分离
+
+- [x] 创建 `RenderContext` 渲染数据接口
+- [x] 重构所有渲染函数，通过参数接收数据
+- [x] 更新 `render/index.js` 调度
+- [x] 验证：`npm run build` 零错误
+
+### Phase 5: 大文件拆分
+
+- [x] 拆分 `render/effects.js` → `render/effects/` 目录（5 个子模块）
+- [x] 拆分 `ui/shop.js` → `ui/shop/` 目录（6 个子模块），`shop.js` 降级为纯重导出入口
+- [x] 验证：`npm run build` 零错误，生产构建成功
+
+### 变更总结
+
+| 指标 | 重构前 | 重构后 |
+|------|--------|--------|
+| 架构模式 | 伪 ECS — 系统直接读写 `G` | 真 ECS — `World` + 依赖注入 |
+| 最大文件 | `ui/shop.js` (494行) | `render/entities.js` (~200行) |
+| 渲染层耦合 | 直接访问 `EntityPool._data` | 通过 `RenderContext` 纯数据接口 |
+| 武器系统 | `createProjectile` 8 个条件展开 | 策略注册表，一行配置 |
+| 文件总数 | ~60 JS 文件 | ~75 JS 文件（更聚焦的模块） |
+
+### 提交记录
+
+```
+e1c5ea2 Phase 5: 拆分 render/effects.js → render/effects/ 目录
+654176e Phase 4: 渲染与逻辑分离 — 创建 RenderContext 消除渲染层对 G 的直接依赖
+21a9178 refactor(systems): Phase 3 — 实体池操作统一通过 World.add() 完成
+0029bbe refactor(weapons): Phase 2 — 投射物类型策略注册表
+fb50f04 refactor(core): Phase 1 — ECS World + 依赖注入基础设施
+9443ef2 chore: 初始提交 — V2 重构完成后的代码基线
+```
+
 ## 执行原则
 
 1. **每阶段多次提交** — 每个功能步骤完成后 git commit
