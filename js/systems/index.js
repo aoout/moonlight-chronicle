@@ -23,17 +23,18 @@ import { StageTimerSystem } from './StageTimerSystem.js';
 export function createSystemManager() {
   const sm = new SystemManager();
 
-  sm.add(new BossCheckSystem());    // 0: Boss 死亡检查（兜底，早于其他逻辑）
-  sm.add(new PlayerSystem());       // 1: 玩家诅咒/光环/时停/移动/回血/武器
-  sm.add(new CombatSystem());       // 2: 战斗逻辑（事件驱动，空 update）
-  sm.add(new SpawnSystem());        // 3: 敌人生成
-  sm.add(new SpatialSystem());      // 4: 空间哈希网格重建
-  sm.add(new ProjectileSystem());   // 5: 投射物更新+压缩
-  sm.add(new DropSystem());         // 6: 掉落物更新+压缩
-  sm.add(new EnemySystem());        // 7: 敌人更新+压缩
-  sm.add(new OrbitSystem());        // 8: 环舞之刃+月影残像
-  sm.add(new ParticleSystem());     // 9: 粒子更新+压缩
-  sm.add(new StageTimerSystem());   // 10: 关卡计时
+  // 注册系统类（SystemManager 自动注入依赖）
+  sm.add(BossCheckSystem);    // 0: Boss 死亡检查（兜底，早于其他逻辑）
+  sm.add(PlayerSystem);       // 1: 玩家诅咒/光环/时停/移动/回血/武器
+  sm.add(CombatSystem);       // 2: 战斗逻辑（事件驱动，空 update）
+  sm.add(SpawnSystem);        // 3: 敌人生成
+  sm.add(SpatialSystem);      // 4: 空间哈希网格重建
+  sm.add(ProjectileSystem);   // 5: 投射物更新+压缩
+  sm.add(DropSystem);         // 6: 掉落物更新+压缩
+  sm.add(EnemySystem);        // 7: 敌人更新+压缩
+  sm.add(OrbitSystem);        // 8: 环舞之刃+月影残像
+  sm.add(ParticleSystem);     // 9: 粒子更新+压缩
+  sm.add(StageTimerSystem);   // 10: 关卡计时
 
   return sm;
 }

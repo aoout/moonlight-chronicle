@@ -3,7 +3,7 @@
    解耦游戏逻辑与 UI，模块间通信
    ========================================================= */
 
-class EventBusClass {
+export class EventBusClass {
   constructor() {
     this._listeners = {};
   }

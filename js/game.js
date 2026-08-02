@@ -2,13 +2,12 @@
 /* =========================================================
    蚀月远征 · 流程层：关卡 / 主循环 / 更新
    ========================================================= */
-import { G, STATE, sm } from './state.js';
+import { G, STATE, sm, entityState } from './state.js';
 import { EventBus } from './core/event_bus.js';
 import { computeDerived, addWeapon, createPlayer, xpNeeded } from './player_fn.js';
 import { pick } from './utils.js';
 import { CONFIG, STAGE_NAMES, BOSS_POOLS, CURSES } from './data/index.js';
 import { spawnBoss, spawnEnemy } from './enemies.js';
-import { ENEMY_POOL, PROJECTILE_POOL, DROP_POOL, PHANTOM_POOL, PARTICLE_POOL } from './entity_pool.js';
 import { render } from './render/index.js';
 import { createSystemManager } from './systems/index.js';
 import { openShop } from './ui/shop.js';
@@ -27,15 +26,8 @@ export function startStage(n) {
   G.stageName = STAGE_NAMES[n - 1] || ('第 ' + n + ' 夜');
   // 每回合重置武器伤害统计（占比反映当前回合输出构成；totalDmg 保留全程）
   G.runStats.wDmg = {};
-  G.enemies = [];
-  ENEMY_POOL.count = 0;
-  G.projectiles = [];
-  PROJECTILE_POOL.count = 0;
-  G.drops = [];
-  DROP_POOL.count = 0;
-  G.phantoms = [];
-  PHANTOM_POOL.count = 0;
-  PARTICLE_POOL.count = 0;
+  // 使用 World 重置实体池（同时清空 G 列表和 EntityPool）
+  getSysMan().getWorld().resetAll();
   G.spawnAcc = 0;
   G.boss = null;
   const p = G.player;
@@ -84,7 +76,11 @@ export function startRun() {
 /** @type {import('./core/system_manager.js').SystemManager|null} */
 let _sysMan = null;
 function getSysMan() {
-  if (!_sysMan) _sysMan = createSystemManager();
+  if (!_sysMan) {
+    _sysMan = createSystemManager();
+    // 初始化 World：绑定实体列表（G.enemies, G.projectiles 等来自 entityState 切片）
+    _sysMan.initWorld(entityState);
+  }
   return _sysMan;
 }
 
