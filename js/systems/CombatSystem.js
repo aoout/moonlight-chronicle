@@ -35,6 +35,22 @@ export class CombatSystem extends System {
 
   /** CombatSystem 是事件驱动的，不需要每帧更新 */
   update() {}
+
+  /** 静态委托：击杀敌人 */
+  /** @param {any} e @param {string} [srcType] */
+  static killEnemy(e, srcType) { return killEnemy(e, srcType); }
+  /** 静态委托：玩家受伤 */
+  /** @param {any} e @param {number} rawDmg */
+  static hurtPlayer(e, rawDmg) { return hurtPlayer(e, rawDmg); }
+  /** 静态委托：治疗玩家 */
+  /** @param {number} n */
+  static healPlayer(n) { return healPlayer(n); }
+  /** 静态委托：伤害敌人 */
+  /** @param {any} e @param {number} dmg @param {boolean} isCrit @param {string} [srcType] @param {string} [srcW] */
+  static damageEnemy(e, dmg, isCrit, srcType, srcW) { return damageEnemy(e, dmg, isCrit, srcType, srcW); }
+  /** 静态委托：近战打击 */
+  /** @param {number} x @param {number} y @param {number} r @param {number} dmg @param {any} [opts] */
+  static meleeHit(x, y, r, dmg, opts) { return meleeHit(x, y, r, dmg, opts); }
 }
 
 /* =========================================================
@@ -140,7 +156,7 @@ export function killEnemy(e, srcType) {
   }
   spawnBurst(e.x, e.y, e.color || '#fff', e.size);
   if (e.boss) {
-    const st = sSt();
+    const st = /** @type {any} */ (sSt());
     const gs = gSt();
     st.bossKills++;
     stageState.set('boss', null);

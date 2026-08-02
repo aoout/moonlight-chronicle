@@ -11,8 +11,9 @@ export class BossCheckSystem extends System {
 
   /** @param {number} dt */
   update(dt) {
-    const gs = stageState.state;
-    if (gs.boss && gs.boss.dead && G.state === STATE.PLAYING) {
+    const gs = /** @type {any} */ (stageState.state);
+    const b = gs.boss;
+    if (b && b.dead && G.state === STATE.PLAYING) {
       stageState.set('boss', null);
       sm.transition(STATE.SHOP);
     }

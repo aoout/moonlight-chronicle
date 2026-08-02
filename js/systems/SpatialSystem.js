@@ -11,7 +11,14 @@ import { dist } from '../utils.js';
 const SPATIAL_CELL = 120;
 const _grid = new Map();
 
+/**
+ * @param {number} c
+ * @param {number} r
+ */
 function _cellKey(c, r) { return c + ',' + r; }
+/**
+ * @param {number} v
+ */
 function _cellCoord(v) { return Math.floor(v / SPATIAL_CELL); }
 
 export class SpatialSystem extends System {

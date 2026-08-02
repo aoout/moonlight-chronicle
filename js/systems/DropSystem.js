@@ -11,7 +11,7 @@ import { dist, angTo } from '../utils.js';
 import { CONFIG } from '../data/index.js';
 import { spawnBurst } from '../fx.js';
 import { AudioEngine } from '../audio.js';
-import { CombatSystem } from './CombatSystem.js';
+import { CombatSystem, hurtPlayer } from './CombatSystem.js';
 import { PlayerSystem } from './PlayerSystem.js';
 
 export class DropSystem extends System {

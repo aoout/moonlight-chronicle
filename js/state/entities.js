@@ -5,11 +5,11 @@
 import { Store } from '../core/store.js';
 
 const INITIAL = {
-  enemies: [],
-  projectiles: [],
-  drops: [],
-  particles: [],
-  phantoms: [],
+  /** @type {any[]} */ enemies: /** @type {any[]} */ ([]),
+  /** @type {any[]} */ projectiles: /** @type {any[]} */ ([]),
+  /** @type {any[]} */ drops: /** @type {any[]} */ ([]),
+  /** @type {any[]} */ particles: /** @type {any[]} */ ([]),
+  /** @type {any[]} */ phantoms: /** @type {any[]} */ ([]),
 };
 
 /** @type {Store<typeof INITIAL>} */

@@ -84,7 +84,8 @@ export function startRun() {
   stageState.set('curse', gSt().depth >= 1 ? pick(CURSES) : null);
   playerState.set('player', PlayerSystem.createPlayer());
   const p = G.player;
-  if (gSt().curse && p) gSt().curse.apply(p);
+  const curse = /** @type {any} */ (gSt().curse);
+  if (curse && p) curse.apply(p);
   PlayerSystem.addWeapon('moonRing');
   startStage(1);
   EventBus.emit('game:runStart', { depth: gSt().depth, curse: gSt().curse });
@@ -97,7 +98,7 @@ function getSysMan() {
   if (!_sysMan) {
     _sysMan = createSystemManager();
     // 初始化 World：绑定实体列表（G.enemies, G.projectiles 等来自 entityState 切片）
-    _sysMan.initWorld(entityState);
+    _sysMan.initWorld(entityState.state);
   }
   return _sysMan;
 }

@@ -60,7 +60,9 @@ const STORE_MAP = [
 ];
 
 /** 查找属性所属的 Store */
+/** @param {string|symbol} key */
 function findStore(key) {
+  if (typeof key !== 'string') return null;
   for (const entry of STORE_MAP) {
     if (entry.props.includes(key)) {
       return entry.store;
@@ -75,10 +77,11 @@ function findStore(key) {
  * 写入：G.gold = 100 → statsState.set('gold', 100)
  *
  * 动态属性（不在 Store 中，由运行时添加）存储在 _dynamic 中
+ * TS 类型标注为 GState & Record<string,any>，因为 Proxy 运行时路由到各 Store
  *
- * @type {import('./types/core.d.ts').GState}
+ * @type {import('./types/core.d.ts').GState & Record<string,any>}
  */
-export const G = new Proxy({
+export const G = /** @type {any} */ (new Proxy({
   state: STATE.MENU,
   stageMax: CONFIG.STAGE_TIME,
   xpNeeded: CONFIG.XP_PER_LEVEL,
@@ -87,27 +90,31 @@ export const G = new Proxy({
   _resumeState: STATE.PLAYING,
   _timeScale: 1,
   _echoSlowT: 0,
-  _dynamic: {},
+  /** @type {Record<string, any>} */
+  _dynamic: /** @type {Record<string, any>} */ ({}),
 }, {
   get(target, prop) {
-    // 特殊处理 state 属性
-    if (prop === 'state') return target.state;
-    if (prop === 'stageMax') return target.stageMax;
-    if (prop === 'xpNeeded') return target.xpNeeded;
-    if (prop === 'levelUpOpen') return target.levelUpOpen;
-    if (prop === 'shopOpen') return target.shopOpen;
-    if (prop === '_resumeState') return target._resumeState;
-    if (prop === '_timeScale') return target._timeScale;
-    if (prop === '_echoSlowT') return target._echoSlowT;
-    if (prop === '_dynamic') return target._dynamic;
-    // 查找 Store
-    const store = findStore(prop);
-    if (store) return store.get(prop);
-    // 动态属性
-    if (prop in target._dynamic) return target._dynamic[prop];
+    // 特殊处理已知属性
+    if (typeof prop === 'string') {
+      if (prop === 'state') return target.state;
+      if (prop === 'stageMax') return target.stageMax;
+      if (prop === 'xpNeeded') return target.xpNeeded;
+      if (prop === 'levelUpOpen') return target.levelUpOpen;
+      if (prop === 'shopOpen') return target.shopOpen;
+      if (prop === '_resumeState') return target._resumeState;
+      if (prop === '_timeScale') return target._timeScale;
+      if (prop === '_echoSlowT') return target._echoSlowT;
+      if (prop === '_dynamic') return target._dynamic;
+      // 查找 Store
+      const store = findStore(prop);
+      if (store) return store.get(prop);
+      // 动态属性
+      if (prop in target._dynamic) return target._dynamic[prop];
+    }
     return undefined;
   },
   set(target, prop, value) {
+    if (typeof prop !== 'string') return true;
     if (prop === 'state') { target.state = value; return true; }
     if (prop === 'stageMax') { target.stageMax = value; return true; }
     if (prop === 'xpNeeded') { target.xpNeeded = value; return true; }
@@ -125,9 +132,9 @@ export const G = new Proxy({
     return true;
   },
   has(target, prop) {
-    if (prop in target) return true;
+    if (typeof prop === 'string' && prop in target) return true;
     if (findStore(prop)) return true;
-    return prop in target._dynamic;
+    return typeof prop === 'string' && prop in target._dynamic;
   },
   ownKeys(target) {
     const staticKeys = ['state', 'stageMax', 'xpNeeded', 'levelUpOpen', 'shopOpen', '_resumeState', '_timeScale', '_echoSlowT'];
@@ -135,7 +142,7 @@ export const G = new Proxy({
     const dynamicKeys = Object.keys(target._dynamic);
     return [...staticKeys, ...storeKeys, ...dynamicKeys];
   },
-});
+}));
 
 // 状态机同步：每次状态转换后更新 G.state
 sm.onTransition('*', '*', () => { G.state = sm.current; });

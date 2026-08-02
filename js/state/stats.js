@@ -11,7 +11,7 @@ const INITIAL = {
   xpNeeded: 100,
   level: 1,
   levelQueue: 0,
-  runStats: { totalDmg: 0, bossKills: 0, win: false, wDmg: {} },
+  runStats: { totalDmg: 0, bossKills: 0, win: false, wDmg: /** @type {Record<string, number>} */ ({}) },
 };
 
 /** @type {Store<typeof INITIAL>} */

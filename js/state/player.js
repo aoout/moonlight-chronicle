@@ -6,8 +6,10 @@ import { Store } from '../core/store.js';
 
 const INITIAL = {
   player: null,
-  weaponCd: {},
-  weaponCdFull: {},
+  /** @type {Record<string, number>} */
+  weaponCd: /** @type {Record<string, number>} */ ({}),
+  /** @type {Record<string, number>} */
+  weaponCdFull: /** @type {Record<string, number>} */ ({}),
 };
 
 /** @type {Store<typeof INITIAL>} */

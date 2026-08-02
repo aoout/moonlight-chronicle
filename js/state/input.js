@@ -5,7 +5,8 @@
 import { Store } from '../core/store.js';
 
 const INITIAL = {
-  keys: {},
+  /** @type {Record<string, boolean>} */
+  keys: /** @type {Record<string, boolean>} */ ({}),
 };
 
 /** @type {Store<typeof INITIAL>} */
