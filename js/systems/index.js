@@ -14,11 +14,12 @@ import { EnemySystem } from './EnemySystem.js';
 import { OrbitSystem } from './OrbitSystem.js';
 import { ParticleSystem } from './ParticleSystem.js';
 import { StageTimerSystem } from './StageTimerSystem.js';
+import { RenderSystem } from './RenderSystem.js';
 
 /**
  * 创建并注册所有 ECS System，返回 SystemManager 实例
  * 注册顺序即 update 执行顺序，与原有逻辑保持一致：
- *   Boss检查 → 玩家更新 → 敌人生成 → 空间网格 → 投射物 → 掉落物 → 敌人 → 环绕 → 粒子 → 关卡计时
+ *   Boss检查 → 玩家更新 → 敌人生成 → 空间网格 → 投射物 → 掉落物 → 敌人 → 环绕 → 粒子 → 渲染 → 关卡计时
  */
 export function createSystemManager() {
   const sm = new SystemManager();
@@ -34,7 +35,10 @@ export function createSystemManager() {
   sm.add(EnemySystem);        // 7: 敌人更新+压缩
   sm.add(OrbitSystem);        // 8: 环舞之刃+月影残像
   sm.add(ParticleSystem);     // 9: 粒子更新+压缩
-  sm.add(StageTimerSystem);   // 10: 关卡计时
+  sm.add(RenderSystem);       // 10: 渲染（每帧绘制所有实体）
+  sm.add(StageTimerSystem);   // 11: 关卡计时
 
   return sm;
 }
+
+export { RenderSystem } from './RenderSystem.js';

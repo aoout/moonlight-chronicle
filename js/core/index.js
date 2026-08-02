@@ -6,3 +6,4 @@ export { StateMachine } from './state_machine.js';
 export { System } from './system.js';
 export { SystemManager } from './system_manager.js';
 export { Store } from './store.js';
+export { EVENTS } from './events.js';

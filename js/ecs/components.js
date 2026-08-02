@@ -97,6 +97,51 @@ export function Projectile(wId, range, speed, radius) {
 }
 
 /**
+ * 掉落物组件
+ * @param {string} kind  'xp' | 'gold'
+ * @param {number} amount
+ */
+export function Drop(kind, amount) {
+  return { kind, amount, t: 0, take: false };
+}
+
+/**
+ * 粒子组件
+ * @param {number} vx
+ * @param {number} vy
+ * @param {number} life
+ * @param {string} color
+ * @param {number} size
+ */
+export function Particle(vx, vy, life, color, size) {
+  return { vx, vy, life, max: life, color, size, t: 0 };
+}
+
+/**
+ * 残像组件（月影残像）
+ * @param {number} dmg
+ * @param {number} max
+ * @param {number} [fireT]
+ */
+export function Phantom(dmg, max, fireT) {
+  return { dmg, max, fireT: fireT ?? 0, t: 0 };
+}
+
+/**
+ * 光环组件
+ * @param {number} [slow]
+ * @param {number} [dmg]
+ * @param {number} [range]
+ */
+export function Aura(slow, dmg, range) {
+  const a = {};
+  if (slow !== undefined) a.auraSlow = slow;
+  if (dmg !== undefined) a.auraDmg = dmg;
+  if (range !== undefined) a.auraRange = range;
+  return a;
+}
+
+/**
  * 创建实体：合并多个组件为一个平面对象
  * 兼容 EntityPool.addWith() 的接口
  * @param  {...object} components
