@@ -9,8 +9,8 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test": "vitest run",
-    "lint": "eslint 'js/**/*.js'",
-    "format": "prettier --write 'js/**/*.js' 'css/**/*.css'"
+    "lint": "eslint 'js/**/*.ts'",
+    "format": "prettier --write 'js/**/*.ts' 'css/**/*.css'"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
