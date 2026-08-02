@@ -4,18 +4,18 @@
    ========================================================= */
 import { G } from '../state.js';
 import { RNG, dist } from '../utils.js';
-import { PALETTE } from '../palette.js';
+import { PALETTE } from '../data/palette.js';
 import { TARGETING } from './targeting.js';
 import { PATTERNS } from './patterns.js';
 import { MOVEMENT } from './movement.js';
 import { HIT_DETECTION } from './hit_detection.js';
 import { ON_HIT } from './on_hit.js';
 import { PROJECTILE_TYPES, resolveProjectileType } from './projectile_types.js';
-import { addFx, spawnBurst, spawnSpark, spawnGlow, spawnRing, spawnStar, spawnShard, spawnStreak } from '../fx.js';
+import { addFx, spawnBurst, spawnSpark, spawnGlow, spawnRing, spawnStar, spawnShard, spawnStreak } from '../render/effects/fx.js';
 import { shakeScreen } from '../state.js';
-import { queryRadius } from '../spatial.js';
+import { queryRadius } from '../systems/SpatialSystem.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
-import { AudioEngine } from '../audio.js';
+import { AudioEngine } from '../audio/engine.js';
 
 /* =========================================================
    1. 开火管线：将武器定义翻译为投射物

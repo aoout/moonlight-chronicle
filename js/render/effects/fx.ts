@@ -1,10 +1,10 @@
 /* =========================================================
    蚀月远征 · 特效层：粒子生成（爆点 / 火花 / 冲击环 / 星爆）
    ========================================================= */
-import { G } from './state.js';
-import { RNG, rand } from './utils.js';
-import { world } from './ecs/World.js';
-import { addDmgNumber } from './ui/hud.js';
+import { G } from '../../state.js';
+import { RNG, rand } from '../../utils.js';
+import { world } from '../../ecs/World.js';
+import { addDmgNumber } from '../../ui/hud.js';
 
 export function releaseParticle(pa: any): void {
   // 池化粒子由 PARTICLE_POOL 管理，此函数保留调用兼容但无操作

@@ -8,7 +8,7 @@ const { mockEnemies, mockG } = vi.hoisted(() => {
 vi.mock('../state.js', () => ({ G: mockG }));
 
 // 导入被测试模块
-import { buildSpatialGrid, queryRadius, nearestInGrid } from '../spatial.js';
+import { buildSpatialGrid, queryRadius, nearestInGrid } from '../systems/SpatialSystem.js';
 
 describe('Spatial Grid', () => {
   beforeEach(() => {

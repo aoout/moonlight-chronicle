@@ -1,10 +1,10 @@
 /* =========================================================
    蚀月远征 · 存档系统：月光烙记（局内进度） + 解锁进度
    ========================================================= */
-import { G, STATE, sm } from './state.js';
-import { CURSES } from './data/index.js';
-import { PlayerSystem } from './systems/PlayerSystem.js';
-import { startStage } from './game.js';
+import { G, STATE, sm } from '../state.js';
+import { CURSES } from '../data/index.js';
+import { PlayerSystem } from '../systems/PlayerSystem.js';
+import { startStage } from '../game.js';
 
 /* ---------- 解锁进度存档（localStorage） ---------- */
 const SAVE_KEY = 'eclipse_cycle_save';

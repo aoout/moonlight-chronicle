@@ -8,7 +8,8 @@ import { G } from '../state.js';
 import { playerState } from '../state/player.js';
 import { rand, dist, angTo } from '../utils.js';
 import { nearestEnemy } from '../weapons/helpers.js';
-import { spawnGlow } from '../fx.js';
+import { spawnGlow } from '../render/effects/fx.js';
+import type { Phantom } from '../types/core.d.ts';
 
 export class OrbitSystem extends System {
   name = 'OrbitSystem';

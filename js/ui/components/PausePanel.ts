@@ -4,7 +4,7 @@
 import { Component } from '../component.js';
 import { G, STATE, sm } from '../../state.js';
 import { clamp } from '../../utils.js';
-import { AudioEngine } from '../../audio.js';
+import { AudioEngine } from '../../audio/engine.js';
 import { $ } from '../hud.js';
 import { renderStatGroupsInto } from '../shop.js';
 

@@ -14,7 +14,7 @@ import { CONFIG, STAGE_NAMES, BOSS_POOLS, CURSES } from './data/index.js';
 import { render } from './render/index.js';
 import { createSystemManager } from './systems/index.js';
 import { openShop } from './ui/shop.js';
-import { openLevelUp, openResult } from './ui.js';
+import { openLevelUp, openResult } from './ui/scheduler.js';
 import { uiTick } from './ui/hud.js';
 import type { SystemManager } from './core/system_manager.js';
 

@@ -2,7 +2,7 @@
    蚀月远征 · 数据层：武器库
    从 JSON 加载武器数据，通过公式解析器计算伤害
    ========================================================= */
-import { ICONS } from '../icons.js';
+import { ICONS } from '../ui/icons.js';
 import { evalFormula } from './parser.js';
 import weaponsData from './weapons.json';
 import upgradeCost from './upgrade_cost.json';

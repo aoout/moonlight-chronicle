@@ -5,7 +5,7 @@ import { G } from '../state.js';
 import { RNG, dist } from '../utils.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { nearestEnemy } from './helpers.js';
-import { addFx, spawnSpark, spawnStar } from '../fx.js';
+import { addFx, spawnSpark, spawnStar } from '../render/effects/fx.js';
 
 export function chainLightning(src: any, target: any, dmg: number, chains: number, fall: number, maxR: number, color: string, wId: string): void {
   const p = G.player;

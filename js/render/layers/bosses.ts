@@ -2,7 +2,7 @@
    蚀月远征 · 渲染层：Boss 造型注册表
    按 Boss 类型区分身体造型绘制函数
    ========================================================= */
-import { PALETTE } from '../../palette.js';
+import { PALETTE } from '../../data/palette.js';
 
 export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any, s: number, wob: number, t: number, time: number) => void> = {
   behemoth(ctx, e, s, wob, t) {

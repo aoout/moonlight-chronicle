@@ -3,12 +3,12 @@
    ========================================================= */
 import { G } from '../state.js';
 import { RNG, rand, dist } from '../utils.js';
-import { PALETTE } from '../palette.js';
+import { PALETTE } from '../data/palette.js';
 import { WEAPONS } from '../data/index.js';
-import { _neighborEnemies } from '../spatial.js';
+import { neighborEnemies } from '../systems/SpatialSystem.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
-import { AudioEngine } from '../audio.js';
-import { addFx, spawnSpark, spawnGlow, spawnShard } from '../fx.js';
+import { AudioEngine } from '../audio/engine.js';
+import { addFx, spawnSpark, spawnGlow, spawnShard } from '../render/effects/fx.js';
 
 export function orbitTick(dt: number): void {
   const p = G.player;
@@ -25,7 +25,7 @@ export function orbitTick(dt: number): void {
       p.orbits.push({ x: ox, y: oy, a });
       if (RNG() < 0.14) addFx({ x: ox, y: oy, vx: rand(-15, 15), vy: rand(-15, 15), life: 0.3, max: 0.3, size: 2.2, color: PALETTE.gold });
       p.orbitHits = p.orbitHits || {};
-      const orbitCandidates = _neighborEnemies(ox, oy, 80);
+      const orbitCandidates = neighborEnemies(ox, oy, 80);
       for (const e of orbitCandidates) {
         if (e.dead) continue;
         if (dist({ x: ox, y: oy }, e) < 20 + e.size * 0.6) {

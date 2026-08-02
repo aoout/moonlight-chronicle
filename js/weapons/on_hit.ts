@@ -3,10 +3,10 @@
    可组合的命中效果，供 PROJ_TICK 使用
    ========================================================= */
 import { RNG } from '../utils.js';
-import { PALETTE } from '../palette.js';
+import { PALETTE } from '../data/palette.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
-import { AudioEngine } from '../audio.js';
-import { addFx, spawnImpact, spawnStar, spawnRing, spawnStreak, spawnGlow } from '../fx.js';
+import { AudioEngine } from '../audio/engine.js';
+import { addFx, spawnImpact, spawnStar, spawnRing, spawnStreak, spawnGlow } from '../render/effects/fx.js';
 import { chainLightning } from './chain_lightning.js';
 
 interface OnHitArgs {

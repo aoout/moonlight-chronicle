@@ -4,6 +4,7 @@
 import { System } from '../core/system.js';
 import { projTick } from '../weapons/index.js';
 import { world } from '../ecs/World.js';
+import type { Projectile } from '../types/core.d.ts';
 
 export class ProjectileSystem extends System {
   name = 'ProjectileSystem';

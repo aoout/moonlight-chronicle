@@ -2,7 +2,7 @@
 /* =========================================================
    蚀月远征 · 渲染层：投射物绘制
    ========================================================= */
-import { PALETTE } from '../../palette.js';
+import { PALETTE } from '../../data/palette.js';
 import type { RenderContext } from '../context.js';
 
 const PROJ_LINEAR_HEADS: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => void> = {

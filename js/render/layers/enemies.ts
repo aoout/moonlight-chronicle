@@ -2,7 +2,7 @@
    蚀月远征 · 渲染层：敌人造型注册表
    按敌人类型区分身体造型绘制函数
    ========================================================= */
-import { PALETTE } from '../../palette.js';
+import { PALETTE } from '../../data/palette.js';
 
 /* 敌人眼睛（朝向玩家，带高光） */
 function enemyEye(ctx: CanvasRenderingContext2D, x: number, y: number, r?: number): void {

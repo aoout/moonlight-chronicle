@@ -6,7 +6,7 @@ import { G, STATE, sm } from '../../state.js';
 import { EventBus } from '../../core/event_bus.js';
 import { PlayerSystem } from '../../systems/PlayerSystem.js';
 import { CONFIG, pickBlessings } from '../../data/index.js';
-import { AudioEngine } from '../../audio.js';
+import { AudioEngine } from '../../audio/engine.js';
 import { $, el, toast } from '../hud.js';
 import type { Player } from '../../types/core.d.ts';
 

@@ -4,7 +4,7 @@
    ========================================================= */
 import { G } from '../state.js';
 import { dist } from '../utils.js';
-import { _neighborEnemies, queryRadius } from '../spatial.js';
+import { neighborEnemies, queryRadius } from '../systems/SpatialSystem.js';
 
 /**
  * 碰撞检测注册表
@@ -23,7 +23,7 @@ export const HIT_DETECTION: Record<string, (pr: any, dt: number, p: any) => any[
       return [];
     }
     // 玩家投射物：检测敌人
-    const candidates = _neighborEnemies(pr.x, pr.y, pr.r + 60);
+    const candidates = neighborEnemies(pr.x, pr.y, pr.r + 60);
     const hits = [];
     for (const e of candidates) {
       if (e.dead || pr.hit.has(e)) continue;
@@ -38,7 +38,7 @@ export const HIT_DETECTION: Record<string, (pr: any, dt: number, p: any) => any[
   /** 半径碰撞（AOE 范围） */
   radius(pr, dt, _p) {
     const hits = [];
-    const candidates = _neighborEnemies(pr.x, pr.y, pr.maxR || pr.r);
+    const candidates = neighborEnemies(pr.x, pr.y, pr.maxR || pr.r);
     for (const e of candidates) {
       if (e.dead || pr.hit.has(e)) continue;
       if (dist(e, pr) < (pr.r || pr.maxR || 200)) {
@@ -53,7 +53,7 @@ export const HIT_DETECTION: Record<string, (pr: any, dt: number, p: any) => any[
   beam(pr, dt, _p) {
     const hits = [];
     const dx = Math.cos(pr.dir), dy = Math.sin(pr.dir);
-    const candidates = _neighborEnemies(pr.x, pr.y, pr.range || 500);
+    const candidates = neighborEnemies(pr.x, pr.y, pr.range || 500);
     for (const e of candidates) {
       if (e.dead || pr.hit.has(e)) continue;
       const proj = (e.x - pr.x) * dx + (e.y - pr.y) * dy;
@@ -88,7 +88,7 @@ export const HIT_DETECTION: Record<string, (pr: any, dt: number, p: any) => any[
     if (!p) return [];
     // 更新半径
     pr.r = Math.min(pr.maxR, (pr.r || 0) + (pr.maxR || 200) * dt * (pr.enemy ? 1.7 : 2.4 / (p.duration || 1)));
-    const candidates = _neighborEnemies(pr.x, pr.y, pr.maxR || 200);
+    const candidates = neighborEnemies(pr.x, pr.y, pr.maxR || 200);
     for (const e of candidates) {
       if (e.dead || pr.hit.has(e)) continue;
       if (dist(e, pr) < pr.r) {

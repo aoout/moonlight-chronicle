@@ -13,11 +13,11 @@ import { renderState } from '../state/render.js';
 import { EventBus } from '../core/event_bus.js';
 import { RNG, dist, rand } from '../utils.js';
 import { ENEMIES, BOSSES, CONFIG } from '../data/index.js';
-import { queryRadius } from '../spatial.js';
-import { spawnBurst, spawnRing, spawnHitFx } from '../fx.js';
+import { queryRadius } from './SpatialSystem.js';
+import { spawnBurst, spawnRing, spawnHitFx } from '../render/effects/fx.js';
 import { spawnText } from '../ui/hud.js';
-import { AudioEngine } from '../audio.js';
-import { persistUnlocked } from '../save.js';
+import { AudioEngine } from '../audio/engine.js';
+import { persistUnlocked } from '../persistence/save.js';
 import { world } from '../ecs/World.js';
 import { SpawnSystem } from './SpawnSystem.js';
 import { createEntity, Position, Velocity } from '../ecs/components.js';
@@ -162,20 +162,20 @@ export function hurtPlayer(e: any, rawDmg: number): void {
     return;
   }
   let dmg = Math.max(1, rawDmg - p.armor * 0.8);
-  if (p._shield > 0) {
-    const abs = Math.min(p._shield, dmg);
-    p._shield -= abs;
+  if ((p._shield ?? 0) > 0) {
+    const abs = Math.min(p._shield ?? 0, dmg);
+    p._shield = (p._shield ?? 0) - abs;
     dmg -= abs;
     if (dmg <= 0) { spawnText(p.x, p.y - 26, '护盾', '#9fd6e8'); return; }
   }
-  if (p._oath > 0 && p.hp - dmg <= 0) {
-    p._oath--;
+  if ((p._oath ?? 0) > 0 && p.hp - dmg <= 0) {
+    p._oath = (p._oath ?? 0) - 1;
     p.hp = 1;
     dmg = 0;
     p.invuln = Math.max(p.invuln, 1);
     spawnText(p.x, p.y - 26, '守月之约', '#e9c987');
   }
-  if (p._nearDeath > 0 && p.hp - dmg <= p.maxHp * 0.25) {
+  if ((p._nearDeath ?? 0) > 0 && p.hp - dmg <= p.maxHp * 0.25) {
     p._nearDeath = 0;
     p.invuln = Math.max(p.invuln, 3);
     p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.3);

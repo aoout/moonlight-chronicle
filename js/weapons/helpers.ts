@@ -3,7 +3,7 @@
    ========================================================= */
 import { G } from '../state.js';
 import { dist } from '../utils.js';
-import { _neighborEnemies, queryRadius, nearestInGrid } from '../spatial.js';
+import { neighborEnemies, queryRadius, nearestInGrid } from '../systems/SpatialSystem.js';
 
 export function nearestEnemy(x: number, y: number, maxR?: number): any {
   return nearestInGrid(x, y, maxR === undefined ? 1e9 : maxR);
@@ -13,7 +13,7 @@ export function denseEnemySpot(): any {
   const p = G.player;
   if (!p) return null;
   let best = null, bestScore = 0;
-  const candidates = _neighborEnemies(p.x, p.y, 160);
+  const candidates = neighborEnemies(p.x, p.y, 160);
   for (const e of candidates) {
     if (e.dead) continue;
     let score = 0;

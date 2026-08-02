@@ -1,7 +1,7 @@
 /* =========================================================
    蚀月远征 · 数据层：关卡配置 / 诅咒 / 关卡函数
    ========================================================= */
-import { ICONS } from '../icons.js';
+import { ICONS } from '../ui/icons.js';
 import type { Config, LevelDef, CurseDef } from '../types/core.d.ts';
 
 export const CONFIG: Config = {
@@ -9,6 +9,7 @@ export const CONFIG: Config = {
   BOSS_STAGES: [6, 12, 18], FINAL_STAGE: 20,
   SHOP_WEAPON_OFFERS: 2, LEVEL_UP_CHOICES: 3,
   XP_PER_LEVEL: 8, XP_GROWTH: 1.22, PICKUP_RADIUS: 46,
+  MIRROR_DECAY: 0.92,
 };
 
 export const LEVELS: LevelDef[] = [

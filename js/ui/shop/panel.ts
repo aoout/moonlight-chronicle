@@ -5,7 +5,7 @@ import { clamp } from '../../utils.js';
 import { G } from '../../state.js';
 import { SHOP_ITEMS, WEAPONS, STATS } from '../../data/index.js';
 import { $, el } from '../hud.js';
-import { iconSVG, ICONS } from '../../icons.js';
+import { iconSVG, ICONS } from '../icons.js';
 import { showWeaponDetail } from './weapon_detail.js';
 import { showItemDetail } from './item_detail.js';
 

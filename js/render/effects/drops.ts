@@ -1,7 +1,7 @@
 /* =========================================================
    蚀月远征 · 渲染层：掉落物绘制
    ========================================================= */
-import { PALETTE } from '../../palette.js';
+import { PALETTE } from '../../data/palette.js';
 import type { RenderContext } from '../context.js';
 
 export function drawDrops(rc: RenderContext): void {

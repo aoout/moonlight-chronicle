@@ -14,10 +14,7 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "paths": {
-      "*": ["./*"]
-    }
+    "sourceMap": true
   },
   "include": ["js/**/*.ts", "js/**/*.js", "js/**/*.d.ts"],
   "exclude": ["node_modules", "dist"]

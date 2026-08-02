@@ -4,14 +4,14 @@
    ========================================================= */
 import { G } from '../state.js';
 import { RNG, rand, dist, angTo } from '../utils.js';
-import { PALETTE } from '../palette.js';
+import { PALETTE } from '../data/palette.js';
 import { WEAPONS } from '../data/index.js';
 import { world } from '../ecs/World.js';
-import { _neighborEnemies, queryRadius } from '../spatial.js';
-import { addFx, spawnBurst, spawnRing, spawnSpark, spawnStar, spawnShard, spawnStreak, spawnGlow, spawnImpact, spawnHitFx } from '../fx.js';
+import { neighborEnemies, queryRadius } from '../systems/SpatialSystem.js';
+import { addFx, spawnBurst, spawnRing, spawnSpark, spawnStar, spawnShard, spawnStreak, spawnGlow, spawnImpact, spawnHitFx } from '../render/effects/fx.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { shakeScreen } from '../state.js';
-import { AudioEngine } from '../audio.js';
+import { AudioEngine } from '../audio/engine.js';
 import { chainLightning } from './chain_lightning.js';
 import { hitScanProjectile } from './hit_scan.js';
 import { nearestEnemy, denseEnemySpot } from './helpers.js';

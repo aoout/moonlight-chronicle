@@ -12,12 +12,12 @@ import { stageState } from '../state/stage.js';
 import { entityState } from '../state/entities.js';
 import { EventBus } from '../core/event_bus.js';
 import { RNG, rand, clamp, dist } from '../utils.js';
-import { PALETTE } from '../palette.js';
+import { PALETTE } from '../data/palette.js';
 import { CONFIG, BASE_STATS } from '../data/index.js';
-import { addFx, spawnRing } from '../fx.js';
+import { addFx, spawnRing } from '../render/effects/fx.js';
 import { world } from '../ecs/World.js';
 import { weaponFire, nearestEnemy } from '../weapons/index.js';
-import { codexAdd } from '../codex.js';
+import { codexAdd } from '../persistence/codex.js';
 import type { Player } from '../types/core.d.ts';
 
 /** 便捷引用 */
@@ -36,8 +36,8 @@ export class PlayerSystem extends System {
     if (!p) return;
 
     /* ===== 诅咒 & 道具光环 ===== */
-    if (p._curseT > 0) p._curseT -= dt;
-    if (p._shieldMax && p._shield <= 0) {
+    if ((p._curseT ?? 0) > 0) p._curseT = (p._curseT ?? 0) - dt;
+    if (p._shieldMax && (p._shield ?? 0) <= 0) {
       p._shieldT = (p._shieldT || 5) - dt;
       if (p._shieldT <= 0) {
         p._shield = p._shieldMax;
@@ -71,12 +71,12 @@ export class PlayerSystem extends System {
         }
       }
     }
-    if (p._regenBuff > 0) {
-      p._regenBuff -= dt;
+    if ((p._regenBuff ?? 0) > 0) {
+      p._regenBuff = (p._regenBuff ?? 0) - dt;
       p.hp = Math.min(p.maxHp, p.hp + 3 * dt);
     }
-    if (p._huntT > 0) { p._huntT -= dt; if (p._huntT <= 0) p._huntStacks = 0; }
-    if (p._cloakT > 0) p._cloakT -= dt;
+    if ((p._huntT ?? 0) > 0) { p._huntT = (p._huntT ?? 0) - dt; if ((p._huntT ?? 0) <= 0) p._huntStacks = 0; }
+    if ((p._cloakT ?? 0) > 0) p._cloakT = (p._cloakT ?? 0) - dt;
 
     /* ===== 时停 ===== */
     G._timeScale = 1;
@@ -87,7 +87,7 @@ export class PlayerSystem extends System {
         addFx({ timestop: true, t: 0, max: 1.0 });
         p.tsActive = 1.0;
       }
-      if (p.tsActive > 0) { p.tsActive -= dt; G._timeScale = 0.15; }
+      if ((p.tsActive ?? 0) > 0) { p.tsActive = (p.tsActive ?? 0) - dt; G._timeScale = 0.15; }
     }
 
     /* ===== 闪白 / 震屏 / 无敌衰减 ===== */
@@ -105,9 +105,9 @@ export class PlayerSystem extends System {
     const len = Math.hypot(mx, my);
     if (len > 0) {
       p.facing = Math.atan2(my, mx);
-      const moveSpd = p._curseT > 0
+      const moveSpd = (p._curseT ?? 0) > 0
         ? p.effSpeed * 0.55
-        : (p._cloakT > 0 ? p.effSpeed * 1.3 : p.effSpeed);
+        : ((p._cloakT ?? 0) > 0 ? p.effSpeed * 1.3 : p.effSpeed);
       p.vx = (mx / len) * moveSpd;
       p.vy = (my / len) * moveSpd;
       p.x += (mx / len) * moveSpd * dt;
@@ -135,7 +135,7 @@ export class PlayerSystem extends System {
       wcd[w.id] = (wcd[w.id] || 0) - dt;
       if (wcd[w.id] <= 0) {
         const cd = weaponFire(w);
-        const huntBonus = p._huntT > 0 ? (p._huntStacks || 0) * (p._hunt || 0) : 0;
+        const huntBonus = (p._huntT ?? 0) > 0 ? (p._huntStacks || 0) * (p._hunt || 0) : 0;
         wcd[w.id] = cd / p.effAtkSpd / (1 + huntBonus);
         wcdFull[w.id] = wcd[w.id];
       }

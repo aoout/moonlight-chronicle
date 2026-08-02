@@ -4,8 +4,8 @@
 import { G } from '../../state.js';
 import { WEAPONS } from '../../data/index.js';
 import { $, toast } from '../hud.js';
-import { AudioEngine } from '../../audio.js';
-import { iconSVG } from '../../icons.js';
+import { AudioEngine } from '../../audio/engine.js';
+import { iconSVG } from '../icons.js';
 import { PlayerSystem } from '../../systems/PlayerSystem.js';
 import { weaponFormulaText, weaponFormulaBreakdown, weaponProjInfo } from './formulas.js';
 import { openShop } from './open_shop.js';

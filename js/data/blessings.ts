@@ -2,7 +2,7 @@
    蚀月远征 · 数据层：升级祝福
    从 JSON 加载祝福数据，apply 函数保持为 JS
    ========================================================= */
-import { ICONS } from '../icons.js';
+import { ICONS } from '../ui/icons.js';
 import blessingsData from './blessings.json';
 import type { BlessingDef, Player } from '../types/core.d.ts';
 

@@ -1,14 +1,14 @@
 /* =========================================================
    蚀月远征 · Boss 行为 / 专属技能
    ========================================================= */
-import { G, shakeScreen } from './state.js';
-import { RNG, rand, angTo, pick } from './utils.js';
-import { PROJECTILE_POOL } from './entity_pool.js';
-import { spawnBurst } from './fx.js';
-import { spawnText } from './ui/hud.js';
-import { AudioEngine } from './audio.js';
-import { SpawnSystem } from './systems/SpawnSystem.js';
-import { CombatSystem } from './systems/CombatSystem.js';
+import { G, shakeScreen } from '../state.js';
+import { RNG, rand, angTo, pick } from '../utils.js';
+import { PROJECTILE_POOL } from '../ecs/entity_pool.js';
+import { spawnBurst } from '../render/effects/fx.js';
+import { spawnText } from '../ui/hud.js';
+import { AudioEngine } from '../audio/engine.js';
+import { SpawnSystem } from '../systems/SpawnSystem.js';
+import { CombatSystem } from '../systems/CombatSystem.js';
 
 /* ---------- Boss 专属技能 ---------- */
 const BOSS_SKILLS: Record<string, (e: any) => void> = {

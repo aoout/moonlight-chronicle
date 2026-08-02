@@ -1,9 +1,9 @@
 /* =========================================================
    蚀月远征 · 渲染层：敌人 / Boss / 玩家 / 残像
    ========================================================= */
-import { PALETTE } from '../palette.js';
+import { PALETTE } from '../data/palette.js';
 import { clamp } from '../utils.js';
-import { ENEMY_POOL } from '../entity_pool.js';
+import { ENEMY_POOL } from '../ecs/entity_pool.js';
 import { drawEnemyBody } from './layers/enemies.js';
 import { drawBossBody } from './layers/bosses.js';
 import type { RenderContext } from './context.js';
@@ -42,7 +42,7 @@ export function drawEnemies(rc: RenderContext): void {
     // Boss 呼吸光环
     if (e.boss) {
       ctx.globalAlpha = 0.5;
-      ctx.strokeStyle = e.color;
+      ctx.strokeStyle = e.color || '#fff';
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(0, 0, s + 10 + Math.sin(rc.time * 3) * 4, 0, 6.28); ctx.stroke();
       ctx.globalAlpha = 1;
@@ -52,7 +52,7 @@ export function drawEnemies(rc: RenderContext): void {
     ctx.beginPath(); ctx.ellipse(0, s * 0.92, s * 1.15, s * 0.42, 0, 0, 6.28); ctx.fill();
     // 身体造型
     ctx.save();
-    ctx.shadowColor = e.color; ctx.shadowBlur = e.boss ? 18 : 8;
+    ctx.shadowColor = e.color || '#fff'; ctx.shadowBlur = e.boss ? 18 : 8;
     if (e.boss) drawBossBody(ctx, e, s, wob, t, rc.time);
     else drawEnemyBody(ctx, e, s, wob, fa, t, flash, rc.time);
     ctx.restore();

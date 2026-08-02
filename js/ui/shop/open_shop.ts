@@ -4,11 +4,11 @@
 import { G, STATE, sm } from '../../state.js';
 import { EventBus } from '../../core/event_bus.js';
 import { PlayerSystem } from '../../systems/PlayerSystem.js';
-import { codexAdd } from '../../codex.js';
+import { codexAdd } from '../../persistence/codex.js';
 import { CONFIG, WEAPONS, SHOP_ITEMS, inflationRate, WEAPON_UPGRADE_COST } from '../../data/index.js';
 import { $, el, toast } from '../hud.js';
-import { AudioEngine } from '../../audio.js';
-import { iconSVG } from '../../icons.js';
+import { AudioEngine } from '../../audio/engine.js';
+import { iconSVG } from '../icons.js';
 import { weaponFormulaText, weaponRangeText, weaponFormulaBreakdown } from './formulas.js';
 import { renderShopPanel } from './panel.js';
 
@@ -43,7 +43,8 @@ export function openShop(): void {
 
   // 2) 道具卡
   p._boughtItems = p._boughtItems || {};
-  const itemPool = SHOP_ITEMS.filter(it => it.repeat || !p._boughtItems[it.id]);
+  const boughtItems = p._boughtItems;
+  const itemPool = SHOP_ITEMS.filter(it => it.repeat || !boughtItems[it.id]);
   const nItems = 4;
   const itemOffers: any[] = [];
   while (itemOffers.length < nItems && itemPool.length) {
@@ -97,10 +98,12 @@ export function openShop(): void {
       else if (o.kind === 'upWeapon') { PlayerSystem.upgradeWeapon(o.id); toast(title + ' 完成'); }
       else {
         it.apply(p);
-        codexAdd('items', it.id);
-        const cnt = it.repeat ? (p._boughtItems[it.id] || 0) + 1 : 1;
-        p._boughtItems[it.id] = it.repeat ? cnt : true;
-        toast(title + ' 已生效' + (it.repeat && cnt > 1 ? ' x' + cnt : ''));
+      codexAdd('items', it.id);
+      const prev = p._boughtItems?.[it.id];
+      const cnt = it.repeat ? (typeof prev === 'number' ? prev : 0) + 1 : 1;
+      p._boughtItems = p._boughtItems || {};
+      p._boughtItems[it.id] = it.repeat ? cnt : true;
+      toast(title + ' 已生效' + (it.repeat && cnt > 1 ? ' x' + cnt : ''));
       }
       const pl = G.player;
       if (pl) PlayerSystem.computeDerived(pl);

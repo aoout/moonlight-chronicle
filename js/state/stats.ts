@@ -3,6 +3,7 @@
    击杀数、金币、经验、等级、战斗统计
    ========================================================= */
 import { Store } from '../core/store.js';
+import { CONFIG } from '../data/index.js';
 
 interface RunStats {
   totalDmg: number;
@@ -25,7 +26,7 @@ const INITIAL: StatsState = {
   kills: 0,
   gold: 0,
   xp: 0,
-  xpNeeded: 100,
+  xpNeeded: CONFIG.XP_PER_LEVEL,
   level: 1,
   levelQueue: 0,
   runStats: { totalDmg: 0, bossKills: 0, win: false, wDmg: {} },

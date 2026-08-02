@@ -2,23 +2,23 @@
    蚀月远征 · 界面调度器
    负责 UI 事件绑定和组件调度
    ========================================================= */
-import { G, STATE, sm } from './state.js';
-import { EventBus } from './core/event_bus.js';
-import { RNG, pick } from './utils.js';
-import { PlayerSystem } from './systems/PlayerSystem.js';
-import { clearRun, loadRun, loadRunMeta, saveRun } from './save.js';
-import { CONFIG, STAGE_NAMES, LEVELS, CURSES } from './data/index.js';
+import { G, STATE, sm } from '../state.js';
+import { EventBus } from '../core/event_bus.js';
+import { RNG, pick } from '../utils.js';
+import { PlayerSystem } from '../systems/PlayerSystem.js';
+import { clearRun, loadRun, loadRunMeta, saveRun } from '../persistence/save.js';
+import { CONFIG, STAGE_NAMES, LEVELS, CURSES } from '../data/index.js';
 import { iconSVG } from './icons.js';
-import { AudioEngine } from './audio.js';
-import { $, el, showScreen, showStageBanner, toast } from './ui/hud.js';
-import { openShop, renderStatGroupsInto } from './ui/shop.js';
-import { bindCodex } from './ui/codex.js';
-import { startRun, startStage } from './game.js';
-import { LevelUpPanel } from './ui/components/LevelUpPanel.js';
-import { ResultPanel } from './ui/components/ResultPanel.js';
-import { PausePanel } from './ui/components/PausePanel.js';
-import { GateScreen } from './ui/components/GateScreen.js';
-import type { CurseDef } from './types/core.d.ts';
+import { AudioEngine } from '../audio/engine.js';
+import { $, el, showScreen, showStageBanner, toast } from './hud.js';
+import { openShop, renderStatGroupsInto } from './shop/index.js';
+import { bindCodex } from './codex.js';
+import { startRun, startStage } from '../game.js';
+import { LevelUpPanel } from './components/LevelUpPanel.js';
+import { ResultPanel } from './components/ResultPanel.js';
+import { PausePanel } from './components/PausePanel.js';
+import { GateScreen } from './components/GateScreen.js';
+import type { CurseDef } from '../types/core.d.ts';
 
 /* ---------- 组件实例 ---------- */
 export const levelUpPanel = new LevelUpPanel();

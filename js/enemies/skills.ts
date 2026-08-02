@@ -1,11 +1,11 @@
 /* =========================================================
    蚀月远征 · 小怪专属技能（特性化进攻）
    ========================================================= */
-import { G } from './state.js';
-import { RNG, angTo, dist } from './utils.js';
-import { PROJECTILE_POOL } from './entity_pool.js';
-import { spawnBurst } from './fx.js';
-import { CombatSystem } from './systems/CombatSystem.js';
+import { G } from '../state.js';
+import { RNG, angTo, dist } from '../utils.js';
+import { PROJECTILE_POOL } from '../ecs/entity_pool.js';
+import { spawnBurst } from '../render/effects/fx.js';
+import { CombatSystem } from '../systems/CombatSystem.js';
 
 export const ENEMY_SKILLS: Record<string, (e: any, dt: number, p: any) => boolean | void> = {
   /* 蚀蛆：近身喷吐腐蚀酸液，命中减速 */

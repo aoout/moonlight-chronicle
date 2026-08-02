@@ -1,7 +1,7 @@
 /* =========================================================
    蚀月远征 · 数据层：属性定义 & 基础属性
    ========================================================= */
-import { ICONS } from '../icons.js';
+import { ICONS } from '../ui/icons.js';
 import type { StatDef } from '../types/data.d.ts';
 
 export const STATS: Record<string, StatDef> = {

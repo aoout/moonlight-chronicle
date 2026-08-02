@@ -1,16 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import { EntityPool, E_SCHEMA } from '../entity_pool.js';
+import { EntityPool, E_SCHEMA } from '../ecs/entity_pool.js';
+import type { EnemyInstance } from '../types/core.d.ts';
 
 describe('EntityPool', () => {
   it('should create a pool with correct size', () => {
-    const pool = new EntityPool(10, E_SCHEMA);
+    const pool = new EntityPool<EnemyInstance>(10, E_SCHEMA);
     expect(pool.count).toBe(0);
     expect(pool._maxSize).toBe(10);
     expect(pool._stride).toBe(E_SCHEMA.length);
   });
 
   it('should add an entity and increment count', () => {
-    const pool = new EntityPool(10, E_SCHEMA);
+    const pool = new EntityPool<EnemyInstance>(10, E_SCHEMA);
     const view = pool.add();
     expect(pool.count).toBe(1);
     expect(view).toBeDefined();
@@ -19,7 +20,7 @@ describe('EntityPool', () => {
   });
 
   it('should add entity with data via addWith', () => {
-    const pool = new EntityPool(10, E_SCHEMA);
+    const pool = new EntityPool<EnemyInstance>(10, E_SCHEMA);
     const view = pool.addWith({ x: 100, y: 200, hp: 50, dead: 0, color: 'red' });
     expect(pool.count).toBe(1);
     expect(view.x).toBe(100);
@@ -30,7 +31,7 @@ describe('EntityPool', () => {
   });
 
   it('should set fields on existing entity', () => {
-    const pool = new EntityPool(10, E_SCHEMA);
+    const pool = new EntityPool<EnemyInstance>(10, E_SCHEMA);
     const view = pool.add();
     pool.setFields(0, { x: 42, hp: 100 });
     expect(view.x).toBe(42);
@@ -38,7 +39,7 @@ describe('EntityPool', () => {
   });
 
   it('should get/set via TypedArray directly', () => {
-    const pool = new EntityPool(10, E_SCHEMA);
+    const pool = new EntityPool<EnemyInstance>(10, E_SCHEMA);
     pool.addWith({ x: 10, y: 20 });
     expect(pool.get(0, 'x')).toBe(10);
     pool.set(0, 'x', 99);
@@ -46,8 +47,8 @@ describe('EntityPool', () => {
   });
 
   it('should compact dead entities', () => {
-    const pool = new EntityPool(10, E_SCHEMA);
-    const arr = [];
+    const pool = new EntityPool<EnemyInstance>(10, E_SCHEMA);
+    const arr: EnemyInstance[] = [];
     pool.addWith({ dead: 0, x: 1 });
     pool.addWith({ dead: 1, x: 2 });
     pool.addWith({ dead: 0, x: 3 });
@@ -64,7 +65,7 @@ describe('EntityPool', () => {
   });
 
   it('should reset pool to zero', () => {
-    const pool = new EntityPool(10, E_SCHEMA);
+    const pool = new EntityPool<EnemyInstance>(10, E_SCHEMA);
     pool.addWith({ x: 1, y: 2 });
     pool.addWith({ x: 3, y: 4 });
     expect(pool.count).toBe(2);
@@ -73,7 +74,7 @@ describe('EntityPool', () => {
   });
 
   it('should handle multiple addWith calls correctly', () => {
-    const pool = new EntityPool(5, E_SCHEMA);
+    const pool = new EntityPool<EnemyInstance>(5, E_SCHEMA);
     const v1 = pool.addWith({ x: 10, hp: 100, type: 'grub' });
     const v2 = pool.addWith({ x: 20, hp: 200, type: 'rat' });
     expect(pool.count).toBe(2);
@@ -86,8 +87,8 @@ describe('EntityPool', () => {
   });
 
   it('should reuse view indices after compaction', () => {
-    const pool = new EntityPool(10, E_SCHEMA);
-    const arr = [];
+    const pool = new EntityPool<EnemyInstance>(10, E_SCHEMA);
+    const arr: EnemyInstance[] = [];
     const v1 = pool.addWith({ dead: 0, x: 1 });
     const v2 = pool.addWith({ dead: 1, x: 2 });
     const v3 = pool.addWith({ dead: 0, x: 3 });
@@ -102,8 +103,8 @@ describe('EntityPool', () => {
   });
 
   it('should preserve non-schema properties after compaction', () => {
-    const pool = new EntityPool(10, E_SCHEMA);
-    const arr = [];
+    const pool = new EntityPool<EnemyInstance>(10, E_SCHEMA);
+    const arr: EnemyInstance[] = [];
     // 添加3个实体，各有不同的 type/color/state
     pool.addWith({ dead: 0, x: 10, type: 'grub', color: '#ff0000', state: 'chase' });
     pool.addWith({ dead: 1, x: 20, type: 'rat', color: '#00ff00', state: 'flee' });  // 会死
@@ -125,8 +126,8 @@ describe('EntityPool', () => {
   });
 
   it('should clear stale non-schema properties when slot is reused', () => {
-    const pool = new EntityPool(10, E_SCHEMA);
-    const arr = [];
+    const pool = new EntityPool<EnemyInstance>(10, E_SCHEMA);
+    const arr: EnemyInstance[] = [];
     // 先填满槽位 0,1,2
     const v0 = pool.addWith({ dead: 0, x: 1, type: 'a', color: 'red' });
     const v1 = pool.addWith({ dead: 1, x: 2, type: 'b', color: 'green' });  // 会死

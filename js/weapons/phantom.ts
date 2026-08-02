@@ -5,7 +5,8 @@ import { G } from '../state.js';
 import { RNG, rand, dist, angTo } from '../utils.js';
 import { world } from '../ecs/World.js';
 import { nearestEnemy } from './helpers.js';
-import { spawnGlow } from '../fx.js';
+import { spawnGlow } from '../render/effects/fx.js';
+import type { Phantom } from '../types/core.d.ts';
 
 export function phantomTick(dt: number): void {
   const p = G.player;

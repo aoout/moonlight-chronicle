@@ -2,8 +2,8 @@
    蚀月远征 · 入口
    ========================================================= */
 import { G } from './state.js';
-import { fillIconSpans } from './icons.js';
-import { bindUI } from './ui.js';
+import { fillIconSpans } from './ui/icons.js';
+import { bindUI } from './ui/scheduler.js';
 import { gameLoop } from './game.js';
 import { bindDebugKeys } from './debug/panel.js';
 

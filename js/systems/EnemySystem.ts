@@ -8,17 +8,18 @@ import { stageState } from '../state/stage.js';
 import { renderState } from '../state/render.js';
 import { angTo, dist, clamp } from '../utils.js';
 import { CombatSystem } from './CombatSystem.js';
-import { bossTick } from '../boss_skills.js';
-import { ENEMY_SKILLS } from '../enemy_skills.js';
+import { bossTick } from '../enemies/boss_skills.js';
+import { ENEMY_SKILLS } from '../enemies/skills.js';
 import { ENEMY_MOVES } from '../enemies/behaviors/index.js';
 import { world } from '../ecs/World.js';
+import type { EnemyInstance } from '../types/core.d.ts';
 
 /** 便捷引用 */
 const gSt = () => stageState.state;
 const rSt = () => renderState.state;
 
 /* ---------- 敌人主更新 ---------- */
-function enemyTick(e: any, dt: number): void {
+function enemyTick(e: EnemyInstance, dt: number): void {
   const p = G.player;
   if (!p) return;
   const gs: any = gSt();

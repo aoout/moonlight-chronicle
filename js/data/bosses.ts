@@ -2,7 +2,7 @@
    蚀月远征 · 数据层：Boss / Boss 节点池
    从 JSON 加载 Boss 数据
    ========================================================= */
-import { ICONS } from '../icons.js';
+import { ICONS } from '../ui/icons.js';
 import bossesData from './bosses.json';
 import type { BossDef } from '../types/core.d.ts';
 

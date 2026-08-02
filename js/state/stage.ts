@@ -3,7 +3,8 @@
    关卡流程、时间、Boss、深度、诅咒
    ========================================================= */
 import { Store } from '../core/store.js';
-import type { EntityView } from '../entity_pool.js';
+import { CONFIG } from '../data/index.js';
+import type { EnemyInstance, CurseDef } from '../types/core.d.ts';
 
 interface StageState {
   stage: number;
@@ -12,9 +13,9 @@ interface StageState {
   stageName: string;
   time: number;
   spawnAcc: number;
-  boss: EntityView | null;
+  boss: EnemyInstance | null;
   depth: number;
-  curse: any | null;
+  curse: CurseDef | null;
   unlocked: number;
   paused: boolean;
 }
@@ -22,7 +23,7 @@ interface StageState {
 const INITIAL: StageState = {
   stage: 1,
   stageTime: 0,
-  stageMax: 300,
+  stageMax: CONFIG.STAGE_TIME,
   stageName: '',
   time: 0,
   spawnAcc: 0,

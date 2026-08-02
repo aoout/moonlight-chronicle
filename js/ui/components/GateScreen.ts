@@ -4,8 +4,8 @@
 import { Component } from '../component.js';
 import { G } from '../../state.js';
 import { LEVELS } from '../../data/index.js';
-import { iconSVG, moonPhaseSVG } from '../../icons.js';
-import { AudioEngine } from '../../audio.js';
+import { iconSVG, moonPhaseSVG } from '../icons.js';
+import { AudioEngine } from '../../audio/engine.js';
 import { $, el } from '../hud.js';
 
 /* eslint-disable jsdoc/require-jsdoc */

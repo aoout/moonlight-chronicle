@@ -2,7 +2,7 @@
    蚀月远征 · 数据层：敌人图鉴
    从 JSON 加载敌人数据
    ========================================================= */
-import { ICONS } from '../icons.js';
+import { ICONS } from '../ui/icons.js';
 import enemiesData from './enemies.json';
 import type { EnemyDef } from '../types/core.d.ts';
 

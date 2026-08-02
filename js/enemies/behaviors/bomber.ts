@@ -3,7 +3,7 @@
    ========================================================= */
 import { G } from '../../state.js';
 import { RNG, angTo, dist, clamp, rand } from '../../utils.js';
-import { addFx } from '../../fx.js';
+import { addFx } from '../../render/effects/fx.js';
 import { CombatSystem } from '../../systems/CombatSystem.js';
 import { DropSystem } from '../../systems/DropSystem.js';
 import type { EnemyInstance, Player } from '../../types/core.d.ts';

@@ -2,7 +2,7 @@
    蚀月远征 · 武器：瞄准策略模块
    可组合的瞄准行为，供武器管线使用
    ========================================================= */
-import { nearestInGrid, _neighborEnemies, queryRadius } from '../spatial.js';
+import { nearestInGrid, neighborEnemies, queryRadius } from '../systems/SpatialSystem.js';
 
 /**
  * 瞄准策略注册表
@@ -23,7 +23,7 @@ export const TARGETING: Record<string, (p: any, cfg: any) => { target: any; x: n
   denseArea(p, cfg) {
     let best = null, bestScore = 0;
     const r = 160;
-    const candidates = _neighborEnemies(p.x, p.y, cfg.range || 500);
+    const candidates = neighborEnemies(p.x, p.y, cfg.range || 500);
     for (const e of candidates) {
       if (e.dead) continue;
       let score = 0;

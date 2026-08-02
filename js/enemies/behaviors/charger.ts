@@ -16,7 +16,7 @@ export function chargerMove(e: EnemyInstance, dt: number, p: Player, slowF: numb
     e.vx = 0; e.vy = 0;
   } else {
     const a = angTo(e, p);
-    const sp = e.spd + e.dash;
+    const sp = e.spd + (e.dash ?? 0);
     e.x += Math.cos(a) * sp * dt;
     e.y += Math.sin(a) * sp * dt;
     e.vx = Math.cos(a) * sp; e.vy = Math.sin(a) * sp;

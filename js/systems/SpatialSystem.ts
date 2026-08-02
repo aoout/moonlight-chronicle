@@ -82,3 +82,9 @@ export class SpatialSystem extends System {
     return best;
   }
 }
+
+/* ---------- 模块级函数导出（替代旧 spatial.js shim） ---------- */
+export const buildSpatialGrid = SpatialSystem.buildSpatialGrid;
+export const queryRadius = SpatialSystem.queryRadius;
+export const nearestInGrid = SpatialSystem.nearestInGrid;
+export const neighborEnemies = SpatialSystem.neighborEnemies;

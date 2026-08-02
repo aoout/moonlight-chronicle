@@ -1,7 +1,7 @@
 /* =========================================================
    蚀月远征 · 渲染层：Boss 血条
    ========================================================= */
-import { iconSVG } from '../icons.js';
+import { iconSVG } from '../ui/icons.js';
 import type { RenderContext } from './context.js';
 
 export function drawBossBar(rc: RenderContext): void {

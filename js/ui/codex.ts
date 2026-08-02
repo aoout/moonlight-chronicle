@@ -3,10 +3,10 @@
    （敌人/Boss 遇过解锁，武器/道具购得解锁）
    ========================================================= */
 import { $, el } from './hud.js';
-import { iconSVG } from '../icons.js';
+import { iconSVG } from './icons.js';
 import { ENEMIES, BOSSES, WEAPONS, SHOP_ITEMS } from '../data/index.js';
-import { AudioEngine } from '../audio.js';
-import { codexUnlocked } from '../codex.js';
+import { AudioEngine } from '../audio/engine.js';
+import { codexUnlocked } from '../persistence/codex.js';
 import { weaponRangeText } from './shop.js';
 import { ENEMY_SHAPES, BOSS_SHAPES } from '../render/index.js';
 import type { WeaponDef, ShopItemDef } from '../types/core.d.ts';

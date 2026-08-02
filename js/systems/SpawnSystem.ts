@@ -9,8 +9,9 @@ import { renderState } from '../state/render.js';
 import { RNG, rand, pick } from '../utils.js';
 import { ENEMIES, BOSSES, CONFIG, enemyScale, levelEnemyScale, stageSpawnRate, stageEnemyPool } from '../data/index.js';
 import { world } from '../ecs/World.js';
-import { codexAdd } from '../codex.js';
+import { codexAdd } from '../persistence/codex.js';
 import { createEntity, Position, Health, Renderable, Combat, Timer, Status, Enemy, Velocity } from '../ecs/components.js';
+import type { EnemyInstance } from '../types/core.d.ts';
 
 /** 便捷引用 */
 const gSt = () => stageState.state;
@@ -36,7 +37,7 @@ export class SpawnSystem extends System {
      ============================================================= */
 
   /** 生成敌人 */
-  static spawnEnemy(type: string, opts?: { hpMul?: number }): any {
+  static spawnEnemy(type: string, opts?: { hpMul?: number }): EnemyInstance {
     const def = ENEMIES[type];
     const gs: any = gSt();
     const rs: any = rSt();
@@ -69,13 +70,13 @@ export class SpawnSystem extends System {
         dash: def.dash || 0, projSpd: def.projSpd || 0, projDmg: def.projDmg || 0,
         ranged: def.ranged || false,
       }
-    ));
+    )) as EnemyInstance;
     e.maxHp = e.hp;
     return e;
   }
 
   /** 生成 Boss */
-  static spawnBoss(type: string): any {
+  static spawnBoss(type: string): EnemyInstance {
     const def = BOSSES[type];
     const gs: any = gSt();
     const rs: any = rSt();
@@ -100,20 +101,22 @@ export class SpawnSystem extends System {
         skills: def.skills || ['wave'],
         attCd: def.attCd || 3.4,
       }
-    ));
-    (e as any).maxHp = e.hp;
+    )) as EnemyInstance;
+    e.maxHp = e.hp;
     stageState.set('boss', e);
     return e;
   }
 
   /** 敌人投射物（远射魔等） */
-  static spawnEnemyProjectile(e: any, ang: number): void {
+  static spawnEnemyProjectile(e: EnemyInstance, ang: number): void {
     const gs: any = gSt();
+    const projSpd = e.projSpd ?? 0;
+    const projDmg = e.projDmg ?? 0;
     world.add('projectiles', createEntity(
       Position(e.x, e.y),
-      Velocity(Math.cos(ang) * e.projSpd, Math.sin(ang) * e.projSpd),
+      Velocity(Math.cos(ang) * projSpd, Math.sin(ang) * projSpd),
       Renderable('#7fd6a4', 5),
-      Combat(e.projDmg * enemyScale(gs.stage).dmg, 0),
+      Combat(projDmg * enemyScale(gs.stage).dmg, 0),
       Timer(0, 4),
       { enemy: true, hit: new Set() }
     ));

@@ -2,11 +2,11 @@
    蚀月远征 · HUD 层：血条 / 夜之铭牌 / 武器栏液面与冷却
    ========================================================= */
 import { G } from '../state.js';
-import { PALETTE } from '../palette.js';
+import { PALETTE } from '../data/palette.js';
 import { clamp } from '../utils.js';
 import { CONFIG } from '../data/index.js';
 import { WEAPONS } from '../data/index.js';
-import { iconSVG } from '../icons.js';
+import { iconSVG } from './icons.js';
 
 export const $ = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 export const el = (tag: string, cls?: string, html?: string): HTMLElement => {

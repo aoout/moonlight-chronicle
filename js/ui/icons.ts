@@ -5,7 +5,7 @@
    尺寸跟随 font-size（width/height = 1em），颜色继承文字色。
    ========================================================= */
 
-import { clamp } from './utils.js';
+import { clamp } from '../utils.js';
 
 const IC = {
   // 基础 SVG 包裹（所有图标共用此结构）

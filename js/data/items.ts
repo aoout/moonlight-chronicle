@@ -2,7 +2,7 @@
    蚀月远征 · 数据层：商店道具
    从 JSON 加载道具元数据，apply 函数保持为 JS
    ========================================================= */
-import { ICONS } from '../icons.js';
+import { ICONS } from '../ui/icons.js';
 import itemsData from './items.json';
 import type { ShopItemDef, Player } from '../types/core.d.ts';
 

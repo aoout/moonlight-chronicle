@@ -3,11 +3,11 @@
    ========================================================= */
 import { G } from '../state.js';
 import { RNG, dist } from '../utils.js';
-import { PALETTE } from '../palette.js';
-import { _neighborEnemies } from '../spatial.js';
+import { PALETTE } from '../data/palette.js';
+import { neighborEnemies } from '../systems/SpatialSystem.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
-import { AudioEngine } from '../audio.js';
-import { spawnImpact, spawnStar, spawnRing, spawnStreak, spawnGlow } from '../fx.js';
+import { AudioEngine } from '../audio/engine.js';
+import { spawnImpact, spawnStar, spawnRing, spawnStreak, spawnGlow } from '../render/effects/fx.js';
 
 export function hitScanProjectile(pr: any, dt: number): void {
   const p = G.player;
@@ -16,7 +16,7 @@ export function hitScanProjectile(pr: any, dt: number): void {
     if (dist(pr, p) < pr.r + p.r - 2) { CombatSystem.hurtPlayer(pr, pr.dmg); pr.dead = true; }
     return;
   }
-  const candidates = _neighborEnemies(pr.x, pr.y, pr.r + 60);
+  const candidates = neighborEnemies(pr.x, pr.y, pr.r + 60);
   for (const e of candidates) {
     if (e.dead || pr.hit.has(e)) continue;
     if (dist(pr, e) < pr.r + e.size * 0.75) {

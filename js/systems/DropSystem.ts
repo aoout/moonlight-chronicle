@@ -8,10 +8,11 @@ import { playerState } from '../state/player.js';
 import { world } from '../ecs/World.js';
 import { dist, angTo } from '../utils.js';
 import { CONFIG } from '../data/index.js';
-import { spawnBurst } from '../fx.js';
-import { AudioEngine } from '../audio.js';
+import { spawnBurst } from '../render/effects/fx.js';
+import { AudioEngine } from '../audio/engine.js';
 import { CombatSystem, hurtPlayer } from './CombatSystem.js';
 import { PlayerSystem } from './PlayerSystem.js';
+import type { Drop } from '../types/core.d.ts';
 
 export class DropSystem extends System {
   name = 'DropSystem';
@@ -19,7 +20,7 @@ export class DropSystem extends System {
   update(dt: number): void {
     const drops = world.query('drops');
     for (const d of drops) DropSystem.dropTick(d, dt);
-    world.compact('drops', d => d.take);
+    world.compact('drops', d => !!d.take);
   }
 
   /* =============================================================
@@ -27,7 +28,7 @@ export class DropSystem extends System {
      ============================================================= */
 
   /** 掉落物 tick */
-  static dropTick(d: any, dt: number): void {
+  static dropTick(d: Drop, dt: number): void {
     const p = G.player;
     if (!p) return;
     d.t += dt;
@@ -45,9 +46,9 @@ export class DropSystem extends System {
   }
 
   /** 拾取掉落物 */
-  static collectDrop(d: any): void {
+  static collectDrop(d: Drop): void {
     if (d.take) return;
-    d.take = true;
+    d.take = 1;
     AudioEngine.playSfx('pickup');
     const p = G.player;
     if (p && d.kind === 'gold' && p._coinHeal) CombatSystem.healPlayer(p._coinHeal * d.amount);

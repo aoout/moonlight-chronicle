@@ -3,14 +3,16 @@
    所有游戏实体集合
    ========================================================= */
 import { Store } from '../core/store.js';
-import type { EntityView } from '../entity_pool.js';
+import type {
+  EnemyInstance, Projectile, Drop, Particle, Phantom,
+} from '../types/core.d.ts';
 
 interface EntityState {
-  enemies: EntityView[];
-  projectiles: EntityView[];
-  drops: EntityView[];
-  particles: EntityView[];
-  phantoms: EntityView[];
+  enemies: EnemyInstance[];
+  projectiles: Projectile[];
+  drops: Drop[];
+  particles: Particle[];
+  phantoms: Phantom[];
 }
 
 const INITIAL: EntityState = {

@@ -3,8 +3,8 @@
    ========================================================= */
 import { Component } from '../component.js';
 import { G } from '../../state.js';
-import { clearRun } from '../../save.js';
-import { iconSVG } from '../../icons.js';
+import { clearRun } from '../../persistence/save.js';
+import { iconSVG } from '../icons.js';
 import { $, el } from '../hud.js';
 
 /* eslint-disable jsdoc/require-jsdoc */

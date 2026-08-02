@@ -3,6 +3,7 @@
    ========================================================= */
 import { System } from '../core/system.js';
 import { world } from '../ecs/World.js';
+import type { Particle } from '../types/core.d.ts';
 
 export class ParticleSystem extends System {
   name = 'ParticleSystem';
