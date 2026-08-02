@@ -43,4 +43,7 @@ export class System {
   /** 游戏状态切换时调用（如进入/离开 PLAYING 状态） */
   /** @param {string} from @param {string} to */
   onStateChange(from, to) {}
+
+  /** 系统销毁时调用（清理资源、取消订阅等） */
+  destroy() {}
 }

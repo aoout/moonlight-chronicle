@@ -102,8 +102,9 @@ export class SystemManager {
     }
   }
 
-  /** 清除所有系统 */
+  /** 清除所有系统（先销毁再清空） */
   clear() {
+    for (const sys of this._systems) sys.destroy();
     this._systems = [];
     this._nameMap = {};
   }
