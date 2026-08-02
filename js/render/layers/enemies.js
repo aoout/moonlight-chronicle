@@ -4,7 +4,6 @@
    按敌人类型区分身体造型绘制函数
    ========================================================= */
 import { PALETTE } from '../../palette.js';
-import { G } from '../../state.js';
 
 /* 敌人眼睛（朝向玩家，带高光） */
 /**
@@ -21,7 +20,7 @@ function enemyEye(ctx, x, y, r) {
   ctx.beginPath(); ctx.arc(x + rr * 0.3, y - rr * 0.3, rr * 0.42, 0, 6.28); ctx.fill();
 }
 
-/** @type {Record<string, (ctx:CanvasRenderingContext2D, e:any, s:number, wob:number, fa:number, t:number) => void>} */
+/** @type {Record<string, (ctx:CanvasRenderingContext2D, e:any, s:number, wob:number, fa:number, t:number, time:number) => void>} */
 export const ENEMY_SHAPES = {
   _default(ctx, e, s, wob, fa, t) {
     ctx.fillStyle = e.color;
@@ -41,9 +40,9 @@ export const ENEMY_SHAPES = {
     ctx.beginPath(); ctx.moveTo(s * 0.95, -s * 0.3); ctx.quadraticCurveTo(s * 1.55, -s * 0.95, s * 1.85, -s * 0.5); ctx.stroke();
     enemyEye(ctx, s * 0.72, -s * 0.08);
   },
-  rat(ctx, e, s, wob, fa, t) {
+  rat(ctx, e, s, wob, fa, t, time) {
     const color = e.color;
-    ctx.translate(Math.sin(G.time * 10) * 0.9, 0);
+    ctx.translate(Math.sin(time * 10) * 0.9, 0);
     ctx.fillStyle = color;
     ctx.beginPath(); ctx.arc(0, wob, s, 0, 6.28); ctx.fill();
     ctx.beginPath(); ctx.arc(-s * 0.6, -s * 0.72, s * 0.42, 0, 6.28); ctx.fill();
@@ -67,9 +66,9 @@ export const ENEMY_SHAPES = {
     ctx.beginPath(); ctx.moveTo(s * 0.72, -s * 0.62); ctx.lineTo(s * 1.05, -s * 1.35); ctx.lineTo(s * 0.4, -s * 0.85); ctx.closePath(); ctx.fill();
     enemyEye(ctx, 0, -s * 0.08);
   },
-  wing(ctx, e, s, wob, fa, t) {
+  wing(ctx, e, s, wob, fa, t, time) {
     const color = e.color;
-    const wa = Math.sin(G.time * 5) * 0.28;
+    const wa = Math.sin(time * 5) * 0.28;
     ctx.save(); ctx.rotate(fa * 0.35 + wa);
     ctx.fillStyle = color;
     ctx.beginPath(); ctx.moveTo(-s, wob); ctx.lineTo(-s * 2.3, wob - s * 1.3); ctx.lineTo(-s * 0.55, wob - s * 0.2); ctx.closePath(); ctx.fill();
@@ -93,7 +92,7 @@ export const ENEMY_SHAPES = {
     ctx.beginPath(); ctx.moveTo(0, -s * 0.8); ctx.lineTo(s * 0.38, -s * 1.55); ctx.lineTo(-s * 0.1, -s * 1.1); ctx.closePath(); ctx.fill();
     enemyEye(ctx, -s * 0.32, -s * 0.38);
   },
-  spitter(ctx, e, s, wob, fa, t) {
+  spitter(ctx, e, s, wob, fa, t, time) {
     const color = e.color;
     ctx.fillStyle = color;
     ctx.beginPath(); ctx.arc(0, wob, s, 0, 6.28); ctx.fill();
@@ -102,19 +101,19 @@ export const ENEMY_SHAPES = {
     ctx.fillRect(s * 0.35, -s * 0.24, s * 1.15, s * 0.48);
     ctx.fillStyle = '#eafff4';
     ctx.beginPath(); ctx.arc(s * 1.55, 0, s * 0.24, 0, 6.28); ctx.fill();
-    ctx.globalAlpha = 0.45 + 0.45 * Math.sin(G.time * 6);
+    ctx.globalAlpha = 0.45 + 0.45 * Math.sin(time * 6);
     ctx.beginPath(); ctx.arc(s * 1.55, 0, s * 0.14, 0, 6.28); ctx.fill();
     ctx.globalAlpha = 1;
     ctx.restore();
     enemyEye(ctx, -s * 0.2, -s * 0.2);
   },
-  splitter(ctx, e, s, wob, fa, t) {
+  splitter(ctx, e, s, wob, fa, t, time) {
     const color = e.color;
     ctx.fillStyle = color;
     ctx.beginPath(); ctx.arc(0, wob, s, 0, 6.28); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,.2)';
     [[0.3, -0.4, 0.3], [-0.42, 0.22, 0.36], [0.15, 0.52, 0.26]].forEach(([dx, dy, r], i) => {
-      const pulse = 1 + 0.18 * Math.sin(G.time * 3 + i * 2);
+      const pulse = 1 + 0.18 * Math.sin(time * 3 + i * 2);
       ctx.beginPath(); ctx.arc(dx * s, dy * s + wob, r * s * pulse, 0, 6.28); ctx.fill();
     });
     enemyEye(ctx, 0, -s * 0.15);
@@ -138,9 +137,9 @@ export const ENEMY_SHAPES = {
     ctx.beginPath(); ctx.arc(-s * 0.3, -s * 0.1 + wob, s * 0.18, 0, 6.28); ctx.fill();
     ctx.beginPath(); ctx.arc(s * 0.3, -s * 0.1 + wob, s * 0.18, 0, 6.28); ctx.fill();
   },
-  giant(ctx, e, s, wob, fa, t) {
+  giant(ctx, e, s, wob, fa, t, time) {
     const color = e.color;
-    const gs = s * (1 + 0.03 * Math.sin(G.time * 2));
+    const gs = s * (1 + 0.03 * Math.sin(time * 2));
     ctx.fillStyle = color;
     ctx.beginPath(); ctx.arc(0, wob, gs, 0, 6.28); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = gs * 0.1;
@@ -154,9 +153,9 @@ export const ENEMY_SHAPES = {
     enemyEye(ctx, -gs * 0.38, -gs * 0.36, gs * 0.13);
     enemyEye(ctx, gs * 0.38, -gs * 0.36, gs * 0.13);
   },
-  bomber(ctx, e, s, wob, fa, t) {
+  bomber(ctx, e, s, wob, fa, t, time) {
     const color = e.color;
-    const bs = s * (1 + 0.07 * Math.sin(G.time * 4));
+    const bs = s * (1 + 0.07 * Math.sin(time * 4));
     ctx.fillStyle = color;
     ctx.beginPath(); ctx.arc(0, wob, bs, 0, 6.28); ctx.fill();
     ctx.strokeStyle = color; ctx.lineWidth = 1.5;
@@ -180,10 +179,11 @@ export const ENEMY_SHAPES = {
  * @param {number} fa
  * @param {number} t
  * @param {number} [flash]
+ * @param {number} [time]
  */
-export function drawEnemyBody(ctx, e, /** @type {number} */ s, wob, fa, t, flash) {
-  const fn = /** @type {any} */ (ENEMY_SHAPES)[e.type || ''] || ENEMY_SHAPES._default;
-  fn(ctx, e, s, wob, fa, t);
+export function drawEnemyBody(ctx, e, /** @type {number} */ s, wob, fa, t, flash, time) {
+  const fn = /** @type {any} */ (ENEMY_SHAPES[e.type || ''] || ENEMY_SHAPES._default);
+  fn(ctx, e, s, wob, fa, t, time || 0);
   if (flash != null && flash > 0) {
     ctx.fillStyle = '#ffffff';
     ctx.globalAlpha = Math.min(1, flash * 5);

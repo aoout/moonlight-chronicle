@@ -2,16 +2,18 @@
 /* =========================================================
    蚀月远征 · 渲染层：敌人 / Boss / 玩家 / 残像
    ========================================================= */
-import { G } from '../state.js';
 import { PALETTE } from '../palette.js';
 import { clamp } from '../utils.js';
 import { ENEMY_POOL } from '../entity_pool.js';
 import { drawEnemyBody } from './layers/enemies.js';
 import { drawBossBody } from './layers/bosses.js';
 
-export function drawEnemies() {
-  const ctx = G.ctx;
-  const p = G.player;
+/**
+ * @param {import('./context.js').RenderContext} rc
+ */
+export function drawEnemies(rc) {
+  const ctx = rc.ctx;
+  const p = rc.player;
   if (!ctx || !p) return;
   const pool = ENEMY_POOL;
   const data = pool._data;
@@ -30,7 +32,7 @@ export function drawEnemies() {
     // 从 TypedArray 批量读取热数值属性
     const ex = data[base + off.x], ey = data[base + off.y];
     const s = data[base + off.size];
-    const t = G.time * 3 + (data[base + off.t] || 0) * 4;
+    const t = rc.time * 3 + (data[base + off.t] || 0) * 4;
     const wob = Math.sin(t) * 2;
     const fa = Math.atan2(p.y - ey, p.x - ex);
     const flash = data[base + off.flash];
@@ -45,7 +47,7 @@ export function drawEnemies() {
       ctx.globalAlpha = 0.5;
       ctx.strokeStyle = e.color;
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(0, 0, s + 10 + Math.sin(G.time * 3) * 4, 0, 6.28); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, s + 10 + Math.sin(rc.time * 3) * 4, 0, 6.28); ctx.stroke();
       ctx.globalAlpha = 1;
     }
     // 脚下阴影（俯视投影）
@@ -54,8 +56,8 @@ export function drawEnemies() {
     // 身体造型
     ctx.save();
     ctx.shadowColor = e.color; ctx.shadowBlur = e.boss ? 18 : 8;
-    if (e.boss) drawBossBody(ctx, e, s, wob, t);
-    else drawEnemyBody(ctx, e, s, wob, fa, t, flash);
+    if (e.boss) drawBossBody(ctx, e, s, wob, t, rc.time);
+    else drawEnemyBody(ctx, e, s, wob, fa, t, flash, rc.time);
     ctx.restore();
     // 减速结霜（霜华之环命中反馈）
     if (slow > 0) {
@@ -64,25 +66,25 @@ export function drawEnemies() {
       ctx.beginPath(); ctx.arc(0, wob, s + 1, 0, 6.28); ctx.fill();
       ctx.globalAlpha = 0.8;
       for (let i = 0; i < 5; i++) {
-        const a = i * 1.256 + G.time * 0.6;
+        const a = i * 1.256 + rc.time * 0.6;
         ctx.beginPath(); ctx.arc(Math.cos(a) * s * 0.62, wob + Math.sin(a) * s * 0.62, 1.2, 0, 6.28); ctx.fill();
       }
       ctx.globalAlpha = 1;
     }
     // 裂口魔蓄力预警（windup 阶段红闪）
     if (e.type === 'charger' && e.state === 'windup') {
-      ctx.globalAlpha = 0.35 + 0.4 * Math.sin(G.time * 14);
+      ctx.globalAlpha = 0.35 + 0.4 * Math.sin(rc.time * 14);
       ctx.strokeStyle = '#ff5c5c';
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(0, wob, s + 5 + Math.sin(G.time * 14) * 2, 0, 6.28); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, wob, s + 5 + Math.sin(rc.time * 14) * 2, 0, 6.28); ctx.stroke();
       ctx.globalAlpha = 1;
     }
     // Boss 低血狂暴（红环）
     if (e.boss && hp / maxHp < 0.3) {
-      ctx.globalAlpha = 0.3 + 0.3 * Math.sin(G.time * 10);
+      ctx.globalAlpha = 0.3 + 0.3 * Math.sin(rc.time * 10);
       ctx.strokeStyle = PALETTE.blood;
       ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.arc(0, wob, s + 14 + Math.sin(G.time * 10) * 3, 0, 6.28); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, wob, s + 14 + Math.sin(rc.time * 10) * 3, 0, 6.28); ctx.stroke();
       ctx.globalAlpha = 1;
     }
     // 血条
@@ -98,13 +100,16 @@ export function drawEnemies() {
 }
 
 /* 月影残像：半透明月轮分身 */
-export function drawPhantoms() {
-  const ctx = G.ctx;
+/**
+ * @param {import('./context.js').RenderContext} rc
+ */
+export function drawPhantoms(rc) {
+  const ctx = rc.ctx;
   if (!ctx) return;
-  for (const ph of G.phantoms) {
+  for (const ph of rc.phantoms) {
     ctx.save();
     ctx.translate(ph.x, ph.y);
-    ctx.globalAlpha = 0.5 + 0.18 * Math.sin(G.time * 4 + ph.t * 6);
+    ctx.globalAlpha = 0.5 + 0.18 * Math.sin(rc.time * 4 + ph.t * 6);
     ctx.fillStyle = '#c9b8f0';
     ctx.shadowColor = '#c9b8f0'; ctx.shadowBlur = 12;
     ctx.beginPath(); ctx.arc(0, 0, 12, 0, 6.28); ctx.fill();
@@ -116,9 +121,12 @@ export function drawPhantoms() {
   }
 }
 
-export function drawPlayer() {
-  const ctx = G.ctx;
-  const p = G.player;
+/**
+ * @param {import('./context.js').RenderContext} rc
+ */
+export function drawPlayer(rc) {
+  const ctx = rc.ctx;
+  const p = rc.player;
   if (!ctx || !p) return;
   // 脚下阴影（俯视投影）
   ctx.save();
@@ -163,14 +171,14 @@ export function drawPlayer() {
     ctx.globalAlpha = Math.min(1, p.invuln) * 0.6;
     ctx.strokeStyle = PALETTE.ice;
     ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(0, 0, p.r + 5 + Math.sin(G.time * 8) * 2, 0, 6.28); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, p.r + 5 + Math.sin(rc.time * 8) * 2, 0, 6.28); ctx.stroke();
     ctx.restore();
   }
   // 受击红闪
-  if (G.hitFlash > 0) {
+  if (rc.hitFlash > 0) {
     ctx.save();
     ctx.translate(p.x, p.y);
-    ctx.globalAlpha = Math.min(1, G.hitFlash * 3) * 0.5;
+    ctx.globalAlpha = Math.min(1, rc.hitFlash * 3) * 0.5;
     ctx.fillStyle = PALETTE.blood;
     ctx.beginPath(); ctx.arc(0, 0, p.r, 0, 6.28); ctx.fill();
     ctx.restore();

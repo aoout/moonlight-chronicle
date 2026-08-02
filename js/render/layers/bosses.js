@@ -4,9 +4,8 @@
    按 Boss 类型区分身体造型绘制函数
    ========================================================= */
 import { PALETTE } from '../../palette.js';
-import { G } from '../../state.js';
 
-/** @type {Record<string, (ctx:CanvasRenderingContext2D, e:any, s:number, wob:number, t:number) => void>} */
+/** @type {Record<string, (ctx:CanvasRenderingContext2D, e:any, s:number, wob:number, t:number, time:number) => void>} */
 export const BOSS_SHAPES = {
   behemoth(ctx, e, s, wob, t) {
     ctx.fillStyle = e.color;
@@ -44,12 +43,12 @@ export const BOSS_SHAPES = {
     ctx.beginPath(); ctx.arc(-s * 0.35, -s * 0.1 + wob, s * 0.1, 0, 6.28); ctx.fill();
     ctx.beginPath(); ctx.arc(s * 0.35, -s * 0.1 + wob, s * 0.1, 0, 6.28); ctx.fill();
   },
-  tideMother(ctx, e, s, wob, t) {
+  tideMother(ctx, e, s, wob, t, time) {
     ctx.fillStyle = e.color;
     ctx.beginPath(); ctx.arc(0, wob, s, 0, 6.28); ctx.fill();
     ctx.strokeStyle = e.color; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
     for (let i = 0; i < 6; i++) {
-      const a = i / 6 * 6.28 + G.time * 0.8;
+      const a = i / 6 * 6.28 + time * 0.8;
       ctx.globalAlpha = 0.85;
       ctx.beginPath(); ctx.moveTo(Math.cos(a) * s, wob + Math.sin(a) * s);
       ctx.quadraticCurveTo(Math.cos(a + 0.3) * s * 1.6, wob + Math.sin(a + 0.3) * s * 1.6, Math.cos(a) * s * 1.9, wob + Math.sin(a) * s * 1.9);
@@ -76,14 +75,14 @@ export const BOSS_SHAPES = {
     ctx.beginPath(); ctx.arc(-s * 0.4, -s * 0.05 + wob, s * 0.13, 0, 6.28); ctx.fill();
     ctx.beginPath(); ctx.arc(s * 0.4, -s * 0.05 + wob, s * 0.13, 0, 6.28); ctx.fill();
   },
-  moonWraith(ctx, e, s, wob, t) {
+  moonWraith(ctx, e, s, wob, t, time) {
     ctx.globalAlpha = 0.85;
     ctx.fillStyle = e.color;
     ctx.beginPath(); ctx.arc(0, wob, s, 0, 6.28); ctx.fill();
     ctx.globalAlpha = 0.5;
-    ctx.beginPath(); ctx.moveTo(-s * 1.1, wob + Math.sin(G.time * 2) * 6);
+    ctx.beginPath(); ctx.moveTo(-s * 1.1, wob + Math.sin(time * 2) * 6);
     ctx.quadraticCurveTo(-s * 0.5, wob + s * 1.1, 0, wob + s * 0.9);
-    ctx.quadraticCurveTo(s * 0.5, wob + s * 1.1, s * 1.1, wob + Math.sin(G.time * 2 + 2) * 6);
+    ctx.quadraticCurveTo(s * 0.5, wob + s * 1.1, s * 1.1, wob + Math.sin(time * 2 + 2) * 6);
     ctx.fillStyle = e.color; ctx.fill();
     ctx.globalAlpha = 1;
     ctx.fillStyle = '#b9a8e8';
@@ -111,10 +110,10 @@ export const BOSS_SHAPES = {
     ctx.beginPath(); ctx.arc(-s * 0.35, -s * 0.15 + wob, s * 0.14, 0, 6.28); ctx.fill();
     ctx.beginPath(); ctx.arc(s * 0.35, -s * 0.15 + wob, s * 0.14, 0, 6.28); ctx.fill();
   },
-  stormOwl(ctx, e, s, wob, t) {
+  stormOwl(ctx, e, s, wob, t, time) {
     ctx.fillStyle = e.color;
     ctx.beginPath(); ctx.arc(0, wob, s * 0.8, 0, 6.28); ctx.fill();
-    const wa = Math.sin(G.time * 4) * 0.2;
+    const wa = Math.sin(time * 4) * 0.2;
     ctx.save(); ctx.rotate(-wa);
     ctx.beginPath(); ctx.moveTo(-s * 0.5, wob - s * 0.3); ctx.lineTo(-s * 1.9, wob - s * 1.2);
     ctx.lineTo(-s * 1.5, wob - s * 0.6); ctx.lineTo(-s * 1.8, wob - s * 0.1);
@@ -126,17 +125,17 @@ export const BOSS_SHAPES = {
     ctx.lineTo(s * 1.2, wob + s * 0.1); ctx.lineTo(s * 0.4, wob + s * 0.25); ctx.closePath(); ctx.fill();
     ctx.restore();
     ctx.fillStyle = PALETTE.fireBright;
-    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(G.time * 8);
+    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(time * 8);
     ctx.beginPath(); ctx.arc(-s * 0.3, -s * 0.1 + wob, s * 0.16, 0, 6.28); ctx.fill();
     ctx.beginPath(); ctx.arc(s * 0.3, -s * 0.1 + wob, s * 0.16, 0, 6.28); ctx.fill();
     ctx.globalAlpha = 1;
   },
-  abyssMother(ctx, e, s, wob, t) {
+  abyssMother(ctx, e, s, wob, t, time) {
     ctx.fillStyle = e.color;
     ctx.beginPath(); ctx.arc(0, wob, s, 0, 6.28); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,.18)';
     [[0.35, -0.35, 0.28], [-0.35, -0.35, 0.28], [0.4, 0.35, 0.24], [-0.4, 0.35, 0.24]].forEach(([dx, dy, r]) => {
-      const pulse = 1 + 0.12 * Math.sin(G.time * 3 + dx * 10);
+      const pulse = 1 + 0.12 * Math.sin(time * 3 + dx * 10);
       ctx.beginPath(); ctx.arc(dx * s, dy * s + wob, r * s * pulse, 0, 6.28); ctx.fill();
     });
     ctx.strokeStyle = e.color; ctx.lineWidth = 2;
@@ -169,8 +168,9 @@ export const BOSS_SHAPES = {
  * @param {number} s
  * @param {number} wob
  * @param {number} t
+ * @param {number} [time]
  */
-export function drawBossBody(ctx, e, /** @type {number} */ s, wob, t) {
-  const fn = /** @type {any} */ (BOSS_SHAPES)[e.type || ''] || BOSS_SHAPES.final;
-  fn(ctx, e, s, wob, t);
+export function drawBossBody(ctx, e, /** @type {number} */ s, wob, t, time) {
+  const fn = /** @type {any} */ (BOSS_SHAPES[e.type || ''] || BOSS_SHAPES.final);
+  fn(ctx, e, s, wob, t, time || 0);
 }

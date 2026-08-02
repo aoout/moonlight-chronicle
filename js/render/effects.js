@@ -3,14 +3,16 @@
 /* =========================================================
    蚀月远征 · 渲染层：投射物 / 环绕武器 / 粒子 / 掉落
    ========================================================= */
-import { G } from '../state.js';
 import { PALETTE } from '../palette.js';
 
 /* ---------- 掉落物 ---------- */
-export function drawDrops() {
-  const ctx = G.ctx;
+/**
+ * @param {import('./context.js').RenderContext} rc
+ */
+export function drawDrops(rc) {
+  const ctx = rc.ctx;
   if (!ctx) return;
-  for (const d of G.drops) {
+  for (const d of rc.drops) {
     ctx.save();
     ctx.translate(d.x, d.y);
     ctx.rotate(d.t * 2);
@@ -237,10 +239,13 @@ const PROJ_RENDER = {
   },
 };
 
-export function drawProjectiles() {
-  const ctx = G.ctx;
+/**
+ * @param {import('./context.js').RenderContext} rc
+ */
+export function drawProjectiles(rc) {
+  const ctx = rc.ctx;
   if (!ctx) return;
-  for (const pr of G.projectiles) {
+  for (const pr of rc.projectiles) {
     if (pr.dead) continue;
     ctx.save();
     ctx.translate(pr.x, pr.y);
@@ -258,11 +263,13 @@ export function drawProjectiles() {
   }
 }
 
-/* 环绕武器实体（环舞之刃的月牙刃沿轨道旋绕） */
-export function drawOrbitWeapons() {
-  const p = G.player;
+/**
+ * @param {import('./context.js').RenderContext} rc
+ */
+export function drawOrbitWeapons(rc) {
+  const p = rc.player;
   if (!p || !p.orbits || !p.orbits.length) return;
-  const ctx = G.ctx;
+  const ctx = rc.ctx;
   if (!ctx) return;
   for (const o of p.orbits) {
     ctx.save();
@@ -280,10 +287,13 @@ export function drawOrbitWeapons() {
   }
 }
 
-export function drawParticles() {
-  const ctx = G.ctx;
+/**
+ * @param {import('./context.js').RenderContext} rc
+ */
+export function drawParticles(rc) {
+  const ctx = rc.ctx;
   if (!ctx) return;
-  const list = G.particles;
+  const list = rc.particles;
 
   // ---- 批量绘制简单圆形粒子 ----
   ctx.save();
@@ -357,7 +367,7 @@ export function drawParticles() {
     } else if (pa.timestop) {
       ctx.globalAlpha = life * 0.25;
       ctx.fillStyle = PALETTE.ice;
-      ctx.fillRect(0, 0, G.width, G.height);
+      ctx.fillRect(0, 0, rc.width, rc.height);
     } else if (pa.echo) {
       ctx.globalAlpha = life;
       ctx.strokeStyle = PALETTE.gold; ctx.lineWidth = 2;
