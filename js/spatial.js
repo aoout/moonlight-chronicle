@@ -1,0 +1,64 @@
+/* =========================================================
+   蚀月远征 · 空间哈希网格（碰撞检测加速）
+   单元格大小 120px，每帧由 buildSpatialGrid() 重建
+   ========================================================= */
+import { G } from './state.js';
+import { dist } from './utils.js';
+
+const SPATIAL_CELL = 120;
+const _grid = new Map();
+
+function _cellKey(c, r) { return c + ',' + r; }
+function _cellCoord(v) { return Math.floor(v / SPATIAL_CELL); }
+
+/* 从 G.enemies 重建网格 */
+export function buildSpatialGrid() {
+  _grid.clear();
+  for (const e of G.enemies) {
+    if (e.dead) continue;
+    const key = _cellKey(_cellCoord(e.x), _cellCoord(e.y));
+    let cell = _grid.get(key);
+    if (!cell) { cell = []; _grid.set(key, cell); }
+    cell.push(e);
+  }
+}
+
+/* 返回 (x,y) 周围半径内的所有敌人（去重），radius 缺省时只查相邻 3×3 cell */
+export function _neighborEnemies(x, y, radius) {
+  const col = _cellCoord(x), row = _cellCoord(y);
+  const cellR = radius !== undefined ? Math.ceil(radius / SPATIAL_CELL) : 1;
+  const seen = new Set();
+  const out = [];
+  for (let dc = -cellR; dc <= cellR; dc++) {
+    for (let dr = -cellR; dr <= cellR; dr++) {
+      const cell = _grid.get(_cellKey(col + dc, row + dr));
+      if (!cell) continue;
+      for (const e of cell) {
+        if (!seen.has(e)) { seen.add(e); out.push(e); }
+      }
+    }
+  }
+  return out;
+}
+
+/* 半径范围查询 */
+export function queryRadius(x, y, r) {
+  const r2 = r * r;
+  const out = [];
+  for (const e of _neighborEnemies(x, y, r)) {
+    const dx = e.x - x, dy = e.y - y;
+    if (dx * dx + dy * dy <= r2) out.push(e);
+  }
+  return out;
+}
+
+/* 最近邻（网格加速版） */
+export function nearestInGrid(x, y, maxR) {
+  const candidates = _neighborEnemies(x, y, maxR);
+  let best = null, bd = maxR === undefined ? 1e9 : maxR;
+  for (const e of candidates) {
+    const d = dist({ x, y }, e);
+    if (d < bd) { bd = d; best = e; }
+  }
+  return best;
+}

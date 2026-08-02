@@ -1,0 +1,114 @@
+/* 蚀月远征 · 武器槽 · 液面/冷却 */
+
+/* 武器栏 */
+.weapon-slot-bar {
+  position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 10px; z-index: 20; pointer-events: none;
+}
+.wslot {
+  width: 62px; height: 62px; border-radius: 10px;
+  background: rgba(10,12,28,.62); border: 1px solid rgba(233,201,135,.2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; backdrop-filter: blur(6px);
+  box-shadow: inset 0 0 20px rgba(0,0,0,.4);
+  transition: all .3s cubic-bezier(.22,1,.36,1);
+  animation: slotIn .5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes slotIn { from { opacity: 0; transform: translateY(14px) scale(.8); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.wslot.filled { border-color: rgba(233,201,135,.55); box-shadow: inset 0 0 24px rgba(233,201,135,.08), 0 0 16px rgba(233,201,135,.14); }
+.wslot .w-icon { font-size: 24px; line-height: 1; position: relative; }
+.wslot .wi-base { display: block; filter: drop-shadow(0 0 8px rgba(233,201,135,.5)); }
+.wslot .wi-fill {
+  position: absolute; inset: 0;
+  color: var(--fill-txt, #9fe8ff);
+  clip-path: inset(calc((1 - var(--cov, 0)) * 100%) 0 0 0);
+}
+.wslot .wi-fill svg { display: block; }
+.wslot .wn-base { display: block; }
+.wslot .wn-fill {
+  position: absolute; inset: 0;
+  color: var(--fill-txt, #9fe8ff);
+  clip-path: inset(calc((1 - var(--covn, 0)) * 100%) 0 0 0);
+  text-shadow: 0 1px 2px rgba(0,0,0,.45);
+}
+.wslot .wl-base { display: block; }
+.wslot .wl-fill {
+  position: absolute; inset: 0;
+  color: var(--fill-txt, #9fe8ff);
+  clip-path: inset(calc((1 - var(--covl, 0)) * 100%) 0 0 0);
+}
+.wslot .w-name { font-size: 9px; letter-spacing: .06em; color: rgba(244,236,216,.75); max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wslot .w-lvl { font-size: 9px; font-weight: 800; color: var(--gold); }
+.wslot.empty { opacity: .35; border-style: dashed; }
+.wslot.empty .w-icon { opacity: .4; }
+
+/* 蚀月远征 · 武器槽 · 液面/冷却 */
+.wslot { position: relative; overflow: hidden; }
+
+/* 液面层（主题色，底部向上填充，高度=伤害占比） */
+.wliquid {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 0%;
+  z-index: 1;
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(180deg, var(--wcolor,#e9c987) 0%, var(--wcolor,#e9c987) 58%, var(--wcolor,#e9c987) 100%);
+  opacity: .82;
+  transition: height .55s cubic-bezier(.22,1,.36,1), opacity .3s ease;
+  pointer-events: none;
+}
+.wliquid::after {   /* 液面顶部高光线 */
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent);
+}
+.w-wave {
+  position: absolute; top: -6px; left: 0; width: 200%; height: 6px;
+  fill: var(--wcolor,#e9c987); opacity: .9;
+  animation: waveShift 2.8s linear infinite;
+}
+@keyframes waveShift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* 冷却：边框跑条（填充 0°→360°），颜色随卡牌对比度/浸润强调色，光晕随主题色 */
+.wslot::before {
+  content: ''; position: absolute; inset: 0; z-index: 5;
+  border-radius: 10px;
+  padding: 2.5px;
+  background: conic-gradient(from 0deg,
+    color-mix(in srgb, var(--fill-txt, #9fe8ff) 30%, transparent) 0deg,
+    var(--fill-txt, #9fe8ff) var(--cddeg, 0deg),
+    transparent var(--cddeg, 0deg),
+    transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 3px var(--wcolor, #e9c987)) drop-shadow(0 0 10px var(--wcolor, #e9c987));
+  opacity: 0;
+  transition: opacity .15s ease;
+  pointer-events: none;
+}
+.wslot.cool::before { opacity: 1; }
+
+/* 图标/文字浮于液面之上 */
+.wslot .w-icon, .wslot .w-name, .wslot .w-lvl { position: relative; z-index: 2; }
+
+/* 占比角标 */
+.wpct {
+  position: absolute; top: 3px; right: 5px; z-index: 4;
+  font-size: 9px; font-weight: 800;
+  color: var(--gold); text-shadow: 0 1px 4px rgba(0,0,0,.9);
+  pointer-events: none;
+}
+
+/* 冷却中：槽内降饱和变暗 */
+.wslot.cool .w-icon { filter: saturate(.3) brightness(.62); }
+.wslot.cool .w-name, .wslot.cool .w-lvl { opacity: .45; }
+
+/* 冷却完成：整圈边框亮起脉冲 */
+.wslot.ready-pulse { animation: cdPulse .4s ease; }
+.wslot.ready-pulse .w-icon { animation: iconPop .4s ease; }
+@keyframes cdPulse {
+  0%   { border-color: rgba(233,201,135,.2); box-shadow: 0 0 0 rgba(0,0,0,0); }
+  40%  { border-color: var(--gold); box-shadow: 0 0 26px rgba(233,201,135,.9), 0 0 0 3px rgba(233,201,135,.25); }
+  100% { border-color: rgba(233,201,135,.2); box-shadow: 0 0 0 rgba(0,0,0,0); }
+}
+@keyframes iconPop { 0% { transform: scale(1); } 45% { transform: scale(1.14); } 100% { transform: scale(1); } }
+

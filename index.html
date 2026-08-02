@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>蚀月远征</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Serif+SC:wght@400;600;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/hud.css">
+  <link rel="stylesheet" href="css/weapons.css">
+  <link rel="stylesheet" href="css/cards.css">
+  <link rel="stylesheet" href="css/shop.css">
+  <link rel="stylesheet" href="css/result.css">
+  <link rel="stylesheet" href="css/codex.css">
+</head>
+<body>
+  <div id="app">
+    <!-- ===== 背景氛围 ===== -->
+    <div class="starfield" id="starfield"></div>
+    <div class="aurora" id="aurora"></div>
+    <div class="vignette"></div>
+
+    <!-- ===== 主菜单 ===== -->
+    <div id="menu" class="screen active">
+      <div class="menu-orb"></div>
+      <div class="menu-title-wrap">
+        <div class="menu-kicker">MOONLIGHT · CHRONICLE</div>
+        <h1 class="menu-title">蚀月远征</h1>
+        <div class="menu-subtitle">守月人，潮噬将至 —— 撑过二十夜，斩落蚀月之终焉。</div>
+        <div class="menu-depth" id="menu-depth"></div>
+      </div>
+      <div class="menu-cards">
+        <button id="btn-start" class="menu-btn primary">开始远征</button>
+        <button id="btn-continue" class="menu-btn continue hidden">
+          <span class="continue-main"><span class="ic" data-ic="moon"></span> 追忆月痕 · 继续远征</span>
+          <em id="continue-info">第 1 夜</em>
+        </button>
+        <button id="btn-gate" class="menu-btn ghost">远征之门</button>
+        <button id="btn-codex" class="menu-btn ghost">蚀之图鉴</button>
+        <button id="btn-how" class="menu-btn ghost">如何作战</button>
+      </div>
+      <div class="menu-hint">WASD / 方向键移动 · 武器自动攻击</div>
+      <div id="howto" class="howto hidden">
+        <div class="howto-inner">
+          <h2>作战手记</h2>
+          <ul>
+            <li><b>二十夜</b>：共 20 关，每关 30 秒，关间踏入<b>月幕集市</b>采购。</li>
+            <li><b>武器</b>：最多同时佩戴 5 件武器，自动索敌攻击，各有独特的倍率构成。</li>
+            <li><b>升级</b>：吸收月华结晶积累经验，升级可从三张命运卡中选择其一。</li>
+            <li><b>强敌</b>：第 6 / 12 / 18 关遭遇蚀潮领主；第 20 关迎战强化终焉。</li>
+            <li><b>集市道具</b>：不止数值加减——转模、连锁、血统、神恩……创造你的流派。</li>
+          </ul>
+          <button id="btn-close-how" class="menu-btn ghost small">明白了</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 远征之门：蚀月深度选择 ===== -->
+    <div id="levelselect" class="overlay hidden">
+      <div class="overlay-title">远征之门</div>
+      <div class="overlay-sub" id="gate-sub">蚀月沉入更深的黑暗，选择你的远征</div>
+      <div class="gate-grid" id="gate-grid"></div>
+      <div class="gate-foot">
+        <button id="btn-gate-close" class="menu-btn ghost small">返回</button>
+      </div>
+    </div>
+
+    <!-- ===== 蚀之图鉴 ===== -->
+    <div id="codex" class="overlay hidden">
+      <div class="codex-head">
+        <div class="overlay-title">蚀之图鉴</div>
+        <div class="overlay-sub" id="codex-sub">游荡于月背的蚀之眷族</div>
+      </div>
+      <div class="codex-tabs" id="codex-tabs">
+        <button data-tab="enemies" class="active"><span class="ic" data-ic="dotRing"></span> 蚀物</button>
+        <button data-tab="bosses"><span class="ic" data-ic="crown"></span> 领主</button>
+        <button data-tab="weapons"><span class="ic" data-ic="sword"></span> 兵刃</button>
+        <button data-tab="items"><span class="ic" data-ic="gem"></span> 秘宝</button>
+      </div>
+      <div class="codex-count" id="codex-count">已见 0 / 0</div>
+      <div class="codex-grid" id="codex-grid"></div>
+      <div class="codex-foot">
+        <button id="btn-codex-close" class="menu-btn ghost small">返回</button>
+      </div>
+    </div>
+
+    <!-- ===== 游戏界面 ===== -->
+    <div id="game" class="screen">
+      <div class="hud">
+        <div class="hud-left">
+          <div class="hud-bar hp-bar">
+            <div class="bar-ic"><span class="ic" data-ic="heart"></span></div>
+            <div class="bar-fill" id="hp-fill"></div>
+            <div class="bar-gloss"></div>
+            <div class="bar-label" id="hp-text">0 / 0</div>
+          </div>
+          <div class="hud-bar xp-bar">
+            <div class="bar-ic"><span class="ic" data-ic="spark"></span></div>
+            <div class="bar-fill" id="xp-fill"></div>
+            <div class="bar-gloss"></div>
+            <div class="bar-label" id="xp-text">Lv.1</div>
+          </div>
+        </div>
+        <div class="hud-center">
+          <div class="stage-chip">
+            <span class="moonphase" id="moonphase"></span>
+            <span class="sc-main"><span id="stage-num">第 1 夜</span><span class="sc-sep">·</span><span id="stage-name"></span></span>
+            <span class="stage-track"><span id="stage-progress"></span></span>
+          </div>
+          <div class="wave-text" id="wave-text"></div>
+        </div>
+        <div class="hud-right">
+          <div class="coin"><span class="ic" data-ic="coin"></span><span id="gold-text">0</span></div>
+          <div class="killcount"><span class="ic" data-ic="skull"></span><span id="kill-text">0</span></div>
+        </div>
+      </div>
+
+      <canvas id="bg-canvas"></canvas>
+      <canvas id="game-canvas"></canvas>
+
+      <div class="weapon-slot-bar" id="weapon-bar"></div>
+
+      <!-- Boss 血条 -->
+      <div id="bossbar" class="boss-bar">
+        <div class="bb-name"><span class="ic" data-ic="moonFull"></span></div>
+        <div class="bb-track"><div class="bb-fill"></div></div>
+      </div>
+
+      <!-- 伤害数字层 -->
+      <div class="fx-layer" id="fx-layer"></div>
+
+      <!-- 升级选择 -->
+      <div id="levelup" class="overlay hidden">
+        <div class="overlay-title">命运之轮转动</div>
+        <div class="overlay-sub">选择一项祝福</div>
+        <div class="cards" id="levelup-cards"></div>
+      </div>
+
+      <!-- 商店 -->
+      <div id="shop" class="overlay hidden">
+        <div class="shop-header">
+          <div class="overlay-title shop-title">月幕集市</div>
+          <div class="overlay-sub" id="shop-sub"></div>
+        </div>
+        <div class="shop-body">
+          <div class="shop-bazaar">
+            <div class="bazaar-label"><span class="ic" data-ic="coin"></span> 集市货架</div>
+            <div class="cards shop-cards" id="shop-cards"></div>
+          </div>
+          <aside class="shop-panel">
+            <div class="panel-head">
+              <div class="panel-avatar" id="shop-avatar"></div>
+              <div class="panel-meta">
+                <div class="panel-title">守月人 · 铭牌</div>
+                <div class="panel-hpbar"><div class="hp-fill" id="shop-hp-fill"></div></div>
+                <div class="panel-hptext" id="shop-hp-text">0 / 0</div>
+              </div>
+            </div>
+            <div class="panel-essence">
+              <div class="ess"><span class="ess-ic" id="ess-atk-ic"></span><b id="ess-atk">0</b><i>攻击</i></div>
+              <div class="ess"><span class="ess-ic" id="ess-crit-ic"></span><b id="ess-crit">0%</b><i>暴击</i></div>
+              <div class="ess"><span class="ess-ic" id="ess-spd-ic"></span><b id="ess-spd">0</b><i>移速</i></div>
+              <div class="ess"><span class="ess-ic" id="ess-gold-ic"></span><b id="ess-gold">×1</b><i>金币</i></div>
+            </div>
+            <div class="panel-weapons">
+              <div class="panel-sec-title">已佩戴武器 <span class="sec-hint">点击查看详情</span></div>
+              <div id="shop-weapons" class="pw-list"></div>
+              <div class="pw-detail hidden" id="pw-detail"></div>
+            </div>
+            <div class="panel-items">
+              <div class="panel-sec-title">已获物 · 道具 <span class="sec-hint">点击查看详情</span></div>
+              <div id="shop-items" class="si-list"></div>
+              <div class="si-detail hidden" id="si-detail"></div>
+            </div>
+            <div class="panel-stats" id="shop-stats"></div>
+          </aside>
+        </div>
+        <div class="shop-footer">
+          <div class="coin big"><span class="ic" data-ic="coin"></span> <span id="shop-gold">0</span></div>
+          <button id="btn-shop-next" class="menu-btn primary">踏入下一夜 →</button>
+        </div>
+      </div>
+
+      <!-- 暂停：月蚀之刻 -->
+      <div id="pause" class="overlay hidden">
+        <div class="overlay-title">月蚀之刻</div>
+        <div class="overlay-sub">战局暂驻，月光凝滞</div>
+        <div class="pause-body">
+          <div class="pause-stage">
+            <div class="pause-stage-name" id="pause-stage-name"></div>
+            <div class="pause-bar"><div class="bar-fill" id="pause-stage-fill"></div></div>
+            <div class="pause-time" id="pause-time"></div>
+            <div class="pause-hpwrap">
+              <div class="pause-hpbar"><div class="bar-fill" id="pause-hp-fill"></div></div>
+              <div class="pause-hptext" id="pause-hp-text"></div>
+            </div>
+          </div>
+          <div class="pause-stats" id="pause-stats"></div>
+        </div>
+        <div class="pause-foot">
+          <button id="btn-resume" class="menu-btn primary">继续远征</button>
+          <button id="btn-pause-quit" class="menu-btn ghost">返回主菜单</button>
+        </div>
+      </div>
+
+      <!-- 战斗结算 / 死亡 -->
+      <div id="result" class="overlay hidden">
+        <div class="result-inner">
+          <div class="result-icon" id="result-icon"><span class="ic" data-ic="moon"></span></div>
+          <div class="result-title" id="result-title">月陨</div>
+          <div class="result-sub" id="result-sub"></div>
+          <div class="result-stats" id="result-stats"></div>
+          <button id="btn-retry" class="menu-btn primary">重返远征</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast-wrap"></div>
+  </div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+/* 蚀月远征 · 基础 · 全局 / 背景 */
+/* 设计令牌见 css/tokens.css */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--bg-0);
+  font-family: var(--font-body);
+  color: var(--moon);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+#app { position: fixed; inset: 0; }
+
+/* ------- 背景层 ------- */
+.starfield {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,.5) 0, transparent 100%),
+    radial-gradient(1px 1px at 34% 66%, rgba(255,255,255,.35) 0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 55% 14%, rgba(233,201,135,.6) 0, transparent 100%),
+    radial-gradient(1px 1px at 72% 48%, rgba(255,255,255,.4) 0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 88% 30%, rgba(159,214,232,.5) 0, transparent 100%),
+    radial-gradient(1px 1px at 42% 85%, rgba(255,255,255,.3) 0, transparent 100%),
+    radial-gradient(1px 1px at 63% 78%, rgba(233,201,135,.4) 0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 92% 72%, rgba(255,255,255,.4) 0, transparent 100%);
+  animation: twinkle 6s ease-in-out infinite alternate;
+}
+@keyframes twinkle { from { opacity: .55; } to { opacity: 1; } }
+
+.aurora {
+  position: fixed; inset: -30% -20%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(42% 38% at 72% 30%, rgba(180,154,232,.13), transparent 70%),
+    radial-gradient(46% 40% at 22% 70%, rgba(159,214,232,.10), transparent 70%),
+    radial-gradient(38% 34% at 50% 110%, rgba(233,201,135,.10), transparent 70%);
+  filter: blur(30px);
+  animation: auroraShift 16s ease-in-out infinite alternate;
+}
+@keyframes auroraShift {
+  0% { transform: translate3d(-2%, -1%, 0) rotate(0.001deg); }
+  100% { transform: translate3d(2%, 1.5%, 0) rotate(0.001deg); }
+}
+
+.vignette {
+  position: fixed; inset: 0; z-index: 40; pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(2,3,10,.72) 100%);
+}
+
+.screen {
+  position: absolute; inset: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden;
+  transition: opacity .7s cubic-bezier(.22,1,.36,1), visibility .7s;
+}
+.screen.active { opacity: 1; visibility: visible; }
+
+.hidden { display: none !important; }
+

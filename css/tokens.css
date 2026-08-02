@@ -1,0 +1,207 @@
+/* =========================================================
+   蚀月远征 · CSS 设计令牌
+   共享变量、通用模式、动画关键帧
+   ========================================================= */
+
+/* ---------- 色彩系统 ---------- */
+:root {
+  /* 背景层级 */
+  --bg-0: #04050d;
+  --bg-1: #0a0c1c;
+  --bg-2: #12142b;
+
+  /* 语义色 */
+  --gold: #e9c987;
+  --gold-deep: #c8a05f;
+  --gold-glow: rgba(233, 201, 135, .55);
+  --moon: #f4ecd8;
+  --ice: #9fd6e8;
+  --blood: #e2546a;
+  --jade: #7fd6a4;
+  --violet: #b49ae8;
+
+  /* 面板 & 线条 */
+  --panel: rgba(13, 16, 38, .72);
+  --panel-solid: #0d1030;
+  --line: rgba(233, 201, 135, .22);
+
+  /* 字体 */
+  --font-title: 'Cinzel', 'Noto Serif SC', serif;
+  --font-body: 'Inter', 'Noto Serif SC', sans-serif;
+
+  /* ---------- 通用间距 ---------- */
+  --gap-xs: 6px;
+  --gap-sm: 10px;
+  --gap-md: 14px;
+  --gap-lg: 20px;
+  --gap-xl: 24px;
+
+  /* ---------- 通用圆角 ---------- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  /* ---------- 通用过渡曲线 ---------- */
+  --ease-out-expo: cubic-bezier(.22, 1, .36, 1);
+  --ease-in-out: cubic-bezier(.22, 1, .36, 1);
+
+  /* ---------- 层级（z-index） ---------- */
+  --z-bg: 0;
+  --z-bg-canvas: 4;
+  --z-game-canvas: 5;
+  --z-screen: 10;
+  --z-hud: 20;
+  --z-boss-bar: 20;
+  --z-fx: 25;
+  --z-overlay: 30;
+  --z-banner: 35;
+  --z-vignette: 40;
+  --z-toast: 60;
+  --z-modal: 50;
+}
+
+/* ---------- 通用样式 ---------- */
+
+/* 面板渐变背景（商店铭牌、暂停面板等） */
+.panel-gradient {
+  background: linear-gradient(170deg, rgba(22, 26, 56, .88), rgba(10, 12, 28, .92));
+}
+
+/* 卡片渐变背景（升级、商店、图鉴等） */
+.card-gradient {
+  background: linear-gradient(168deg, rgba(23, 27, 60, .95), rgba(9, 11, 26, .95));
+}
+
+/* 顶部高光线（面板、卡片头部装饰线） */
+.top-line {
+  position: absolute; top: 0; left: 16%; right: 16%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(233, 201, 135, .7), transparent);
+  pointer-events: none;
+}
+
+/* 金色渐变文字 */
+.gold-text {
+  background: linear-gradient(180deg, #fbf4dd, var(--gold));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* 通用玻璃质感底部阴影 */
+.glass-shadow {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 5px 28px rgba(0, 0, 0, .5);
+}
+
+/* 金色边框按钮/徽章基础 */
+.gold-border {
+  border: 1px solid rgba(233, 201, 135, .3);
+}
+
+/* ---------- 通用动画关键帧 ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(22px) scale(.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes twinkle {
+  from { opacity: .55; }
+  to { opacity: 1; }
+}
+
+@keyframes auroraShift {
+  0% { transform: translate3d(-2%, -1%, 0) rotate(0.001deg); }
+  100% { transform: translate3d(2%, 1.5%, 0) rotate(0.001deg); }
+}
+
+@keyframes orbPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: .9; }
+  50% { transform: translate(-50%, -50%) scale(1.06); opacity: 1; }
+}
+
+@keyframes barShine {
+  0% { transform: translateX(-120%); }
+  55% { transform: translateX(120%); }
+  100% { transform: translateX(120%); }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dmgFloat {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(.6); }
+  12% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -140%) scale(1); }
+}
+
+@keyframes bannerIn {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes statFlash {
+  0% { background: rgba(233, 201, 135, .3); transform: translateX(-5px); }
+  100% { background: transparent; transform: none; }
+}
+
+@keyframes slotIn {
+  from { opacity: 0; transform: translateY(14px) scale(.8); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes cdPulse {
+  0%   { border-color: rgba(233, 201, 135, .2); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+  40%  { border-color: var(--gold); box-shadow: 0 0 26px rgba(233, 201, 135, .9), 0 0 0 3px rgba(233, 201, 135, .25); }
+  100% { border-color: rgba(233, 201, 135, .2); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+}
+
+@keyframes iconPop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+
+@keyframes waveShift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes gateShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes titleShine {
+  from { filter: brightness(3) drop-shadow(0 0 30px rgba(233, 201, 135, .9)); letter-spacing: .6em; }
+  to { filter: none; }
+}
+
+@keyframes curseIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-22px) scale(.94); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+@keyframes curseOut {
+  to { opacity: 0; transform: translateX(-50%) translateY(-18px); }
+}

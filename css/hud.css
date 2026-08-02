@@ -1,0 +1,304 @@
+/* 蚀月远征 · 游戏 HUD / 战斗反馈 */
+#game { flex-direction: column; }
+#bg-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4;
+  display: block;
+}
+#game-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%; z-index: 5;
+  cursor: crosshair;
+}
+
+.hud {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+  display: flex; align-items: flex-start;
+  padding: 18px 24px; gap: 20px;
+  pointer-events: none;
+}
+.hud-left {
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+/* 血条：月蚀玻璃质感 */
+.hud-bar {
+  position: relative; height: 24px; border-radius: 9px; overflow: hidden;
+  background: linear-gradient(180deg, rgba(13,16,34,.78), rgba(6,8,20,.66));
+  border: 1px solid rgba(233,201,135,.26);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -8px 20px rgba(0,0,0,.5), 0 3px 16px rgba(0,0,0,.45);
+}
+.hud-bar::before {
+  content: ''; position: absolute; top: 0; left: 14%; right: 14%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(233,201,135,.65), transparent);
+  z-index: 2;
+}
+.hud-bar.xp-bar { height: 15px; }
+.hud-bar.xp-bar::before { background: linear-gradient(90deg, transparent, rgba(159,214,232,.6), transparent); }
+
+.bar-ic {
+  position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+  z-index: 3; font-size: 13px; color: #ff9d6b; display: flex;
+  filter: drop-shadow(0 0 6px rgba(255,157,107,.8));
+}
+.xp-bar .bar-ic { color: #9fd6e8; filter: drop-shadow(0 0 6px rgba(159,214,232,.8)); }
+
+.bar-fill {
+  position: absolute; inset: 0; width: 0%;
+  transition: width .18s linear;
+  background: linear-gradient(180deg, #ffd9a8 0%, #ff9d6b 32%, #e2546a 76%, #9c2648 100%);
+  box-shadow: 0 0 18px rgba(226,84,106,.65), inset 0 1px 0 rgba(255,255,255,.35);
+}
+.xp-bar .bar-fill {
+  background: linear-gradient(180deg, #eafcff 0%, #9fd6e8 55%, #579bc2 100%);
+  box-shadow: 0 0 14px rgba(159,214,232,.6), inset 0 1px 0 rgba(255,255,255,.4);
+}
+.bar-gloss {
+  position: absolute; inset: 0; z-index: 2;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.16) 50%, transparent 70%);
+  transform: translateX(-120%);
+  animation: barShine 3.4s ease-in-out infinite;
+}
+@keyframes barShine { 0% { transform: translateX(-120%); } 55% { transform: translateX(120%); } 100% { transform: translateX(120%); } }
+.bar-label {
+  position: absolute; inset: 0; z-index: 3;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; letter-spacing: .14em;
+  color: rgba(244,236,216,.92); text-shadow: 0 1px 4px rgba(0,0,0,.85);
+}
+.hud-center { flex: 0 0 auto; text-align: center; }
+
+/* 夜之铭牌 */
+.stage-chip {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 7px 20px 8px; border-radius: 999px;
+  background: linear-gradient(180deg, rgba(16,19,44,.8), rgba(8,10,24,.72));
+  border: 1px solid rgba(233,201,135,.32);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 5px 28px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.stage-chip::before {
+  content: ''; position: absolute; top: 0; left: 22%; right: 22%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(233,201,135,.75), transparent);
+}
+.moonphase {
+  font-size: 16px; color: var(--gold); display: flex;
+  filter: drop-shadow(0 0 8px var(--gold-glow));
+}
+.moonphase.eclipsed { color: #ff6b6b; filter: drop-shadow(0 0 10px rgba(255,107,107,.8)); }
+.sc-main { display: flex; align-items: baseline; gap: 9px; }
+#stage-num { font-family: var(--font-title); font-size: 15px; font-weight: 700; letter-spacing: .2em; color: var(--moon); }
+.sc-sep { color: rgba(233,201,135,.45); font-size: 12px; }
+#stage-name { font-size: 11px; letter-spacing: .3em; color: rgba(159,214,232,.9); text-shadow: 0 0 10px rgba(159,214,232,.35); }
+.stage-chip .stage-track {
+  position: absolute; left: 22%; right: 22%; bottom: 3px; height: 3px;
+  border-radius: 3px; overflow: hidden;
+  background: rgba(233,201,135,.16);
+  box-shadow: 0 0 6px rgba(233,201,135,.22);
+}
+.stage-chip #stage-progress {
+  display: block; position: absolute; left: 0; top: 0; height: 100%; width: 0%;
+  max-width: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--gold), #ffe9a8);
+  box-shadow: 0 0 8px var(--gold-glow);
+}
+.wave-text { margin-top: 12px; font-size: 12px; letter-spacing: .32em; color: rgba(244,236,216,.62); min-height: 16px; text-shadow: 0 0 10px rgba(159,214,232,.4); }
+
+/* 右栏徽章 */
+.hud-right { flex: 1 1 0; display: flex; gap: 12px; justify-content: flex-end; }
+.coin, .killcount {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 16px; border-radius: 999px;
+  background: linear-gradient(180deg, rgba(16,19,44,.8), rgba(8,10,24,.72));
+  border: 1px solid rgba(233,201,135,.3);
+  backdrop-filter: blur(10px);
+  font-size: 13px; font-weight: 800; letter-spacing: .12em;
+  color: var(--gold);
+  box-shadow: 0 5px 28px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.coin .ic { color: #f6e3b8; filter: drop-shadow(0 0 5px rgba(246,227,184,.8)); }
+.killcount { color: var(--ice); border-color: rgba(159,214,232,.26); }
+.killcount .ic { color: #cfeaf8; filter: drop-shadow(0 0 5px rgba(159,214,232,.8)); }
+.ic { display: inline-block; line-height: 1; vertical-align: -0.15em; }
+.coin.big { font-size: 20px; padding: 10px 26px; }
+
+
+.toast-wrap {
+  position: absolute; top: 90px; left: 50%; transform: translateX(-50%);
+  z-index: 60; display: flex; flex-direction: column; gap: 10px; align-items: center;
+  pointer-events: none;
+}
+.toast {
+  padding: 10px 26px; border-radius: 6px;
+  background: linear-gradient(135deg, rgba(233,201,135,.16), rgba(180,154,232,.12));
+  border: 1px solid var(--line); backdrop-filter: blur(10px);
+  font-size: 13px; letter-spacing: .16em; color: var(--gold);
+  box-shadow: 0 8px 30px rgba(0,0,0,.5);
+  animation: toastIn .5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+.toast.out { opacity: 0; transform: translateY(-12px); transition: all .4s; }
+
+/* 伤害数字 */
+.fx-layer { position: absolute; inset: 0; z-index: 25; pointer-events: none; overflow: hidden; }
+.dmg-num {
+  position: absolute; font-weight: 800; font-size: 15px;
+  color: #ffe9c4; text-shadow: 0 0 8px rgba(233,201,135,.7), 0 2px 6px rgba(0,0,0,.8);
+  animation: dmgFloat 0.9s ease-out both;
+  pointer-events: none; transform: translate(-50%, -50%);
+  font-family: var(--font-body);
+}
+.dmg-num.crit { color: #ffb84d; font-size: 22px; text-shadow: 0 0 14px rgba(255,184,77,.9), 0 2px 6px rgba(0,0,0,.8); }
+.dmg-num.heal { color: var(--jade); text-shadow: 0 0 10px rgba(127,214,164,.8); }
+@keyframes dmgFloat {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(.6); }
+  12% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -140%) scale(1); }
+}
+
+/* Boss 血条 */
+.boss-bar {
+  position: absolute; top: 84px; left: 50%; transform: translateX(-50%);
+  z-index: 20; width: min(520px, 60vw); text-align: center;
+  pointer-events: none; display: none;
+}
+.bb-name {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  font-family: var(--font-title); font-size: 16px; letter-spacing: .3em;
+  color: var(--gold); margin-bottom: 8px; text-shadow: 0 0 14px var(--gold-glow);
+}
+.bb-name::before, .bb-name::after {
+  content: ''; width: 46px; height: 1px; flex: none;
+  background: linear-gradient(90deg, transparent, rgba(233,201,135,.7));
+}
+.bb-name::after { background: linear-gradient(90deg, rgba(233,201,135,.7), transparent); }
+.bb-track {
+  height: 12px; border-radius: 7px; overflow: hidden;
+  background: linear-gradient(180deg, rgba(10,13,28,.85), rgba(6,8,20,.8));
+  border: 1px solid rgba(233,201,135,.3);
+  box-shadow: inset 0 1px 6px rgba(0,0,0,.6);
+}
+.bb-fill {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, #a0284a, #e2546a 45%, #ffb84d);
+  box-shadow: 0 0 18px rgba(255,184,77,.6);
+  transition: width .15s linear;
+}
+
+/* 扫描线入场 */
+.overlay.incoming .overlay-title { animation: titleShine 1s ease both; }
+@keyframes titleShine { from { filter: brightness(3) drop-shadow(0 0 30px rgba(233,201,135,.9)); letter-spacing: .6em; } to { filter: none; } }
+
+/* 关卡开场横幅 */
+.stage-banner {
+  position: absolute; inset: 0; z-index: 35; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  animation: bannerIn 2.2s cubic-bezier(.22,1,.36,1) both;
+}
+.stage-banner .sb-kicker {
+  font-size: 12px; letter-spacing: .6em; color: rgba(244,236,216,.55);
+  margin-bottom: 12px; text-transform: uppercase;
+}
+.stage-banner .sb-title {
+  font-family: var(--font-title); font-size: clamp(38px, 7vw, 72px);
+  font-weight: 900; letter-spacing: .34em;
+  background: linear-gradient(180deg, #fbf4dd, var(--gold));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 30px rgba(233,201,135,.45));
+}
+.stage-banner.boss .sb-title {
+  background: linear-gradient(180deg, #ffd9c9, #e2546a);
+  -webkit-background-clip: text; background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(226,84,106,.5));
+}
+.stage-banner .sb-sub {
+  margin-top: 14px; font-size: 13px; letter-spacing: .3em; color: rgba(244,236,216,.6);
+}
+@keyframes bannerIn {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 小屏适配 */
+@media (max-width: 900px) {
+  .hud-left { width: 46%; }
+  .card { width: 46vw; }
+  .result-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+
+/* 蚀之诅咒横幅 */
+.curse-banner {
+  position: absolute; top: 130px; left: 50%; transform: translateX(-50%);
+  z-index: 40; pointer-events: none;
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 28px; border-radius: 999px;
+  background: linear-gradient(90deg, rgba(90,20,40,.92), rgba(50,12,30,.92));
+  border: 1px solid rgba(226,84,106,.55);
+  box-shadow: 0 8px 40px rgba(0,0,0,.55), 0 0 26px rgba(226,84,106,.2), inset 0 1px 0 rgba(255,255,255,.08);
+  animation: curseIn .8s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes curseIn { from { opacity: 0; transform: translateX(-50%) translateY(-22px) scale(.94); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+.curse-banner.out { animation: curseOut .5s ease both; }
+@keyframes curseOut { to { opacity: 0; transform: translateX(-50%) translateY(-18px); } }
+.cb-ic { font-size: 22px; color: #ff8a9a; display: flex; filter: drop-shadow(0 0 8px rgba(255,138,154,.8)); }
+.cb-title { font-family: var(--font-title); font-size: 14px; letter-spacing: .24em; color: #ff9dab; text-shadow: 0 0 12px rgba(226,84,106,.6); }
+.cb-desc { font-size: 11px; letter-spacing: .14em; color: rgba(244,236,216,.75); margin-top: 3px; }
+
+/* ===== 暂停：月蚀之刻 ===== */
+.pause-body {
+  display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(300px, 1.2fr);
+  gap: 26px; width: min(900px, 92vw); align-items: start;
+}
+.pause-stage {
+  position: relative;
+  padding: 18px 20px; border-radius: 14px;
+  background: linear-gradient(170deg, rgba(24,28,58,.92), rgba(10,12,26,.94));
+  border: 1px solid rgba(233,201,135,.32);
+  box-shadow: inset 0 0 30px rgba(0,0,0,.4);
+}
+.pause-stage::before {
+  content: ''; position: absolute; top: 0; left: 16%; right: 16%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(233,201,135,.7), transparent);
+}
+.pause-stage-name {
+  font-family: var(--font-title); font-size: 15px; letter-spacing: .18em; color: var(--moon);
+  margin-bottom: 12px;
+}
+.pause-bar {
+  position: relative;
+  height: 10px; border-radius: 5px; overflow: hidden;
+  background: rgba(6,8,20,.85); border: 1px solid rgba(233,201,135,.35);
+}
+.pause-bar .bar-fill {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+  height: auto;
+  background: linear-gradient(90deg, var(--gold), #ffe9a8);
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+.pause-time { margin-top: 8px; font-size: 11px; letter-spacing: .2em; color: rgba(159,214,232,.8); }
+.pause-hpwrap { margin-top: 16px; }
+.pause-hpbar {
+  position: relative;
+  height: 11px; border-radius: 6px; overflow: hidden;
+  background: rgba(6,8,20,.85); border: 1px solid rgba(226,84,106,.35);
+}
+.pause-hpbar .bar-fill {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+  height: auto;
+  background: linear-gradient(90deg, #ffd9a8, #e2546a);
+  box-shadow: 0 0 12px rgba(226,84,106,.6);
+}
+.pause-hptext { margin-top: 6px; font-size: 10px; letter-spacing: .16em; color: rgba(244,236,216,.6); text-align: right; }
+.pause-stats { display: grid; gap: 10px; max-height: calc(100vh - 290px); overflow-y: auto; scrollbar-width: thin; }
+.pause-stats .stat-group { background: rgba(16,19,44,.85); border: 1px solid rgba(233,201,135,.2); }
+.pause-stats .stat-row { background: rgba(8,10,24,.5); border-radius: 5px; padding: 4px 8px; }
+.pause-stats .sr-name { color: rgba(244,236,216,.82); }
+.pause-stats .sr-val { font-size: 12px; }
+.pause-foot { display: flex; gap: 16px; margin-top: 22px; }
+@media (max-width: 800px) {
+  .pause-body { grid-template-columns: 1fr; }
+  .pause-stats { max-height: 32vh; }
+}

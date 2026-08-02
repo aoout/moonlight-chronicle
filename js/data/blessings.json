@@ -1,0 +1,20 @@
+{
+  "b_hp": { "id": "b_hp", "name": "月髓", "icon": "heart", "tier": "common", "weight": 12, "desc": "生命上限 <span class=\"stat-up\">+12</span>" },
+  "b_atk": { "id": "b_atk", "name": "锋芒", "icon": "sword", "tier": "common", "weight": 12, "desc": "攻击力 <span class=\"stat-up\">+2</span>" },
+  "b_spd": { "id": "b_spd", "name": "疾行", "icon": "arrow", "tier": "common", "weight": 10, "desc": "移速 <span class=\"stat-up\">+5</span>" },
+  "b_crit": { "id": "b_crit", "name": "鹰眼", "icon": "diamond", "tier": "common", "weight": 9, "desc": "暴击率 <span class=\"stat-up\">+3%</span>" },
+  "b_armor": { "id": "b_armor", "name": "砺甲", "icon": "shield", "tier": "common", "weight": 9, "desc": "护甲 <span class=\"stat-up\">+1.5</span>" },
+  "b_atkspd": { "id": "b_atkspd", "name": "迅捷", "icon": "bolt", "tier": "common", "weight": 9, "desc": "攻速 <span class=\"stat-up\">+8%</span>" },
+  "b_regen": { "id": "b_regen", "name": "回春", "icon": "plus", "tier": "common", "weight": 8, "desc": "生命恢复 <span class=\"stat-up\">+0.4/s</span>" },
+  "b_luck": { "id": "b_luck", "name": "福运", "icon": "gem", "tier": "common", "weight": 6, "desc": "幸运 <span class=\"stat-up\">+15%</span>" },
+  "b_critdmg": { "id": "b_critdmg", "name": "裂痕", "icon": "star", "tier": "epic", "weight": 5, "desc": "暴击伤害 <span class=\"stat-up\">+25%</span>" },
+  "b_lifesteal": { "id": "b_lifesteal", "name": "血契", "icon": "plus", "tier": "epic", "weight": 4, "desc": "吸血 <span class=\"stat-up\">+4%</span>" },
+  "b_proj": { "id": "b_proj", "name": "余影", "icon": "dots", "tier": "epic", "weight": 3, "desc": "投射物 <span class=\"stat-up\">+1</span>" },
+  "b_area": { "id": "b_area", "name": "扩张", "icon": "magnet", "tier": "epic", "weight": 4, "desc": "范围 <span class=\"stat-up\">+10%</span>" },
+  "b_cdr": { "id": "b_cdr", "name": "时弦", "icon": "hourglass", "tier": "epic", "weight": 4, "desc": "冷却缩减 <span class=\"stat-up\">+4%</span>" },
+  "b_xp": { "id": "b_xp", "name": "明悟", "icon": "spark", "tier": "epic", "weight": 4, "desc": "经验获取 <span class=\"stat-up\">+15%</span>" },
+  "b_hp2": { "id": "b_hp2", "name": "不朽之脉", "icon": "heart", "tier": "epic", "weight": 4, "desc": "生命上限 <span class=\"stat-up\">+10%</span>" },
+  "b_atk2": { "id": "b_atk2", "name": "破晓之锋", "icon": "sword", "tier": "epic", "weight": 4, "desc": "攻击力 <span class=\"stat-up\">+8%</span>" },
+  "b_legend": { "id": "b_legend", "name": "命运之契", "icon": "gem", "tier": "legend", "weight": 2, "desc": "幸运 <span class=\"stat-up\">+30%</span>，攻速 <span class=\"stat-up\">+10%</span>" },
+  "b_gold": { "id": "b_gold", "name": "财源", "icon": "diamond", "tier": "common", "weight": 6, "desc": "金币获取 <span class=\"stat-up\">+20%</span>" }
+}
