@@ -3,6 +3,10 @@
    蚀月远征 · 流程层：关卡 / 主循环 / 更新
    ========================================================= */
 import { G, STATE, sm, entityState } from './state.js';
+import { stageState } from './state/stage.js';
+import { statsState } from './state/stats.js';
+import { playerState } from './state/player.js';
+import { renderState } from './state/render.js';
 import { EventBus } from './core/event_bus.js';
 import { PlayerSystem } from './systems/PlayerSystem.js';
 import { SpawnSystem } from './systems/SpawnSystem.js';
@@ -14,26 +18,34 @@ import { openShop } from './ui/shop.js';
 import { openLevelUp, openResult } from './ui.js';
 import { uiTick } from './ui/hud.js';
 
+/** 便捷引用 */
+const gSt = () => stageState.state;
+const sSt = () => statsState.state;
+const pSt = () => playerState.state;
+const rSt = () => renderState.state;
+
 /* ---------- 关卡流程 ---------- */
 
 /**
  * @param {number} n
  */
 export function startStage(n) {
-  G.stage = n;
-  G.stageTime = 0;
-  G.stageMax = CONFIG.STAGE_TIME;
-  G.stageName = STAGE_NAMES[n - 1] || ('第 ' + n + ' 夜');
+  stageState.patch({
+    stage: n,
+    stageTime: 0,
+    stageMax: CONFIG.STAGE_TIME,
+    stageName: STAGE_NAMES[n - 1] || ('第 ' + n + ' 夜'),
+    spawnAcc: 0,
+    boss: null,
+  });
   // 每回合重置武器伤害统计（占比反映当前回合输出构成；totalDmg 保留全程）
-  G.runStats.wDmg = {};
+  sSt().runStats.wDmg = {};
   // 使用 World 重置实体池（同时清空 G 列表和 EntityPool）
   getSysMan().getWorld().resetAll();
-  G.spawnAcc = 0;
-  G.boss = null;
   const p = G.player;
   if (!p) return;
-  p.x = G.width / 2;
-  p.y = G.height / 2;
+  p.x = rSt().width / 2;
+  p.y = rSt().height / 2;
   p.invuln = 1.2;
   p.hp = Math.min(p.maxHp, p.hp);
   PlayerSystem.computeDerived(p);
@@ -42,34 +54,40 @@ export function startStage(n) {
     SpawnSystem.spawnBoss(type);
     for (let i = 0; i < 4; i++) SpawnSystem.spawnEnemy(pick(['grub', 'rat']), { hpMul: 0.6 });
   }
-  EventBus.emit('stage:start', { stage: n, name: G.stageName, boss: G.boss !== null });
+  EventBus.emit('stage:start', { stage: n, name: gSt().stageName, boss: gSt().boss !== null });
 }
 
 export function startRun() {
   sm.transition(STATE.PLAYING);
-  G.stage = 1;
-  G.level = 1;
-  G.xp = 0;
-  G.kills = 0;
-  G.gold = 0;
-  G.time = 0;
-  G.weaponCd = {};
-  G.weaponCdFull = {};
-  G.runStats = { totalDmg: 0, bossKills: 0, win: false, wDmg: {} };
-  G.levelQueue = 0;
+  stageState.set('stage', 1);
+  statsState.patch({
+    level: 1,
+    xp: 0,
+    kills: 0,
+    gold: 0,
+    levelQueue: 0,
+    xpNeeded: PlayerSystem.xpNeeded(1),
+    runStats: { totalDmg: 0, bossKills: 0, win: false, wDmg: {} },
+  });
+  stageState.patch({
+    time: 0,
+    paused: false,
+  });
+  playerState.patch({
+    weaponCd: {},
+    weaponCdFull: {},
+  });
   G._resumeState = STATE.PLAYING;
   G.levelUpOpen = false;
   G.shopOpen = false;
-  G.paused = false;
-  G.xpNeeded = PlayerSystem.xpNeeded(1);
   // 蚀月深度 ≥1：随机施加一个蚀之诅咒
-  G.curse = G.depth >= 1 ? pick(CURSES) : null;
-  G.player = PlayerSystem.createPlayer();
+  stageState.set('curse', gSt().depth >= 1 ? pick(CURSES) : null);
+  playerState.set('player', PlayerSystem.createPlayer());
   const p = G.player;
-  if (G.curse && p) G.curse.apply(p);
+  if (gSt().curse && p) gSt().curse.apply(p);
   PlayerSystem.addWeapon('moonRing');
   startStage(1);
-  EventBus.emit('game:runStart', { depth: G.depth, curse: G.curse });
+  EventBus.emit('game:runStart', { depth: gSt().depth, curse: gSt().curse });
 }
 
 /* ---------- ECS System Manager（惰性初始化，避免模块循环依赖 TDZ） ---------- */
@@ -90,7 +108,7 @@ function getSysMan() {
  * @param {number} dt
  */
 export function update(dt) {
-  G.time += dt;
+  stageState.set('time', gSt().time + dt);
   getSysMan().update(dt);
 }
 
@@ -111,7 +129,7 @@ export function gameLoop(ts) {
   frameDt = Math.max(0, Math.min(0.2, frameDt || FIXED_DT));
 
   // 战斗中推进模拟；其余状态（升级/商店/结算）完全暂停（不渲染）。
-  if (sm.is(STATE.PLAYING) && !G.paused) {
+  if (sm.is(STATE.PLAYING) && !gSt().paused) {
     _accum += frameDt;
     let steps = 0;
     while (_accum >= FIXED_DT && steps < MAX_STEPS) {
@@ -133,7 +151,8 @@ export function gameLoop(ts) {
     catch (err) { G.levelUpOpen = false; console.error('升级界面打开失败，重试:', err); }
   } else if (sm.is(STATE.OVER) || sm.is(STATE.WIN)) {
     const won = sm.is(STATE.WIN);
-    EventBus.emit('game:runEnd', { win: won, stage: G.stage, kills: G.kills, gold: G.gold });
+    const gs = gSt();
+    EventBus.emit('game:runEnd', { win: won, stage: gs.stage, kills: sSt().kills, gold: sSt().gold });
     openResult(won);
     sm.transition(STATE.RESULT);
   } else if (sm.is(STATE.SHOP) && !G.shopOpen) {

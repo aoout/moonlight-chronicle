@@ -4,6 +4,7 @@
    ========================================================= */
 import { System } from '../core/system.js';
 import { G, STATE, sm } from '../state.js';
+import { stageState } from '../state/stage.js';
 import { CONFIG } from '../data/index.js';
 
 export class StageTimerSystem extends System {
@@ -11,10 +12,11 @@ export class StageTimerSystem extends System {
 
   /** @param {number} dt */
   update(dt) {
-    if (!G.boss && G.state === STATE.PLAYING &&
-        !CONFIG.BOSS_STAGES.includes(G.stage) && G.stage !== CONFIG.FINAL_STAGE) {
-      G.stageTime += dt;
-      if (G.stageTime >= G.stageMax) sm.transition(STATE.SHOP);
+    const gs = stageState.state;
+    if (!gs.boss && G.state === STATE.PLAYING &&
+        !CONFIG.BOSS_STAGES.includes(gs.stage) && gs.stage !== CONFIG.FINAL_STAGE) {
+      stageState.set('stageTime', gs.stageTime + dt);
+      if (gs.stageTime >= gs.stageMax) sm.transition(STATE.SHOP);
     }
   }
 }

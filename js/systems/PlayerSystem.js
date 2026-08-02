@@ -5,6 +5,12 @@
    ========================================================= */
 import { System } from '../core/system.js';
 import { G, STATE, sm } from '../state.js';
+import { playerState } from '../state/player.js';
+import { statsState } from '../state/stats.js';
+import { inputState } from '../state/input.js';
+import { renderState } from '../state/render.js';
+import { stageState } from '../state/stage.js';
+import { entityState } from '../state/entities.js';
 import { EventBus } from '../core/event_bus.js';
 import { RNG, rand, clamp, dist } from '../utils.js';
 import { PALETTE } from '../palette.js';
@@ -13,6 +19,14 @@ import { addFx, spawnRing } from '../fx.js';
 import { world } from '../ecs/World.js';
 import { weaponFire, nearestEnemy } from '../weapons/index.js';
 import { codexAdd } from '../codex.js';
+
+/** 便捷引用 */
+const pSt = () => playerState.state;
+const sSt = () => statsState.state;
+const iSt = () => inputState.state;
+const rSt = () => renderState.state;
+const eSt = () => entityState.state;
+const gSt = () => stageState.state;
 
 export class PlayerSystem extends System {
   name = 'PlayerSystem';
@@ -33,7 +47,7 @@ export class PlayerSystem extends System {
       }
     }
     if (p._frostAura) {
-      for (const e of G.enemies) {
+      for (const e of eSt().enemies) {
         if (!e.dead) e.auraSlow = dist(e, p) < p._frostAura ? 0.2 : 0;
       }
     }
@@ -68,9 +82,9 @@ export class PlayerSystem extends System {
     /* ===== 时停 ===== */
     G._timeScale = 1;
     if (p.timeStop > 0) {
-      G.timestopTimer -= dt;
-      if (G.timestopTimer <= 0) {
-        G.timestopTimer = 12;
+      rSt().timestopTimer -= dt;
+      if (rSt().timestopTimer <= 0) {
+        renderState.set('timestopTimer', 12);
         addFx({ timestop: true, t: 0, max: 1.0 });
         p.tsActive = 1.0;
       }
@@ -78,16 +92,17 @@ export class PlayerSystem extends System {
     }
 
     /* ===== 闪白 / 震屏 / 无敌衰减 ===== */
-    if (G.hitFlash > 0) G.hitFlash -= dt;
-    if (G.shake > 0) G.shake *= CONFIG.MIRROR_DECAY;
+    if (rSt().hitFlash > 0) renderState.set('hitFlash', rSt().hitFlash - dt);
+    if (rSt().shake > 0) renderState.set('shake', rSt().shake * CONFIG.MIRROR_DECAY);
     if (p.invuln > 0) p.invuln -= dt;
 
     /* ===== 移动 ===== */
     let mx = 0, my = 0;
-    if (G.keys['w'] || G.keys['arrowup']) my -= 1;
-    if (G.keys['s'] || G.keys['arrowdown']) my += 1;
-    if (G.keys['a'] || G.keys['arrowleft']) mx -= 1;
-    if (G.keys['d'] || G.keys['arrowright']) mx += 1;
+    const keys = iSt().keys;
+    if (keys['w'] || keys['arrowup']) my -= 1;
+    if (keys['s'] || keys['arrowdown']) my += 1;
+    if (keys['a'] || keys['arrowleft']) mx -= 1;
+    if (keys['d'] || keys['arrowright']) mx += 1;
     const len = Math.hypot(mx, my);
     if (len > 0) {
       p.facing = Math.atan2(my, mx);
@@ -108,20 +123,22 @@ export class PlayerSystem extends System {
     } else {
       p.vx = 0; p.vy = 0;
     }
-    p.x = clamp(p.x, 18, G.width - 18);
-    p.y = clamp(p.y, 18, G.height - 18);
+    p.x = clamp(p.x, 18, rSt().width - 18);
+    p.y = clamp(p.y, 18, rSt().height - 18);
 
     /* ===== 生命恢复 ===== */
     p.hp = Math.min(p.maxHp, p.hp + p.regen * dt);
 
     /* ===== 武器冷却与开火 ===== */
+    const wcd = pSt().weaponCd;
+    const wcdFull = pSt().weaponCdFull;
     for (const w of p.weapons) {
-      G.weaponCd[w.id] = (G.weaponCd[w.id] || 0) - dt;
-      if (G.weaponCd[w.id] <= 0) {
+      wcd[w.id] = (wcd[w.id] || 0) - dt;
+      if (wcd[w.id] <= 0) {
         const cd = weaponFire(w);
         const huntBonus = p._huntT > 0 ? (p._huntStacks || 0) * (p._hunt || 0) : 0;
-        G.weaponCd[w.id] = cd / p.effAtkSpd / (1 + huntBonus);
-        G.weaponCdFull[w.id] = G.weaponCd[w.id];
+        wcd[w.id] = cd / p.effAtkSpd / (1 + huntBonus);
+        wcdFull[w.id] = wcd[w.id];
       }
     }
   }
@@ -135,7 +152,7 @@ export class PlayerSystem extends System {
   static computeDerived(p) {
     p.effAtk   = p.atk + p.armor * p.armorToAtk + p.maxHp * p.hpToAtk
                + p.critRate * p.critToAtk + p.level * p.scaleLevel
-               + (G.stage - 1) * p.scaleStage;
+               + (gSt().stage - 1) * p.scaleStage;
     p.effCrit  = Math.min(0.9, p.critRate + p.speed * p.speedToCrit / 100);
     p.effSpeed = p.speed + p.atk * p.atkToSpd;
     p.effGold  = p.goldGain + (p.luck - 1) * p.luckToGold;
@@ -147,7 +164,7 @@ export class PlayerSystem extends System {
   static createPlayer() {
     /** @type {any} */
     const p = { ...BASE_STATS };
-    p.x = G.width / 2; p.y = G.height / 2;
+    p.x = rSt().width / 2; p.y = rSt().height / 2;
     p.r = 16; p.facing = 0; p.invuln = 0; p.level = 1;
     p.weapons = [];
     p.animT = RNG() * 10;
@@ -166,7 +183,7 @@ export class PlayerSystem extends System {
     if (p.weapons.length >= CONFIG.MAX_WEAPONS) return false;
     if (p.weapons.find(w => w.id === id)) return false;
     p.weapons.push({ id, lv: 1 });
-    G.weaponCd[id] = 0;
+    pSt().weaponCd[id] = 0;
     codexAdd('weapons', id);
     return true;
   }
@@ -189,8 +206,8 @@ export class PlayerSystem extends System {
     const i = p.weapons.findIndex(x => x.id === id);
     if (i < 0) return false;
     p.weapons.splice(i, 1);
-    delete G.weaponCd[id];
-    delete G.weaponCdFull[id];
+    delete pSt().weaponCd[id];
+    delete pSt().weaponCdFull[id];
     return true;
   }
 
@@ -198,7 +215,8 @@ export class PlayerSystem extends System {
   static addGold(n) {
     const p = G.player;
     if (!p) return;
-    G.gold += Math.round(n * Math.max(0.1, p.effGold));
+    const st = sSt();
+    st.gold += Math.round(n * Math.max(0.1, p.effGold));
   }
 
   /** 获得经验 */
@@ -207,13 +225,14 @@ export class PlayerSystem extends System {
     const p = G.player;
     if (!p) return;
     const amt = n * p.xpGain;
-    G.xp += amt;
-    while (G.xp >= G.xpNeeded) {
-      G.xp -= G.xpNeeded;
-      G.xpNeeded = PlayerSystem.xpNeeded(p.level + 1);
+    const st = sSt();
+    st.xp += amt;
+    while (st.xp >= st.xpNeeded) {
+      st.xp -= st.xpNeeded;
+      st.xpNeeded = PlayerSystem.xpNeeded(p.level + 1);
       p.level++;
-      G.levelQueue++;
+      st.levelQueue++;
     }
-    if (G.levelQueue > 0) { G._resumeState = sm.current; sm.transition(STATE.LEVELUP); G.levelUpOpen = false; EventBus.emit('player:levelup', { level: p.level, queue: G.levelQueue }); }
+    if (st.levelQueue > 0) { G._resumeState = sm.current; sm.transition(STATE.LEVELUP); G.levelUpOpen = false; EventBus.emit('player:levelup', { level: p.level, queue: st.levelQueue }); }
   }
 }

@@ -1,7 +1,7 @@
 // @ts-check
 /* =========================================================
    蚀月远征 · 全局状态 + 状态常量 + 状态机
-   状态切片策略：G 是向后兼容的聚合层，新代码可直接导入切片
+   状态切片策略：新代码直接导入 Store，G 作为向后兼容的 Proxy 聚合层
    ========================================================= */
 import { CONFIG } from './data/index.js';
 import { StateMachine } from './core/state_machine.js';
@@ -12,7 +12,7 @@ import { renderState } from './state/render.js';
 import { inputState } from './state/input.js';
 import { entityState } from './state/entities.js';
 
-/* 重新导出切片，供新代码直接导入使用 */
+/* 重新导出 Store 实例，供新代码直接导入使用 */
 export { playerState } from './state/player.js';
 export { stageState } from './state/stage.js';
 export { statsState } from './state/stats.js';
@@ -46,23 +46,96 @@ export const sm = new StateMachine({
   },
 });
 
-/** @type {import('./types/core.d.ts').GState} */
-export const G = {
-  state: STATE.MENU,          // 由状态机同步更新
-  // 领域切片在此展开为平面属性，使 G.* 访问保持不变
-  ...playerState,
-  ...stageState,
-  ...statsState,
-  ...renderState,
-  ...inputState,
-  ...entityState,
-  // 运行时动态属性（不在切片中，由各模块动态设置）
+/**
+ * Store 到属性前缀的映射表，用于 G Proxy 路由
+ * 约定：所有 store 属性以特定前缀开头，方便路由
+ */
+const STORE_MAP = [
+  { store: playerState,  prefix: 'player', props: ['player', 'weaponCd', 'weaponCdFull'] },
+  { store: stageState,   prefix: 'stage',  props: ['stage', 'stageTime', 'stageMax', 'stageName', 'time', 'spawnAcc', 'boss', 'depth', 'curse', 'unlocked', 'paused'] },
+  { store: statsState,   prefix: 'stats',  props: ['kills', 'gold', 'xp', 'xpNeeded', 'level', 'levelQueue', 'runStats'] },
+  { store: renderState,  prefix: 'render', props: ['shake', 'hitFlash', 'timestopTimer', 'width', 'height', 'canvas', 'ctx', 'ctxBg'] },
+  { store: inputState,   prefix: 'input',  props: ['keys'] },
+  { store: entityState,  prefix: 'entity', props: ['enemies', 'projectiles', 'drops', 'particles', 'phantoms'] },
+];
+
+/** 查找属性所属的 Store */
+function findStore(key) {
+  for (const entry of STORE_MAP) {
+    if (entry.props.includes(key)) {
+      return entry.store;
+    }
+  }
+  return null;
+}
+
+/**
+ * 向后兼容的 G 对象 — 通过 Proxy 代理到各 Store
+ * 读取：G.player → playerState.get('player')
+ * 写入：G.gold = 100 → statsState.set('gold', 100)
+ *
+ * 动态属性（不在 Store 中，由运行时添加）存储在 _dynamic 中
+ *
+ * @type {import('./types/core.d.ts').GState}
+ */
+export const G = new Proxy({
+  state: STATE.MENU,
   stageMax: CONFIG.STAGE_TIME,
   xpNeeded: CONFIG.XP_PER_LEVEL,
   levelUpOpen: false,
   shopOpen: false,
   _resumeState: STATE.PLAYING,
-};
+  _timeScale: 1,
+  _echoSlowT: 0,
+  _dynamic: {},
+}, {
+  get(target, prop) {
+    // 特殊处理 state 属性
+    if (prop === 'state') return target.state;
+    if (prop === 'stageMax') return target.stageMax;
+    if (prop === 'xpNeeded') return target.xpNeeded;
+    if (prop === 'levelUpOpen') return target.levelUpOpen;
+    if (prop === 'shopOpen') return target.shopOpen;
+    if (prop === '_resumeState') return target._resumeState;
+    if (prop === '_timeScale') return target._timeScale;
+    if (prop === '_echoSlowT') return target._echoSlowT;
+    if (prop === '_dynamic') return target._dynamic;
+    // 查找 Store
+    const store = findStore(prop);
+    if (store) return store.get(prop);
+    // 动态属性
+    if (prop in target._dynamic) return target._dynamic[prop];
+    return undefined;
+  },
+  set(target, prop, value) {
+    if (prop === 'state') { target.state = value; return true; }
+    if (prop === 'stageMax') { target.stageMax = value; return true; }
+    if (prop === 'xpNeeded') { target.xpNeeded = value; return true; }
+    if (prop === 'levelUpOpen') { target.levelUpOpen = value; return true; }
+    if (prop === 'shopOpen') { target.shopOpen = value; return true; }
+    if (prop === '_resumeState') { target._resumeState = value; return true; }
+    if (prop === '_timeScale') { target._timeScale = value; return true; }
+    if (prop === '_echoSlowT') { target._echoSlowT = value; return true; }
+    if (prop === '_dynamic') { target._dynamic = value; return true; }
+    // 查找 Store
+    const store = findStore(prop);
+    if (store) { store.set(prop, value); return true; }
+    // 动态属性
+    target._dynamic[prop] = value;
+    return true;
+  },
+  has(target, prop) {
+    if (prop in target) return true;
+    if (findStore(prop)) return true;
+    return prop in target._dynamic;
+  },
+  ownKeys(target) {
+    const staticKeys = ['state', 'stageMax', 'xpNeeded', 'levelUpOpen', 'shopOpen', '_resumeState', '_timeScale', '_echoSlowT'];
+    const storeKeys = STORE_MAP.flatMap(e => e.props);
+    const dynamicKeys = Object.keys(target._dynamic);
+    return [...staticKeys, ...storeKeys, ...dynamicKeys];
+  },
+});
 
 // 状态机同步：每次状态转换后更新 G.state
 sm.onTransition('*', '*', () => { G.state = sm.current; });
@@ -72,7 +145,7 @@ sm.onTransition('*', '*', () => { G.state = sm.current; });
 /**
  * @param {number} n
  */
-export function shakeScreen(n) { G.shake = Math.max(G.shake, n); }
+export function shakeScreen(n) { renderState.set('shake', Math.max(renderState.get('shake'), n)); }
 
 /* 关卡结算 */
 

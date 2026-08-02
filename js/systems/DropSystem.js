@@ -5,6 +5,7 @@
    ========================================================= */
 import { System } from '../core/system.js';
 import { G } from '../state.js';
+import { playerState } from '../state/player.js';
 import { world } from '../ecs/World.js';
 import { dist, angTo } from '../utils.js';
 import { CONFIG } from '../data/index.js';

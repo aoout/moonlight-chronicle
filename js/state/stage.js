@@ -2,8 +2,9 @@
    蚀月远征 · 状态切片：关卡
    关卡流程、时间、Boss、深度、诅咒
    ========================================================= */
+import { Store } from '../core/store.js';
 
-export const stageState = {
+const INITIAL = {
   stage: 1,
   stageTime: 0,
   stageMax: 300,
@@ -16,3 +17,9 @@ export const stageState = {
   unlocked: 0,
   paused: false,
 };
+
+/** @type {Store<typeof INITIAL>} */
+export const stageState = new Store(INITIAL);
+
+/** 便捷访问 */
+export const sState = () => stageState.state;

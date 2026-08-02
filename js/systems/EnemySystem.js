@@ -5,6 +5,8 @@
    ========================================================= */
 import { System } from '../core/system.js';
 import { G } from '../state.js';
+import { stageState } from '../state/stage.js';
+import { renderState } from '../state/render.js';
 import { angTo, dist, clamp } from '../utils.js';
 import { CombatSystem } from './CombatSystem.js';
 import { bossTick } from '../boss_skills.js';
@@ -12,11 +14,16 @@ import { ENEMY_SKILLS } from '../enemy_skills.js';
 import { ENEMY_MOVES } from '../enemies/behaviors/index.js';
 import { world } from '../ecs/World.js';
 
+/** 便捷引用 */
+const gSt = () => stageState.state;
+const rSt = () => renderState.state;
+
 /* ---------- 敌人主更新 ---------- */
 /** @param {import('../types/core.d.ts').EnemyInstance} e @param {number} dt */
 function enemyTick(e, dt) {
   const p = G.player;
   if (!p) return;
+  const gs = gSt();
   const slowF = (Math.max(e.slow || 0, e.auraSlow || 0) > 0 || G._echoSlowT > 0)
     ? 1 - Math.max(e.slow || 0, e.auraSlow || 0, G._echoSlowT > 0 ? 0.5 : 0)
     : 1;
@@ -26,7 +33,7 @@ function enemyTick(e, dt) {
   if (e.stun > 0) { e.stun -= dt; return; }
   if (e.bleed > 0) {
     e.bleed -= dt;
-    e.hp -= 1 + G.stage * 0.2;
+    e.hp -= 1 + gs.stage * 0.2;
     e.flash = 0.15;
     if (e.hp <= 0) { CombatSystem.killEnemy(e, 'bleed'); return; }
   }
@@ -52,8 +59,8 @@ function enemyTick(e, dt) {
       e.y += Math.sin(a) * 16;
     }
   }
-  e.x = clamp(e.x, -40, G.width + 40);
-  e.y = clamp(e.y, -40, G.height + 40);
+  e.x = clamp(e.x, -40, rSt().width + 40);
+  e.y = clamp(e.y, -40, rSt().height + 40);
 }
 
 export class EnemySystem extends System {

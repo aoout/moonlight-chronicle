@@ -6,6 +6,11 @@
    ========================================================= */
 import { System } from '../core/system.js';
 import { G, STATE, sm, shakeScreen, endStage, playerDeath } from '../state.js';
+import { statsState } from '../state/stats.js';
+import { stageState } from '../state/stage.js';
+import { entityState } from '../state/entities.js';
+import { playerState } from '../state/player.js';
+import { renderState } from '../state/render.js';
 import { EventBus } from '../core/event_bus.js';
 import { RNG, dist, rand } from '../utils.js';
 import { ENEMIES, BOSSES, CONFIG } from '../data/index.js';
@@ -17,6 +22,13 @@ import { persistUnlocked } from '../save.js';
 import { world } from '../ecs/World.js';
 import { SpawnSystem } from './SpawnSystem.js';
 import { createEntity, Position, Velocity } from '../ecs/components.js';
+
+/** 便捷引用 */
+const sSt = () => statsState.state;
+const gSt = () => stageState.state;
+const eSt = () => entityState.state;
+const pSt = () => playerState.state;
+const rSt = () => renderState.state;
 
 export class CombatSystem extends System {
   name = 'CombatSystem';
@@ -59,7 +71,7 @@ export function damageEnemy(e, dmg, isCrit, srcType, srcW) {
   if (p.lowHpDmg > 0 && p.hp <= p.maxHp * 0.3) dmg *= (1 + p.lowHpDmg);
   if (isCrit) dmg *= p.critDmg;
   if (p._horde) {
-    const hc = Math.min(10, Math.floor(G.enemies.length / 10));
+    const hc = Math.min(10, Math.floor(eSt().enemies.length / 10));
     if (hc > 0) dmg *= 1 + p._horde * hc;
   }
   if (isCrit && p._critBoom && srcType !== 'splash') {
@@ -79,13 +91,14 @@ export function damageEnemy(e, dmg, isCrit, srcType, srcW) {
   e.hp -= dmg;
   e.flash = 0.12;
   if (srcW) {
-    G.runStats.wDmg = G.runStats.wDmg || {};
-    G.runStats.wDmg[srcW] = (G.runStats.wDmg[srcW] || 0) + dmg;
+    const rs = sSt().runStats;
+    rs.wDmg = rs.wDmg || {};
+    rs.wDmg[srcW] = (rs.wDmg[srcW] || 0) + dmg;
   }
   if (p.lifesteal > 0) {
     healPlayer(dmg * p.lifesteal);
   }
-  G.runStats.totalDmg += dmg;
+  sSt().runStats.totalDmg += dmg;
   spawnHitFx(e.x, e.y, dmg, isCrit);
   if (e.hp <= 0) { killEnemy(e, srcType); EventBus.emit('enemy:killed', { type: e.type, boss: !!e.boss }); }
 }
@@ -97,7 +110,7 @@ export function damageEnemy(e, dmg, isCrit, srcType, srcW) {
 export function killEnemy(e, srcType) {
   if (e.dead) return;
   e.dead = 1;
-  G.kills++;
+  sSt().kills++;
   AudioEngine.playSfx('kill');
   const p = G.player;
   if (!p) return;
@@ -127,13 +140,15 @@ export function killEnemy(e, srcType) {
   }
   spawnBurst(e.x, e.y, e.color || '#fff', e.size);
   if (e.boss) {
-    G.runStats.bossKills++;
-    G.boss = null;
-    EventBus.emit('boss:killed', { type: e.type, stage: G.stage });
+    const st = sSt();
+    const gs = gSt();
+    st.bossKills++;
+    stageState.set('boss', null);
+    EventBus.emit('boss:killed', { type: e.type, stage: gs.stage });
     if (G.state === STATE.PLAYING) {
-      if (G.stage === CONFIG.FINAL_STAGE) {
-        sm.transition(STATE.WIN); G.runStats.win = true;
-        if (G.depth === G.unlocked && G.unlocked < 9) { G.unlocked++; persistUnlocked(); AudioEngine.playSfx('unlock'); }
+      if (gs.stage === CONFIG.FINAL_STAGE) {
+        sm.transition(STATE.WIN); st.win = true;
+        if (gs.depth === gs.unlocked && gs.unlocked < 9) { stageState.set('unlocked', gs.unlocked + 1); persistUnlocked(); AudioEngine.playSfx('unlock'); }
       }
       else endStage(true);
     }
@@ -180,7 +195,7 @@ export function hurtPlayer(e, rawDmg) {
   }
   p.hp -= dmg;
   p.invuln = 0.45;
-  G.hitFlash = 0.3;
+  renderState.set('hitFlash', 0.3);
   shakeScreen(8);
   EventBus.emit('player:hurt', { damage: dmg, hp: p.hp, maxHp: p.maxHp });
   spawnBurst(p.x, p.y, '#e2546a', 18);

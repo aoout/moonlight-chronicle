@@ -5,23 +5,30 @@
    ========================================================= */
 import { System } from '../core/system.js';
 import { G } from '../state.js';
+import { stageState } from '../state/stage.js';
+import { renderState } from '../state/render.js';
 import { RNG, rand, pick } from '../utils.js';
 import { ENEMIES, BOSSES, CONFIG, enemyScale, levelEnemyScale, stageSpawnRate, stageEnemyPool } from '../data/index.js';
 import { world } from '../ecs/World.js';
 import { codexAdd } from '../codex.js';
 import { createEntity, Position, Health, Renderable, Combat, Timer, Status, Enemy, Velocity } from '../ecs/components.js';
 
+/** 便捷引用 */
+const gSt = () => stageState.state;
+const rSt = () => renderState.state;
+
 export class SpawnSystem extends System {
   name = 'SpawnSystem';
 
   /** @param {number} dt */
   update(dt) {
-    const sRate = stageSpawnRate(G.stage) * (G._timeScale || 1);
-    if (!G.boss) {
-      G.spawnAcc += sRate * dt;
-      while (G.spawnAcc >= 1) {
-        G.spawnAcc -= 1;
-        SpawnSystem.spawnEnemy(pick(stageEnemyPool(G.stage)));
+    const gs = gSt();
+    const sRate = stageSpawnRate(gs.stage) * (G._timeScale || 1);
+    if (!gs.boss) {
+      stageState.set('spawnAcc', gs.spawnAcc + sRate * dt);
+      while (gSt().spawnAcc >= 1) {
+        stageState.set('spawnAcc', gSt().spawnAcc - 1);
+        SpawnSystem.spawnEnemy(pick(stageEnemyPool(gs.stage)));
       }
     }
   }
@@ -36,17 +43,19 @@ export class SpawnSystem extends System {
    */
   static spawnEnemy(type, opts) {
     const def = ENEMIES[type];
+    const gs = gSt();
+    const rs = rSt();
     codexAdd('enemies', type);
-    const sc = enemyScale(G.stage);
-    const ls = levelEnemyScale(G.depth);
+    const sc = enemyScale(gs.stage);
+    const ls = levelEnemyScale(gs.depth);
     const p = G.player;
     const m = 30;
     const side = Math.floor(RNG() * 4);
     let x, y;
-    if (side === 0) { x = rand(-m, G.width + m); y = -m; }
-    else if (side === 1) { x = rand(-m, G.width + m); y = G.height + m; }
-    else if (side === 2) { x = -m; y = rand(-m, G.height + m); }
-    else { x = G.width + m; y = rand(-m, G.height + m); }
+    if (side === 0) { x = rand(-m, rs.width + m); y = -m; }
+    else if (side === 1) { x = rand(-m, rs.width + m); y = rs.height + m; }
+    else if (side === 2) { x = -m; y = rand(-m, rs.height + m); }
+    else { x = rs.width + m; y = rand(-m, rs.height + m); }
     const hp = def.hp * sc.hp * (opts && opts.hpMul ? opts.hpMul : 1) * ls.hp * (p && p._enemyHpMul ? p._enemyHpMul : 1);
     const dmg = def.dmg * sc.dmg * ls.dmg * (p && p._enemyDmgMul ? p._enemyDmgMul : 1);
     const e = world.add('enemies', createEntity(
@@ -75,14 +84,16 @@ export class SpawnSystem extends System {
    */
   static spawnBoss(type) {
     const def = BOSSES[type];
+    const gs = gSt();
+    const rs = rSt();
     codexAdd('bosses', type);
-    const sc = enemyScale(G.stage);
-    const ls = levelEnemyScale(G.depth);
+    const sc = enemyScale(gs.stage);
+    const ls = levelEnemyScale(gs.depth);
     const p = G.player;
-    const hp = def.hp * (type === 'final' ? 1.35 : 1) * (1 + (G.stage - 1) * 0.02) * ls.hp * (p && p._enemyHpMul ? p._enemyHpMul : 1);
+    const hp = def.hp * (type === 'final' ? 1.35 : 1) * (1 + (gs.stage - 1) * 0.02) * ls.hp * (p && p._enemyHpMul ? p._enemyHpMul : 1);
     const dmg = def.dmg * sc.dmg * ls.dmg * (p && p._enemyDmgMul ? p._enemyDmgMul : 1);
     const e = world.add('enemies', createEntity(
-      Position(G.width / 2, -70),
+      Position(rs.width / 2, -70),
       Health(hp),
       Renderable(def.color, def.size),
       Combat(dmg),
@@ -98,18 +109,19 @@ export class SpawnSystem extends System {
       }
     ));
     /** @type {import('../types/core.d.ts').EnemyInstance} */ (e).maxHp = e.hp;
-    G.boss = e;
+    stageState.set('boss', e);
     return e;
   }
 
   /** 敌人投射物（远射魔等） */
   /** @param {import('../types/core.d.ts').EnemyInstance} e @param {number} ang */
   static spawnEnemyProjectile(e, ang) {
+    const gs = gSt();
     world.add('projectiles', createEntity(
       Position(e.x, e.y),
       Velocity(Math.cos(ang) * e.projSpd, Math.sin(ang) * e.projSpd),
       Renderable('#7fd6a4', 5),
-      Combat(e.projDmg * enemyScale(G.stage).dmg, 0),
+      Combat(e.projDmg * enemyScale(gs.stage).dmg, 0),
       Timer(0, 4),
       { enemy: true, hit: new Set() }
     ));

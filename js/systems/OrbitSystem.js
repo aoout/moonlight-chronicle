@@ -6,6 +6,7 @@ import { System } from '../core/system.js';
 import { orbitTick } from '../weapons/index.js';
 import { world } from '../ecs/World.js';
 import { G } from '../state.js';
+import { playerState } from '../state/player.js';
 import { rand, dist, angTo } from '../utils.js';
 import { nearestEnemy } from '../weapons/helpers.js';
 import { spawnGlow } from '../fx.js';
