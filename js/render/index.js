@@ -6,7 +6,7 @@
 import { rand } from '../utils.js';
 import { drawBackground } from './background.js';
 import { drawEnemies, drawPlayer, drawPhantoms } from './entities.js';
-import { drawDrops, drawProjectiles, drawOrbitWeapons, drawParticles } from './effects.js';
+import { drawDrops, drawProjectiles, drawOrbitWeapons, drawParticles } from './effects/index.js';
 import { drawBossBar } from './hud.js';
 import { renderDebug, renderSpatialDebug } from '../debug/panel.js';
 import { createRenderContext } from './context.js';

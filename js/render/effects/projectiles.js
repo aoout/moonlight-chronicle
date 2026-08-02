@@ -1,46 +1,9 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* =========================================================
-   蚀月远征 · 渲染层：投射物 / 环绕武器 / 粒子 / 掉落
+   蚀月远征 · 渲染层：投射物绘制
    ========================================================= */
-import { PALETTE } from '../palette.js';
-
-/* ---------- 掉落物 ---------- */
-/**
- * @param {import('./context.js').RenderContext} rc
- */
-export function drawDrops(rc) {
-  const ctx = rc.ctx;
-  if (!ctx) return;
-  for (const d of rc.drops) {
-    ctx.save();
-    ctx.translate(d.x, d.y);
-    ctx.rotate(d.t * 2);
-    if (d.kind === 'gold') {
-      // 星形金币 + 内芯
-      ctx.fillStyle = PALETTE.gold;
-      ctx.shadowColor = PALETTE.gold; ctx.shadowBlur = 10;
-      ctx.beginPath();
-      for (let i = 0; i < 5; i++) {
-        const a = (i / 5) * 6.28 - 1.57;
-        const r = 5.5;
-        if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
-        else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-      }
-      ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#fdf6dd';
-      ctx.beginPath(); ctx.arc(0, 0, 2.2, 0, 6.28); ctx.fill();
-    } else {
-      // 菱形经验
-      ctx.fillStyle = PALETTE.ice;
-      ctx.shadowColor = PALETTE.ice; ctx.shadowBlur = 10;
-      ctx.beginPath();
-      ctx.moveTo(0, -6); ctx.lineTo(4.5, 0); ctx.lineTo(0, 6); ctx.lineTo(-4.5, 0);
-      ctx.closePath(); ctx.fill();
-    }
-    ctx.restore();
-  }
-}
+import { PALETTE } from '../../palette.js';
 
 /** @type {Record<string, (ctx:CanvasRenderingContext2D, pr:any) => void>} */
 const PROJ_LINEAR_HEADS = {
@@ -240,7 +203,7 @@ const PROJ_RENDER = {
 };
 
 /**
- * @param {import('./context.js').RenderContext} rc
+ * @param {import('../context.js').RenderContext} rc
  */
 export function drawProjectiles(rc) {
   const ctx = rc.ctx;
@@ -259,120 +222,6 @@ export function drawProjectiles(rc) {
     else if (pr.vx !== undefined || pr.dir !== undefined) PROJ_RENDER.linear(ctx, pr);
     else if (pr.enemy) PROJ_RENDER.enemy(ctx, pr);
     else PROJ_RENDER.dot(ctx, pr);
-    ctx.restore();
-  }
-}
-
-/**
- * @param {import('./context.js').RenderContext} rc
- */
-export function drawOrbitWeapons(rc) {
-  const p = rc.player;
-  if (!p || !p.orbits || !p.orbits.length) return;
-  const ctx = rc.ctx;
-  if (!ctx) return;
-  for (const o of p.orbits) {
-    ctx.save();
-    ctx.translate(o.x, o.y);
-    ctx.rotate(o.a + 1.57);
-    ctx.shadowColor = PALETTE.gold; ctx.shadowBlur = 14;
-    ctx.fillStyle = PALETTE.gold;
-    ctx.beginPath();
-    ctx.arc(0, 0, 7, 0, 6.28);
-    ctx.arc(3.5, 0, 4.5, 0, 6.28, true);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,.7)';
-    ctx.beginPath(); ctx.arc(-2, -2, 1.8, 0, 6.28); ctx.fill();
-    ctx.restore();
-  }
-}
-
-/**
- * @param {import('./context.js').RenderContext} rc
- */
-export function drawParticles(rc) {
-  const ctx = rc.ctx;
-  if (!ctx) return;
-  const list = rc.particles;
-
-  // ---- 批量绘制简单圆形粒子 ----
-  ctx.save();
-  for (const pa of list) {
-    if (pa.chain || pa.ring || pa.spark || pa.star || pa.shard || pa.streak || pa.glow || pa.timestop || pa.echo) continue;
-    const life = 1 - (pa.t || 0) / (pa.max || 0.7);
-    ctx.globalAlpha = life;
-    ctx.fillStyle = pa.color || '#fff';
-    ctx.beginPath(); ctx.arc(pa.x, pa.y, pa.size, 0, 6.28); ctx.fill();
-  }
-  ctx.restore();
-
-  // ---- 单独绘制复杂粒子 ----
-  for (const pa of list) {
-    if (!(pa.chain || pa.ring || pa.spark || pa.star || pa.shard || pa.streak || pa.glow || pa.timestop || pa.echo)) continue;
-    const life = 1 - (pa.t || 0) / (pa.max || 0.7);
-    ctx.save();
-    if (pa.chain) {
-      ctx.globalAlpha = life;
-      ctx.strokeStyle = pa.color || '#fff'; ctx.lineWidth = 3;
-      ctx.shadowColor = pa.color || '#fff'; ctx.shadowBlur = 14;
-      ctx.beginPath(); ctx.moveTo(pa.x1, pa.y1); ctx.lineTo(pa.x2, pa.y2); ctx.stroke();
-      // 电弧白芯
-      ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(pa.x1, pa.y1); ctx.lineTo(pa.x2, pa.y2); ctx.stroke();
-    } else if (pa.ring) {
-      const k = pa.t / pa.max;
-      ctx.globalAlpha = life * 0.9;
-      ctx.strokeStyle = pa.color || '#fff'; ctx.lineWidth = Math.max(0.5, (pa.lw || 3) * (1 - k));
-      ctx.shadowColor = pa.color || '#fff'; ctx.shadowBlur = 14;
-      ctx.beginPath(); ctx.arc(pa.x, pa.y, (pa.r0 || 4) + ((pa.r1 || 60) - (pa.r0 || 4)) * k, 0, 6.28); ctx.stroke();
-    } else if (pa.spark) {
-      ctx.globalAlpha = life;
-      ctx.strokeStyle = pa.color || '#fff'; ctx.lineWidth = pa.size || 1.6;
-      ctx.lineCap = 'round';
-      ctx.shadowColor = pa.color || '#fff'; ctx.shadowBlur = 10;
-      ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pa.x - pa.vx * 0.055, pa.y - pa.vy * 0.055); ctx.stroke();
-    } else if (pa.star) {
-      ctx.globalAlpha = life;
-      ctx.translate(pa.x, pa.y); ctx.rotate(pa.t * 6);
-      ctx.fillStyle = pa.color || '#fff'; ctx.shadowColor = pa.color || '#fff'; ctx.shadowBlur = 14;
-      const s = (pa.size || 10) * (0.4 + 0.6 * life);
-      ctx.beginPath();
-      for (let i = 0; i < 8; i++) {
-        const a = i * 1.5708, r = i % 2 === 0 ? s : s * 0.35;
-        if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
-        else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-      }
-      ctx.closePath(); ctx.fill();
-    } else if (pa.shard) {
-      ctx.globalAlpha = life;
-      ctx.translate(pa.x, pa.y); ctx.rotate(pa.rot + pa.t * pa.vr);
-      ctx.fillStyle = pa.color || '#fff'; ctx.shadowColor = pa.color || '#fff'; ctx.shadowBlur = 8;
-      const s = (pa.size || 3) * (0.5 + 0.5 * life);
-      ctx.beginPath();
-      ctx.moveTo(0, -s); ctx.lineTo(s * 0.72, 0); ctx.lineTo(0, s); ctx.lineTo(-s * 0.72, 0);
-      ctx.closePath(); ctx.fill();
-    } else if (pa.streak) {
-      ctx.globalAlpha = life;
-      ctx.translate(pa.x, pa.y); ctx.rotate(pa.ang);
-      ctx.strokeStyle = pa.color || '#fff'; ctx.lineCap = 'round';
-      ctx.shadowColor = pa.color || '#fff'; ctx.shadowBlur = 10;
-      ctx.lineWidth = pa.w || 2;
-      ctx.beginPath(); ctx.moveTo(-(pa.len || 26), 0); ctx.lineTo(0, 0); ctx.stroke();
-    } else if (pa.glow) {
-      const k = pa.t / pa.max;
-      ctx.globalAlpha = life * 0.45;
-      ctx.fillStyle = pa.color || '#fff';
-      ctx.shadowColor = pa.color || '#fff'; ctx.shadowBlur = 18;
-      ctx.beginPath(); ctx.arc(pa.x, pa.y, Math.max(0.5, (pa.size || 14) * (0.5 + k * 0.8)), 0, 6.28); ctx.fill();
-    } else if (pa.timestop) {
-      ctx.globalAlpha = life * 0.25;
-      ctx.fillStyle = PALETTE.ice;
-      ctx.fillRect(0, 0, rc.width, rc.height);
-    } else if (pa.echo) {
-      ctx.globalAlpha = life;
-      ctx.strokeStyle = PALETTE.gold; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(pa.x, pa.y, Math.max(2, 14 + (0.7 - pa.t) * 30), 0, 6.28); ctx.stroke();
-    }
     ctx.restore();
   }
 }
