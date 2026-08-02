@@ -1,7 +1,7 @@
 /* =========================================================
    蚀月远征 · ECS World
    实体管理核心：封装所有 EntityPool，提供统一 API
-   系统通过 World 访问实体，不直接接触 G 或 EntityPool
+   系统通过 World 访问实体，不直接接触 EntityPool
    ========================================================= */
 import {
   ENEMY_POOL, PROJECTILE_POOL, DROP_POOL,

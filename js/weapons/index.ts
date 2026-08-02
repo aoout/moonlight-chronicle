@@ -2,7 +2,7 @@
    蚀月远征 · 武器层：开火 / 投射物 / 调度 / 统一导出
    采用可组合行为管线
    ========================================================= */
-import { G } from '../state.js';
+import { playerState } from '../state/player.js';
 import { RNG, rand, dist, angTo } from '../utils.js';
 import { PALETTE } from '../data/palette.js';
 import { WEAPONS } from '../data/index.js';
@@ -17,6 +17,8 @@ import { hitScanProjectile } from './hit_scan.js';
 import { nearestEnemy, denseEnemySpot } from './helpers.js';
 import { executeFirePipeline, executeProjPipeline } from './pipeline.js';
 
+const pSt = () => playerState.state;
+
 /* ---------- 重新导出公共 API ---------- */
 export { nearestEnemy } from './helpers.js';
 export { orbitTick } from './orbit.js';
@@ -24,7 +26,7 @@ export { phantomTick } from './phantom.js';
 
 /* ---------- 开火调度 ---------- */
 export function weaponFire(w: any): number {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return 0;
   const def = WEAPONS[w.id];
   const lv = w.lv;
@@ -66,7 +68,7 @@ export function weaponFire(w: any): number {
 
 /* ---------- 投射物调度 ---------- */
 export function projTick(pr: any, dt: number): void {
-  const p = G.player;
+  const p = pSt().player;
   pr.hit = pr.hit || new Set();
   // 统一使用管线
   executeProjPipeline(pr, dt, p);

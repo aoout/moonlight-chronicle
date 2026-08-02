@@ -1,11 +1,13 @@
 /* =========================================================
    蚀月远征 · 小怪专属技能（特性化进攻）
    ========================================================= */
-import { G } from '../state.js';
+import { entityState } from '../state/entities.js';
 import { RNG, angTo, dist } from '../utils.js';
 import { PROJECTILE_POOL } from '../ecs/entity_pool.js';
 import { spawnBurst } from '../render/effects/fx.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
+
+const eSt = () => entityState.state;
 
 export const ENEMY_SKILLS: Record<string, (e: any, dt: number, p: any) => boolean | void> = {
   /* 蚀蛆：近身喷吐腐蚀酸液，命中减速 */
@@ -19,7 +21,7 @@ export const ENEMY_SKILLS: Record<string, (e: any, dt: number, p: any) => boolea
         for (let i = -1; i <= 1; i++) {
           const ang = a + i * 0.3;
           const _prj = { acid: true, x: e.x, y: e.y, vx: Math.cos(ang) * 230, vy: Math.sin(ang) * 230, r: 6, dmg: e.dmg * 0.9, color: '#7fce5a', hit: new Set(), enemy: true, life: 1.8, wId: 'enemy' };
-          G.projectiles.push(PROJECTILE_POOL.addWith(_prj));
+          eSt().projectiles.push(PROJECTILE_POOL.addWith(_prj));
         }
         return true;
       }
@@ -68,7 +70,7 @@ export const ENEMY_SKILLS: Record<string, (e: any, dt: number, p: any) => boolea
     if (e.skillB <= 0) {
       e.skillB = 1.7;
       const a = angTo(e, p);
-      G.projectiles.push(PROJECTILE_POOL.addWith({ x: e.x, y: e.y, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, r: 5, dmg: e.dmg * 0.8, color: '#c9a0e8', hit: new Set(), enemy: true, life: 1.6, wId: 'enemy' }));
+      eSt().projectiles.push(PROJECTILE_POOL.addWith({ x: e.x, y: e.y, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, r: 5, dmg: e.dmg * 0.8, color: '#c9a0e8', hit: new Set(), enemy: true, life: 1.6, wId: 'enemy' }));
     }
     e.skillT = (e.skillT || 0) - dt;
     if (e.skillT <= 0 && dist(e, p) < 340) {

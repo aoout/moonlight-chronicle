@@ -1,7 +1,10 @@
 /* =========================================================
    蚀月远征 · 商店：打开集市与卡牌渲染
    ========================================================= */
-import { G, STATE, sm } from '../../state.js';
+import { STATE, sm } from '../../state.js';
+import { playerState } from '../../state/player.js';
+import { stageState } from '../../state/stage.js';
+import { statsState } from '../../state/stats.js';
 import { EventBus } from '../../core/event_bus.js';
 import { PlayerSystem } from '../../systems/PlayerSystem.js';
 import { codexAdd } from '../../persistence/codex.js';
@@ -12,18 +15,22 @@ import { iconSVG } from '../icons.js';
 import { weaponFormulaText, weaponRangeText, weaponFormulaBreakdown } from './formulas.js';
 import { renderShopPanel } from './panel.js';
 
+const pSt = () => playerState.state;
+const gSt = () => stageState.state;
+const sSt = () => statsState.state;
+
 type Offer =
   | { kind: 'newWeapon' | 'upWeapon'; id: string }
   | { kind: 'item'; data: any };
 
 export function openShop(): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   sm.transition(STATE.SHOP);
   AudioEngine.playSfx('open');
   const cards = $('shop-cards');
   cards.innerHTML = '';
-  $('shop-sub').textContent = G.stage >= CONFIG.FINAL_STAGE ? '终焉已至，整备完毕即赴决战' : '第 ' + G.stage + ' 夜已渡，购置武装以御下一夜';
+  $('shop-sub').textContent = gSt().stage >= CONFIG.FINAL_STAGE ? '终焉已至，整备完毕即赴决战' : '第 ' + gSt().stage + ' 夜已渡，购置武装以御下一夜';
 
   // 1) 武器购买 / 升级卡：池 = 未拥有 + 未满级(Lv.5)的已拥有武器，
   //    抽到已拥有的即升级，价格随等级递增
@@ -63,7 +70,7 @@ export function openShop(): void {
       desc = '<span class="stat-conv">新武器</span> · ' + def.desc +
         '<div class="upgrade-tier">倍率构成：' + weaponFormulaText(def) + '</div>' +
         '<div class="upgrade-tier range">⟡ ' + (weaponRangeText(def) || '—') + (def.pierce !== undefined ? ' · 穿透 ' + (def.pierce === Infinity ? '∞' : def.pierce) : '') + '</div>';
-      const inflate = inflationRate(G.stage);
+      const inflate = inflationRate(gSt().stage);
       price = Math.round(16 * (p._priceMul || 1) * inflate);
     } else if (o.kind === 'upWeapon') {
       const w = p.weapons.find((x: any) => x.id === o.id);
@@ -72,13 +79,13 @@ export function openShop(): void {
       rarity = 'epic'; title = def.name + ' 强化'; icon = def.icon; tag = '强化';
       desc = '升至 <span class="stat-up">Lv.' + (w.lv + 1) + '</span>，伤害与形态进一步提升。' +
         '<div class="upgrade-tier range">⟡ ' + (weaponRangeText(def) || '—') + (def.pierce !== undefined ? ' · 穿透 ' + (def.pierce === Infinity ? '∞' : def.pierce) : '') + '</div>';
-      const inflate = inflationRate(G.stage);
+      const inflate = inflationRate(gSt().stage);
       price = Math.round(WEAPON_UPGRADE_COST[w.lv + 1] * (p._priceMul || 1) * inflate);
     } else {
       it = o.data;
       rarity = it.rarity; title = it.name; icon = it.icon; tag = it.tag || (it.rarity === 'legend' ? '神恩' : it.rarity === 'epic' ? '非凡' : '寻常');
       desc = it.desc;
-      const inflate = inflationRate(G.stage);
+      const inflate = inflationRate(gSt().stage);
       price = Math.round(it.price * (p._priceMul || 1) * inflate);
     }
     c.classList.add('rarity-' + rarity, 'weapon-card');
@@ -88,11 +95,11 @@ export function openShop(): void {
       '<div class="card-name">' + title + '</div>' +
       '<div class="card-desc">' + desc + '</div>' +
       '<div class="card-price">' + iconSVG('coin') + ' ' + price + '</div>';
-    if (G.gold < price) c.classList.add('cant-afford');
+    if (sSt().gold < price) c.classList.add('cant-afford');
     c.onclick = () => {
-      if (G.gold < price) { toast('金币不足'); return; }
+      if (sSt().gold < price) { toast('金币不足'); return; }
       if (o.kind === 'newWeapon' && !PlayerSystem.addWeapon(o.id)) { toast('武器栏已满（最多 5 件）'); return; }
-      G.gold -= price;
+      sSt().gold -= price;
       AudioEngine.playSfx('buy');
       if (o.kind === 'newWeapon') { if (def) toast(def.name + ' 已佩戴'); }
       else if (o.kind === 'upWeapon') { PlayerSystem.upgradeWeapon(o.id); toast(title + ' 完成'); }
@@ -105,14 +112,14 @@ export function openShop(): void {
       p._boughtItems[it.id] = it.repeat ? cnt : true;
       toast(title + ' 已生效' + (it.repeat && cnt > 1 ? ' x' + cnt : ''));
       }
-      const pl = G.player;
+      const pl = pSt().player;
       if (pl) PlayerSystem.computeDerived(pl);
       openShop();
     };
     cards.appendChild(c);
   });
-  $('shop-gold').textContent = String(Math.floor(G.gold));
+  $('shop-gold').textContent = String(Math.floor(sSt().gold));
   renderShopPanel(p);
   $('shop').classList.remove('hidden');
-  EventBus.emit('shop:open', { stage: G.stage, gold: G.gold });
+  EventBus.emit('shop:open', { stage: gSt().stage, gold: sSt().gold });
 }

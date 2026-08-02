@@ -2,11 +2,13 @@
    蚀月远征 · 远征之门（蚀月深度选择）
    ========================================================= */
 import { Component } from '../component.js';
-import { G } from '../../state.js';
+import { stageState } from '../../state/stage.js';
 import { LEVELS } from '../../data/index.js';
 import { iconSVG, moonPhaseSVG } from '../icons.js';
 import { AudioEngine } from '../../audio/engine.js';
 import { $, el } from '../hud.js';
+
+const gSt = () => stageState.state;
 
 /* eslint-disable jsdoc/require-jsdoc */
 export class GateScreen extends Component<{}> {
@@ -18,8 +20,8 @@ export class GateScreen extends Component<{}> {
     const grid = $('gate-grid');
     grid.innerHTML = '';
     LEVELS.forEach((lv: any, i: number) => {
-      const unlocked = i <= G.unlocked;
-      const card = el('div', 'gate-card' + (unlocked ? '' : ' locked') + (i === G.depth ? ' current' : ''));
+      const unlocked = i <= gSt().unlocked;
+      const card = el('div', 'gate-card' + (unlocked ? '' : ' locked') + (i === gSt().depth ? ' current' : ''));
       card.innerHTML =
         '<span class="gate-moon" style="color:' + lv.color + '">' + moonPhaseSVG(i) + '</span>' +
         '<span class="gate-name">' + lv.name + '</span>' +
@@ -27,7 +29,7 @@ export class GateScreen extends Component<{}> {
         (unlocked ? '' : '<span class="gate-lock">' + iconSVG('slotEmpty') + '</span>');
       if (unlocked) {
         card.onclick = () => {
-          G.depth = i;
+          gSt().depth = i;
           this.close();
           // 触发自定义事件通知 ui.js 刷新
           window.dispatchEvent(new CustomEvent('gate:selected', { detail: { depth: i } }));
@@ -35,7 +37,7 @@ export class GateScreen extends Component<{}> {
       }
       grid.appendChild(card);
     });
-    $('gate-sub').textContent = '已抵达深度 ' + G.unlocked + ' · ' + LEVELS[G.unlocked].name + '（' + LEVELS[G.unlocked].tag + '）';
+    $('gate-sub').textContent = '已抵达深度 ' + gSt().unlocked + ' · ' + LEVELS[gSt().unlocked].name + '（' + LEVELS[gSt().unlocked].tag + '）';
     $('levelselect').classList.remove('hidden');
   }
 

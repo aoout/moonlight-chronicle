@@ -3,7 +3,6 @@
    掉落物追踪 / 拾取 / 爆炸
    ========================================================= */
 import { System } from '../core/system.js';
-import { G } from '../state.js';
 import { playerState } from '../state/player.js';
 import { world } from '../ecs/World.js';
 import { dist, angTo } from '../utils.js';
@@ -13,6 +12,9 @@ import { AudioEngine } from '../audio/engine.js';
 import { CombatSystem, hurtPlayer } from './CombatSystem.js';
 import { PlayerSystem } from './PlayerSystem.js';
 import type { Drop } from '../types/core.d.ts';
+
+/** 便捷引用 */
+const pSt = () => playerState.state;
 
 export class DropSystem extends System {
   name = 'DropSystem';
@@ -29,7 +31,7 @@ export class DropSystem extends System {
 
   /** 掉落物 tick */
   static dropTick(d: Drop, dt: number): void {
-    const p = G.player;
+    const p = pSt().player;
     if (!p) return;
     d.t += dt;
     d.x += d.vx * dt; d.y += d.vy * dt;
@@ -50,7 +52,7 @@ export class DropSystem extends System {
     if (d.take) return;
     d.take = 1;
     AudioEngine.playSfx('pickup');
-    const p = G.player;
+    const p = pSt().player;
     if (p && d.kind === 'gold' && p._coinHeal) CombatSystem.healPlayer(p._coinHeal * d.amount);
     if (d.kind === 'xp') PlayerSystem.gainXp(d.amount);
     else PlayerSystem.addGold(d.amount);
@@ -60,7 +62,7 @@ export class DropSystem extends System {
   /** 自爆 */
   static explodeEnemy(e: any, hurtPlayerToo: boolean): void {
     spawnBurst(e.x, e.y, '#ff9d6b', 20);
-    const p = G.player;
+    const p = pSt().player;
     if (hurtPlayerToo && p && dist(e, p) < 90) hurtPlayer(e, e.dmg);
   }
 }

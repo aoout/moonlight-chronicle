@@ -1,7 +1,6 @@
 /* =========================================================
    蚀月远征 · 特效层：粒子生成（爆点 / 火花 / 冲击环 / 星爆）
    ========================================================= */
-import { G } from '../../state.js';
 import { RNG, rand } from '../../utils.js';
 import { world } from '../../ecs/World.js';
 import { addDmgNumber } from '../../ui/hud.js';

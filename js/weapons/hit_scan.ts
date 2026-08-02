@@ -1,7 +1,7 @@
 /* =========================================================
    蚀月远征 · 武器：投射物碰撞检测
    ========================================================= */
-import { G } from '../state.js';
+import { playerState } from '../state/player.js';
 import { RNG, dist } from '../utils.js';
 import { PALETTE } from '../data/palette.js';
 import { neighborEnemies } from '../systems/SpatialSystem.js';
@@ -9,8 +9,10 @@ import { CombatSystem } from '../systems/CombatSystem.js';
 import { AudioEngine } from '../audio/engine.js';
 import { spawnImpact, spawnStar, spawnRing, spawnStreak, spawnGlow } from '../render/effects/fx.js';
 
+const pSt = () => playerState.state;
+
 export function hitScanProjectile(pr: any, dt: number): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   if (pr.enemy) {
     if (dist(pr, p) < pr.r + p.r - 2) { CombatSystem.hurtPlayer(pr, pr.dmg); pr.dead = true; }

@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// 模拟全局 G 对象
-const G: any = { enemies: [], runStats: { totalDmg: 0, wDmg: {} }, player: null };
-(globalThis as any).G = G;
+// 模拟 DOM
 globalThis.document = { createElement: () => ({ getContext: () => null }) } as any;
 
 // 模拟 utils.js 中的 RNG 以控制随机性
@@ -20,6 +18,7 @@ vi.mock('../save.js', () => ({ persistUnlocked: vi.fn() }));
 
 // 现在可以安全导入
 import { calcDamage } from '../systems/CombatSystem.js';
+import { statsState } from '../state/stats.js';
 
 describe('calcDamage', () => {
   let player: any;
@@ -38,8 +37,8 @@ describe('calcDamage', () => {
       _hunt: 0, _goldMeteor: 0, _cloak: 0,
       onKillHp: 0, luck: 1,
     };
-    G.runStats.totalDmg = 0;
-    G.runStats.wDmg = {};
+    statsState.state.runStats.totalDmg = 0;
+    statsState.state.runStats.wDmg = {};
   });
 
   it('should return base damage without crit', () => {

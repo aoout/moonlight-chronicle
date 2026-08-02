@@ -4,8 +4,11 @@
    所有空间查询方法作为静态方法暴露，供其他模块直接调用
    ========================================================= */
 import { System } from '../core/system.js';
-import { G } from '../state.js';
+import { entityState } from '../state/entities.js';
 import { dist } from '../utils.js';
+
+/** 便捷引用 */
+const eSt = () => entityState.state;
 
 const SPATIAL_CELL = 120;
 const _grid = new Map<string, any[]>();
@@ -27,10 +30,10 @@ export class SpatialSystem extends System {
      静态方法：空间查询（供 weapons/ 等模块直接调用）
      ============================================================= */
 
-  /** 从 G.enemies 重建网格 */
+  /** 从 eSt().enemies 重建网格 */
   static buildSpatialGrid(): void {
     _grid.clear();
-    for (const e of G.enemies) {
+    for (const e of eSt().enemies) {
       if (e.dead) continue;
       const key = _cellKey(_cellCoord(e.x), _cellCoord(e.y));
       let cell = _grid.get(key);

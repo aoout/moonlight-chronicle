@@ -1,16 +1,18 @@
 /* =========================================================
    蚀月远征 · 武器：辅助函数
    ========================================================= */
-import { G } from '../state.js';
+import { playerState } from '../state/player.js';
 import { dist } from '../utils.js';
 import { neighborEnemies, queryRadius, nearestInGrid } from '../systems/SpatialSystem.js';
+
+const pSt = () => playerState.state;
 
 export function nearestEnemy(x: number, y: number, maxR?: number): any {
   return nearestInGrid(x, y, maxR === undefined ? 1e9 : maxR);
 }
 
 export function denseEnemySpot(): any {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return null;
   let best = null, bestScore = 0;
   const candidates = neighborEnemies(p.x, p.y, 160);

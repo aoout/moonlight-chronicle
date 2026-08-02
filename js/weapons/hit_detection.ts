@@ -2,9 +2,11 @@
    蚀月远征 · 武器：碰撞检测模块
    可组合的碰撞检测行为，供 PROJ_TICK 使用
    ========================================================= */
-import { G } from '../state.js';
+import { playerState } from '../state/player.js';
 import { dist } from '../utils.js';
 import { neighborEnemies, queryRadius } from '../systems/SpatialSystem.js';
+
+const pSt = () => playerState.state;
 
 /**
  * 碰撞检测注册表
@@ -17,7 +19,7 @@ export const HIT_DETECTION: Record<string, (pr: any, dt: number, p: any) => any[
   point(pr, dt, _p) {
     if (pr.enemy) {
       // 敌人投射物：检测玩家
-      const p = G.player;
+      const p = pSt().player;
       if (!p) return [];
       if (dist(pr, p) < pr.r + p.r - 2) return [{ target: p, isPlayer: true }];
       return [];
@@ -67,7 +69,7 @@ export const HIT_DETECTION: Record<string, (pr: any, dt: number, p: any) => any[
     }
     // 呼吸：检测玩家
     if (pr.breath) {
-      const p = G.player;
+      const p = pSt().player;
       if (!p) return hits;
       const proj = (p.x - pr.x) * dx + (p.y - pr.y) * dy;
       if (proj > 0 && proj < (pr.range || 500)) {
@@ -84,7 +86,7 @@ export const HIT_DETECTION: Record<string, (pr: any, dt: number, p: any) => any[
   /** AOE 范围（持续扩展，如霜环） */
   aoe(pr, dt, _p) {
     const hits = [];
-    const p = G.player;
+    const p = pSt().player;
     if (!p) return [];
     // 更新半径
     pr.r = Math.min(pr.maxR, (pr.r || 0) + (pr.maxR || 200) * dt * (pr.enemy ? 1.7 : 2.4 / (p.duration || 1)));

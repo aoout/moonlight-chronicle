@@ -2,8 +2,10 @@
    蚀月远征 · 武器：投射物运动模块
    可组合的投射物运动行为，供 PROJ_TICK 使用
    ========================================================= */
-import { G } from '../state.js';
+import { renderState } from '../state/render.js';
 import { RNG, dist, angTo } from '../utils.js';
+
+const rSt = () => renderState.state;
 
 /**
  * 投射物运动注册表
@@ -18,8 +20,8 @@ export const MOVEMENT: Record<string, (pr: any, dt: number, p: any) => boolean> 
     pr.y += pr.vy * dt;
     pr.life = (pr.life || 2.5) - dt;
     if (pr.life <= 0 ||
-        pr.x < -50 || pr.x > G.width + 50 ||
-        pr.y < -50 || pr.y > G.height + 50) {
+        pr.x < -50 || pr.x > rSt().width + 50 ||
+        pr.y < -50 || pr.y > rSt().height + 50) {
       pr.dead = true;
       return false;
     }
@@ -79,8 +81,8 @@ export const MOVEMENT: Record<string, (pr: any, dt: number, p: any) => boolean> 
     pr.y += pr.vy * dt;
     pr.life = (pr.life || 2) - dt;
     if (pr.life <= 0 ||
-        pr.x < -40 || pr.x > G.width + 40 ||
-        pr.y < -40 || pr.y > G.height + 40) {
+        pr.x < -40 || pr.x > rSt().width + 40 ||
+        pr.y < -40 || pr.y > rSt().height + 40) {
       pr.dead = true;
       return false;
     }

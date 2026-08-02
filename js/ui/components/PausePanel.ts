@@ -2,11 +2,16 @@
    蚀月远征 · 暂停面板
    ========================================================= */
 import { Component } from '../component.js';
-import { G, STATE, sm } from '../../state.js';
+import { STATE, sm } from '../../state.js';
+import { playerState } from '../../state/player.js';
+import { stageState } from '../../state/stage.js';
 import { clamp } from '../../utils.js';
 import { AudioEngine } from '../../audio/engine.js';
 import { $ } from '../hud.js';
 import { renderStatGroupsInto } from '../shop.js';
+
+const pSt = () => playerState.state;
+const gSt = () => stageState.state;
 
 /* eslint-disable jsdoc/require-jsdoc */
 export class PausePanel extends Component<{}> {
@@ -15,9 +20,9 @@ export class PausePanel extends Component<{}> {
   }
 
   open(): void {
-    if (G.state !== STATE.PLAYING) return;
-    G.paused = !G.paused;
-    if (G.paused) {
+    if (sm.current !== STATE.PLAYING) return;
+    gSt().paused = !gSt().paused;
+    if (gSt().paused) {
       this._renderContent();
       $('pause').classList.remove('hidden');
       AudioEngine.playSfx('open');
@@ -28,12 +33,12 @@ export class PausePanel extends Component<{}> {
   }
 
   _renderContent(): void {
-    const p = G.player;
+    const p = pSt().player;
     if (!p) return;
-    $('pause-stage-name').textContent = '第 ' + G.stage + ' 夜 · ' + G.stageName + (G.boss ? ' · 领主当前' : '');
-    const prog = clamp(G.stageTime / G.stageMax, 0, 1);
+    $('pause-stage-name').textContent = '第 ' + gSt().stage + ' 夜 · ' + gSt().stageName + (gSt().boss ? ' · 领主当前' : '');
+    const prog = clamp(gSt().stageTime / gSt().stageMax, 0, 1);
     $('pause-stage-fill').style.width = (prog * 100) + '%';
-    $('pause-time').textContent = G.boss ? '领主战 · 击杀即渡' : '余 ' + Math.ceil(G.stageMax - G.stageTime) + ' 息';
+    $('pause-time').textContent = gSt().boss ? '领主战 · 击杀即渡' : '余 ' + Math.ceil(gSt().stageMax - gSt().stageTime) + ' 息';
     $('pause-hp-fill').style.width = clamp(p.hp / p.maxHp * 100, 0, 100) + '%';
     $('pause-hp-text').textContent = Math.round(p.hp) + ' / ' + Math.round(p.maxHp);
     const st = $('pause-stats');
@@ -44,6 +49,6 @@ export class PausePanel extends Component<{}> {
 
   close(): void {
     $('pause').classList.add('hidden');
-    G.paused = false;
+    gSt().paused = false;
   }
 }

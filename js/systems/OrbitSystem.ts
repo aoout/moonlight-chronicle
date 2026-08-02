@@ -4,12 +4,14 @@
 import { System } from '../core/system.js';
 import { orbitTick } from '../weapons/index.js';
 import { world } from '../ecs/World.js';
-import { G } from '../state.js';
 import { playerState } from '../state/player.js';
 import { rand, dist, angTo } from '../utils.js';
 import { nearestEnemy } from '../weapons/helpers.js';
 import { spawnGlow } from '../render/effects/fx.js';
 import type { Phantom } from '../types/core.d.ts';
+
+/** 便捷引用 */
+const pSt = () => playerState.state;
 
 export class OrbitSystem extends System {
   name = 'OrbitSystem';
@@ -17,7 +19,7 @@ export class OrbitSystem extends System {
   update(dt: number): void {
     orbitTick(dt);
 
-    const p = G.player;
+    const p = pSt().player;
     if (!p) return;
     const phantoms = world.query('phantoms');
     for (const ph of phantoms) {

@@ -1,7 +1,8 @@
 /* =========================================================
    蚀月远征 · 商店：武器详情与出售
    ========================================================= */
-import { G } from '../../state.js';
+import { playerState } from '../../state/player.js';
+import { statsState } from '../../state/stats.js';
 import { WEAPONS } from '../../data/index.js';
 import { $, toast } from '../hud.js';
 import { AudioEngine } from '../../audio/engine.js';
@@ -10,13 +11,16 @@ import { PlayerSystem } from '../../systems/PlayerSystem.js';
 import { weaponFormulaText, weaponFormulaBreakdown, weaponProjInfo } from './formulas.js';
 import { openShop } from './open_shop.js';
 
+const pSt = () => playerState.state;
+const sSt = () => statsState.state;
+
 let _pwSelected: string | null = null;
 let _pwSellConfirm: string | number = 0;
 
 function weaponSellPrice(lv: number): number { return Math.floor(8 + (lv - 1) * 4); }
 
 export function showWeaponDetail(id: string): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   const w = p.weapons.find((x: any) => x.id === id);
   if (!w) return;
@@ -26,7 +30,7 @@ export function showWeaponDetail(id: string): void {
   _pwSelected = id;
   Array.from($('shop-weapons').children).forEach(li => { const target = li as HTMLElement; target.classList.toggle('active', target.dataset.wid === id); });
   // 本夜伤害占比
-  const wDmg: Record<string, number> = G.runStats.wDmg || {};
+  const wDmg: Record<string, number> = sSt().runStats.wDmg || {};
   const wTotal = Object.keys(wDmg).reduce((s, k) => s + wDmg[k], 0);
   const pct = wTotal > 0 ? Math.round((wDmg[id] || 0) / wTotal * 100) : 0;
   // 属性明细
@@ -79,7 +83,7 @@ export function showWeaponDetail(id: string): void {
 }
 
 function sellWeapon(id: string): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   if (p.weapons.length <= 1) { toast('至少保留一件武器'); return; }
   const w = p.weapons.find((x: any) => x.id === id);
@@ -100,7 +104,7 @@ function sellWeapon(id: string): void {
     }, 2600);
     return;
   }
-  G.gold += price;
+  sSt().gold += price;
   PlayerSystem.removeWeapon(id);
   AudioEngine.playSfx('sell');
   _pwSellConfirm = 0;

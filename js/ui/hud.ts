@@ -1,12 +1,18 @@
 /* =========================================================
    蚀月远征 · HUD 层：血条 / 夜之铭牌 / 武器栏液面与冷却
    ========================================================= */
-import { G } from '../state.js';
+import { playerState } from '../state/player.js';
+import { statsState } from '../state/stats.js';
+import { stageState } from '../state/stage.js';
 import { PALETTE } from '../data/palette.js';
 import { clamp } from '../utils.js';
 import { CONFIG } from '../data/index.js';
 import { WEAPONS } from '../data/index.js';
 import { iconSVG } from './icons.js';
+
+const pSt = () => playerState.state;
+const sSt = () => statsState.state;
+const gSt = () => stageState.state;
 
 export const $ = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 export const el = (tag: string, cls?: string, html?: string): HTMLElement => {
@@ -49,7 +55,7 @@ export function showStageBanner(stageName: string, isBoss: boolean, bossName?: s
   if (!wrap) return;
   const b = el('div', 'stage-banner' + (isBoss ? ' boss' : ''));
   b.innerHTML =
-    '<div class="sb-kicker">' + (isBoss ? 'WARNING · 蚀潮涌动' : 'NIGHT ' + G.stage + ' / ' + CONFIG.STAGES) + '</div>' +
+    '<div class="sb-kicker">' + (isBoss ? 'WARNING · 蚀潮涌动' : 'NIGHT ' + gSt().stage + ' / ' + CONFIG.STAGES) + '</div>' +
     '<div class="sb-title">' + (isBoss ? bossName : stageName) + '</div>' +
     (isBoss ? '<div class="sb-sub">斩落它，守月人</div>' : '<div class="sb-sub">噬光之潮将至</div>');
   wrap.appendChild(b);
@@ -67,26 +73,27 @@ export function toast(msg: string): void {
 
 /* ---------- HUD 刷新 ---------- */
 export function uiTick(): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   const hpPct = clamp(p.hp / p.maxHp * 100, 0, 100);
   $('hp-fill').style.width = hpPct + '%';
   $('hp-text').textContent = p.hp.toFixed(0) + ' / ' + p.maxHp.toFixed(0);
-  $('xp-fill').style.width = clamp(G.xp / G.xpNeeded * 100, 0, 100) + '%';
+  $('xp-fill').style.width = clamp(sSt().xp / sSt().xpNeeded * 100, 0, 100) + '%';
   $('xp-text').textContent = 'Lv.' + p.level;
-  $('gold-text').textContent = String(Math.floor(G.gold));
-  $('kill-text').textContent = String(G.kills);
-  $('stage-num').textContent = '第 ' + G.stage + ' 夜';
-  $('stage-name').textContent = G.stageName;
+  $('gold-text').textContent = String(Math.floor(sSt().gold));
+  $('kill-text').textContent = String(sSt().kills);
+  $('stage-num').textContent = '第 ' + gSt().stage + ' 夜';
+  $('stage-name').textContent = gSt().stageName;
   const mp = $('moonphase');
-  mp.innerHTML = iconSVG(G.stage >= CONFIG.FINAL_STAGE ? 'moonFull' : 'moon');
-  mp.classList.toggle('eclipsed', G.stage >= CONFIG.FINAL_STAGE);
+  mp.innerHTML = iconSVG(gSt().stage >= CONFIG.FINAL_STAGE ? 'moonFull' : 'moon');
+  mp.classList.toggle('eclipsed', gSt().stage >= CONFIG.FINAL_STAGE);
   const prog = $('stage-progress');
-  prog.style.width = clamp(G.stageTime / G.stageMax * 100, 0, 100) + '%';
-  if (G.boss) {
-    $('wave-text').textContent = G.boss.name + ' 降临——将其终结！';
+  prog.style.width = clamp(gSt().stageTime / gSt().stageMax * 100, 0, 100) + '%';
+  const boss = gSt().boss;
+  if (boss) {
+    $('wave-text').textContent = boss.name + ' 降临——将其终结！';
   } else {
-    $('wave-text').textContent = '噬光之潮 · ' + Math.ceil(G.stageMax - G.stageTime) + 's';
+    $('wave-text').textContent = '噬光之潮 · ' + Math.ceil(gSt().stageMax - gSt().stageTime) + 's';
   }
   renderWeaponBar();
   updateWeaponCds();
@@ -105,7 +112,7 @@ type WeaponBarEl = HTMLElement & { _sig?: string, _liqSig?: string | null };
 type WeaponSlotEl = HTMLElement & { _wasCool?: boolean };
 
 function renderWeaponBar(): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   const bar = $('weapon-bar') as WeaponBarEl;
   const sig = p.weapons.map((w: any) => w.id + ':' + w.lv).join(',') + '|' + p.weapons.length;
@@ -146,11 +153,11 @@ function renderWeaponBar(): void {
 
 /* 每帧：武器冷却外环 + 液面占比（低频） */
 function updateWeaponCds(): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p || !p.weapons.length) return;
   const bar = $('weapon-bar') as WeaponBarEl;
   const slots = bar.children as unknown as HTMLCollectionOf<WeaponSlotEl>;
-  const wDmg: Record<string, number> = G.runStats.wDmg || {};
+  const wDmg: Record<string, number> = sSt().runStats.wDmg || {};
   const wTotal = Object.keys(wDmg).reduce((s, k) => s + wDmg[k], 0);
   let liqSig = '';
   for (let i = 0; i < p.weapons.length; i++) {
@@ -158,8 +165,8 @@ function updateWeaponCds(): void {
     const slot = slots[i];
     if (!slot || !slot.classList.contains('filled')) continue;
     // --- 冷却：外边框亮段旋转一圈 = 一次冷却 ---
-    const cur = G.weaponCd[w.id] || 0;
-    const full = G.weaponCdFull[w.id] || 0.001;
+    const cur = pSt().weaponCd[w.id] || 0;
+    const full = pSt().weaponCdFull[w.id] || 0.001;
     const prog = clamp(1 - cur / full, 0, 1);
     slot.style.setProperty('--cddeg', (prog * 360).toFixed(1) + 'deg');
     slot.classList.toggle('cool', prog < 1);

@@ -3,9 +3,10 @@
    敌人生成逻辑 + 静态 spawn 方法
    ========================================================= */
 import { System } from '../core/system.js';
-import { G } from '../state.js';
 import { stageState } from '../state/stage.js';
 import { renderState } from '../state/render.js';
+import { playerState } from '../state/player.js';
+import { gameState } from '../state/game.js';
 import { RNG, rand, pick } from '../utils.js';
 import { ENEMIES, BOSSES, CONFIG, enemyScale, levelEnemyScale, stageSpawnRate, stageEnemyPool } from '../data/index.js';
 import { world } from '../ecs/World.js';
@@ -16,13 +17,15 @@ import type { EnemyInstance } from '../types/core.d.ts';
 /** 便捷引用 */
 const gSt = () => stageState.state;
 const rSt = () => renderState.state;
+const pSt = () => playerState.state;
+const gmSt = () => gameState.state;
 
 export class SpawnSystem extends System {
   name = 'SpawnSystem';
 
   update(dt: number): void {
     const gs: any = gSt();
-    const sRate = stageSpawnRate(gs.stage) * (G._timeScale || 1);
+    const sRate = stageSpawnRate(gs.stage) * (gmSt()._timeScale || 1);
     if (!gs.boss) {
       stageState.set('spawnAcc', gs.spawnAcc + sRate * dt);
       while (gSt().spawnAcc >= 1) {
@@ -44,7 +47,7 @@ export class SpawnSystem extends System {
     codexAdd('enemies', type);
     const sc = enemyScale(gs.stage);
     const ls = levelEnemyScale(gs.depth);
-    const p = G.player;
+    const p = pSt().player;
     const m = 30;
     const side = Math.floor(RNG() * 4);
     let x: number, y: number;
@@ -83,7 +86,7 @@ export class SpawnSystem extends System {
     codexAdd('bosses', type);
     const sc = enemyScale(gs.stage);
     const ls = levelEnemyScale(gs.depth);
-    const p = G.player;
+    const p = pSt().player;
     const hp = def.hp * (type === 'final' ? 1.35 : 1) * (1 + (gs.stage - 1) * 0.02) * ls.hp * (p && p._enemyHpMul ? p._enemyHpMul : 1);
     const dmg = def.dmg * sc.dmg * ls.dmg * (p && p._enemyDmgMul ? p._enemyDmgMul : 1);
     const e = world.add('enemies', createEntity(

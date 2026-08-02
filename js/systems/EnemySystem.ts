@@ -3,9 +3,10 @@
    包含 enemyTick 函数（从 enemies.js 迁移）
    ========================================================= */
 import { System } from '../core/system.js';
-import { G } from '../state.js';
 import { stageState } from '../state/stage.js';
 import { renderState } from '../state/render.js';
+import { playerState } from '../state/player.js';
+import { gameState } from '../state/game.js';
 import { angTo, dist, clamp } from '../utils.js';
 import { CombatSystem } from './CombatSystem.js';
 import { bossTick } from '../enemies/boss_skills.js';
@@ -17,14 +18,16 @@ import type { EnemyInstance } from '../types/core.d.ts';
 /** 便捷引用 */
 const gSt = () => stageState.state;
 const rSt = () => renderState.state;
+const pSt = () => playerState.state;
+const gmSt = () => gameState.state;
 
 /* ---------- 敌人主更新 ---------- */
 function enemyTick(e: EnemyInstance, dt: number): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   const gs: any = gSt();
-  const slowF = (Math.max(e.slow || 0, e.auraSlow || 0) > 0 || G._echoSlowT > 0)
-    ? 1 - Math.max(e.slow || 0, e.auraSlow || 0, G._echoSlowT > 0 ? 0.5 : 0)
+  const slowF = (Math.max(e.slow || 0, e.auraSlow || 0) > 0 || gmSt()._echoSlowT > 0)
+    ? 1 - Math.max(e.slow || 0, e.auraSlow || 0, gmSt()._echoSlowT > 0 ? 0.5 : 0)
     : 1;
   e.t += dt * e.wob;
   if (e.flash > 0) e.flash -= dt;

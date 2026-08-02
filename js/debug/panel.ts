@@ -2,7 +2,6 @@
    蚀月远征 · 调试面板
    集成所有调试工具，按 F3 切换显示
    ========================================================= */
-import { G } from '../state.js';
 import { FPSCounter, SystemProfiler, DrawCallCounter } from './performance.js';
 import { drawEntityMonitor } from './entity_monitor.js';
 import { drawSpatialDebug } from './spatial_debug.js';

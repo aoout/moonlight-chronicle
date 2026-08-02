@@ -4,7 +4,7 @@
    集中管理所有战斗相关逻辑，替代 combat.js 上帝模块
    ========================================================= */
 import { System } from '../core/system.js';
-import { G, STATE, sm, shakeScreen, endStage, playerDeath } from '../state.js';
+import { STATE, sm, shakeScreen, endStage, playerDeath } from '../state.js';
 import { statsState } from '../state/stats.js';
 import { stageState } from '../state/stage.js';
 import { entityState } from '../state/entities.js';
@@ -64,7 +64,7 @@ export function calcDamage(base: number, p: Player): { dmg: number; crit: boolea
 
 export function damageEnemy(e: any, dmg: number, isCrit: boolean, srcType?: string, srcW?: string): void {
   if (e.hp <= 0) return;
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   if (p.fullHpCrit > 0 && p.hp >= p.maxHp && RNG() < p.fullHpCrit) isCrit = true;
   if (p.lowHpDmg > 0 && p.hp <= p.maxHp * 0.3) dmg *= (1 + p.lowHpDmg);
@@ -107,7 +107,7 @@ export function killEnemy(e: any, srcType?: string): void {
   e.dead = 1;
   sSt().kills++;
   AudioEngine.playSfx('kill');
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   const type = e.type || '';
   const gDef = ENEMIES[type] || {};
@@ -140,7 +140,7 @@ export function killEnemy(e: any, srcType?: string): void {
     st.bossKills++;
     stageState.set('boss', null);
     EventBus.emit('boss:killed', { type: e.type, stage: gs.stage });
-    if (G.state === STATE.PLAYING) {
+    if (sm.current === STATE.PLAYING) {
       if (gs.stage === CONFIG.FINAL_STAGE) {
         sm.transition(STATE.WIN); st.win = true;
         if (gs.depth === gs.unlocked && gs.unlocked < 9) { stageState.set('unlocked', gs.unlocked + 1); persistUnlocked(); AudioEngine.playSfx('unlock'); }
@@ -153,9 +153,9 @@ export function killEnemy(e: any, srcType?: string): void {
 /* ---------- 玩家受伤 ---------- */
 
 export function hurtPlayer(e: any, rawDmg: number): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
-  if (p.invuln > 0 || G.state !== STATE.PLAYING) return;
+  if (p.invuln > 0 || sm.current !== STATE.PLAYING) return;
   if (RNG() < p.dodge) {
     spawnText(p.x, p.y - 30, '闪避', '#9fd6e8');
     if (p._cloak) { p.invuln = Math.max(p.invuln, 0.8); p._cloakT = 0.8; }
@@ -197,7 +197,7 @@ export function hurtPlayer(e: any, rawDmg: number): void {
 }
 
 export function healPlayer(n: number): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p || p.hp <= 0) return;
   const before = p.hp;
   p.hp = Math.min(p.maxHp, p.hp + n);
@@ -208,7 +208,7 @@ export function healPlayer(n: number): void {
 /* 近战打击（小怪/Boss 通用）：范围判定 + 震屏 + 特效 */
 
 export function meleeHit(x: number, y: number, r: number, dmg: number, opts?: { mul?: number; shake?: number }): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   if (dist(p, { x, y }) < r + p.r) {
     hurtPlayer({ x, y, dmg }, dmg * ((opts && opts.mul) || 1));

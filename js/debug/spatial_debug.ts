@@ -2,7 +2,9 @@
    蚀月远征 · 调试：空间网格可视化
    绘制网格边界，高亮当前查询区域
    ========================================================= */
-import { G } from '../state.js';
+import { renderState } from '../state/render.js';
+
+const rSt = () => renderState.state;
 
 const CELL = 120;
 
@@ -12,12 +14,12 @@ export function drawSpatialDebug(ctx: any): void {
   ctx.strokeStyle = 'rgba(255,255,255,0.15)';
   ctx.lineWidth = 0.5;
 
-  const w = G.width || 800;
-  const h = G.height || 600;
+  const w = rSt().width || 800;
+  const h = rSt().height || 600;
   const cols = Math.ceil(w / CELL) + 2;
   const rows = Math.ceil(h / CELL) + 2;
-  const ox = (G.camera as any)?.x || 0;
-  const oy = (G.camera as any)?.y || 0;
+  const ox = 0;
+  const oy = 0;
 
   const startCol = Math.floor((ox - w / 2) / CELL);
   const startRow = Math.floor((oy - h / 2) / CELL);

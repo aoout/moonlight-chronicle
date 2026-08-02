@@ -1,7 +1,6 @@
 /* =========================================================
    蚀月远征 · 敌人行为：裂口魔（蓄力冲刺）
    ========================================================= */
-import { G } from '../../state.js';
 import { RNG, angTo } from '../../utils.js';
 import { world } from '../../ecs/World.js';
 import type { EnemyInstance, Player } from '../../types/core.d.ts';

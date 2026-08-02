@@ -1,15 +1,17 @@
 /* =========================================================
    蚀月远征 · 武器：月影残像（分身）
    ========================================================= */
-import { G } from '../state.js';
+import { playerState } from '../state/player.js';
 import { RNG, rand, dist, angTo } from '../utils.js';
 import { world } from '../ecs/World.js';
 import { nearestEnemy } from './helpers.js';
 import { spawnGlow } from '../render/effects/fx.js';
 import type { Phantom } from '../types/core.d.ts';
 
+const pSt = () => playerState.state;
+
 export function phantomTick(dt: number): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   for (const ph of world.query('phantoms')) {
     ph.t += dt;

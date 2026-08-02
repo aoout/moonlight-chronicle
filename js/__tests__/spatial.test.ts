@@ -1,11 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// 模拟 state.js 返回可控的 G 对象
-const { mockEnemies, mockG } = vi.hoisted(() => {
+// 模拟 entityState 提供可控的 enemies 列表
+const { mockEnemies } = vi.hoisted(() => {
   const enemies: any[] = [];
-  return { mockEnemies: enemies, mockG: { enemies } };
+  return { mockEnemies: enemies };
 });
-vi.mock('../state.js', () => ({ G: mockG }));
+vi.mock('../state/entities.js', () => ({
+  entityState: {
+    state: { enemies: mockEnemies },
+    get: (k: string) => (k === 'enemies' ? mockEnemies : undefined),
+    set: () => {},
+  },
+}));
 
 // 导入被测试模块
 import { buildSpatialGrid, queryRadius, nearestInGrid } from '../systems/SpatialSystem.js';

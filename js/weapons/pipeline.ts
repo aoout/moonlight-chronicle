@@ -2,7 +2,6 @@
    蚀月远征 · 武器：可组合行为管线执行器
    将武器定义中的 fire/projectile 配置翻译为实际行为
    ========================================================= */
-import { G } from '../state.js';
 import { RNG, dist } from '../utils.js';
 import { PALETTE } from '../data/palette.js';
 import { TARGETING } from './targeting.js';

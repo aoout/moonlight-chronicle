@@ -1,26 +1,28 @@
 /* =========================================================
    蚀月远征 · 入口
    ========================================================= */
-import { G } from './state.js';
+import { renderState } from './state/render.js';
 import { fillIconSpans } from './ui/icons.js';
 import { bindUI } from './ui/scheduler.js';
 import { gameLoop } from './game.js';
 import { bindDebugKeys } from './debug/panel.js';
 
+const rSt = () => renderState.state;
+
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-G.canvas = canvas;
-G.ctx = canvas.getContext('2d');
+rSt().canvas = canvas;
+rSt().ctx = canvas.getContext('2d');
 
 const bgCanvas = document.getElementById('bg-canvas') as HTMLCanvasElement;
-G.ctxBg = bgCanvas.getContext('2d');
+rSt().ctxBg = bgCanvas.getContext('2d');
 
 function resize(): void {
-  G.width = window.innerWidth;
-  G.height = window.innerHeight;
-  canvas.width = G.width;
-  canvas.height = G.height;
-  bgCanvas.width = G.width;
-  bgCanvas.height = G.height;
+  rSt().width = window.innerWidth;
+  rSt().height = window.innerHeight;
+  canvas.width = rSt().width;
+  canvas.height = rSt().height;
+  bgCanvas.width = rSt().width;
+  bgCanvas.height = rSt().height;
 }
 window.addEventListener('resize', resize);
 resize();

@@ -2,7 +2,11 @@
    蚀月远征 · 界面调度器
    负责 UI 事件绑定和组件调度
    ========================================================= */
-import { G, STATE, sm } from '../state.js';
+import { STATE, sm } from '../state.js';
+import { playerState } from '../state/player.js';
+import { gameState } from '../state/game.js';
+import { stageState } from '../state/stage.js';
+import { inputState } from '../state/input.js';
 import { EventBus } from '../core/event_bus.js';
 import { RNG, pick } from '../utils.js';
 import { PlayerSystem } from '../systems/PlayerSystem.js';
@@ -20,6 +24,11 @@ import { PausePanel } from './components/PausePanel.js';
 import { GateScreen } from './components/GateScreen.js';
 import type { CurseDef } from '../types/core.d.ts';
 
+const pSt = () => playerState.state;
+const gSt = () => stageState.state;
+const gmSt = () => gameState.state;
+const iSt = () => inputState.state;
+
 /* ---------- 组件实例 ---------- */
 export const levelUpPanel = new LevelUpPanel();
 export const resultPanel = new ResultPanel();
@@ -28,7 +37,7 @@ export const gateScreen = new GateScreen();
 
 /* ---------- 升级祝福选择（委托给组件） ---------- */
 export function openLevelUp(): void {
-  const p = G.player;
+  const p = pSt().player;
   if (p) levelUpPanel.open(p);
 }
 
@@ -45,8 +54,9 @@ export function enterGame(): void {
   ['result', 'pause', 'levelup', 'shop', 'levelselect'].forEach(id => closeOverlay(id));
   startRun();
   showScreen('game');
-  if (G.curse) { showCurseBanner(G.curse); AudioEngine.playSfx('curse'); }
-  showStageBanner(G.stageName, false);
+  const curse = gSt().curse;
+  if (curse) { showCurseBanner(curse); AudioEngine.playSfx('curse'); }
+  showStageBanner(gSt().stageName, false);
   toast('第 1 夜 · ' + STAGE_NAMES[0] + ' —— 撑住！');
 }
 
@@ -54,10 +64,12 @@ export function enterGame(): void {
 export function resumeRun(): boolean {
   if (!loadRun()) return false;
   showScreen('game');
-  const isBoss = CONFIG.BOSS_STAGES.includes(G.stage) || G.stage === CONFIG.FINAL_STAGE;
-  showStageBanner(G.stageName, isBoss, isBoss && G.boss ? G.boss.name : null);
-  if (G.curse) showCurseBanner(G.curse);
-  toast('追忆月痕 · 第 ' + G.stage + ' 夜');
+  const isBoss = CONFIG.BOSS_STAGES.includes(gSt().stage) || gSt().stage === CONFIG.FINAL_STAGE;
+  const boss = gSt().boss;
+  showStageBanner(gSt().stageName, isBoss, isBoss && boss ? boss.name : null);
+  const curse = gSt().curse;
+  if (curse) showCurseBanner(curse);
+  toast('追忆月痕 · 第 ' + gSt().stage + ' 夜');
   return true;
 }
 
@@ -80,11 +92,11 @@ export function showCurseBanner(curse: CurseDef): void {
 
 export function refreshMenuDepth(): void {
   const md = $('menu-depth');
-  if (md) md.textContent = '蚀月深度 · ' + (G.unlocked + 1) + ' / 10 · ' + LEVELS[G.unlocked].tag;
+  if (md) md.textContent = '蚀月深度 · ' + (gSt().unlocked + 1) + ' / 10 · ' + LEVELS[gSt().unlocked].tag;
   const bg = $('btn-gate');
   if (bg) {
-    bg.classList.toggle('gate-locked', G.unlocked === 0);
-    bg.title = G.unlocked === 0 ? '通关当前远征，蚀月之门便会开启' : '选择蚀月深度';
+    bg.classList.toggle('gate-locked', gSt().unlocked === 0);
+    bg.title = gSt().unlocked === 0 ? '通关当前远征，蚀月之门便会开启' : '选择蚀月深度';
   }
   const save = loadRunMeta();
   const btn = $('btn-continue');
@@ -111,7 +123,7 @@ export function bindUI(): void {
     enterGame();
   });
 
-  $('btn-start').onclick = () => { AudioEngine.playSfx('click'); if (G.unlocked > 0) openGate(); else { G.depth = 0; enterGame(); } };
+  $('btn-start').onclick = () => { AudioEngine.playSfx('click'); if (gSt().unlocked > 0) openGate(); else { gSt().depth = 0; enterGame(); } };
   $('btn-continue').onclick = () => {
     AudioEngine.start();
     if (resumeRun()) AudioEngine.playSfx('open');
@@ -119,7 +131,7 @@ export function bindUI(): void {
   };
   $('btn-retry').onclick = () => { AudioEngine.playSfx('click'); enterGame(); };
   $('btn-gate').onclick = () => {
-    if (G.unlocked > 0) { AudioEngine.playSfx('click'); openGate(); }
+    if (gSt().unlocked > 0) { AudioEngine.playSfx('click'); openGate(); }
     else {
       AudioEngine.playSfx('click');
       toast('通关当前远征，蚀月之门便会开启');
@@ -134,15 +146,16 @@ export function bindUI(): void {
   $('btn-close-how').onclick = () => { AudioEngine.playSfx('close'); $('howto').classList.add('hidden'); };
   const goNext = () => {
     closeOverlay('shop');
-    G.shopOpen = false;
-    EventBus.emit('shop:close', { stage: G.stage + 1 });
-    G.stage++;
-    startStage(G.stage);
+    gmSt().shopOpen = false;
+    EventBus.emit('shop:close', { stage: gSt().stage + 1 });
+    gSt().stage++;
+    startStage(gSt().stage);
     sm.transition(STATE.PLAYING);
     saveRun();
-    const isBoss = CONFIG.BOSS_STAGES.includes(G.stage) || G.stage === CONFIG.FINAL_STAGE;
-    showStageBanner(G.stageName, isBoss, isBoss && G.boss ? G.boss.name : null);
-    toast('第 ' + G.stage + ' 夜 · ' + G.stageName);
+    const isBoss = CONFIG.BOSS_STAGES.includes(gSt().stage) || gSt().stage === CONFIG.FINAL_STAGE;
+    const boss = gSt().boss;
+    showStageBanner(gSt().stageName, isBoss, isBoss && boss ? boss.name : null);
+    toast('第 ' + gSt().stage + ' 夜 · ' + gSt().stageName);
   };
   $('btn-shop-next').onclick = () => { AudioEngine.playSfx('click'); goNext(); };
   $('btn-resume').onclick = () => { AudioEngine.playSfx('click'); togglePause(); };
@@ -155,19 +168,19 @@ export function bindUI(): void {
   };
   window.addEventListener('keydown', e => {
     const k = e.key.toLowerCase();
-    G.keys[k] = true;
-    if ((k === '1' || k === '2' || k === '3') && G.state === STATE.LEVELUP) {
+    iSt().keys[k] = true;
+    if ((k === '1' || k === '2' || k === '3') && sm.current === STATE.LEVELUP) {
       const cards = document.querySelectorAll('#levelup-cards .card');
       const idx = +k - 1;
       if (cards[idx]) { (cards[idx] as HTMLElement).click(); AudioEngine.playSfx('click'); }
-    } else if (k === 'escape' && G.state === STATE.SHOP) goNext();
-    else if (k === 'escape' && G.state === STATE.PLAYING) togglePause();
-    else if (k === 'p' && G.state === STATE.PLAYING) togglePause();
+    } else if (k === 'escape' && sm.current === STATE.SHOP) goNext();
+    else if (k === 'escape' && sm.current === STATE.PLAYING) togglePause();
+    else if (k === 'p' && sm.current === STATE.PLAYING) togglePause();
     else if (k === 'm') {
       AudioEngine.toggleMode();
       toast('音频：' + AudioEngine.getModeLabel());
     }
   });
-  window.addEventListener('keyup', e => { G.keys[e.key.toLowerCase()] = false; });
+  window.addEventListener('keyup', e => { iSt().keys[e.key.toLowerCase()] = false; });
   bindCodex();
 }

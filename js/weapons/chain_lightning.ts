@@ -1,14 +1,16 @@
 /* =========================================================
    蚀月远征 · 武器：连锁闪电
    ========================================================= */
-import { G } from '../state.js';
+import { playerState } from '../state/player.js';
 import { RNG, dist } from '../utils.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { nearestEnemy } from './helpers.js';
 import { addFx, spawnSpark, spawnStar } from '../render/effects/fx.js';
 
+const pSt = () => playerState.state;
+
 export function chainLightning(src: any, target: any, dmg: number, chains: number, fall: number, maxR: number, color: string, wId: string): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   let cur = target, remaining = chains, prev = src;
   let d = dmg;

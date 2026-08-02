@@ -1,7 +1,8 @@
 /* =========================================================
    蚀月远征 · 武器：环舞之刃（环绕武器实体）
    ========================================================= */
-import { G } from '../state.js';
+import { playerState } from '../state/player.js';
+import { stageState } from '../state/stage.js';
 import { RNG, rand, dist } from '../utils.js';
 import { PALETTE } from '../data/palette.js';
 import { WEAPONS } from '../data/index.js';
@@ -10,8 +11,11 @@ import { CombatSystem } from '../systems/CombatSystem.js';
 import { AudioEngine } from '../audio/engine.js';
 import { addFx, spawnSpark, spawnGlow, spawnShard } from '../render/effects/fx.js';
 
+const pSt = () => playerState.state;
+const gSt = () => stageState.state;
+
 export function orbitTick(dt: number): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   const orbitW = p.weapons.find(w => w.id === 'orbit');
   p.orbits = p.orbits || [];
@@ -19,7 +23,7 @@ export function orbitTick(dt: number): void {
     const n = 2 + orbitW.lv;
     p.orbits = [];
     for (let i = 0; i < n; i++) {
-      const a = (i / n) * 6.28 + G.time * 1.6;
+      const a = (i / n) * 6.28 + gSt().time * 1.6;
       const ox = p.x + Math.cos(a) * 100 * p.area;
       const oy = p.y + Math.sin(a) * 100 * p.area;
       p.orbits.push({ x: ox, y: oy, a });
@@ -29,8 +33,8 @@ export function orbitTick(dt: number): void {
       for (const e of orbitCandidates) {
         if (e.dead) continue;
         if (dist({ x: ox, y: oy }, e) < 20 + e.size * 0.6) {
-          if (e._orbitT === undefined || e._orbitT < G.time - 0.25) {
-            e._orbitT = G.time;
+          if (e._orbitT === undefined || e._orbitT < gSt().time - 0.25) {
+            e._orbitT = gSt().time;
             CombatSystem.damageEnemy(e, WEAPONS.orbit.dmg(p, orbitW.lv) * dt * 8, RNG() < p.effCrit, 'orbit', 'orbit');
             AudioEngine.playSfx('hit');
             spawnSpark(e.x, e.y, PALETTE.gold, 3, 130);

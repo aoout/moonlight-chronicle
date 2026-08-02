@@ -1,10 +1,12 @@
 /* =========================================================
    蚀月远征 · 商店：道具详情
    ========================================================= */
-import { G } from '../../state.js';
+import { playerState } from '../../state/player.js';
 import { SHOP_ITEMS } from '../../data/index.js';
 import { $ } from '../hud.js';
 import type { ShopItemDef, Player } from '../../types/core.d.ts';
+
+const pSt = () => playerState.state;
 
 let _siSelected: string | null = null;
 
@@ -34,7 +36,7 @@ function getItemEffectRows(it: ShopItemDef, p: Player): (string | number)[][] | 
 }
 
 export function showItemDetail(id: string): void {
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   const it = SHOP_ITEMS.find(x => x.id === id);
   if (!it) return;

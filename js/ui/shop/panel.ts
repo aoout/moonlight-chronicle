@@ -2,7 +2,6 @@
    蚀月远征 · 商店：守月人铭牌面板
    ========================================================= */
 import { clamp } from '../../utils.js';
-import { G } from '../../state.js';
 import { SHOP_ITEMS, WEAPONS, STATS } from '../../data/index.js';
 import { $, el } from '../hud.js';
 import { iconSVG, ICONS } from '../icons.js';

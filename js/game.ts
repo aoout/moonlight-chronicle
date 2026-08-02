@@ -1,11 +1,12 @@
 /* =========================================================
    蚀月远征 · 流程层：关卡 / 主循环 / 更新
    ========================================================= */
-import { G, STATE, sm, entityState } from './state.js';
+import { STATE, sm, entityState } from './state.js';
 import { stageState } from './state/stage.js';
 import { statsState } from './state/stats.js';
 import { playerState } from './state/player.js';
 import { renderState } from './state/render.js';
+import { gameState } from './state/game.js';
 import { EventBus } from './core/event_bus.js';
 import { PlayerSystem } from './systems/PlayerSystem.js';
 import { SpawnSystem } from './systems/SpawnSystem.js';
@@ -23,6 +24,7 @@ const gSt = () => stageState.state;
 const sSt = () => statsState.state;
 const pSt = () => playerState.state;
 const rSt = () => renderState.state;
+const gmSt = () => gameState.state;
 
 /* ---------- 关卡流程 ---------- */
 
@@ -37,9 +39,9 @@ export function startStage(n: number): void {
   });
   // 每回合重置武器伤害统计（占比反映当前回合输出构成；totalDmg 保留全程）
   sSt().runStats.wDmg = {};
-  // 使用 World 重置实体池（同时清空 G 列表和 EntityPool）
+  // 使用 World 重置实体池（同时清空 entityState 列表和 EntityPool）
   getSysMan().getWorld().resetAll();
-  const p = G.player;
+  const p = pSt().player;
   if (!p) return;
   p.x = rSt().width / 2;
   p.y = rSt().height / 2;
@@ -74,13 +76,13 @@ export function startRun(): void {
     weaponCd: {},
     weaponCdFull: {},
   });
-  G._resumeState = STATE.PLAYING;
-  G.levelUpOpen = false;
-  G.shopOpen = false;
+  gmSt()._resumeState = STATE.PLAYING;
+  gmSt().levelUpOpen = false;
+  gmSt().shopOpen = false;
   // 蚀月深度 ≥1：随机施加一个蚀之诅咒
   stageState.set('curse', gSt().depth >= 1 ? pick(CURSES) : null);
   playerState.set('player', PlayerSystem.createPlayer());
-  const p = G.player;
+  const p = pSt().player;
   const curse = gSt().curse as any;
   if (curse && p) curse.apply(p);
   PlayerSystem.addWeapon('moonRing');
@@ -93,7 +95,7 @@ let _sysMan: SystemManager | null = null;
 function getSysMan(): SystemManager {
   if (!_sysMan) {
     _sysMan = createSystemManager();
-    // 初始化 World：绑定实体列表（G.enemies, G.projectiles 等来自 entityState 切片）
+    // 初始化 World：绑定实体列表（enemies, projectiles 等来自 entityState 切片）
     _sysMan.initWorld(entityState.state as any);
   }
   return _sysMan;
@@ -137,18 +139,18 @@ export function gameLoop(ts: number): void {
   }
 
   // 界面切换与战斗解耦：通过事件/状态机驱动
-  if (sm.is(STATE.LEVELUP) && !G.levelUpOpen) {
-    G.levelUpOpen = true;
+  if (sm.is(STATE.LEVELUP) && !gmSt().levelUpOpen) {
+    gmSt().levelUpOpen = true;
     try { openLevelUp(); }
-    catch (err) { G.levelUpOpen = false; console.error('升级界面打开失败，重试:', err); }
+    catch (err) { gmSt().levelUpOpen = false; console.error('升级界面打开失败，重试:', err); }
   } else if (sm.is(STATE.OVER) || sm.is(STATE.WIN)) {
     const won = sm.is(STATE.WIN);
     const gs = gSt();
     EventBus.emit('game:runEnd', { win: won, stage: gs.stage, kills: sSt().kills, gold: sSt().gold });
     openResult(won);
     sm.transition(STATE.RESULT);
-  } else if (sm.is(STATE.SHOP) && !G.shopOpen) {
-    G.shopOpen = true;
+  } else if (sm.is(STATE.SHOP) && !gmSt().shopOpen) {
+    gmSt().shopOpen = true;
     openShop();
   }
 }

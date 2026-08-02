@@ -3,7 +3,7 @@
    状态机当前态、面板开关、恢复态、时间缩放、回响减速
    ========================================================= */
 import { Store } from '../core/store.js';
-import { STATE } from '../core/states.js';
+import { STATE, sm } from '../core/states.js';
 
 interface GameStateSlice {
   /* 状态机当前态（由 sm.onTransition 同步） */
@@ -32,3 +32,6 @@ export const gameState = new Store<GameStateSlice>(INITIAL);
 
 /** 便捷访问 */
 export const gmState = () => gameState.state;
+
+// 状态机同步：每次状态转换后更新 gameState.state
+sm.onTransition('*', '*', () => { gameState.set('state', sm.current); });

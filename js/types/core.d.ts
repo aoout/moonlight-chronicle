@@ -318,59 +318,6 @@ export interface RunStats {
   wDmg: Record<string, number>;
 }
 
-/* ---------- 全局状态 G ---------- */
-export interface GState {
-  /* 状态机当前态 */
-  state: string;
-  /* 玩家切片 */
-  player: Player | null;
-  weaponCd: Record<string, number>;
-  weaponCdFull: Record<string, number>;
-  /* 关卡切片 */
-  stage: number;
-  stageTime: number;
-  stageMax: number;
-  stageName: string;
-  time: number;
-  spawnAcc: number;
-  boss: EnemyInstance | null;
-  depth: number;
-  curse: CurseDef | null;
-  unlocked: number;
-  paused: boolean;
-  /* 统计切片 */
-  kills: number;
-  gold: number;
-  xp: number;
-  xpNeeded: number;
-  level: number;
-  levelQueue: number;
-  runStats: RunStats;
-  /* 渲染切片 */
-  shake: number;
-  hitFlash: number;
-  timestopTimer: number;
-  width: number;
-  height: number;
-  canvas: HTMLCanvasElement | null;
-  ctx: CanvasRenderingContext2D | null;
-  ctxBg: CanvasRenderingContext2D | null;
-  /* 输入切片 */
-  keys: Record<string, boolean>;
-  /* 实体切片 */
-  enemies: EnemyInstance[];
-  projectiles: Projectile[];
-  drops: Drop[];
-  particles: Particle[];
-  phantoms: Phantom[];
-  /* 运行时动态属性 */
-  levelUpOpen: boolean;
-  shopOpen: boolean;
-  _resumeState: string;
-  _timeScale: number;
-  _echoSlowT: number;
-}
-
 /* ---------- 配置常量 ---------- */
 export interface Config {
   STAGES: number;

@@ -2,7 +2,9 @@
    蚀月远征 · 调试：实体监视器
    显示当前实体数量（敌人/投射物/粒子/掉落物）
    ========================================================= */
-import { G } from '../state.js';
+import { entityState } from '../state/entities.js';
+
+const eSt = () => entityState.state;
 
 export function drawEntityMonitor(ctx: any): void {
   if (!ctx) return;
@@ -15,11 +17,11 @@ export function drawEntityMonitor(ctx: any): void {
   let line = 0;
 
   ctx.fillStyle = '#ccc';
-  ctx.fillText('Enemies: ' + G.enemies.length, 10, y + 4 + line++ * 16);
-  ctx.fillText('Projectiles: ' + G.projectiles.length, 10, y + 4 + line++ * 16);
-  ctx.fillText('Particles: ' + G.particles.length, 10, y + 4 + line++ * 16);
-  ctx.fillText('Drops: ' + G.drops.length, 10, y + 4 + line++ * 16);
-  ctx.fillText('Phantoms: ' + G.phantoms.length, 10, y + 4 + line++ * 16);
+  ctx.fillText('Enemies: ' + eSt().enemies.length, 10, y + 4 + line++ * 16);
+  ctx.fillText('Projectiles: ' + eSt().projectiles.length, 10, y + 4 + line++ * 16);
+  ctx.fillText('Particles: ' + eSt().particles.length, 10, y + 4 + line++ * 16);
+  ctx.fillText('Drops: ' + eSt().drops.length, 10, y + 4 + line++ * 16);
+  ctx.fillText('Phantoms: ' + eSt().phantoms.length, 10, y + 4 + line++ * 16);
 
   ctx.restore();
 }

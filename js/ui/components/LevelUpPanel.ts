@@ -2,13 +2,16 @@
    蚀月远征 · 升级祝福选择面板
    ========================================================= */
 import { Component } from '../component.js';
-import { G, STATE, sm } from '../../state.js';
+import { STATE, sm } from '../../state.js';
+import { statsState } from '../../state/stats.js';
 import { EventBus } from '../../core/event_bus.js';
 import { PlayerSystem } from '../../systems/PlayerSystem.js';
 import { CONFIG, pickBlessings } from '../../data/index.js';
 import { AudioEngine } from '../../audio/engine.js';
 import { $, el, toast } from '../hud.js';
 import type { Player } from '../../types/core.d.ts';
+
+const sSt = () => statsState.state;
 
 /* eslint-disable jsdoc/require-jsdoc */
 export class LevelUpPanel extends Component<Player> {
@@ -33,9 +36,9 @@ export class LevelUpPanel extends Component<Player> {
         '<div class="card-desc">' + b.desc + '</div>';
       c.onclick = () => {
         b.apply(p);
-        G.levelQueue--;
+        sSt().levelQueue--;
         this._close();
-        if (G.levelQueue > 0) this.open(p);
+        if (sSt().levelQueue > 0) this.open(p);
         else sm.transition(STATE.PLAYING);
         PlayerSystem.computeDerived(p);
         toast(b.name + ' 已烙印');
