@@ -4,15 +4,15 @@
    ========================================================= */
 import { System } from '../core/system.js';
 import { G } from '../state.js';
-import { PROJECTILE_POOL } from '../entity_pool.js';
 import { projTick } from '../weapons/index.js';
+import { world } from '../ecs/World.js';
 
 export class ProjectileSystem extends System {
   name = 'ProjectileSystem';
 
   /** @param {number} dt */
   update(dt) {
-    for (const pr of G.projectiles) projTick(pr, dt);
-    PROJECTILE_POOL.compact(G.projectiles, pr => !!pr.dead);
+    for (const pr of world.query('projectiles')) projTick(pr, dt);
+    world.compact('projectiles', pr => !!pr.dead);
   }
 }

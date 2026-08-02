@@ -3,7 +3,7 @@
    ========================================================= */
 import { G } from '../../state.js';
 import { RNG, angTo } from '../../utils.js';
-import { PROJECTILE_POOL } from '../../entity_pool.js';
+import { world } from '../../ecs/World.js';
 
 export function chargerMove(e, dt, p, slowF) {
   e.stateT -= dt;
@@ -20,10 +20,10 @@ export function chargerMove(e, dt, p, slowF) {
     e.y += Math.sin(a) * sp * dt;
     e.vx = Math.cos(a) * sp; e.vy = Math.sin(a) * sp;
     if (RNG() < 0.28) {
-      G.projectiles.push(PROJECTILE_POOL.addWith({
+      world.add('projectiles', {
         ground: true, x: e.x, y: e.y, t: 0, delay: 0.7,
         r: 44, dmg: e.dmg * 0.9, color: '#ff7a7a',
-      }));
+      });
     }
   }
 }

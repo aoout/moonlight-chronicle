@@ -10,7 +10,7 @@ import { hurtPlayer, killEnemy } from '../combat.js';
 import { bossTick } from '../boss_skills.js';
 import { ENEMY_SKILLS } from '../enemy_skills.js';
 import { ENEMY_MOVES } from '../enemies/behaviors/index.js';
-import { ENEMY_POOL } from '../entity_pool.js';
+import { world } from '../ecs/World.js';
 
 /* ---------- 敌人主更新 ---------- */
 /** @param {import('../types/core.d.ts').EnemyInstance} e @param {number} dt */
@@ -61,7 +61,7 @@ export class EnemySystem extends System {
 
   /** @param {number} dt */
   update(dt) {
-    for (const e of G.enemies) enemyTick(e, dt);
-    ENEMY_POOL.compact(G.enemies, /** @param {any} e */ e => e.dead);
+    for (const e of world.query('enemies')) enemyTick(e, dt);
+    world.compact('enemies', /** @param {any} e */ e => e.dead);
   }
 }

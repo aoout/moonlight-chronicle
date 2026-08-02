@@ -4,15 +4,16 @@
    ========================================================= */
 import { System } from '../core/system.js';
 import { G } from '../state.js';
-import { DROP_POOL } from '../entity_pool.js';
 import { dropTick } from '../enemies.js';
+import { world } from '../ecs/World.js';
 
 export class DropSystem extends System {
   name = 'DropSystem';
 
   /** @param {number} dt */
   update(dt) {
-    for (const d of G.drops) dropTick(d, dt);
-    DROP_POOL.compact(G.drops, /** @param {any} d */ d => d.take);
+    const drops = world.query('drops');
+    for (const d of drops) dropTick(d, dt);
+    world.compact('drops', /** @param {any} d */ d => d.take);
   }
 }

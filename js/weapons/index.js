@@ -6,7 +6,7 @@ import { G } from '../state.js';
 import { RNG, rand, dist, angTo } from '../utils.js';
 import { PALETTE } from '../palette.js';
 import { WEAPONS } from '../data/index.js';
-import { PROJECTILE_POOL, PHANTOM_POOL } from '../entity_pool.js';
+import { world } from '../ecs/World.js';
 import { _neighborEnemies, queryRadius } from '../spatial.js';
 import { addFx, spawnBurst, spawnRing, spawnSpark, spawnStar, spawnShard, spawnStreak, spawnGlow, spawnImpact, spawnHitFx } from '../fx.js';
 import { damageEnemy } from '../enemies.js';
@@ -43,8 +43,8 @@ export function weaponFire(w) {
         const a = angTo(p, t);
         for (let i = -1; i <= 1; i += 2) {
           const ang = a + i * 0.5;
-          G.projectiles.push(PROJECTILE_POOL.addWith({ x: p.x, y: p.y, vx: Math.cos(ang) * 330, vy: Math.sin(ang) * 330,
-            r: 5, dmg: p.effAtk * 0.6, pierce: p.pierce, color: '#ffe9a8', hit: new Set(), wId: 'duo', life: 2 }));
+          world.add('projectiles', { x: p.x, y: p.y, vx: Math.cos(ang) * 330, vy: Math.sin(ang) * 330,
+            r: 5, dmg: p.effAtk * 0.6, pierce: p.pierce, color: '#ffe9a8', hit: new Set(), wId: 'duo', life: 2 });
         }
         spawnGlow(p.x + Math.cos(a) * 20, p.y + Math.sin(a) * 20, 8, '#ffe9a8', 0.25);
       }

@@ -7,7 +7,7 @@ import { System } from '../core/system.js';
 import { G } from '../state.js';
 import { RNG, rand, pick } from '../utils.js';
 import { ENEMIES, BOSSES, CONFIG, enemyScale, levelEnemyScale, stageSpawnRate, stageEnemyPool } from '../data/index.js';
-import { ENEMY_POOL, PROJECTILE_POOL } from '../entity_pool.js';
+import { world } from '../ecs/World.js';
 import { codexAdd } from '../codex.js';
 import { createEntity, Position, Health, Renderable, Combat, Timer, Status, Enemy, Velocity } from '../ecs/components.js';
 
@@ -49,7 +49,7 @@ export class SpawnSystem extends System {
     else { x = G.width + m; y = rand(-m, G.height + m); }
     const hp = def.hp * sc.hp * (opts && opts.hpMul ? opts.hpMul : 1) * ls.hp * (p && p._enemyHpMul ? p._enemyHpMul : 1);
     const dmg = def.dmg * sc.dmg * ls.dmg * (p && p._enemyDmgMul ? p._enemyDmgMul : 1);
-    const e = ENEMY_POOL.addWith(createEntity(
+    const e = world.add('enemies', createEntity(
       Position(x, y),
       Health(hp),
       Renderable(def.color, def.size),
@@ -67,7 +67,6 @@ export class SpawnSystem extends System {
       }
     ));
     e.maxHp = e.hp;
-    G.enemies.push(e);
     return e;
   }
 
@@ -82,7 +81,7 @@ export class SpawnSystem extends System {
     const p = G.player;
     const hp = def.hp * (type === 'final' ? 1.35 : 1) * (1 + (G.stage - 1) * 0.02) * ls.hp * (p && p._enemyHpMul ? p._enemyHpMul : 1);
     const dmg = def.dmg * sc.dmg * ls.dmg * (p && p._enemyDmgMul ? p._enemyDmgMul : 1);
-    const e = ENEMY_POOL.addWith(createEntity(
+    const e = world.add('enemies', createEntity(
       Position(G.width / 2, -70),
       Health(hp),
       Renderable(def.color, def.size),
@@ -99,7 +98,6 @@ export class SpawnSystem extends System {
       }
     ));
     /** @type {import('../types/core.d.ts').EnemyInstance} */ (e).maxHp = e.hp;
-    G.enemies.push(e);
     G.boss = e;
     return e;
   }
@@ -107,13 +105,13 @@ export class SpawnSystem extends System {
   /** 敌人投射物（远射魔等） */
   /** @param {import('../types/core.d.ts').EnemyInstance} e @param {number} ang */
   static spawnEnemyProjectile(e, ang) {
-    G.projectiles.push(PROJECTILE_POOL.addWith(createEntity(
+    world.add('projectiles', createEntity(
       Position(e.x, e.y),
       Velocity(Math.cos(ang) * e.projSpd, Math.sin(ang) * e.projSpd),
       Renderable('#7fd6a4', 5),
       Combat(e.projDmg * enemyScale(G.stage).dmg, 0),
       Timer(0, 4),
       { enemy: true, hit: new Set() }
-    )));
+    ));
   }
 }

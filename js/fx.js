@@ -3,7 +3,7 @@
    ========================================================= */
 import { G } from './state.js';
 import { RNG, rand } from './utils.js';
-import { PARTICLE_POOL } from './entity_pool.js';
+import { world } from './ecs/World.js';
 import { addDmgNumber } from './ui/hud.js';
 
 export function releaseParticle(pa) {
@@ -11,8 +11,8 @@ export function releaseParticle(pa) {
 }
 
 export function addFx(pa) {
-  if (PARTICLE_POOL.count >= 512) return;
-  G.particles.push(PARTICLE_POOL.addWith(pa));
+  const pool = world.getPool('particles'); if (pool && pool.count >= 512) return;
+  world.add('particles', pa);
 }
 export function spawnBurst(x, y, color, n) {
   for (let i = 0; i < n; i++) {

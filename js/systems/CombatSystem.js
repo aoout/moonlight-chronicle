@@ -13,8 +13,8 @@ import { queryRadius } from '../spatial.js';
 import { spawnBurst, spawnRing, spawnHitFx } from '../fx.js';
 import { spawnText } from '../ui/hud.js';
 import { AudioEngine } from '../audio.js';
-import { DROP_POOL } from '../entity_pool.js';
 import { persistUnlocked } from '../save.js';
+import { world } from '../ecs/World.js';
 import { spawnEnemy } from '../spawn.js';
 import { createEntity, Position, Velocity } from '../ecs/components.js';
 
@@ -231,11 +231,11 @@ export function meleeHit(x, y, r, dmg, opts) {
  * @param {number} amount
  */
 export function spawnDrop(x, y, kind, amount) {
-  G.drops.push(DROP_POOL.addWith(createEntity(
+  world.add('drops', createEntity(
     Position(x, y),
     Velocity(rand(-40, 40), rand(-40, 40)),
     { kind, amount, t: 0, take: false }
-  )));
+  ));
 }
 
 /* 爆炸（爆裂之核） */

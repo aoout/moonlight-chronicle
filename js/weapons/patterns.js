@@ -2,9 +2,8 @@
    蚀月远征 · 武器：发射模式模块
    可组合的弹幕发射模式，供武器管线使用
    ========================================================= */
-import { G } from '../state.js';
 import { RNG, rand } from '../utils.js';
-import { PROJECTILE_POOL, PHANTOM_POOL } from '../entity_pool.js';
+import { world } from '../ecs/World.js';
 import { createEntity, Position, Velocity, Combat, Timer, Renderable, Projectile } from '../ecs/components.js';
 import { evalFormula } from '../data/parser.js';
 import { PROJECTILE_TYPES } from './projectile_types.js';
@@ -78,13 +77,12 @@ export const PATTERNS = {
     const list = [];
     for (let i = 0; i < n; i++) {
       const a = (i / n) * 6.28 + RNG();
-      const ph = PHANTOM_POOL.addWith(createEntity(
+      const ph = world.add('phantoms', createEntity(
         Position(p.x + Math.cos(a) * 42, p.y + Math.sin(a) * 42),
         Combat(baseDmg / n),
         Timer(0, 5),
         { fireT: rand(0, 0.5), lv: cfg.lv || 1 }
       ));
-      G.phantoms.push(ph);
       list.push(ph);
     }
     return list;
@@ -121,7 +119,7 @@ function createProjectile(p, target, cfg, angle, baseDmg, wId, _idx, _total) {
   // 创建上下文对象
   const ctx = { angle, target, p, cfg, projCfg, wId, baseDmg, lv: cfg.lv || 1 };
 
-  const pr = PROJECTILE_POOL.addWith(createEntity(
+  const pr = world.add('projectiles', createEntity(
     Position(p.x, p.y),
     Velocity(Math.cos(angle) * speed, Math.sin(angle) * speed),
     Renderable(color, r),
@@ -137,6 +135,5 @@ function createProjectile(p, target, cfg, angle, baseDmg, wId, _idx, _total) {
       ...(projCfg.owner ? { owner: true } : {}),
     }
   ));
-  G.projectiles.push(pr);
   return pr;
 }

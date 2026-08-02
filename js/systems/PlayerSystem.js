@@ -10,7 +10,7 @@ import { RNG, rand, clamp, dist } from '../utils.js';
 import { PALETTE } from '../palette.js';
 import { CONFIG, BASE_STATS } from '../data/index.js';
 import { addFx, spawnRing } from '../fx.js';
-import { PROJECTILE_POOL } from '../entity_pool.js';
+import { world } from '../ecs/World.js';
 import { weaponFire, nearestEnemy } from '../weapons/index.js';
 import { codexAdd } from '../codex.js';
 
@@ -51,10 +51,10 @@ export class PlayerSystem extends System {
         p._starT = 12;
         const t = nearestEnemy(p.x, p.y, 600);
         if (t) {
-          G.projectiles.push(PROJECTILE_POOL.addWith({
+          world.add('projectiles', {
             meteor: true, x: t.x + rand(-40, 40), y: t.y + rand(-40, 40),
             t: 0, delay: 0.45, dmg: p.effAtk, aoe: 90, color: '#ffe9a8', r: 12, wId: 'starfall',
-          }));
+          });
         }
       }
     }
