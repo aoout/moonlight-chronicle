@@ -76,7 +76,7 @@ export function renderShopPanel(p: any): void {
     p.weapons.forEach((w: any) => {
       const def = WEAPONS[w.id];
       const li = el('div', 'pw-item', html`
-        <span class="pw-ic">${def.icon}</span>
+        <span class="pw-ic" style="color:${def.color}">${def.icon}</span>
         <span class="pw-name">${def.name}</span>
         <span class="pw-lv">Lv.${w.lv}</span>
       `);

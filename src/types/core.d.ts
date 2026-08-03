@@ -3,6 +3,21 @@
    ========================================================= */
 
 /* ---------- 玩家运行时效果（道具/祝福/诅咒触发的状态） ---------- */
+export interface ItemStats {
+  /** 总伤害（获得以来） */
+  dmg: number;
+  /** 当前夜晚的伤害 */
+  stageDmg: number;
+  /** 上一夜的伤害 */
+  lastStageDmg: number;
+  /** 额外金币总数（金币流星等） */
+  extraGold: number;
+  /** 当前夜晚的额外金币 */
+  stageExtraGold: number;
+  /** 上一夜的额外金币 */
+  lastStageExtraGold: number;
+}
+
 export interface PlayerEffects {
   priceMul?: number;
   enemyHpMul?: number;
@@ -32,12 +47,17 @@ export interface PlayerEffects {
   echoTimer?: number;
   coinHeal?: number;
   curseTimer?: number;
-  boughtItems?: Record<string, number | boolean>;
+  boughtItems?: Record<string, number>;
   /* 时停激活层 */
   tsActive?: number;
   /* 环舞之刃运行时状态 */
   orbits?: Array<{ x: number; y: number; a: number }>;
   orbitHits?: Record<string, number>;
+  /* 风暴之眼运行时状态 */
+  stormCores?: Array<{ x: number; y: number; a: number }>;
+  stormFireT?: Record<string, number>;
+  /* 道具统计（伤害/金币等） */
+  itemStats?: Record<string, ItemStats>;
 }
 
 /* ---------- 玩家 ---------- */
@@ -284,7 +304,7 @@ export interface ShopItemDef {
   rarity: string;
   price: number;
   desc: string;
-  repeat?: boolean;
+  max?: number;
   tag?: string;
   apply: (p: Player) => void;
 }

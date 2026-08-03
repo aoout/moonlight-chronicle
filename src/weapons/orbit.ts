@@ -17,12 +17,15 @@ export function orbitTick(dt: number): void {
   const orbitW = p.weapons.find(w => w.id === 'orbit');
   p.effects.orbits = p.effects.orbits || [];
   if (orbitW) {
-    const n = 2 + orbitW.lv;
+    const def = WEAPONS.orbit as any;
+    const n = (def.blades || 2) + orbitW.lv;
+    const angularSpd = def.angularSpd || 1.6;
+    const orbitR = (def.radius || 120) * p.area;
     p.effects.orbits = [];
     for (let i = 0; i < n; i++) {
-      const a = (i / n) * 6.28 + gSt().time * 1.6;
-      const ox = p.x + Math.cos(a) * 100 * p.area;
-      const oy = p.y + Math.sin(a) * 100 * p.area;
+      const a = (i / n) * 6.28 + gSt().time * angularSpd;
+      const ox = p.x + Math.cos(a) * orbitR;
+      const oy = p.y + Math.sin(a) * orbitR;
       p.effects.orbits.push({ x: ox, y: oy, a });
       if (RNG() < 0.14) addFx({ x: ox, y: oy, vx: rand(-15, 15), vy: rand(-15, 15), life: 0.3, max: 0.3, size: 2.2, color: PALETTE.gold });
       p.effects.orbitHits = p.effects.orbitHits || {};

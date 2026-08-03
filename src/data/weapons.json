@@ -15,7 +15,7 @@
     "desc": "朝最近之敌连发蚀星矢，攻速越高威力越强。",
     "formula": "攻击 ×(0.8+0.15L) + 攻速×攻击 ×0.4",
     "formulaDmg": "effAtk * (0.8 + 0.15 * level) + atkSpd * effAtk * 0.4",
-    "cd": 0.42, "pierce": 0, "range": 400, "speed": 720, "color": "#9fd6e8",
+    "cd": 0.72, "pierce": 0, "range": 400, "speed": 720, "color": "#9fd6e8",
     "proj": 1,
     "fire": {
       "targeting": "nearest", "pattern": "single",
@@ -48,8 +48,8 @@
   "frost": {
     "id": "frost", "name": "霜华之环", "icon": "snow", "tag": "脉冲·生命",
     "desc": "周期性爆发冰环，伤害随生命上限成长。",
-    "formula": "攻击 ×(0.7+0.12L) + 生命上限 ×5%",
-    "formulaDmg": "effAtk * (0.7 + 0.12 * level) + maxHp * 0.05 * (1 + level * 0.2)",
+    "formula": "攻击 ×(0.7+0.12L) + 生命上限 ×10%",
+    "formulaDmg": "effAtk * (0.7 + 0.12 * level) + maxHp * 0.10 * (1 + level * 0.2)",
     "cd": 2.0, "aoe": 200, "slow": 0.4, "color": "#7fd6e4",
     "fire": {
       "targeting": "self", "pattern": "single",
@@ -64,15 +64,15 @@
     "cd": 1.35, "pierce": -1, "range": 620, "speed": 900, "color": "#f4ecd8",
     "fire": {
       "targeting": "nearest", "pattern": "single",
-      "projectile": { "type": "beam", "range": 620, "color": "#f4ecd8", "pierce": -1 }
+      "projectile": { "type": "beam", "range": 620, "color": "#f4ecd8", "pierce": -1, "dur": 0.22, "width": 14 }
     }
   },
   "orbit": {
     "id": "orbit", "name": "环舞之刃", "icon": "target", "tag": "环绕",
     "desc": "月刃环绕身周，持续切割靠近的敌人。",
-    "formula": "攻击 ×(0.38+0.08L)×2 / 刃",
-    "formulaDmg": "effAtk * (0.38 + 0.08 * level) * 2",
-    "tick": 0.22, "radius": 120, "blades": 2, "color": "#e9c987"
+    "formula": "攻击 ×(0.38+0.08L)×6 / 刃",
+    "formulaDmg": "effAtk * (0.38 + 0.08 * level) * 6",
+    "tick": 0.22, "radius": 120, "blades": 2, "angularSpd": 1.6, "color": "#e9c987"
   },
   "lance": {
     "id": "lance", "name": "潮涌之枪", "icon": "lance", "tag": "贯穿",
@@ -100,17 +100,13 @@
     }
   },
   "storm": {
-    "id": "storm", "name": "风暴之眼", "icon": "storm", "tag": "追踪",
-    "desc": "风暴之核自行索敌追踪，倾泻弹幕打击敌人。",
-    "formula": "攻击 ×(0.5+0.09L)",
-    "formulaDmg": "effAtk * (0.5 + 0.09 * level)",
-    "cd": 0.5, "range": 360, "speed": 340, "color": "#8fe3d8",
-    "proj": 2,
-    "fire": {
-      "targeting": "nearest", "pattern": "volley",
-      "count": "floor(2 + projCount)",
-      "projectile": { "type": "homing", "speed": 340, "range": 360, "radius": 5, "color": "#8fe3d8", "life": 1.6 }
-    }
+    "id": "storm", "name": "风暴之眼", "icon": "storm", "tag": "环绕·弹幕",
+    "desc": "两个风暴之核环绕身周，向前方倾泻弹幕。",
+    "formula": "攻击 ×(1.0+0.18L)",
+    "formulaDmg": "effAtk * (1.0 + 0.18 * level)",
+    "tick": 0.56, "cores": 2, "radius": 115, "proj": 1, "pierce": 0,
+    "angularSpd": 3.0, "spread": 0.16, "projRadius": 5,
+    "speed": 390, "range": 507, "color": "#8fe3d8"
   },
   "nova": {
     "id": "nova", "name": "破晓之辉", "icon": "sun", "tag": "爆发·终极",
@@ -131,6 +127,10 @@
     "formula": "召唤 2+⌊L/2⌋ 个分身，各自发射 攻击×(0.45+0.08L) 的月牙",
     "formulaDmg": "effAtk * (0.45 + 0.08 * level) * (2 + floor(level / 2))",
     "cd": 4, "color": "#c9b8f0",
-    "fire": { "targeting": "self", "pattern": "phantom" }
+    "posOffset": 42, "followDist": 96, "followSpeed": 92, "wanderSpeed": 8,
+    "targetRange": 380, "fireIntv": 0.55, "duration": 5, "initFireT": 0.5,
+    "fire": { "targeting": "self", "pattern": "phantom",
+      "projectile": { "speed": 300, "range": 600, "radius": 5, "color": "#c9b8f0", "life": 2 }
+    }
   }
 }

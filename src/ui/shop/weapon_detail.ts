@@ -25,6 +25,13 @@ export function showWeaponDetail(id: string): void {
   const def = WEAPONS[id];
   const box = $('pw-detail');
   if (!box) return;
+  // 点击已展开的同武器：关闭
+  if (_pwSelected === id && !box.classList.contains('hidden')) {
+    box.classList.add('hidden');
+    _pwSelected = null;
+    Array.from($('shop-weapons').children).forEach(li => { const target = li as HTMLElement; target.classList.remove('active'); });
+    return;
+  }
   _pwSelected = id;
   Array.from($('shop-weapons').children).forEach(li => { const target = li as HTMLElement; target.classList.toggle('active', target.dataset.wid === id); });
   // 本夜伤害占比
@@ -37,7 +44,9 @@ export function showWeaponDetail(id: string): void {
   ];
   if (def.range) rows.push(['射程', def.range]);
   if (def.radius) rows.push(['环绕半径', def.radius]);
+  if (def.cores) rows.push(['核心数', def.cores]);
   if (def.pierce !== undefined) rows.push(['穿透', def.pierce === Infinity ? '∞' : def.pierce]);
+  if (def.speed) rows.push(['弹速', def.speed]);
   // 投射物数量（含余影/连珠加成）
   const projInfo = weaponProjInfo(def, p);
   if (projInfo.multi) {
@@ -51,7 +60,7 @@ export function showWeaponDetail(id: string): void {
   const price = weaponSellPrice(w.lv);
   box.innerHTML = html`
     <div class="pwd-head">
-      <span class="pwd-ic">${def.icon}</span>
+      <span class="pwd-ic" style="color:${def.color};filter:drop-shadow(0 0 9px ${def.color}66)">${def.icon}</span>
       <div class="pwd-title">
         <div class="pwd-name">${def.name}</div>
         <div class="pwd-lv">Lv.${w.lv} · 本夜占比 ${pct}%</div>

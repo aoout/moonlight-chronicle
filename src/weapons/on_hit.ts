@@ -6,7 +6,7 @@ import { RNG } from '../utils.js';
 import { PALETTE } from '../data/palette.js';
 import { hurtPlayer, damageEnemy } from '../domain/combat.js';
 import { AudioEngine } from '../audio/engine.js';
-import { addFx, spawnImpact, spawnStar, spawnRing, spawnStreak, spawnGlow } from '../render/effects/fx.js';
+import { addFx, spawnImpact, spawnStar, spawnRing, spawnStreak, spawnGlow, spawnSpark } from '../render/effects/fx.js';
 import { chainLightning } from './chain_lightning.js';
 import type { Player, Projectile, EnemyInstance } from '../types/core.d.ts';
 
@@ -74,7 +74,8 @@ export const ON_HIT: Record<string, (args: OnHitArgs) => boolean> = {
     } else if (pr.wId === 'shadow') {
       spawnStar(e.x, e.y, PALETTE.violetDark, 10);
     } else if (pr.wId === 'storm') {
-      spawnRing(e.x, e.y, pr.color || '#fff', 0.28, 22, 2);
+      spawnRing(e.x, e.y, pr.color || '#8fe3d8', 0.32, 28, 2.2);
+      spawnSpark(e.x, e.y, '#8fe3d8', 4, 100);
     } else if (pr.wId === 'lance') {
       spawnStreak(e.x, e.y, Math.atan2(pr.vy || 0, pr.vx || 0), 30, 2, '#ffffff', 0.25);
     } else if (pr.wId === 'arc' && pr.chain) {

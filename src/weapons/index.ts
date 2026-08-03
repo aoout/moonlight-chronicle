@@ -21,6 +21,7 @@ import type { WeaponInstance, Projectile } from '../types/core.d.ts';
 export { nearestEnemy } from './helpers.js';
 export { orbitTick } from './orbit.js';
 export { phantomTick } from './phantom.js';
+export { stormTick } from './storm.js';
 
 /* ---------- 开火调度 ---------- */
 export function weaponFire(w: WeaponInstance): number {
@@ -31,6 +32,7 @@ export function weaponFire(w: WeaponInstance): number {
   const baseDmg = def.dmg(p, lv);
   const cd = (def.cd ? def.cd() : (def.tick ?? 0) * 2) * (1 - p.cdr);
   if (w.id === 'orbit') return cd;
+  if (w.id === 'storm') return cd;
 
   // 所有武器统一使用可组合行为管线（def.fire 配置）
   const fired = def.fire ? executeFirePipeline(w, p, def, lv, baseDmg) : false;

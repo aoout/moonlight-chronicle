@@ -9,7 +9,17 @@
 .result-title { font-family: var(--font-title); font-size: 44px; letter-spacing: .3em; background: linear-gradient(180deg, #fbf4dd, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .result-sub { font-size: 14px; letter-spacing: .2em; color: rgba(244,236,216,.65); margin-bottom: 10px; }
 .result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0 22px; }
-.result-stat { padding: 14px 26px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.result-stat {
+  padding: 14px 26px;
+  background: var(--glass-bg-frost);
+  backdrop-filter: blur(var(--glass-blur-frost));
+  border: 1px solid var(--glass-border-frost);
+  border-radius: 10px;
+  box-shadow:
+    var(--glass-edge-inset),
+    0 6px 32px rgba(0, 0, 0, .5),
+    var(--eclipse-glow-inner);
+}
 .result-stat .v { font-family: var(--font-title); font-size: 24px; color: var(--gold); }
 .result-stat .k { font-size: 11px; letter-spacing: .2em; color: rgba(244,236,216,.55); margin-top: 4px; }
 

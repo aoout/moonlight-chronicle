@@ -7,6 +7,7 @@ import { world } from '../ecs/World.js';
 import { createEntity, Position, Velocity, Combat, Timer, Renderable, Projectile } from '../ecs/components.js';
 import { compileFormula } from '../data/parser.js';
 import { PROJECTILE_TYPES } from './projectile_types.js';
+import { WEAPONS } from '../data/index.js';
 import type { TargetingResult } from './projectile_types.js';
 import type { Player, WeaponFireConfig, ProjectileConfig } from '../types/core.d.ts';
 
@@ -75,15 +76,19 @@ export const PATTERNS: Record<string, (p: Player, target: TargetingResult, cfg: 
 
   /** 召唤分身 */
   phantom(p, _target, cfg, baseDmg, wId) {
+    const def = WEAPONS[wId] as any;
     const n = 2 + Math.floor((cfg.lv || 1) / 2);
+    const posOffset = def?.posOffset || 42;
+    const duration = def?.duration || 5;
+    const initFireT = def?.initFireT || 0.5;
     const list = [];
     for (let i = 0; i < n; i++) {
       const a = (i / n) * 6.28 + RNG();
       const ph = world.add('phantoms', createEntity(
-        Position(p.x + Math.cos(a) * 42, p.y + Math.sin(a) * 42),
+        Position(p.x + Math.cos(a) * posOffset, p.y + Math.sin(a) * posOffset),
         Combat(baseDmg / n),
-        Timer(0, 5),
-        { fireT: rand(0, 0.5), lv: cfg.lv || 1 }
+        Timer(0, duration),
+        { fireT: rand(0, initFireT), lv: cfg.lv || 1 }
       ));
       list.push(ph);
     }

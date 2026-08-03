@@ -97,6 +97,7 @@ export function gainXp(n: number): void {
     statsState.set('xp', st.xp - st.xpNeeded);
     statsState.set('xpNeeded', xpNeeded(p.level + 1));
     p.level++;
+    statsState.set('level', p.level);
     statsState.set('levelQueue', st.levelQueue + 1);
   }
   if (st.levelQueue > 0) { gameState.set('_resumeState', sm.current); sm.transition(STATE.LEVELUP); EventBus.emit('player:levelup', { level: p.level, queue: st.levelQueue }); }

@@ -95,8 +95,15 @@
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .howto-inner {
   max-width: 560px; margin: 0 24px; padding: 40px 44px;
-  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
-  box-shadow: 0 24px 80px rgba(0,0,0,.6);
+  background: var(--glass-bg-deep);
+  backdrop-filter: blur(var(--glass-blur-deep));
+  border: 1px solid var(--glass-border-deep);
+  border-radius: 14px;
+  box-shadow:
+    var(--glass-edge-inset),
+    0 10px 56px rgba(0, 0, 0, .62),
+    0 0 calc(var(--eclipse-glow-spread) * 1.2) var(--eclipse-glow-strong),
+    var(--eclipse-glow-inner);
 }
 .howto h2 { font-family: var(--font-title); letter-spacing: .2em; color: var(--gold); margin-bottom: 18px; font-size: 22px; }
 .howto ul { list-style: none; }
@@ -123,13 +130,19 @@
   position: relative; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; gap: 7px;
   padding: 18px 10px 16px; border-radius: 14px;
-  background: linear-gradient(170deg, rgba(22,26,56,.9), rgba(9,11,26,.92));
-  border: 1px solid rgba(233,201,135,.24);
+  background: var(--glass-bg-frost);
+  backdrop-filter: blur(var(--glass-blur-frost));
+  border: 1px solid var(--glass-border-frost);
+  box-shadow:
+    var(--glass-edge-inset),
+    0 6px 32px rgba(0, 0, 0, .5),
+    0 0 var(--eclipse-glow-spread) var(--eclipse-glow-mid),
+    var(--eclipse-glow-inner);
   transition: all .25s cubic-bezier(.22,1,.36,1);
   text-align: center;
 }
-.gate-card:hover { transform: translateY(-4px); border-color: var(--gold); box-shadow: 0 12px 40px rgba(0,0,0,.5), 0 0 22px rgba(233,201,135,.14); }
-.gate-card.current { border-color: var(--gold); box-shadow: 0 0 18px rgba(233,201,135,.28), inset 0 0 26px rgba(233,201,135,.07); }
+.gate-card:hover { transform: translateY(-4px); border-color: var(--gold); box-shadow: 0 12px 40px rgba(0,0,0,.5), 0 0 22px var(--eclipse-glow-mid); }
+.gate-card.current { border-color: var(--gold); box-shadow: 0 0 18px var(--eclipse-glow-mid), var(--eclipse-glow-inner); }
 .gate-card.locked { opacity: .38; cursor: not-allowed; border-style: dashed; }
 .gate-moon { font-size: 30px; display: flex; filter: drop-shadow(0 0 10px currentColor); }
 .gate-name { font-family: var(--font-title); font-size: 14px; letter-spacing: .14em; color: var(--moon); }

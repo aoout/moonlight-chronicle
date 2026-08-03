@@ -111,6 +111,10 @@ export const HIT_DETECTION: Record<string, (pr: Projectile, dt: number, p: Playe
         hits.push({ target: p, isPlayer: true });
       }
     }
+    // 半径扩展到 maxR 后清除投射物，防止特效永不消失
+    if (pr.r >= (pr.maxR || 0)) {
+      pr.dead = 1;
+    }
     return hits;
   },
 };

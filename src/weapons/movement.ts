@@ -62,9 +62,14 @@ export const MOVEMENT: Record<string, (pr: Projectile, dt: number, p: Player) =>
     return true;
   },
 
-  /** 静止（aoe/光束/呼吸） */
+  /** 静止（aoe/光束） */
   stationary(pr, dt, _p) {
     pr.t = (pr.t || 0) + dt;
+    // 光束：持续时间结束后销毁
+    if (pr.beam && pr.t >= (pr.dur || 0.3)) {
+      pr.dead = 1;
+      return false;
+    }
     return true;
   },
 

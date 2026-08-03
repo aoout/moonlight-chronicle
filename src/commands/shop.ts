@@ -48,10 +48,10 @@ export function purchaseItem(item: any, price: number): Result {
   statsState.set('gold', s.gold - price);
   item.apply(p);
   codexAdd('items', item.id);
-  const prev = p.effects.boughtItems?.[item.id];
-  const cnt = item.repeat ? (typeof prev === 'number' ? prev : 0) + 1 : 1;
+  const prev = p.effects.boughtItems?.[item.id] ?? 0;
+  const cnt = prev + 1;
   p.effects.boughtItems = p.effects.boughtItems || {};
-  p.effects.boughtItems[item.id] = item.repeat ? cnt : true;
+  p.effects.boughtItems[item.id] = cnt;
   computeDerived(p);
   return { ok: true };
 }

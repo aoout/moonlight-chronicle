@@ -62,7 +62,7 @@ export const PROJECTILE_TYPES: Record<string, ProjectileTypeDef> = {
 
   /** 光束（瞬间命中线） */
   beam: {
-    createFlags: (ctx) => ({ beam: true, dir: ctx.angle, dur: 0.22 * (ctx.p.duration || 1), width: 14 }),
+    createFlags: (ctx) => ({ beam: true, dir: ctx.angle, dur: (ctx.projCfg.dur || 0.22) * (ctx.p.duration || 1), width: ctx.projCfg.width || 14 }),
     movement: 'stationary',
     hit: 'beam',
     onHit: ['damage', 'beam'],

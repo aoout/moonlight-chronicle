@@ -65,6 +65,7 @@ export function loadRun(): boolean {
     stageState.set('time', d.time);
     statsState.set('xp', d.xp);
     statsState.set('xpNeeded', d.xpNeeded);
+    statsState.set('level', d.player.level);
     statsState.set('runStats', d.runStats || { totalDmg: 0, bossKills: 0, win: false, wDmg: {} });
     stageState.set('curse', d.curseId ? (CURSES.find(c => c.id === d.curseId) || null) : null);
     // 重置会话状态（防残留）

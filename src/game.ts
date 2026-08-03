@@ -41,6 +41,16 @@ export function startStage(n: number): void {
   p.invuln = 1.2;
   p.hp = Math.min(p.maxHp, p.hp);
   computeDerived(p);
+  /* 每夜重置：将上一夜的道具统计保存，重置当前夜统计 */
+  if (p.effects.itemStats) {
+    for (const key of Object.keys(p.effects.itemStats)) {
+      const s = p.effects.itemStats[key]!;
+      s.lastStageDmg = s.stageDmg;
+      s.stageDmg = 0;
+      s.lastStageExtraGold = s.stageExtraGold;
+      s.stageExtraGold = 0;
+    }
+  }
   if (CONFIG.BOSS_STAGES.includes(n) || n === CONFIG.FINAL_STAGE) {
     const type = pick(BOSS_POOLS[n] || ['final']);   // 节点 Boss 池随机
     spawnBoss(type);

@@ -9,6 +9,7 @@ import { ProjectileSystem } from './ProjectileSystem.js';
 import { DropSystem } from './DropSystem.js';
 import { EnemySystem } from './EnemySystem.js';
 import { OrbitSystem } from './OrbitSystem.js';
+import { StormSystem } from './StormSystem.js';
 import { ParticleSystem } from './ParticleSystem.js';
 import { StageTimerSystem } from './StageTimerSystem.js';
 /**
@@ -29,8 +30,9 @@ export function createSystemManager(): SystemManager {
   sm.add(DropSystem);         // 5: 掉落物更新+压缩
   sm.add(EnemySystem);        // 6: 敌人更新+压缩
   sm.add(OrbitSystem);        // 7: 环舞之刃+月影残像
-  sm.add(ParticleSystem);     // 8: 粒子更新+压缩
-  sm.add(StageTimerSystem);   // 9: 关卡计时
+  sm.add(StormSystem);        // 8: 风暴之眼（双核环绕弹幕）
+  sm.add(ParticleSystem);     // 9: 粒子更新+压缩
+  sm.add(StageTimerSystem);   // 10: 关卡计时
 
   return sm;
 }

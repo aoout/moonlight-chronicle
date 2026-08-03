@@ -10,6 +10,28 @@ const pSt = () => playerState.state;
 
 let _siSelected: string | null = null;
 
+/* 可统计伤害的道具 */
+const DMG_STAT_ITEMS = new Set(['boom', 'thorns', 'starfall', 'splash', 'critBoom']);
+/* 可统计金币的道具 */
+const GOLD_STAT_ITEMS = new Set(['goldMeteor']);
+
+/** 构建道具战绩统计 HTML */
+function getItemStatsHtml(it: ShopItemDef, p: Player): string | null {
+  const stats = p.effects.itemStats?.[it.id];
+  if (!stats) return null;
+  const rows: string[] = [];
+  if (DMG_STAT_ITEMS.has(it.id)) {
+    rows.push(`<div class="sid-stat-row"><span class="sid-stat-label">上一夜伤害</span><span class="sid-stat-val">${Math.round(stats.lastStageDmg)}</span></div>`);
+    rows.push(`<div class="sid-stat-row"><span class="sid-stat-label">总伤害</span><span class="sid-stat-val">${Math.round(stats.dmg)}</span></div>`);
+  }
+  if (GOLD_STAT_ITEMS.has(it.id)) {
+    rows.push(`<div class="sid-stat-row"><span class="sid-stat-label">上一夜额外金币</span><span class="sid-stat-val">${Math.round(stats.lastStageExtraGold)}</span></div>`);
+    rows.push(`<div class="sid-stat-row"><span class="sid-stat-label">总额外金币</span><span class="sid-stat-val">${Math.round(stats.extraGold)}</span></div>`);
+  }
+  if (rows.length === 0) return null;
+  return `<div class="sid-stats"><div class="sid-stat-title">战绩记录</div>${rows.join('')}</div>`;
+}
+
 /* 道具生效效果列表：对转模等道具展示当前实时数值 */
 function getItemEffectRows(it: ShopItemDef, p: Player): (string | number)[][] | null {
   const map: Record<string, (string | number)[][]> = {
@@ -53,6 +75,7 @@ export function showItemDetail(id: string): void {
   Array.from($('shop-items').children).forEach(li => { const target = li as HTMLElement; target.classList.toggle('active', target.dataset.sid === id); });
   const tag = it.tag || (it.rarity === 'legend' ? '神恩' : it.rarity === 'epic' ? '非凡' : '寻常');
   const effects = getItemEffectRows(it, p);
+  const statsHtml = getItemStatsHtml(it, p);
   const content = html`
     <div class="sid-head">
       <span class="sid-ic">${it.icon}</span>
@@ -66,6 +89,7 @@ export function showItemDetail(id: string): void {
     ${effects ? html`<div class="sid-effects"><div class="sid-effect-title">当前生效</div>
       ${effects.map(r => html`<div class="sid-effect-row"><span class="sid-el">${r[0]}</span><span class="sid-arrow">→</span><span class="sid-el">${r[1]}</span><span class="sid-er">${r[2]}</span><span class="sid-er">${r[3]}</span></div>`).join('')}
     </div>` : ''}
+    ${statsHtml || ''}
   `;
   box.className = 'si-detail rarity-' + it.rarity;
   box.innerHTML = content;

@@ -25,6 +25,32 @@
   --panel-solid: #0d1030;
   --line: rgba(233, 201, 135, .22);
 
+  /* ---------- 月蚀玻璃 · 参数化变量 ---------- */
+  /* 玻璃三等级：透蚀(ghost) / 凝蚀(frost) / 深蚀(deep) */
+  --glass-bg-ghost: rgba(10, 12, 28, .32);
+  --glass-bg-frost: rgba(12, 15, 38, .55);
+  --glass-bg-deep: rgba(8, 10, 24, .78);
+
+  --glass-blur-ghost: 6px;
+  --glass-blur-frost: 12px;
+  --glass-blur-deep: 18px;
+
+  --glass-border-ghost: rgba(233, 201, 135, .18);
+  --glass-border-frost: rgba(233, 201, 135, .28);
+  --glass-border-deep: rgba(233, 201, 135, .36);
+
+  /* 月蚀光晕 · 参数化（任何组件可覆盖） */
+  --eclipse-glow-color: var(--gold);
+  --eclipse-glow-soft: rgba(233, 201, 135, .10);
+  --eclipse-glow-mid: rgba(233, 201, 135, .22);
+  --eclipse-glow-strong: rgba(233, 201, 135, .38);
+  --eclipse-glow-spread: 24px;
+  --eclipse-glow-inner: inset 0 0 30px rgba(233, 201, 135, .06);
+
+  /* 玻璃高光边缘 */
+  --glass-edge-top: linear-gradient(90deg, transparent, rgba(233, 201, 135, .72), transparent);
+  --glass-edge-inset: inset 0 1px 0 rgba(255, 255, 255, .07);
+
   /* 字体 */
   --font-title: 'Cinzel', 'Noto Serif SC', serif;
   --font-body: 'Inter', 'Noto Serif SC', sans-serif;
@@ -62,24 +88,58 @@
   --z-modal: 50;
 }
 
-/* ---------- 通用样式 ---------- */
+/* ---------- 月蚀玻璃 · 三等级材质 ---------- */
 
-/* 面板渐变背景（商店铭牌、暂停面板等） */
-.panel-gradient {
-  background: linear-gradient(170deg, rgba(22, 26, 56, .88), rgba(10, 12, 28, .92));
+/* 透蚀：高透明、轻模糊 — HUD徽章、Toast、浮层提示 */
+.eclipse-glass-ghost {
+  background: var(--glass-bg-ghost);
+  backdrop-filter: blur(var(--glass-blur-ghost));
+  border: 1px solid var(--glass-border-ghost);
+  box-shadow:
+    var(--glass-edge-inset),
+    0 4px 22px rgba(0, 0, 0, .42),
+    0 0 var(--eclipse-glow-spread) var(--eclipse-glow-soft);
 }
 
-/* 卡片渐变背景（升级、商店、图鉴等） */
-.card-gradient {
-  background: linear-gradient(168deg, rgba(23, 27, 60, .95), rgba(9, 11, 26, .95));
+/* 凝蚀：中透明、中模糊 — 卡片、铭牌、商店面板 */
+.eclipse-glass-frost {
+  background: var(--glass-bg-frost);
+  backdrop-filter: blur(var(--glass-blur-frost));
+  border: 1px solid var(--glass-border-frost);
+  box-shadow:
+    var(--glass-edge-inset),
+    0 6px 32px rgba(0, 0, 0, .5),
+    0 0 var(--eclipse-glow-spread) var(--eclipse-glow-mid),
+    var(--eclipse-glow-inner);
 }
 
-/* 顶部高光线（面板、卡片头部装饰线） */
-.top-line {
+/* 深蚀：低透明、重模糊 — 模态层、暂停面板、覆盖层 */
+.eclipse-glass-deep {
+  background: var(--glass-bg-deep);
+  backdrop-filter: blur(var(--glass-blur-deep));
+  border: 1px solid var(--glass-border-deep);
+  box-shadow:
+    var(--glass-edge-inset),
+    0 10px 56px rgba(0, 0, 0, .62),
+    0 0 calc(var(--eclipse-glow-spread) * 1.2) var(--eclipse-glow-strong),
+    var(--eclipse-glow-inner);
+}
+
+/* 顶部蚀痕高光线 */
+.eclipse-edge-top {
   position: absolute; top: 0; left: 16%; right: 16%; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(233, 201, 135, .7), transparent);
+  background: var(--glass-edge-top);
   pointer-events: none;
 }
+
+/* 顶部柔光径向渐变（卡片/面板顶部） */
+.eclipse-top-glow {
+  position: absolute; inset: 0;
+  background: radial-gradient(90% 52% at 50% 0%, var(--eclipse-glow-soft), transparent 62%);
+  pointer-events: none;
+}
+
+/* ---------- 通用样式 ---------- */
 
 /* 金色渐变文字 */
 .gold-text {
@@ -87,15 +147,16 @@
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 
-/* 通用玻璃质感底部阴影 */
-.glass-shadow {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 5px 28px rgba(0, 0, 0, .5);
-}
-
 /* 金色边框按钮/徽章基础 */
 .gold-border {
   border: 1px solid rgba(233, 201, 135, .3);
 }
+
+/* 向后兼容：旧类名映射到新玻璃系统 */
+.panel-gradient { background: var(--glass-bg-frost); }
+.card-gradient { background: var(--glass-bg-frost); }
+.glass-shadow { box-shadow: var(--glass-edge-inset), 0 5px 28px rgba(0, 0, 0, .5); }
+.top-line { position: absolute; top: 0; left: 16%; right: 16%; height: 1px; background: var(--glass-edge-top); pointer-events: none; }
 
 /* ---------- 通用动画关键帧 ---------- */
 @keyframes fadeIn {

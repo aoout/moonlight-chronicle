@@ -27,26 +27,31 @@
 .bazaar-label .ic { color: var(--gold); }
 .shop-cards { max-width: none; padding: 0; justify-content: flex-start; }
 
-/* ---------- 铭牌面板 ---------- */
+/* ---------- 铭牌面板（凝蚀级） ---------- */
 .shop-panel {
   position: relative;
   border-radius: 16px;
-  background: linear-gradient(172deg, rgba(17,20,46,.94), rgba(7,9,22,.96));
-  border: 1px solid rgba(233,201,135,.24);
-  box-shadow: inset 0 0 70px rgba(0,0,0,.45), 0 0 46px rgba(233,201,135,.07);
+  background: var(--glass-bg-frost);
+  backdrop-filter: blur(var(--glass-blur-frost));
+  border: 1px solid var(--glass-border-frost);
+  box-shadow:
+    var(--glass-edge-inset),
+    0 6px 32px rgba(0, 0, 0, .5),
+    0 0 var(--eclipse-glow-spread) var(--eclipse-glow-mid),
+    var(--eclipse-glow-inner);
   padding: 18px 18px 16px;
   display: flex; flex-direction: column; gap: 13px;
   overflow-y: auto; scrollbar-width: thin;
 }
 .shop-panel::before {
   content: ''; position: absolute; top: 0; left: 12%; right: 12%; height: 1.5px;
-  background: linear-gradient(90deg, transparent, rgba(233,201,135,.85), transparent);
+  background: var(--glass-edge-top);
   pointer-events: none;
 }
 .shop-panel::after {
   content: ''; position: absolute; inset: 0; border-radius: 16px;
   pointer-events: none;
-  background: radial-gradient(120% 60% at 50% 0%, rgba(233,201,135,.05), transparent 60%);
+  background: radial-gradient(120% 60% at 50% 0%, var(--eclipse-glow-soft), transparent 60%);
 }
 
 .panel-head { display: flex; align-items: center; gap: 13px; }
@@ -82,7 +87,9 @@
 /* 精华四值（派生属性） */
 .panel-essence { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .ess {
-  background: rgba(10,12,30,.72); border: 1px solid rgba(233,201,135,.15);
+  background: var(--glass-bg-ghost);
+  backdrop-filter: blur(var(--glass-blur-ghost));
+  border: 1px solid var(--glass-border-ghost);
   border-radius: 10px; padding: 9px 4px 7px;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
 }
@@ -99,7 +106,9 @@
 .pw-item {
   display: flex; align-items: center; gap: 6px;
   padding: 5px 10px 5px 7px; border-radius: 8px;
-  background: rgba(10,12,30,.72); border: 1px solid rgba(233,201,135,.18);
+  background: var(--glass-bg-ghost);
+  backdrop-filter: blur(var(--glass-blur-ghost));
+  border: 1px solid var(--glass-border-ghost);
   font-size: 11px;
 }
 .pw-ic { font-size: 15px; color: var(--gold); display: flex; }
@@ -110,7 +119,9 @@
 /* 分组属性 */
 .panel-stats { display: flex; flex-direction: column; gap: 10px; }
 .stat-group {
-  background: rgba(10,12,30,.5); border: 1px solid rgba(159,214,232,.1);
+  background: var(--glass-bg-ghost);
+  backdrop-filter: blur(var(--glass-blur-ghost));
+  border: 1px solid rgba(159, 214, 232, .1);
   border-radius: 10px; padding: 9px 11px 7px;
 }
 .stat-group-title {
@@ -160,9 +171,13 @@
 .pw-detail {
   margin-top: 10px; padding: 13px 15px;
   border-radius: 12px;
-  background: linear-gradient(170deg, rgba(22,26,56,.88), rgba(10,12,28,.92));
-  border: 1px solid rgba(233,201,135,.3);
-  box-shadow: inset 0 0 26px rgba(0,0,0,.42), 0 0 18px rgba(233,201,135,.06);
+  background: var(--glass-bg-frost);
+  backdrop-filter: blur(var(--glass-blur-frost));
+  border: 1px solid var(--glass-border-frost);
+  box-shadow:
+    var(--glass-edge-inset),
+    0 6px 32px rgba(0, 0, 0, .5),
+    var(--eclipse-glow-inner);
   animation: cardIn .35s cubic-bezier(.22,1,.36,1) both;
 }
 .pwd-head { display: flex; align-items: center; gap: 11px; }
@@ -234,7 +249,9 @@
 .si-item {
   display: flex; align-items: center; gap: 6px;
   padding: 4px 10px 4px 6px; border-radius: 8px;
-  background: rgba(10,12,30,.72); border: 1px solid rgba(159,214,232,.18);
+  background: var(--glass-bg-ghost);
+  backdrop-filter: blur(var(--glass-blur-ghost));
+  border: 1px solid rgba(159, 214, 232, .18);
   font-size: 11px;
 }
 .si-ic { font-size: 14px; display: flex; color: var(--ice); filter: drop-shadow(0 0 5px rgba(159,214,232,.5)); }
@@ -256,9 +273,13 @@
 .si-detail {
   margin-top: 10px; padding: 13px 15px;
   border-radius: 12px;
-  background: linear-gradient(170deg, rgba(22,26,56,.88), rgba(10,12,28,.92));
-  border: 1px solid rgba(159,214,232,.25);
-  box-shadow: inset 0 0 26px rgba(0,0,0,.42), 0 0 18px rgba(159,214,232,.06);
+  background: var(--glass-bg-frost);
+  backdrop-filter: blur(var(--glass-blur-frost));
+  border: 1px solid rgba(159, 214, 232, .25);
+  box-shadow:
+    var(--glass-edge-inset),
+    0 6px 32px rgba(0, 0, 0, .5),
+    var(--eclipse-glow-inner);
   animation: cardIn .35s cubic-bezier(.22,1,.36,1) both;
 }
 .sid-head { display: flex; align-items: center; gap: 11px; }
@@ -302,3 +323,20 @@
 .sid-effect-row .sid-el { color: rgba(244,236,216,.62); }
 .sid-effect-row .sid-er { color: var(--moon); font-weight: 800; }
 .sid-effect-row .sid-arrow { color: rgba(233,201,135,.5); font-size: 10px; margin: 0 4px; }
+
+/* 战绩记录 */
+.sid-stats { margin-top: 10px; }
+.sid-stat-title {
+  font-size: 9px; font-weight: 800; letter-spacing: .3em;
+  color: rgba(159,214,232,.6); margin-bottom: 5px; padding-left: 2px;
+}
+.sid-stat-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 8px; border-radius: 6px;
+  font-size: 11px; letter-spacing: .04em;
+  background: rgba(10,12,30,.5);
+  border-bottom: 1px dashed rgba(233,201,135,.08);
+}
+.sid-stat-row:last-child { border-bottom: none; }
+.sid-stat-label { color: rgba(244,236,216,.58); }
+.sid-stat-val { color: var(--gold); font-weight: 800; font-size: 12px; }

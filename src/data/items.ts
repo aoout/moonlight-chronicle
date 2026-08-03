@@ -18,11 +18,11 @@ const APPLY_FN: Record<string, (p: Player) => void> = {
   atk1:    p => { p.atk += 4; },
   spd1:    p => { p.speed += 10; },
   crit1:   p => { p.critRate += 0.06; },
-  cdr1:    p => { p.cdr += 0.08; },
+  cdr1:    p => { p.cdr += 0.06; },
   area1:   p => { p.area += 0.12; p.magnet += 20; },
   regen1:  p => { p.regen += 0.8; },
   xp:      p => { p.xpGain += 0.25; },
-  gold:    p => { p.goldGain += 0.3; },
+  gold:    p => { p.goldGain += 0.2; },
   speedCrit:  p => { p.speedToCrit += 0.12; },
   armorAtk:   p => { p.armorToAtk += 0.6; },
   hpAtk:      p => { p.hpToAtk += 0.06; },
@@ -74,7 +74,7 @@ validateAndWarn(validateEntries(itemsData, {
   rarity: { type: 'string', desc: '稀有度' },
   price: { type: 'number', desc: '价格' },
   desc: { type: 'string', desc: '描述' },
-  repeat: { type: 'boolean', optional: true, default: false, desc: '可重复购买' },
+  max: { type: 'number', optional: true, desc: '最大购买次数（无则不限）' },
 }, 'items.json'), 'items.json');
 
 // 加载 JSON 数据，合并 apply 函数

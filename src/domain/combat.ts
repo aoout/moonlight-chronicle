@@ -24,6 +24,28 @@ import type { EnemyInstance, Player } from '../types/core.d.ts';
 
 import { sSt, gSt, eSt, pSt, rSt, gmSt } from '../state/accessors.js';
 
+/* ===== 道具统计追踪 ===== */
+
+function ensureItemStats(p: Player, id: string): import('../types/core.d.ts').ItemStats {
+  if (!p.effects.itemStats) p.effects.itemStats = {};
+  if (!p.effects.itemStats[id]) {
+    p.effects.itemStats[id] = { dmg: 0, stageDmg: 0, lastStageDmg: 0, extraGold: 0, stageExtraGold: 0, lastStageExtraGold: 0 };
+  }
+  return p.effects.itemStats[id]!;
+}
+
+function trackItemDmg(p: Player, itemId: string, dmg: number): void {
+  const s = ensureItemStats(p, itemId);
+  s.dmg += dmg;
+  s.stageDmg += dmg;
+}
+
+function trackItemExtraGold(p: Player, itemId: string, gold: number): void {
+  const s = ensureItemStats(p, itemId);
+  s.extraGold += gold;
+  s.stageExtraGold += gold;
+}
+
 export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcType?: string, srcW?: string): void {
   if (e.hp <= 0) return;
   const p = pSt().player;
@@ -43,13 +65,13 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
     EventBus.emit('visual:ring', { x: e.x, y: e.y, color: '#e9c987', life: 0.35, radius: 100, width: 3 });
     EventBus.emit('visual:burst', { x: e.x, y: e.y, color: '#e9c987', count: 10 });
     for (const o of (queryRadius(e.x, e.y, 100) as EnemyInstance[])) {
-      if (o !== e && !o.dead) { o.hp -= dmg * 0.5; o.flash = 0.1; if (o.hp <= 0) killEnemy(o, 'boom'); }
+      if (o !== e && !o.dead) { const cbDmg = dmg * 0.5; o.hp -= cbDmg; o.flash = 0.1; trackItemDmg(p, 'critBoom', cbDmg); if (o.hp <= 0) killEnemy(o, 'boom'); }
     }
   }
   if (p.effects.splash && RNG() < p.effects.splash && srcType !== 'splash') {
     EventBus.emit('visual:burst', { x: e.x, y: e.y, color: '#ffe9a8', count: 8 });
     for (const o of (queryRadius(e.x, e.y, 90) as EnemyInstance[])) {
-      if (o !== e && !o.dead) { o.hp -= dmg * 0.6; o.flash = 0.1; if (o.hp <= 0) killEnemy(o, 'splash'); }
+      if (o !== e && !o.dead) { const spDmg = dmg * 0.6; o.hp -= spDmg; o.flash = 0.1; trackItemDmg(p, 'splash', spDmg); if (o.hp <= 0) killEnemy(o, 'splash'); }
     }
   }
   dmg = Math.max(1, Math.round(dmg));
@@ -62,6 +84,10 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
     rs.wDmg = { ...(rs.wDmg || {}), [srcW]: (rs.wDmg[srcW] || 0) + dmg };
   }
   statsState.set('runStats', rs);
+  /* 道具伤害追踪 */
+  if (srcType === 'boom') trackItemDmg(p, 'boom', dmg);
+  else if (srcType === 'thorns') trackItemDmg(p, 'thorns', dmg);
+  else if (srcW === 'starfall') trackItemDmg(p, 'starfall', dmg);
   if (p.lifesteal > 0) {
     healPlayer(dmg * p.lifesteal);
   }
@@ -80,7 +106,7 @@ export function killEnemy(e: EnemyInstance, srcType?: string): void {
   const gDef = ENEMIES[type] || {};
   const xpAmt = e.boss ? BOSSES[type].xp : (gDef.xp || 1);
   let goldAmt = e.boss ? BOSSES[type].gold : (gDef.gold || 1);
-  if (p.effects.goldMeteor && RNG() < p.effects.goldMeteor) { goldAmt *= 2; EventBus.emit('ui:spawnText', { x: e.x, y: e.y - 20, text: '金币流星', color: '#f6e3b8' }); }
+  if (p.effects.goldMeteor && RNG() < p.effects.goldMeteor) { const extraGold = goldAmt; goldAmt *= 2; trackItemExtraGold(p, 'goldMeteor', extraGold); EventBus.emit('ui:spawnText', { x: e.x, y: e.y - 20, text: '金币流星', color: '#f6e3b8' }); }
   const luckMul = 1 + Math.max(0, (p.luck || 1) - 1) * 0.15;
   spawnDrop(e.x, e.y, 'xp', Math.round(xpAmt * luckMul));
   spawnDrop(e.x, e.y, 'gold', Math.round(goldAmt * (e.boss ? 1 : 0.6 + RNG() * 0.8) * luckMul));

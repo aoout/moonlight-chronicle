@@ -48,7 +48,7 @@ export function openShop(): void {
   // 2) 道具卡
   p.effects.boughtItems = p.effects.boughtItems || {};
   const boughtItems = p.effects.boughtItems;
-  const itemPool = SHOP_ITEMS.filter(it => it.repeat || !boughtItems[it.id]);
+  const itemPool = SHOP_ITEMS.filter(it => !it.max || (boughtItems[it.id] || 0) < it.max);
   const nItems = 4;
   const itemOffers: any[] = [];
   while (itemOffers.length < nItems && itemPool.length) {
@@ -86,9 +86,10 @@ export function openShop(): void {
       price = Math.round(it.price * (p.effects.priceMul || 1) * inflate);
     }
     c.classList.add('rarity-' + rarity, 'weapon-card');
+    const iconColor = def ? ` style="color:${def.color};filter:drop-shadow(0 0 10px ${def.color}88)"` : '';
     c.innerHTML = html`
       <div class="card-rarity">${tag}</div>
-      <div class="card-ic">${icon}</div>
+      <div class="card-ic"${iconColor}>${icon}</div>
       <div class="card-name">${title}</div>
       <div class="card-desc">${desc}</div>
       <div class="card-price">${iconSVG('coin')} ${price}</div>
@@ -105,7 +106,7 @@ export function openShop(): void {
       else if (o.kind === 'upWeapon') { toast(title + ' 完成'); }
       else {
         const cnt = p.effects.boughtItems?.[it.id];
-        toast(title + ' 已生效' + (it.repeat && typeof cnt === 'number' && cnt > 1 ? ' x' + cnt : ''));
+        toast(title + ' 已生效' + (cnt && cnt > 1 ? ' x' + cnt : ''));
       }
       openShop();
     };

@@ -47,7 +47,7 @@ export function executeFirePipeline(w: WeaponInstance, p: Player, def: WeaponDef
   const patternName = fireCfg.pattern || 'single';
   const patternFn = PATTERNS[patternName];
   if (!patternFn) return false;
-  const result = patternFn(p, target || { target: null, x: p.x, y: p.y }, fireCfg, baseDmg, w.id);
+  const result = patternFn(p, target || { target: null, x: p.x, y: p.y }, { ...fireCfg, lv }, baseDmg, w.id);
 
   if (result && result.length > 0) {
     // 3. 开火特效

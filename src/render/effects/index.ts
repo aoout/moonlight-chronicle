@@ -4,4 +4,5 @@
 export { drawDrops } from './drops.js';
 export { drawProjectiles } from './projectiles.js';
 export { drawOrbitWeapons } from './orbit.js';
+export { drawStormCores } from './storm.js';
 export { drawParticles } from './particles.js';

@@ -47,9 +47,14 @@
 }
 .codex-card {
   position: relative; border-radius: 13px; padding: 16px 15px 13px;
-  background: linear-gradient(168deg, rgba(17,20,46,.85), rgba(7,9,22,.9));
-  border: 1px solid rgba(233,201,135,.14);
-  box-shadow: inset 0 0 30px rgba(0,0,0,.3);
+  background: var(--glass-bg-frost);
+  backdrop-filter: blur(var(--glass-blur-frost));
+  border: 1px solid var(--glass-border-frost);
+  box-shadow:
+    var(--glass-edge-inset),
+    0 6px 32px rgba(0, 0, 0, .5),
+    0 0 var(--eclipse-glow-spread) var(--eclipse-glow-mid),
+    var(--eclipse-glow-inner);
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   text-align: center;
   min-height: 150px; height: auto;
@@ -57,9 +62,9 @@
 }
 .codex-card::before {
   content: ''; position: absolute; top: 0; left: 16%; right: 16%; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(233,201,135,.4), transparent);
+  background: var(--glass-edge-top);
 }
-.codex-card:hover { transform: translateY(-3px); border-color: rgba(233,201,135,.4); box-shadow: inset 0 0 34px rgba(0,0,0,.35), 0 8px 26px rgba(0,0,0,.35); }
+.codex-card:hover { transform: translateY(-3px); border-color: rgba(233,201,135,.4); box-shadow: 0 8px 26px rgba(0,0,0,.35), 0 0 20px var(--eclipse-glow-mid); }
 .codex-ic { font-size: 30px; color: var(--gold); filter: drop-shadow(0 0 10px var(--gold-glow)); line-height: 1.2; }
 .codex-ic svg { width: 30px; height: 30px; }
 .codex-ic canvas { width: 60px; height: 60px; display: block; border-radius: 6px; }

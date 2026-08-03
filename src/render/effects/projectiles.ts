@@ -51,12 +51,20 @@ if (pr.wId === 'shadow') {
       }
   },
   storm(ctx, pr) {
-    // 风暴之眼：旋转双环风弹
-    ctx.strokeStyle = pr.color; ctx.lineWidth = 1.6;
+    // 风暴之眼：风弹（双环旋转+亮核+光晕）
+    ctx.shadowColor = pr.color; ctx.shadowBlur = 12;
+    ctx.strokeStyle = pr.color; ctx.lineWidth = 1.8;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, 6.28); ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.5, 0, 6.28); ctx.stroke();
+    // 内环随飞行时间旋转
+    ctx.strokeStyle = 'rgba(143,227,216,0.7)'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.55, -pr.t * 9, -pr.t * 9 + 5.2); ctx.stroke();
+    // 亮白核心
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.22, 0, 6.28); ctx.fill();
+    ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.32, 0, 6.28); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(143,227,216,0.3)';
+    ctx.beginPath(); ctx.arc(0, 0, pr.r * 1.2, 0, 6.28); ctx.fill();
   },
   phantom(ctx, pr) {
     // 月影残像：小型月牙弹
