@@ -83,7 +83,7 @@ export function spawnBoss(type: string): EnemyInstance {
   return e;
 }
 
-/** 敌人投射物（远射魔等） */
+/** 敌人投射物（蚀涎魔等） */
 export function spawnEnemyProjectile(e: EnemyInstance, ang: number): void {
   const gs = gSt();
   const projSpd = e.projSpd ?? 0;

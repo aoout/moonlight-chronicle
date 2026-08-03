@@ -4,7 +4,7 @@
   "armored": { "name": "蚀甲兽", "icon": "square", "hp": 55, "spd": 34, "size": 15, "dmg": 14, "gold": 3, "xp": 2, "r": 0.5, "color": "#6d8a9e", "desc": "披覆蚀甲的重型怪物" },
   "wing": { "name": "噬光翼", "icon": "tri", "hp": 22, "spd": 82, "size": 10, "dmg": 10, "gold": 2, "xp": 2, "r": 0.35, "color": "#b49ae8", "desc": "盘旋不定的飞行猎手" },
   "charger": { "name": "裂口魔", "icon": "play", "hp": 30, "spd": 60, "dash": 180, "size": 11, "dmg": 18, "gold": 3, "xp": 2, "r": 0.4, "color": "#e2546a", "desc": "蓄力后朝你猛冲" },
-  "spitter": { "name": "远射魔", "icon": "diamond", "hp": 26, "spd": 52, "size": 10, "dmg": 12, "r": 0.4, "color": "#7fd6a4", "desc": "从远处喷射蚀液", "ranged": true, "projSpd": 180, "projDmg": 8 },
+  "spitter": { "name": "蚀涎魔", "icon": "diamond", "hp": 26, "spd": 52, "size": 10, "dmg": 12, "r": 0.4, "color": "#7fd6a4", "desc": "远距喷吐蚀涎，蚀骨销魂", "ranged": true, "projSpd": 180, "projDmg": 8 },
   "splitter": { "name": "血疱魔", "icon": "ringDot", "hp": 36, "spd": 44, "size": 12, "dmg": 12, "gold": 3, "xp": 3, "r": 0.35, "color": "#d98a8a", "desc": "死亡时分裂为两个小血疱", "split": 2, "splitHp": 0.4 },
   "shadow": { "name": "影行者", "icon": "half", "hp": 40, "spd": 95, "size": 10, "dmg": 13, "gold": 3, "xp": 3, "r": 0.3, "color": "#7c6d9e", "desc": "飘忽难测，快如暗影" },
   "giant": { "name": "巨噬者", "icon": "square", "hp": 150, "spd": 26, "size": 24, "dmg": 26, "gold": 6, "xp": 5, "r": 0.6, "color": "#4a5a72", "desc": "吞噬一切的庞然巨物" },

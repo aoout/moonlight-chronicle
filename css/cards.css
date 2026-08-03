@@ -21,7 +21,7 @@
 
 /* 卡片（凝蚀级） */
 .card {
-  position: relative; width: 218px; min-height: 276px;
+  position: relative; width: 218px; height: 276px;
   background: var(--glass-bg-frost);
   backdrop-filter: blur(var(--glass-blur-frost));
   border: 1px solid var(--glass-border-frost);
@@ -36,6 +36,11 @@
     0 6px 32px rgba(0, 0, 0, .5),
     0 0 var(--eclipse-glow-spread) var(--eclipse-glow-mid),
     var(--eclipse-glow-inner);
+}
+.card-inner {
+  display: flex; flex-direction: column; gap: 6px;
+  width: 100%; transform-origin: top center;
+  transition: transform .25s ease;
 }
 @keyframes cardIn { from { opacity: 0; transform: translateY(22px) scale(.94); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .card::before {
@@ -111,7 +116,7 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
 }
 .card.cant-afford .card-price { color: var(--blood); border-color: rgba(226,84,106,.4); background: rgba(226,84,106,.08); opacity: .75; }
-.card.weapon-card { min-height: 256px; }
+.card.weapon-card { height: 256px; }
 
 /* 升级卡 */
 .card.upgrade-card .card-desc { font-size: 12px; }

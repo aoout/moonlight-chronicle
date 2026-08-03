@@ -86,18 +86,37 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
   },
   spitter(ctx, e, s, wob, fa, t, time) {
     const color = e.color;
+    // 毒囊身体：上圆下坠，随蚀涎充盈而呼吸
+    const breath = 1 + 0.07 * Math.sin(time * 3);
     ctx.fillStyle = color;
-    ctx.beginPath(); ctx.arc(0, wob, s, 0, 6.28); ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(0, wob - s * 0.08, s * 0.95, s * 0.9 * breath, 0, 0, 6.28);
+    ctx.fill();
+    // 体表蚀斑：蚀涎浸蚀的痕迹
+    ctx.fillStyle = 'rgba(0,0,0,.22)';
+    ctx.beginPath(); ctx.arc(-s * 0.36, wob + s * 0.3, s * 0.2, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(s * 0.32, wob + s * 0.42, s * 0.13, 0, 6.28); ctx.fill();
+    // 体表高光
+    ctx.fillStyle = 'rgba(255,255,255,.16)';
+    ctx.beginPath(); ctx.arc(-s * 0.3, wob - s * 0.38, s * 0.2, 0, 6.28); ctx.fill();
+    // 喷吐喙管（朝向目标，弧线收口）
     ctx.save(); ctx.rotate(fa);
     ctx.fillStyle = color;
-    ctx.fillRect(s * 0.35, -s * 0.24, s * 1.15, s * 0.48);
+    ctx.beginPath();
+    ctx.moveTo(s * 0.5, -s * 0.16);
+    ctx.quadraticCurveTo(s * 1.25, -s * 0.28, s * 1.68, -s * 0.06);
+    ctx.lineTo(s * 1.68, s * 0.14);
+    ctx.quadraticCurveTo(s * 1.25, -s * 0.04, s * 0.5, s * 0.22);
+    ctx.closePath(); ctx.fill();
+    // 喙口湿亮的蚀涎
     ctx.fillStyle = '#eafff4';
-    ctx.beginPath(); ctx.arc(s * 1.55, 0, s * 0.24, 0, 6.28); ctx.fill();
-    ctx.globalAlpha = 0.45 + 0.45 * Math.sin(time * 6);
-    ctx.beginPath(); ctx.arc(s * 1.55, 0, s * 0.14, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(s * 1.68, s * 0.04, s * 0.2, s * 0.1, 0, 0, 6.28); ctx.fill();
+    // 蚀涎脉动光晕
+    ctx.globalAlpha = 0.35 + 0.45 * Math.sin(time * 6);
+    ctx.beginPath(); ctx.arc(s * 1.68, s * 0.04, s * 0.15, 0, 6.28); ctx.fill();
     ctx.globalAlpha = 1;
     ctx.restore();
-    enemyEye(ctx, -s * 0.2, -s * 0.2);
+    enemyEye(ctx, -s * 0.2, -s * 0.28);
   },
   splitter(ctx, e, s, wob, fa, t, time) {
     const color = e.color;

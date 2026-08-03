@@ -17,6 +17,20 @@ const pSt = () => playerState.state;
 const gSt = () => stageState.state;
 const sSt = () => statsState.state;
 
+/** 测量卡片内容，超出时按比例缩放 card-inner */
+function fitCardContent(card: HTMLElement): void {
+  const inner = card.querySelector('.card-inner') as HTMLElement | null;
+  if (!inner) return;
+  inner.style.transform = 'scale(1)';
+  const style = getComputedStyle(card);
+  const avail = card.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+  const need = inner.scrollHeight;
+  if (need > avail) {
+    const s = avail / need;
+    inner.style.transform = `scale(${s})`;
+  }
+}
+
 type Offer =
   | { kind: 'newWeapon' | 'upWeapon'; id: string }
   | { kind: 'item'; data: any };
@@ -88,11 +102,13 @@ export function openShop(): void {
     c.classList.add('rarity-' + rarity, 'weapon-card');
     const iconColor = def ? ` style="color:${def.color};filter:drop-shadow(0 0 10px ${def.color}88)"` : '';
     c.innerHTML = html`
-      <div class="card-rarity">${tag}</div>
-      <div class="card-ic"${iconColor}>${icon}</div>
-      <div class="card-name">${title}</div>
-      <div class="card-desc">${desc}</div>
-      <div class="card-price">${iconSVG('coin')} ${price}</div>
+      <div class="card-inner">
+        <div class="card-rarity">${tag}</div>
+        <div class="card-ic"${iconColor}>${icon}</div>
+        <div class="card-name">${title}</div>
+        <div class="card-desc">${desc}</div>
+        <div class="card-price">${iconSVG('coin')} ${price}</div>
+      </div>
     `;
     if (sSt().gold < price) c.classList.add('cant-afford');
     c.onclick = () => {
@@ -111,6 +127,9 @@ export function openShop(): void {
       openShop();
     };
     cards.appendChild(c);
+  });
+  requestAnimationFrame(() => {
+    Array.from(cards.children).forEach(child => fitCardContent(child as HTMLElement));
   });
   $('shop-gold').textContent = String(Math.floor(sSt().gold));
   renderShopPanel(p);
