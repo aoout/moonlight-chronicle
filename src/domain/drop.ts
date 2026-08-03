@@ -45,7 +45,13 @@ export function collectDrop(d: Drop): void {
 
 /** 自爆 */
 export function explodeEnemy(e: EnemyInstance, hurtPlayerToo: boolean): void {
-  EventBus.emit('visual:burst', { x: e.x, y: e.y, color: '#ff9d6b', count: 20 });
+  // 自爆：火球光爆 + 冲击环 + 碎片 + 白炽火花 + 烟尘
+  EventBus.emit('visual:ring', { x: e.x, y: e.y, color: '#ffb84d', life: 0.42, radius: 70, width: 3.5 });
+  EventBus.emit('visual:ring', { x: e.x, y: e.y, color: '#fff2cc', life: 0.28, radius: 42, width: 2 });
+  EventBus.emit('visual:glow', { x: e.x, y: e.y, color: '#ff7a3c', size: 22, life: 0.4 });
+  EventBus.emit('visual:burst', { x: e.x, y: e.y, color: '#ffd9a8', count: 18 });
+  EventBus.emit('visual:shard', { x: e.x, y: e.y, color: '#ff9d6b', count: 7, speed: 230 });
+  EventBus.emit('visual:spark', { x: e.x, y: e.y, color: '#fff5d6', count: 9, speed: 220 });
   const p = pSt().player;
   if (hurtPlayerToo && p && dist(e, p) < 90) hurtPlayer(e, e.dmg);
 }

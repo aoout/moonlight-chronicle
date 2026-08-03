@@ -194,6 +194,30 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
   p.hp -= dmg;
   p.invuln = 0.45;
   EventBus.emit('audio:sfx', { name: 'hurt' });
+  // 攻击者攻击动作特效（近战接触伤害：撕咬/撞击/重拳等）
+  const atkType = e && 'type' in e ? (e as any).type : '';
+  const ex = e && 'x' in e ? (e as any).x : p.x;
+  const ey = e && 'y' in e ? (e as any).y : p.y;
+  if (atkType) {
+    if (atkType === 'giant') {
+      // 巨噬者：重拳砸地（大冲击环 + 尘土）
+      EventBus.emit('visual:ring', { x: ex, y: ey, color: '#4a5a72', life: 0.35, radius: 55, width: 3 });
+      EventBus.emit('visual:burst', { x: ex, y: ey, color: '#7a8aa5', count: 10 });
+    } else if (atkType === 'charger') {
+      // 裂口魔：独角撞击（赤红火花 + 冲击）
+      EventBus.emit('visual:spark', { x: ex, y: ey, color: '#e2546a', count: 6, speed: 180 });
+      EventBus.emit('visual:ring', { x: ex, y: ey, color: '#e2546a', life: 0.25, radius: 34, width: 2.4 });
+    } else if (atkType === 'splitter') {
+      // 血疱魔：血疱崩溅
+      EventBus.emit('visual:burst', { x: ex, y: ey, color: '#d98a8a', count: 8 });
+    } else if (atkType === 'bomber') {
+      // 自爆魔：贴身爆燃
+      EventBus.emit('visual:spark', { x: ex, y: ey, color: '#ff9d6b', count: 8, speed: 200 });
+    } else {
+      // 撕咬/扑击类（grub/rat/armored/wing/shadow）：口器闪光
+      EventBus.emit('visual:spark', { x: ex, y: ey, color: '#ffd9a8', count: 5, speed: 160 });
+    }
+  }
   renderState.set('hitFlash', 0.3);
   shakeScreen(8);
   EventBus.emit('player:hurt', { damage: dmg, hp: p.hp, maxHp: p.maxHp });

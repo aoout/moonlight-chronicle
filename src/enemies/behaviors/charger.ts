@@ -3,6 +3,7 @@
    ========================================================= */
 import { RNG, angTo } from '../../utils.js';
 import { world } from '../../ecs/World.js';
+import { spawnSpark, spawnGlow } from '../../render/effects/fx.js';
 import type { EnemyInstance, Player } from '../../types/core.d.ts';
 
 export function chargerMove(e: EnemyInstance, dt: number, p: Player, slowF: number): void {
@@ -13,6 +14,12 @@ export function chargerMove(e: EnemyInstance, dt: number, p: Player, slowF: numb
   }
   if (e.state === 'windup') {
     e.vx = 0; e.vy = 0;
+    // 蓄力：独角聚怒，火星自角尖迸溅
+    if (RNG() < 0.5) {
+      const a = angTo(e, p);
+      spawnSpark(e.x + Math.cos(a) * 26, e.y + Math.sin(a) * 26, '#ff8a5c', 1, 70);
+    }
+    spawnGlow(e.x, e.y, 10, '#e2546a', 0.12);
   } else {
     const a = angTo(e, p);
     const sp = e.spd + (e.dash ?? 0);

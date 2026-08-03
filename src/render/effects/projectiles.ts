@@ -242,6 +242,36 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.globalAlpha = 1;
   },
 
+  /* 酸雾（深渊巢母）：扩散腐蚀绿雾（雾团 + 毒泡 + 腐蚀波纹） */
+  mist(ctx, pr) {
+    const k = pr.maxR > 0 ? pr.r / pr.maxR : 0;
+    // 雾团（多层半透明）
+    ctx.globalAlpha = 0.16 + k * 0.14;
+    ctx.fillStyle = pr.color;
+    for (let i = 0; i < 5; i++) {
+      const a = i / 5 * TAU + pr.t * 0.6;
+      ctx.beginPath(); ctx.arc(Math.cos(a) * pr.r * 0.55, Math.sin(a) * pr.r * 0.55, pr.r * 0.5, 0, TAU); ctx.fill();
+    }
+    ctx.globalAlpha = 0.3 + k * 0.25;
+    ctx.strokeStyle = '#a8e88a'; ctx.lineWidth = 2;
+    ctx.shadowColor = '#7fce5a'; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
+    // 毒泡（上浮）
+    for (let i = 0; i < 5; i++) {
+      const a = i * 1.26 + pr.t * 0.4;
+      const rr = pr.r * (0.2 + ((i * 37) % 60) / 80);
+      const by = -Math.abs(Math.sin(pr.t * 1.5 + i)) * pr.r * 0.3;
+      ctx.fillStyle = 'rgba(208,245,176,.5)';
+      ctx.beginPath(); ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr + by, 2 + (i % 3), 0, TAU); ctx.fill();
+    }
+    // 腐蚀波纹
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = '#a8e88a'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.7, pr.t * 2, pr.t * 2 + 1.6); ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+  },
+
   /* 霜环：扩散冰环（双层环 + 冰晶散落 + 霜纹） */
   aoe(ctx, pr) {
     const fade = Math.max(0.25, 1 - pr.r / pr.maxR);
@@ -284,13 +314,84 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
   },
 
   enemy(ctx, pr) {
+    const ang = Math.atan2(pr.vy || 0, pr.vx || 0);
+    // 技能专属弹头
+    if (pr.moonblade) {
+      // 月牙斩/三连斩：旋转月牙刃
+      ctx.save(); ctx.rotate(ang + pr.t * 6);
+      ctx.shadowColor = pr.color; ctx.shadowBlur = 14;
+      ctx.fillStyle = pr.color;
+      ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.arc(pr.r * 0.42, 0, pr.r * 0.7, 0, TAU, true); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.7)';
+      ctx.beginPath(); ctx.arc(-pr.r * 0.25, -pr.r * 0.25, pr.r * 0.3, 0, TAU); ctx.fill();
+      ctx.restore();
+      return;
+    }
+    if (pr.wave) {
+      // 潮浪水弹：水泡（外环 + 波光 + 内芯 + 水尾）
+      ctx.save(); ctx.rotate(ang);
+      ctx.strokeStyle = pr.color; ctx.lineWidth = 1.5;
+      ctx.shadowColor = pr.color; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
+      ctx.fillStyle = 'rgba(159,214,232,.35)';
+      ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.72, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(-pr.r * 0.2, -pr.r * 0.2, pr.r * 0.28, 0, TAU); ctx.fill();
+      ctx.strokeStyle = 'rgba(159,214,232,.5)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(-pr.r, 0); ctx.lineTo(-pr.r * 2.4, 0); ctx.stroke();
+      ctx.restore();
+      return;
+    }
+    if (pr.ember) {
+      // 赤潮火弹：焰心（外焰 + 白核 + 焰尾）
+      ctx.shadowColor = pr.color; ctx.shadowBlur = 14;
+      ctx.fillStyle = pr.color;
+      ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#ffe9a8';
+      ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.55, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.28, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,157,107,.6)';
+      ctx.beginPath(); ctx.moveTo(-pr.r * 0.7, -pr.r * 0.5); ctx.lineTo(-pr.r * 2.2, 0); ctx.lineTo(-pr.r * 0.7, pr.r * 0.5); ctx.closePath(); ctx.fill();
+      return;
+    }
+    if (pr.pulse) {
+      // 蚀月脉冲：旋转金色星芒
+      ctx.save(); ctx.rotate(pr.t * 8);
+      ctx.shadowColor = pr.color; ctx.shadowBlur = 12;
+      ctx.fillStyle = pr.color;
+      ctx.beginPath();
+      for (let i = 0; i < 4; i++) {
+        const a = i * 1.5708, rr = i % 2 === 0 ? pr.r * 1.6 : pr.r * 0.6;
+        if (i === 0) ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+        else ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+      }
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.4, 0, TAU); ctx.fill();
+      ctx.restore();
+      return;
+    }
+    if (pr.orb) {
+      // 暗影追踪球：紫雾球（暗核 + 紫光 + 暗尾）
+      ctx.shadowColor = pr.color; ctx.shadowBlur = 14;
+      ctx.fillStyle = '#2a1a3a';
+      ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
+      ctx.fillStyle = pr.color;
+      ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.6, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#e0d4ff';
+      ctx.beginPath(); ctx.arc(-pr.r * 0.2, -pr.r * 0.2, pr.r * 0.25, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(122,109,158,.5)';
+      ctx.beginPath(); ctx.moveTo(-pr.r * 0.6, -pr.r * 0.4); ctx.lineTo(-pr.r * 2.4, 0); ctx.lineTo(-pr.r * 0.6, pr.r * 0.4); ctx.closePath(); ctx.fill();
+      return;
+    }
+    // 通用敌弹：尖刺弹
+    ctx.save(); ctx.rotate(ang);
     ctx.fillStyle = pr.color;
     ctx.shadowColor = pr.color; ctx.shadowBlur = 8;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
     ctx.fillStyle = '#ff8a8a';
     ctx.beginPath(); ctx.arc(-pr.r * 0.2, -pr.r * 0.2, pr.r * 0.35, 0, TAU); ctx.fill();
-    const ea = Math.atan2(pr.vy || 0, pr.vx || 0);
-    ctx.save(); ctx.rotate(ea);
     ctx.fillStyle = pr.color;
     ctx.beginPath(); ctx.moveTo(-pr.r, -pr.r * 0.5); ctx.lineTo(-pr.r * 2.2, 0); ctx.lineTo(-pr.r, pr.r * 0.5); ctx.closePath(); ctx.fill();
     ctx.restore();
@@ -304,19 +405,49 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.beginPath(); ctx.arc(-pr.r * 0.25, -pr.r * 0.25, pr.r * 0.35, 0, TAU); ctx.fill();
   },
 
+  /* 蚀涎酸弹：毒液滴（绿核 + 外光 + 拉丝拖尾） */
   acid(ctx, pr) {
-    ctx.fillStyle = pr.color;
+    const ang = Math.atan2(pr.vy || 0, pr.vx || 0);
+    ctx.save(); ctx.rotate(ang);
     ctx.shadowColor = pr.color; ctx.shadowBlur = 10;
-    ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,.7)';
-    ctx.beginPath(); ctx.arc(-pr.r * 0.25, -pr.r * 0.25, pr.r * 0.35, 0, TAU); ctx.fill();
+    ctx.fillStyle = pr.color;
+    ctx.beginPath(); ctx.ellipse(0, 0, pr.r * 1.15, pr.r * 0.8, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#eafff4';
+    ctx.beginPath(); ctx.arc(-pr.r * 0.25, -pr.r * 0.22, pr.r * 0.34, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(127,214,164,.55)';
+    ctx.beginPath(); ctx.moveTo(-pr.r * 0.9, 0); ctx.lineTo(-pr.r * 2.3, pr.r * 0.12); ctx.lineTo(-pr.r * 0.9, pr.r * 0.4); ctx.closePath(); ctx.fill();
+    ctx.restore();
   },
 
-  /* 地面延迟：蚀痕（裂口魔犁月灼痕）/ 普通预警圈 */
+  /* 地面延迟：蚀痕（裂口魔犁月灼痕）/ 落雷电纹 / 普通预警圈 */
   ground(ctx, pr) {
     const k = Math.min(1, pr.t / (pr.delay || 0.8));
     if (pr.erode) {
       drawErodeMark(ctx, pr, k);
+      return;
+    }
+    if (pr.lightning) {
+      // 蚀雷落点：紫色电纹圈 + 雷云闪光
+      ctx.globalAlpha = 0.3 + 0.7 * k;
+      ctx.strokeStyle = pr.color; ctx.lineWidth = 2;
+      ctx.shadowColor = '#a8d8ff'; ctx.shadowBlur = 14;
+      ctx.setLineDash([8, 6]);
+      ctx.lineDashOffset = -pr.t * 40;
+      ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
+      ctx.setLineDash([]);
+      // 内部电光
+      ctx.fillStyle = 'rgba(168,216,255,.15)';
+      ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.8, 0, TAU); ctx.fill();
+      // 电弧乱窜
+      ctx.strokeStyle = '#cfe4ff'; ctx.lineWidth = 1.2;
+      for (let i = 0; i < 3; i++) {
+        const a = pr.t * 8 + i * 2.1;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * pr.r * 0.7, Math.sin(a) * pr.r * 0.7);
+        ctx.lineTo(Math.cos(a + 0.3) * pr.r * 0.95 + (Math.random() - 0.5) * 8, Math.sin(a + 0.3) * pr.r * 0.95 + (Math.random() - 0.5) * 8);
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1;
       return;
     }
     ctx.globalAlpha = 0.35 + 0.65 * k;
@@ -352,6 +483,7 @@ export function drawProjectiles(rc: RenderContext): void {
     else if (pr.acid) PROJ_RENDER.acid(ctx, pr);
     else if (pr.ground) PROJ_RENDER.ground(ctx, pr);
     else if (pr.breath) PROJ_RENDER.breath(ctx, pr);
+    else if (pr.aoe && pr.enemy) PROJ_RENDER.mist(ctx, pr);
     else if (pr.beam) PROJ_RENDER.beam(ctx, pr);
     else if (pr.boomerang) PROJ_RENDER.boomerang(ctx, pr);
     else if (pr.aoe && !pr.enemy) PROJ_RENDER.aoe(ctx, pr);

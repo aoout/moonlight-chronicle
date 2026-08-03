@@ -1,0 +1,48 @@
+const BOSS_SHAPES = {
+  behemoth(ctx, e, s, wob, t) {
+   // 蚀潮巨兽：獠牙巨口
+    ctx.fillStyle = e.color;
+    ctx.beginPath(); ctx.arc(0, wob, s, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#fdf6ea';
+    ctx.beginPath(); ctx.moveTo(-s * 0.75, wob + s * 0.2); ctx.lineTo(-s * 0.55, wob + s * 0.85); ctx.lineTo(-s * 0.3, wob + s * 0.2); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(s * 0.75, wob + s * 0.2); ctx.lineTo(s * 0.55, wob + s * 0.85); ctx.lineTo(s * 0.3, wob + s * 0.2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.65)';
+    ctx.beginPath(); ctx.arc(-s * 0.42, -s * 0.3 + wob, s * 0.17, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(s * 0.42, -s * 0.3 + wob, s * 0.17, 0, 6.28); ctx.fill();
+  } else if (e.type === 'lord') { // 噬月君主：月冠
+    ctx.fillStyle = e.color;
+    ctx.beginPath(); ctx.arc(0, wob, s, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#f4ecd8';
+    ctx.beginPath(); ctx.moveTo(-s * 0.5, -s * 0.6); ctx.lineTo(-s * 0.5, -s * 1.25);
+    ctx.lineTo(-s * 0.25, -s * 0.85); ctx.lineTo(0, -s * 1.35); ctx.lineTo(s * 0.25, -s * 0.85);
+    ctx.lineTo(s * 0.5, -s * 1.25); ctx.lineTo(s * 0.5, -s * 0.6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.7)';
+    ctx.beginPath(); ctx.arc(-s * 0.3, -s * 0.1 + wob, s * 0.14, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(s * 0.3, -s * 0.1 + wob, s * 0.14, 0, 6.28); ctx.fill();
+  } else if (e.type === 'dragon') { // 裂空魔龙：张开的巨翼
+    ctx.fillStyle = e.color;
+    ctx.beginPath(); ctx.arc(0, wob, s * 0.75, 0, 6.28); ctx.fill();
+    ctx.save(); ctx.rotate(-0.35);
+    ctx.beginPath(); ctx.moveTo(-s * 0.6, wob - s * 0.3); ctx.lineTo(-s * 1.9, wob - s * 1.15);
+    ctx.lineTo(-s * 1.25, wob + s * 0.12); ctx.lineTo(-s * 0.5, wob + s * 0.25); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.save(); ctx.rotate(0.35);
+    ctx.beginPath(); ctx.moveTo(s * 0.6, wob - s * 0.3); ctx.lineTo(s * 1.9, wob - s * 1.15);
+    ctx.lineTo(s * 1.25, wob + s * 0.12); ctx.lineTo(s * 0.5, wob + s * 0.25); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = '#ffe9a8';
+    ctx.beginPath(); ctx.arc(-s * 0.35, -s * 0.1 + wob, s * 0.1, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(s * 0.35, -s * 0.1 + wob, s * 0.1, 0, 6.28); ctx.fill();
+  } else if (e.type === 'tideMother') { // 潮噬之母：触须摆动 + 卵囊
+    ctx.fillStyle = e.color;
+    ctx.beginPath(); ctx.arc(0, wob, s, 0, 6.28); ctx.fill();
+    ctx.strokeStyle = e.color; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * 6.28 + G.time * 0.8;
+      ctx.globalAlpha = 0.85;
+      ctx.beginPath(); ctx.moveTo(Math.cos(a) * s, wob + Math.sin(a) * s);
+      ctx.quadraticCurveTo(Math.cos(a + 0.3) * s * 1.6, wob + Math.sin(a + 0.3) * s * 1.6, Math.cos(a) * s * 1.9, wob + Math.sin(a) * s * 1.9);
+      ctx.stroke();
+    
+  },
+};
