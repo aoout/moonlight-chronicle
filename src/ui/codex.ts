@@ -40,11 +40,11 @@ function _enemyCanvas(id: string, def: any, isBoss: boolean): HTMLCanvasElement 
   if (isBoss) {
     const shapes = BOSS_SHAPES as any;
     const fn = shapes[id] || shapes.final;
-    if (fn) fn(ctx, def, s, 0, 0);
+    if (fn) fn(ctx, def, s, 0, 0, 0);
   } else {
     const shapes = ENEMY_SHAPES as any;
-    const fn = shapes[id];
-    if (fn) fn(ctx, def, s, 0, 0, 0);
+    const fn = shapes[id] || shapes._default;
+    if (fn) fn(ctx, def, s, 0, 0, 0, 0);
   }
 
   ctx.restore();
@@ -126,13 +126,29 @@ export function renderCodex(tab: string): void {
       if (ic) ic.appendChild(_enemyCanvas(id, edef, meta === 'boss'));
     } else if (meta === 'weapon') {
       const wdef = d as WeaponDef;
+      const stats: string[] = [];
+      if (wdef.cd !== undefined) {
+        const cdVal = typeof wdef.cd === 'function' ? wdef.cd() : wdef.cd;
+        stats.push('<span>冷却 ' + cdVal + 's</span>');
+      }
+      const rng = weaponRangeText(wdef);
+      if (rng) stats.push('<span>' + rng + '</span>');
+      if (wdef.pierce !== undefined) {
+        const p = wdef.pierce;
+        if (p === -1) stats.push('<span>穿透 ∞</span>');
+        else if (p > 0) stats.push('<span>穿透 ' + p + '</span>');
+      }
+      if (wdef.aoe !== undefined) stats.push('<span>范围 ' + wdef.aoe + '</span>');
+      if (wdef.slow !== undefined) stats.push('<span>减速 ' + Math.round(wdef.slow * 100) + '%</span>');
+      if (wdef.homing) stats.push('<span>追踪</span>');
       card.innerHTML = html`
         <div class="codex-ic">${wdef.icon}</div>
         <div class="codex-name">${wdef.name}</div>
         <div class="codex-tag epic">${wdef.tag || '兵刃'}</div>
         <div class="codex-desc">${wdef.desc}</div>
+        <div class="codex-formula">${wdef.formula || ''}</div>
         <div class="codex-stat">
-          <span>${weaponRangeText(wdef) || '—'}</span>
+          ${stats.join('')}
         </div>
       `;
     } else {
