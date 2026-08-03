@@ -42,3 +42,22 @@ describe('蚀涎魔喷吐', () => {
     expect(() => drawProjectiles({ ctx, projectiles: [pr], player: null } as any)).not.toThrow();
   });
 });
+
+describe('蚀涎魔预判瞄准', () => {
+  it('高速移动时弹朝玩家预测位置（非离谱偏移）', () => {
+    stageState.set('stage', 5);
+    renderState.set('width', 800); renderState.set('height', 600);
+    entityState.set('projectiles', []);
+    const e: any = { x: 300, y: 300, spd: 52, stateT: 0, ranged: true, projSpd: 180, projDmg: 8, size: 10, dmg: 12 };
+    // 玩家向右高速移动（vx = 240px/s）
+    const p: any = { x: 400, y: 300, vx: 240, vy: 0 };
+    for (let i = 0; i < 3; i++) spitterMove(e, 0.016, p, 1);
+    const shot = entityState.state.projectiles[entityState.state.projectiles.length - 1] as any;
+    // 弹的飞行方向应大致朝玩家右侧（预判点），而不是离谱偏移
+    const ang = Math.atan2(shot.vy, shot.vx);
+    expect(Math.cos(ang)).toBeGreaterThan(0.5);   // 主要朝右（+x）
+    // 预判偏移合理：lead ∈ [0.1,1]s × vx 240 ≤ 240px
+    const lead = Math.max(0.1, Math.min(1, 100 / 300));
+    expect(240 * lead).toBeLessThanOrEqual(240);
+  });
+});

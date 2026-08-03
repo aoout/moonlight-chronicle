@@ -19,7 +19,8 @@ export function spitterMove(e: EnemyInstance, dt: number, p: Player, slowF: numb
   e.stateT -= dt;
   if (e.stateT <= 0 && d < 420) {
     e.stateT = 2.2;
-    const lead = clamp(d / 300, 0.1, 1) * 30;
+    // 预判射击：朝玩家移动方向提前量（lead = 预判秒数 0.1~1s）
+    const lead = clamp(d / 300, 0.1, 1);
     const pa = angTo(e, {
       x: p.x + (p.vx || 0) * lead,
       y: p.y + (p.vy || 0) * lead,
