@@ -40,6 +40,9 @@ function trackItemDmg(p: Player, itemId: string, dmg: number): void {
   s.stageDmg += dmg;
 }
 
+/* 道具造成的伤害来源（计入道具伤害占比，而非武器） */
+const ITEM_DMG_SRC = new Set(['starfall', 'duo', 'chainItem']);
+
 function trackItemExtraGold(p: Player, itemId: string, gold: number): void {
   const s = ensureItemStats(p, itemId);
   s.extraGold += gold;
@@ -80,14 +83,16 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
   EventBus.emit('combat:hit', { target: e, damage: dmg, crit: isCrit, srcType, srcW });
   const rs = { ...sSt().runStats };
   rs.totalDmg += dmg;
+  /* 道具伤害统一归属：starfall（群星陨落）/ duo（连星之弩）/ chainItem（雷纹刻印）
+     计入道具统计而非武器统计，保证 武器 + 道具 = 100% */
   if (srcW) {
-    rs.wDmg = { ...(rs.wDmg || {}), [srcW]: (rs.wDmg[srcW] || 0) + dmg };
+    if (ITEM_DMG_SRC.has(srcW)) trackItemDmg(p, srcW, dmg);
+    else rs.wDmg = { ...(rs.wDmg || {}), [srcW]: (rs.wDmg[srcW] || 0) + dmg };
   }
   statsState.set('runStats', rs);
-  /* 道具伤害追踪 */
+  /* 道具伤害追踪（无 srcW 的爆炸/反伤类） */
   if (srcType === 'boom') trackItemDmg(p, 'boom', dmg);
   else if (srcType === 'thorns') trackItemDmg(p, 'thorns', dmg);
-  else if (srcW === 'starfall') trackItemDmg(p, 'starfall', dmg);
   if (p.lifesteal > 0) {
     healPlayer(dmg * p.lifesteal);
   }

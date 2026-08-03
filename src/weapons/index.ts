@@ -51,10 +51,10 @@ export function weaponFire(w: WeaponInstance): number {
         spawnGlow(p.x + Math.cos(a) * 20, p.y + Math.sin(a) * 20, 8, '#ffe9a8', 0.25);
       }
     }
-    // 连锁闪电（道具触发）
+    // 连锁闪电（道具触发：雷纹刻印 → 伤害计入道具占比）
     if (p.chainLightning > 0 && RNG() < p.chainLightning) {
       const cl = nearestEnemy(p.x, p.y, 360);
-      if (cl) chainLightning(p, cl, p.effAtk * 0.8, 3, 0.7, 300, PALETTE.violet, w.id);
+      if (cl) chainLightning(p, cl, p.effAtk * 0.8, 3, 0.7, 300, PALETTE.violet, 'chainItem');
     }
     // 回声
     if (p.echo > 0 && RNG() < p.echo) {

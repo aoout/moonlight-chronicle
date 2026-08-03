@@ -117,3 +117,14 @@
 }
 @keyframes iconPop { 0% { transform: scale(1); } 45% { transform: scale(1.14); } 100% { transform: scale(1); } }
 
+
+/* 秘宝槽：道具伤害占比（紫色秘宝调，与武器金/青区分） */
+.wslot.item-slot {
+  border-color: rgba(180,154,232,.5);
+  box-shadow: inset 0 0 24px rgba(180,154,232,.1), 0 0 16px rgba(180,154,232,.16);
+}
+.wslot.item-slot .wi-base { filter: drop-shadow(0 0 8px rgba(180,154,232,.6)); }
+.wslot.item-slot .w-name { color: rgba(220,210,246,.85); }
+.wslot.item-slot::before {
+  background: conic-gradient(from 0deg, transparent 0deg, #b49ae8 40deg, transparent 90deg);
+}

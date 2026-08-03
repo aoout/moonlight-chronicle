@@ -44,6 +44,15 @@ function contrastText(hex: string): string {
 type WeaponBarEl = HTMLElement & { _sig?: string, _liqSig?: string | null };
 type WeaponSlotEl = HTMLElement & { _wasCool?: boolean };
 
+/* 当前回合道具造成的总伤害（武器 + 道具 = 100%） */
+function sumItemDmg(p: any): number {
+  const st = p.effects?.itemStats;
+  if (!st) return 0;
+  let s = 0;
+  for (const k in st) s += (st[k]?.stageDmg || 0);
+  return s;
+}
+
 function renderWeaponBar(): void {
   const p = pSt().player;
   if (!p) return;
@@ -83,6 +92,23 @@ function renderWeaponBar(): void {
     }
     bar.appendChild(slot);
   }
+  // 秘宝槽：道具伤害占比（无道具伤害时隐藏）
+  const itemSlot = el('div', 'wslot item-slot');
+  itemSlot.style.setProperty('--wcolor', '#b49ae8');
+  itemSlot.style.setProperty('--fill-txt', '#eaf6ff');
+  itemSlot.innerHTML = html`
+  <div class="wliquid"><svg class="w-wave" viewBox="0 0 40 6" preserveAspectRatio="none"><path d="M0 3 Q5 0 10 3 T20 3 T30 3 T40 3 V6 H0 Z"/></svg></div>
+  <div class="w-icon">
+    <span class="wi-base">${iconSVG('gem')}</span>
+    <span class="wi-fill">${iconSVG('gem')}</span>
+  </div>
+  <div class="w-name">
+    <span class="wn-base">秘宝</span>
+    <span class="wn-fill">秘宝</span>
+  </div>
+  <div class="wpct">0%</div>`;
+  itemSlot.title = '秘宝之力 · 道具造成的伤害占比';
+  bar.appendChild(itemSlot);
 }
 
 /* 每帧：武器冷却外环 + 液面占比（低频） */
@@ -93,6 +119,8 @@ function updateWeaponCds(): void {
   const slots = bar.children as unknown as HTMLCollectionOf<WeaponSlotEl>;
   const wDmg: Record<string, number> = sSt().runStats.wDmg || {};
   const wTotal = Object.keys(wDmg).reduce((s, k) => s + wDmg[k], 0);
+  const itemDmg = sumItemDmg(p);
+  const total = wTotal + itemDmg;   // 武器 + 道具 = 100%
   let liqSig = '';
   for (let i = 0; i < p.weapons.length; i++) {
     const w = p.weapons[i];
@@ -112,9 +140,11 @@ function updateWeaponCds(): void {
     slot._wasCool = prog < 1;
     // --- 液面占比（签名缓存，低频） ---
     const d = wDmg[w.id] || 0;
-    const pct = wTotal > 0 ? d / wTotal * 100 : 0;
+    const pct = total > 0 ? d / total * 100 : 0;
     liqSig += Math.round(pct) + ';';
   }
+  const ipct = total > 0 ? itemDmg / total * 100 : 0;
+  liqSig += 'i' + Math.round(ipct) + ';';
   if (bar._liqSig !== liqSig) {
     bar._liqSig = liqSig;
     for (let i = 0; i < p.weapons.length; i++) {
@@ -123,7 +153,7 @@ function updateWeaponCds(): void {
       if (!slot || !slot.classList.contains('filled')) continue;
       const def = WEAPONS[w.id];
       const d = wDmg[w.id] || 0;
-      const pct = wTotal > 0 ? d / wTotal * 100 : 0;
+      const pct = total > 0 ? d / total * 100 : 0;
       const liq = slot.querySelector('.wliquid') as HTMLElement | null;
       const pctEl = slot.querySelector('.wpct') as HTMLElement | null;
       const h = pct <= 0 ? 0 : Math.max(6, pct);
@@ -150,6 +180,26 @@ function updateWeaponCds(): void {
         if (lvlEl) lvlEl.style.setProperty('--covl', covOf(lvlEl).toFixed(3));
       }
       slot.title = def.name + '（Lv.' + w.lv + '）· 占比 ' + Math.round(pct) + '% · ' + def.desc;
+    }
+    // --- 秘宝槽（道具伤害占比） ---
+    const itemSlot = slots[CONFIG.MAX_WEAPONS] as HTMLElement | null;
+    if (itemSlot) {
+      const show = itemDmg > 0;
+      itemSlot.style.display = show ? '' : 'none';
+      const liq = itemSlot.querySelector('.wliquid') as HTMLElement | null;
+      const pctEl = itemSlot.querySelector('.wpct') as HTMLElement | null;
+      const h = ipct <= 0 ? 0 : Math.max(6, ipct);
+      if (liq) { liq.style.height = h + '%'; liq.style.opacity = ipct > 0 ? '1' : '0'; }
+      if (pctEl) pctEl.textContent = Math.round(ipct) + '%';
+      const iconEl = itemSlot.querySelector('.w-icon') as HTMLElement | null;
+      if (iconEl && itemSlot.offsetHeight) {
+        const slotH = itemSlot.offsetHeight;
+        const liqLine = slotH * (1 - h / 100);
+        const r = iconEl.getBoundingClientRect();
+        const sr = itemSlot.getBoundingClientRect();
+        iconEl.style.setProperty('--cov', clamp((r.top - sr.top + r.height - liqLine) / (r.height || 12), 0, 1).toFixed(3));
+      }
+      itemSlot.title = '秘宝之力 · 道具造成的伤害占比 ' + Math.round(ipct) + '%';
     }
   }
 }
