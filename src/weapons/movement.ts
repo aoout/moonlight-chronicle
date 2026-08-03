@@ -3,8 +3,11 @@
    可组合的投射物运动行为，供 PROJ_TICK 使用
    ========================================================= */
 import { RNG, dist, angTo } from '../utils.js';
-import { rSt } from '../state/accessors.js';
-import type { Player, Projectile } from '../types/core.d.ts';
+import { rSt, pSt } from '../state/accessors.js';
+import { spawnBurst, spawnShard, spawnSpark, spawnRing, spawnGlow } from '../render/effects/fx.js';
+import { damageEnemy } from '../domain/combat.js';
+import { queryRadius } from '../systems/SpatialSystem.js';
+import type { Player, Projectile, EnemyInstance } from '../types/core.d.ts';
 
 /**
  * 投射物运动注册表
@@ -93,9 +96,14 @@ export const MOVEMENT: Record<string, (pr: Projectile, dt: number, p: Player) =>
     return true;
   },
 
-  /** 地面延迟（地刺/陷阱） */
+  /** 地面延迟（蚀痕/陷阱）：到期喷发 */
   ground(pr, dt, _p) {
     pr.t = (pr.t || 0) + dt;
+    if (pr.t >= (pr.delay || 0.8)) {
+      explodeGround(pr);
+      pr.dead = 1;
+      return false;
+    }
     return true;
   },
 
@@ -106,3 +114,23 @@ export const MOVEMENT: Record<string, (pr: Projectile, dt: number, p: Player) =>
     return true;
   },
 };
+
+/* =========================================================
+   蚀痕喷发：地面延迟圈到期时的爆裂
+   ========================================================= */
+function explodeGround(pr: Projectile): void {
+  const x = pr.x, y = pr.y, r = pr.r || 60;
+  // 蚀焰喷发：火柱碎片 + 双冲击环 + 白炽火花 + 光晕
+  spawnBurst(x, y, pr.color || '#ff7a7a', 14);
+  spawnShard(x, y, '#ff9d6b', 6, 220);
+  spawnSpark(x, y, '#ffd9a8', 9, 210);
+  spawnRing(x, y, pr.color || '#ff7a7a', 0.36, r * 1.35, 3);
+  spawnRing(x, y, '#fff2cc', 0.22, r * 0.85, 1.8);
+  spawnGlow(x, y, 20, pr.color || '#ff7a7a', 0.35);
+  // 范围内伤害
+  const p = pSt().player;
+  for (const e of (queryRadius(x, y, r) as EnemyInstance[])) {
+    if (e.dead) continue;
+    damageEnemy(e, pr.dmg || 1, RNG() < (p?.effCrit ?? 0.1), 'ground', pr.wId);
+  }
+}

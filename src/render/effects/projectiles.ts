@@ -312,8 +312,13 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.beginPath(); ctx.arc(-pr.r * 0.25, -pr.r * 0.25, pr.r * 0.35, 0, TAU); ctx.fill();
   },
 
+  /* 地面延迟：蚀痕（裂口魔犁月灼痕）/ 普通预警圈 */
   ground(ctx, pr) {
     const k = Math.min(1, pr.t / (pr.delay || 0.8));
+    if (pr.erode) {
+      drawErodeMark(ctx, pr, k);
+      return;
+    }
     ctx.globalAlpha = 0.35 + 0.65 * k;
     ctx.strokeStyle = pr.color; ctx.lineWidth = 2.5;
     ctx.shadowColor = pr.color; ctx.shadowBlur = 14;
@@ -354,5 +359,60 @@ export function drawProjectiles(rc: RenderContext): void {
     else if (pr.enemy) PROJ_RENDER.enemy(ctx, pr);
     else PROJ_RENDER.dot(ctx, pr);
     ctx.restore();
+  }
+}
+
+/* =========================================================
+   蚀痕 · 裂口魔犁月灼痕
+   不规则的蚀火裂口：由暗红细纹 → 蚀火渗出 → 白炽将喷
+   ========================================================= */
+function drawErodeMark(ctx: CanvasRenderingContext2D, pr: any, k: number): void {
+  const R = pr.r || 44;
+  const t = pr.t || 0;
+  const wob = 0.06 + k * 0.14;                 // 裂纹不规则度随蓄能增强
+  // 1. 焦黑内芯（燃烧后的暗心）
+  ctx.fillStyle = 'rgba(18,4,4,' + (0.3 + k * 0.35).toFixed(2) + ')';
+  ctx.beginPath(); ctx.arc(0, 0, R * 0.55, 0, TAU); ctx.fill();
+  // 2. 不规则蚀火裂纹（锯齿状，随时间扩张、抖动）
+  const edge = k > 0.72 ? '#ffd9a8' : pr.color;
+  ctx.strokeStyle = edge;
+  ctx.lineWidth = 1.6 + k * 1.4;
+  ctx.shadowColor = pr.color;
+  ctx.shadowBlur = 8 + k * 16;
+  ctx.beginPath();
+  const n = 15;
+  for (let i = 0; i <= n; i++) {
+    const a = i / n * TAU;
+    const rr = R * (1 + Math.sin(a * 5 + t * 22) * wob + Math.sin(a * 3 + 1.7 + t * 9) * wob * 0.5);
+    if (i === 0) ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+    else ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+  }
+  ctx.closePath(); ctx.stroke();
+  ctx.shadowBlur = 0;
+  // 3. 辐射蚀纹（向地层蔓延的细裂纹）
+  for (let i = 0; i < 8; i++) {
+    const a = i / 8 * TAU + t * 1.6;
+    const len = R * (0.22 + k * 0.4) * (0.6 + 0.4 * Math.sin(t * 9 + i * 2.4));
+    ctx.strokeStyle = 'rgba(255,122,122,' + (0.22 + k * 0.3).toFixed(2) + ')';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * R * 0.8, Math.sin(a) * R * 0.8);
+    ctx.lineTo(Math.cos(a) * (R * 0.8 + len), Math.sin(a) * (R * 0.8 + len));
+    ctx.stroke();
+  }
+  // 4. 蚀火星（沿裂口翻涌的灼星）
+  for (let i = 0; i < 3; i++) {
+    const a = t * 7 + i * 2.1;
+    const rr = R * (0.5 + 0.4 * Math.sin(t * 4 + i * 1.8));
+    const sy = Math.sin(t * 11 + i * 3) * R * 0.14;
+    ctx.fillStyle = 'rgba(255,' + (170 + 60 * Math.abs(Math.sin(t * 8 + i))) + ',110,.75)';
+    ctx.beginPath(); ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr + sy, 1.5 + k * 1.3, 0, TAU); ctx.fill();
+  }
+  // 5. 临喷发白炽脉冲（k>0.6 时震颤发光）
+  if (k > 0.6) {
+    ctx.globalAlpha = (k - 0.6) * 1.4;
+    ctx.fillStyle = 'rgba(255,226,170,.5)';
+    ctx.beginPath(); ctx.arc(0, 0, R * (0.7 + 0.18 * Math.sin(t * 24)), 0, TAU); ctx.fill();
+    ctx.globalAlpha = 1;
   }
 }
