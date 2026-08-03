@@ -71,6 +71,11 @@ export interface EventMap {
   'visual:burst': { x: number; y: number; color: string; count: number };
   'visual:ring': { x: number; y: number; color: string; life: number; radius: number; width: number };
   'visual:hitFx': { x: number; y: number; dmg: number; crit: boolean };
+  'visual:spark': { x: number; y: number; color: string; count?: number; speed?: number };
+  'visual:star': { x: number; y: number; color: string; size?: number };
+  'visual:shard': { x: number; y: number; color: string; count?: number; speed?: number };
+  'visual:glow': { x: number; y: number; color: string; size?: number; life?: number };
+  'visual:streak': { x: number; y: number; color: string; ang: number; len?: number; w?: number; life?: number };
   'ui:spawnText': { x: number; y: number; text: string; color?: string };
   'audio:sfx': { name: string };
 }

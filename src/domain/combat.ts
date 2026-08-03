@@ -65,14 +65,22 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
     if (hc > 0) dmg *= 1 + p.effects.horde * hc;
   }
   if (isCrit && p.effects.critBoom && srcType !== 'splash') {
-    EventBus.emit('visual:ring', { x: e.x, y: e.y, color: '#e9c987', life: 0.35, radius: 100, width: 3 });
-    EventBus.emit('visual:burst', { x: e.x, y: e.y, color: '#e9c987', count: 10 });
+    // 暴月之眼：金色光爆（双冲击环 + 星芒 + 金色火花 + 光晕）
+    EventBus.emit('visual:ring', { x: e.x, y: e.y, color: '#e9c987', life: 0.4, radius: 100, width: 3.2 });
+    EventBus.emit('visual:ring', { x: e.x, y: e.y, color: '#fff5d6', life: 0.3, radius: 58, width: 2 });
+    EventBus.emit('visual:star', { x: e.x, y: e.y, color: '#e9c987', size: 17 });
+    EventBus.emit('visual:spark', { x: e.x, y: e.y, color: '#ffe9a8', count: 12, speed: 190 });
+    EventBus.emit('visual:glow', { x: e.x, y: e.y, color: '#e9c987', size: 24, life: 0.35 });
     for (const o of (queryRadius(e.x, e.y, 100) as EnemyInstance[])) {
       if (o !== e && !o.dead) { const cbDmg = dmg * 0.5; o.hp -= cbDmg; o.flash = 0.1; trackItemDmg(p, 'critBoom', cbDmg); if (o.hp <= 0) killEnemy(o, 'boom'); }
     }
   }
   if (p.effects.splash && RNG() < p.effects.splash && srcType !== 'splash') {
-    EventBus.emit('visual:burst', { x: e.x, y: e.y, color: '#ffe9a8', count: 8 });
+    // 破晓溅射：金光碎浪（粒子 + 小冲击环 + 白火花）
+    EventBus.emit('visual:burst', { x: e.x, y: e.y, color: '#ffe9a8', count: 12 });
+    EventBus.emit('visual:ring', { x: e.x, y: e.y, color: '#ffe9a8', life: 0.26, radius: 62, width: 1.6 });
+    EventBus.emit('visual:spark', { x: e.x, y: e.y, color: '#fff5d6', count: 7, speed: 150 });
+    EventBus.emit('visual:shard', { x: e.x, y: e.y, color: '#e9c987', count: 4, speed: 170 });
     for (const o of (queryRadius(e.x, e.y, 90) as EnemyInstance[])) {
       if (o !== e && !o.dead) { const spDmg = dmg * 0.6; o.hp -= spDmg; o.flash = 0.1; trackItemDmg(p, 'splash', spDmg); if (o.hp <= 0) killEnemy(o, 'splash'); }
     }
@@ -192,7 +200,14 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
   EventBus.emit('visual:burst', { x: p.x, y: p.y, color: '#e2546a', count: 18 });
   EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 26, text: '-' + Math.round(dmg), color: '#e2546a' });
   if (p.effects.tideRegen && dmg > 0) p.effects.regenBuff = 2;
-  if (p.thorns > 0 && e && 'hp' in e) damageEnemy(e as EnemyInstance, dmg * p.thorns, false, 'thorns');
+  if (p.thorns > 0 && e && 'hp' in e) {
+    // 荆棘反伤：血色尖刺迸发
+    EventBus.emit('visual:burst', { x: p.x, y: p.y, color: '#ff5a6a', count: 9 });
+    EventBus.emit('visual:ring', { x: p.x, y: p.y, color: '#e2546a', life: 0.3, radius: 42, width: 2 });
+    EventBus.emit('visual:spark', { x: p.x, y: p.y, color: '#ff8a8a', count: 8, speed: 210 });
+    EventBus.emit('visual:glow', { x: p.x, y: p.y, color: '#e2546a', size: 16, life: 0.3 });
+    damageEnemy(e as EnemyInstance, dmg * p.thorns, false, 'thorns');
+  }
   if (p.hp <= 0) { p.hp = 0; EventBus.emit('player:died'); playerDeath(); }
 }
 
@@ -231,7 +246,14 @@ export function spawnDrop(x: number, y: number, kind: string, amount: number): v
 /* 爆炸（爆裂之核） */
 
 export function boomExplosion(x: number, y: number, p: Player): void {
-  EventBus.emit('visual:burst', { x, y, color: '#ff9d6b', count: 16 });
+  // 爆炸：金色火球 + 双冲击环 + 旋转碎片 + 白炽火花 + 光晕
+  EventBus.emit('visual:ring', { x, y, color: '#ffb84d', life: 0.42, radius: 90 * p.area, width: 3.5 });
+  EventBus.emit('visual:ring', { x, y, color: '#fff2cc', life: 0.28, radius: 50 * p.area, width: 2 });
+  EventBus.emit('visual:glow', { x, y, color: '#ff7a3c', size: 26, life: 0.4 });
+  EventBus.emit('visual:burst', { x, y, color: '#ffd9a8', count: 16 });
+  EventBus.emit('visual:shard', { x, y, color: '#ff9d6b', count: 8, speed: 240 });
+  EventBus.emit('visual:spark', { x, y, color: '#fff5d6', count: 10, speed: 220 });
+  EventBus.emit('visual:streak', { x, y, color: '#ffd9a8', ang: 0, len: 34, w: 2.4, life: 0.3 });
   for (const e of queryRadius(x, y, 90 * p.area)) {
     if (e.dead || e.boss) continue;
     damageEnemy(e, p.effAtk * p.boom * (0.7 + RNG() * 0.6), false, 'boom');
