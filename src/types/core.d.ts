@@ -115,6 +115,7 @@ export interface WeaponDef {
   tick?: number;
   radius?: number;
   blades?: number;
+  cores?: number;
   slow?: number;
   homing?: boolean;
   fire?: WeaponFireConfig;
