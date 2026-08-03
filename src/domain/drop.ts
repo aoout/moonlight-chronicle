@@ -1,0 +1,51 @@
+/* =========================================================
+   蚀月远征 · 领域模块：掉落物逻辑
+   掉落物追踪 / 拾取 / 爆炸
+   从 DropSystem 静态方法迁出
+   ========================================================= */
+import { playerState } from '../state/player.js';
+import { dist, angTo } from '../utils.js';
+import { CONFIG } from '../data/index.js';
+import { EventBus } from '../core/event_bus.js';
+import { healPlayer, hurtPlayer } from './combat.js';
+import { gainXp, addGold } from './player.js';
+import type { Drop, EnemyInstance } from '../types/core.d.ts';
+
+import { pSt } from '../state/accessors.js';
+
+/** 掉落物 tick */
+export function dropTick(d: Drop, dt: number): void {
+  const p = pSt().player;
+  if (!p) return;
+  d.t += dt;
+  d.x += d.vx * dt; d.y += d.vy * dt;
+  d.vx *= 0.9; d.vy *= 0.9;
+  const mag = p.magnet + (p.autoPick ? 400 : 0);
+  const dd = dist(d, p);
+  if (d.kind === 'xp' ? dd < mag : dd < mag * 0.9) {
+    const a = angTo(d, p);
+    d.x += Math.cos(a) * 240 * dt;
+    d.y += Math.sin(a) * 240 * dt;
+  }
+  if (p.autoPick && dd < 500) { collectDrop(d); return; }
+  if (dd < CONFIG.PICKUP_RADIUS + 8) collectDrop(d);
+}
+
+/** 拾取掉落物 */
+export function collectDrop(d: Drop): void {
+  if (d.take) return;
+  d.take = 1;
+  EventBus.emit('audio:sfx', { name: 'pickup' });
+  const p = pSt().player;
+  if (p && d.kind === 'gold' && p.effects.coinHeal) healPlayer(p.effects.coinHeal * d.amount);
+  if (d.kind === 'xp') gainXp(d.amount);
+  else addGold(d.amount);
+  EventBus.emit('visual:burst', { x: d.x, y: d.y, color: d.kind === 'xp' ? '#9fd6e8' : '#e9c987', count: 6 });
+}
+
+/** 自爆 */
+export function explodeEnemy(e: EnemyInstance, hurtPlayerToo: boolean): void {
+  EventBus.emit('visual:burst', { x: e.x, y: e.y, color: '#ff9d6b', count: 20 });
+  const p = pSt().player;
+  if (hurtPlayerToo && p && dist(e, p) < 90) hurtPlayer(e, e.dmg);
+}
