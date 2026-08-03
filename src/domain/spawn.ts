@@ -6,11 +6,12 @@ import { stageState } from '../state/stage.js';
 import { RNG, rand } from '../utils.js';
 import { ENEMIES, BOSSES, enemyScale, levelEnemyScale } from '../data/index.js';
 import { world } from '../ecs/World.js';
+import { PROJECTILE_POOL } from '../ecs/entity_pool.js';
 import { codexAdd } from '../persistence/codex.js';
 import { createEntity, Position, Health, Renderable, Combat, Timer, Status, Enemy, Velocity } from '../ecs/components.js';
 import type { EnemyInstance } from '../types/core.d.ts';
 
-import { gSt, rSt, pSt } from '../state/accessors.js';
+import { gSt, rSt, pSt, eSt } from '../state/accessors.js';
 
 /** 生成敌人 */
 export function spawnEnemy(type: string, opts?: { hpMul?: number }): EnemyInstance {
@@ -86,14 +87,16 @@ export function spawnBoss(type: string): EnemyInstance {
 /** 敌人投射物（蚀涎魔等） */
 export function spawnEnemyProjectile(e: EnemyInstance, ang: number): void {
   const gs = gSt();
-  const projSpd = e.projSpd ?? 0;
+  const projSpd = e.projSpd ?? 180;
   const projDmg = e.projDmg ?? 0;
-  world.add('projectiles', createEntity(
-    Position(e.x, e.y),
-    Velocity(Math.cos(ang) * projSpd, Math.sin(ang) * projSpd),
-    Renderable('#7fd6a4', 6),
-    Combat(projDmg * enemyScale(gs.stage).dmg, 0),
-    Timer(0, 4),
-    { enemy: true, spit: true, hit: new Set() }
-  ));
+  // 与 Boss 技能弹一致：直接 push 到渲染数组（eSt().projectiles），
+  // 确保投射物更新与渲染遍历到同一列表，杜绝"发射了但看不见"
+  eSt().projectiles.push(PROJECTILE_POOL.addWith({
+    enemy: true, spit: true, hit: new Set(),
+    x: e.x, y: e.y,
+    vx: Math.cos(ang) * projSpd, vy: Math.sin(ang) * projSpd,
+    r: 6, color: '#7fd6a4',
+    dmg: projDmg * enemyScale(gs.stage).dmg,
+    life: 4,
+  }));
 }

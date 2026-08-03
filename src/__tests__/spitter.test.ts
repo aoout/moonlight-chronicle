@@ -6,41 +6,39 @@ vi.hoisted(() => {
 });
 
 import { spitterMove } from '../enemies/behaviors/spitter.js';
-import { world } from '../ecs/World.js';
+import { entityState } from '../state/entities.js';
 import { stageState } from '../state/stage.js';
 import { renderState } from '../state/render.js';
+import { drawProjectiles } from '../render/effects/projectiles.js';
 
 describe('蚀涎魔喷吐', () => {
-  it('射程内 stateT<=0 时发射酸弹', () => {
+  it('射程内发射毒弹且进入渲染数组（可见）', () => {
     stageState.set('stage', 5);
     renderState.set('width', 800); renderState.set('height', 600);
-    const before = world.getPool('projectiles')?.count ?? 0;
+    entityState.set('projectiles', []);
     const e: any = {
       x: 300, y: 300, spd: 52, stateT: 0, ranged: true,
       projSpd: 180, projDmg: 8, size: 10, dmg: 12,
     };
     const p: any = { x: 400, y: 300, vx: 0, vy: 0 };
-    // 驱 3 帧（每帧 0.016s，stateT 0→-0.048 → 触发）
     for (let i = 0; i < 3; i++) spitterMove(e, 0.016, p, 1);
-    const after = world.getPool('projectiles')?.count ?? 0;
-    expect(after - before).toBeGreaterThan(0);
+    const shots = entityState.state.projectiles;
+    expect(shots.length).toBeGreaterThan(0);
+    const shot = shots[0] as any;
+    expect(shot.enemy).toBeTruthy();
+    expect(Math.hypot(shot.vx, shot.vy)).toBeGreaterThan(100);
   });
-});
 
-import { drawProjectiles } from '../render/effects/projectiles.js';
-
-describe('蚀涎魔弹渲染', () => {
-  it('enemy 弹（通用尖刺）渲染无异常', () => {
-    const ops: any[] = [];
+  it('毒弹渲染无异常', () => {
     const ctx = new Proxy({}, {
       get(_t, k) {
         if (k === 'createRadialGradient' || k === 'createLinearGradient') return () => ({ addColorStop(){} });
         if (k === 'arc') return (x: number, y: number, r: number) => { if (r < 0 || isNaN(r)) throw new Error('neg ' + r); };
-        return () => { ops.push(k); };
+        return () => {};
       },
       set() { return true; },
     });
-    const pr: any = { enemy: true, x: 100, y: 100, vx: 180, vy: 0, r: 5, color: '#7fd6a4', t: 0.3, hit: new Set() };
+    const pr: any = { enemy: true, spit: true, x: 100, y: 100, vx: 180, vy: 0, r: 6, color: '#7fd6a4', t: 0.3, hit: new Set() };
     expect(() => drawProjectiles({ ctx, projectiles: [pr], player: null } as any)).not.toThrow();
   });
 });
