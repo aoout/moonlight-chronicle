@@ -34,7 +34,7 @@ describe('敌人/Boss 造型渲染冒烟', () => {
     const e: any = { type: '', color: '#888', attT: 1, attCd: 3.4, hp: 500, maxHp: 500, state: 'chase' };
     for (const t of ['behemoth','tideMother','erodeChariot','lord','moonWraith','moonSwordsman','dragon','stormOwl','abyssMother','final']) {
       e.type = t;
-      expect(() => drawBossBody(ctx, e, 30, 0, 1, 2.5)).not.toThrow();
+      expect(() => drawBossBody(ctx, e, 30, 0, 0, 1, 2.5)).not.toThrow();
     }
   });
 });

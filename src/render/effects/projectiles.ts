@@ -5,8 +5,12 @@
    ========================================================= */
 import { PALETTE } from '../../data/palette.js';
 import type { RenderContext } from '../context.js';
+import { shapeCache } from '../shape_cache.js';
 
 const TAU = Math.PI * 2;
+
+/** 需要实时动画的弹头类型（使用 pr.t 做旋转/动画，不适合缓存） */
+const ANIMATED_PROJECTILE_HEADS = new Set(['nova', 'shadow', 'storm']);
 
 /* 共用小工具：发光圆点 */
 function dot(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string, blur = 8): void {
@@ -309,8 +313,21 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.strokeStyle = pr.color; ctx.lineWidth = pr.r * 0.85;
     ctx.beginPath(); ctx.moveTo(-len * 0.7, 0); ctx.lineTo(0, 0); ctx.stroke();
     ctx.globalAlpha = 1;
-    const head = PROJ_LINEAR_HEADS[pr.wId] || PROJ_LINEAR_HEADS._default;
-    head(ctx, pr);
+    // 弹头（使用离屏缓存，对不含时间动画的弹头类型）
+    const wId = pr.wId || 'default';
+    if (ANIMATED_PROJECTILE_HEADS.has(wId)) {
+      const head = PROJ_LINEAR_HEADS[wId] || PROJ_LINEAR_HEADS._default;
+      head(ctx, pr);
+    } else {
+      const cacheKey = 'proj_head_' + wId + '_' + (pr.color || '#fff') + '_' + Math.round(pr.r * 10);
+      const cacheSize = Math.ceil(pr.r * 4) + 20;
+      const cached = shapeCache.get(cacheKey, cacheSize, cacheSize, (bctx) => {
+        bctx.translate(cacheSize / 2, cacheSize / 2);
+        const head = PROJ_LINEAR_HEADS[wId] || PROJ_LINEAR_HEADS._default;
+        head(bctx, pr);
+      });
+      ctx.drawImage(cached, -cacheSize / 2, -cacheSize / 2);
+    }
   },
 
   enemy(ctx, pr) {

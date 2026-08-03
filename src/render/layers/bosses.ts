@@ -28,10 +28,10 @@ function eye(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, col
   ctx.beginPath(); ctx.arc(x + r * 0.3, y - r * 0.3, r * 0.42, 0, TAU); ctx.fill();
 }
 
-export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any, s: number, wob: number, t: number, time: number) => void> = {
+export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any, s: number, wob: number, fa: number, t: number, time: number) => void> = {
 
   /* 蚀潮巨兽：巨鲸形体 + 双鳍 + 尾 + 触须环 + 潮光鳞纹 */
-  behemoth(ctx, e, s, wob, t, time) {
+  behemoth(ctx, e, s, wob, fa, t, time) {
     const c = e.color;
     const ch = chargeOf(e);
     const breathe = 1 + Math.sin(time * 2.4) * 0.03;
@@ -74,7 +74,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
   },
 
   /* 潮噬之母：母兽 + 八触手 + 产卵囊（发光搏动）+ 潮纹 */
-  tideMother(ctx, e, s, wob, t, time) {
+  tideMother(ctx, e, s, wob, fa, t, time) {
     const c = e.color;
     // 八触手（摆动，蓄力时高举）
     const ch = chargeOf(e);
@@ -110,7 +110,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
   },
 
   /* 蚀潮战车：装甲战车（车体 + 双撞角 + 转轮 + 甲片） */
-  erodeChariot(ctx, e, s, wob, t, time) {
+  erodeChariot(ctx, e, s, wob, fa, t, time) {
     const c = e.color;
     const roll = time * 6;
     // 转轮（两侧，滚动）
@@ -141,7 +141,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
   },
 
   /* 月下君王：王冠 + 披风（摆动）+ 月轮 + 权杖 */
-  lord(ctx, e, s, wob, t, time) {
+  lord(ctx, e, s, wob, fa, t, time) {
     const c = e.color;
     const ch = chargeOf(e);
     // 月轮背景（圣光）
@@ -189,7 +189,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
   },
 
   /* 月影巫王：长袍（飘动）+ 兜帽 + 月牙冠 + 幽光眼 + 法杖 */
-  moonWraith(ctx, e, s, wob, t, time) {
+  moonWraith(ctx, e, s, wob, fa, t, time) {
     const c = e.color;
     const ch = chargeOf(e);
     // 长袍下摆（气流飘动）
@@ -228,7 +228,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
   },
 
   /* 月下剑士：铠甲 + 旋转月刃 + 剑鞘 + 头冠 */
-  moonSwordsman(ctx, e, s, wob, t, time) {
+  moonSwordsman(ctx, e, s, wob, fa, t, time) {
     const c = e.color;
     // 剑气环（旋转）
     ctx.globalAlpha = 0.2;
@@ -268,7 +268,8 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
   },
 
   /* 噬月魔龙：龙头 + 双翼扑扇 + 长尾 + 火喉（蓄力喷火） */
-  dragon(ctx, e, s, wob, t, time) {
+  dragon(ctx, e, s, wob, fa, t, time) {
+    ctx.save(); ctx.rotate(fa);
     const c = e.color;
     const ch = chargeOf(e);
     const flap = Math.sin(time * 3.2) * 0.3;
@@ -312,10 +313,11 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     // 眼
     eye(ctx, -s * 0.35, wob - s * 0.3, s * 0.13, '#2a0c0c');
     eye(ctx, s * 0.35, wob - s * 0.3, s * 0.13, '#2a0c0c');
+    ctx.restore();
   },
 
   /* 蚀月枭：羽翼扑扇 + 尖喙 + 电光羽毛（落雷蓄力） */
-  stormOwl(ctx, e, s, wob, t, time) {
+  stormOwl(ctx, e, s, wob, fa, t, time) {
     const c = e.color;
     const ch = chargeOf(e);
     const flap = Math.sin(time * 4.2) * 0.25;
@@ -366,7 +368,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
   },
 
   /* 深渊之母：巨体 + 八触须 + 中心口器 + 眼群 */
-  abyssMother(ctx, e, s, wob, t, time) {
+  abyssMother(ctx, e, s, wob, fa, t, time) {
     const c = e.color;
     const ch = chargeOf(e);
     // 八触须（内弯摆动，蓄力时向中心聚拢）
@@ -412,7 +414,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
   },
 
   /* 蚀月终焉：月蚀核心（渐变月轮 + 转动蚀环 + 环上眼 + 光芒脉冲） */
-  final(ctx, e, s, wob, t, time) {
+  final(ctx, e, s, wob, fa, t, time) {
     const ch = chargeOf(e);
     const pulse = 1 + 0.05 * Math.sin(time * 3) + ch * 0.08;
     // 外蚀环（转动，随蓄力加速）
@@ -454,7 +456,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
   },
 };
 
-export function drawBossBody(ctx: CanvasRenderingContext2D, e: any, s: number, wob: number, t: number, time?: number): void {
+export function drawBossBody(ctx: CanvasRenderingContext2D, e: any, s: number, wob: number, fa: number, t: number, time?: number): void {
   const fn: any = BOSS_SHAPES[e.type || ''] || BOSS_SHAPES.final;
-  fn(ctx, e, s, wob, t, time || 0);
+  fn(ctx, e, s, wob, fa, t, time || 0);
 }

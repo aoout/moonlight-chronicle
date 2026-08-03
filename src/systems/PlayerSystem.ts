@@ -56,7 +56,7 @@ export class PlayerSystem extends System {
     if (p && p.invuln > 0) p.invuln -= dt;
   }
 
-  /** WASD 移动、朝向、速度修正 */
+  /** WASD / 手柄摇杆移动、朝向、速度修正 */
   private _updateMovement(dt: number): void {
     const p = pSt().player;
     if (!p) return;
@@ -67,6 +67,12 @@ export class PlayerSystem extends System {
     if (keys['s'] || keys['arrowdown']) my += 1;
     if (keys['a'] || keys['arrowleft']) mx -= 1;
     if (keys['d'] || keys['arrowright']) mx += 1;
+    // 手柄摇杆 / D-Pad 合成向量（已含死区，单位向量或 0）
+    const gp = iSt().gamepad;
+    if (gp.connected && (gp.moveX !== 0 || gp.moveY !== 0)) {
+      mx = gp.moveX;
+      my = gp.moveY;
+    }
     const len = Math.hypot(mx, my);
     if (len > 0) {
       p.facing = Math.atan2(my, mx);

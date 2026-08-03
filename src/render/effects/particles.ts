@@ -1,22 +1,34 @@
 /* =========================================================
-   蚀月远征 · 渲染层：粒子绘制
+   蚀月远征 · 渲染层：粒子绘制（离屏缓存优化）
    ========================================================= */
 import { PALETTE } from '../../data/palette.js';
 import type { RenderContext } from '../context.js';
+import { shapeCache } from '../shape_cache.js';
+
+/* 预渲染简单圆形粒子（含阴影） */
+function drawCircleParticle(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(8, 8, 8, 0, 6.28); ctx.fill();
+}
+
+const PARTICLE_CIRCLE_SIZE = 16;
 
 export function drawParticles(rc: RenderContext): void {
   const ctx = rc.ctx;
   if (!ctx) return;
   const list = rc.particles;
+  const circleCache = shapeCache.get('particle_circle', PARTICLE_CIRCLE_SIZE, PARTICLE_CIRCLE_SIZE, drawCircleParticle);
 
-  // ---- 批量绘制简单圆形粒子 ----
+  // ---- 批量绘制简单圆形粒子（使用缓存） ----
   ctx.save();
   for (const pa of list) {
     if (pa.chain || pa.ring || pa.spark || pa.star || pa.shard || pa.streak || pa.glow || pa.timestop || pa.echo) continue;
     const life = 1 - (pa.t || 0) / (pa.max || 0.7);
     ctx.globalAlpha = life;
     ctx.fillStyle = pa.color || '#fff';
-    ctx.beginPath(); ctx.arc(pa.x, pa.y, pa.size, 0, 6.28); ctx.fill();
+    // 使用预渲染的圆形缓存，按实际大小缩放
+    const s = pa.size || 3;
+    ctx.drawImage(circleCache, pa.x - s, pa.y - s, s * 2, s * 2);
   }
   ctx.restore();
 

@@ -1,7 +1,8 @@
 /* =========================================================
-   蚀月远征 · 渲染层：背景（离屏缓存 + 微尘）
+   蚀月远征 · 渲染层：背景（离屏缓存 + 微尘缓存）
    ========================================================= */
 import type { RenderContext } from './context.js';
+import { shapeCache } from './shape_cache.js';
 
 /* ---------- 离屏背景缓存 ---------- */
 let _bgCache: HTMLCanvasElement | null = null;
@@ -77,21 +78,33 @@ function initBackgroundCache(rc: RenderContext): void {
   }
 }
 
+/* ---------- 微尘缓存（离屏预渲染，减少每帧 60 次 fillRect + Math.sin） ---------- */
+function drawDustCache(w: number, h: number, ctx: CanvasRenderingContext2D): void {
+  // 微尘静置位置固定，透明度随时间变化，但缓存采用静态最大透明度
+  // 每帧额外叠加一层动态呼吸（见 drawBackground 中的 drawImage 后处理）
+  for (let i = 0; i < 60; i++) {
+    const dx = (i * 91.7 + 3) % w;
+    const dy = (i * 53.3 + 71) % h;
+    ctx.fillStyle = i % 3 === 0 ? '#cfe4f4' : '#8a93b8';
+    ctx.fillRect(dx, dy, 1.2, 1.2);
+  }
+}
+
 /* ---------- 渲染 ---------- */
 export function drawBackground(rc: RenderContext): void {
   const ctx = rc.ctxBg as CanvasRenderingContext2D;
   initBackgroundCache(rc);
   ctx.drawImage(_bgCache as HTMLCanvasElement, 0, 0);
 
-  // 微尘（静置小点，轻微呼吸）—— 轻量动画，每帧单独绘制
+  // 微尘：使用离屏缓存（预渲染所有微尘点，按 canvas 尺寸缓存）
+  const dustKey = 'dust_' + rc.width + 'x' + rc.height;
+  const dustCanvas = shapeCache.get(dustKey, rc.width, rc.height, (bctx) => {
+    drawDustCache(rc.width, rc.height, bctx);
+  });
+  // 使用全局透明度做呼吸效果（每帧只改一次 globalAlpha，而非 60 次）
   ctx.save();
-  for (let i = 0; i < 60; i++) {
-    const dx = (i * 91.7 + 3) % rc.width;
-    const dy = (i * 53.3 + 71) % rc.height;
-    const tw = 0.5 + 0.5 * Math.sin(rc.time * 0.8 + i * 2.3);
-    ctx.globalAlpha = 0.06 + tw * 0.08;
-    ctx.fillStyle = i % 3 === 0 ? '#cfe4f4' : '#8a93b8';
-    ctx.fillRect(dx, dy, 1.2, 1.2);
-  }
+  const breath = 0.06 + (0.5 + 0.5 * Math.sin(rc.time * 0.8)) * 0.08;
+  ctx.globalAlpha = Math.min(1, breath);
+  ctx.drawImage(dustCanvas, 0, 0);
   ctx.restore();
 }

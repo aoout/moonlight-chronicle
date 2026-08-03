@@ -22,24 +22,41 @@ export interface RenderContext {
   height: number;
 }
 
+/** 可复用的渲染上下文对象（对象池，避免每帧分配） */
+const _rc: RenderContext = {
+  ctx: null,
+  ctxBg: null,
+  player: null,
+  boss: null,
+  enemies: [],
+  projectiles: [],
+  drops: [],
+  particles: [],
+  phantoms: [],
+  time: 0,
+  shake: 0,
+  hitFlash: 0,
+  width: 0,
+  height: 0,
+};
+
 /**
- * 创建当前帧的渲染上下文
+ * 创建当前帧的渲染上下文（复用对象池，避免每帧分配新对象）
  */
 export function createRenderContext(): RenderContext {
-  return {
-    ctx: rSt().ctx,
-    ctxBg: rSt().ctxBg,
-    player: pSt().player,
-    boss: gSt().boss,
-    enemies: eSt().enemies,
-    projectiles: eSt().projectiles,
-    drops: eSt().drops,
-    particles: eSt().particles,
-    phantoms: eSt().phantoms,
-    time: gSt().time,
-    shake: rSt().shake,
-    hitFlash: rSt().hitFlash,
-    width: rSt().width,
-    height: rSt().height,
-  };
+  _rc.ctx = rSt().ctx;
+  _rc.ctxBg = rSt().ctxBg;
+  _rc.player = pSt().player;
+  _rc.boss = gSt().boss;
+  _rc.enemies = eSt().enemies;
+  _rc.projectiles = eSt().projectiles;
+  _rc.drops = eSt().drops;
+  _rc.particles = eSt().particles;
+  _rc.phantoms = eSt().phantoms;
+  _rc.time = gSt().time;
+  _rc.shake = rSt().shake;
+  _rc.hitFlash = rSt().hitFlash;
+  _rc.width = rSt().width;
+  _rc.height = rSt().height;
+  return _rc;
 }

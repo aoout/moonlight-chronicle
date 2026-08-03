@@ -17,6 +17,7 @@ import { render } from './render/index.js';
 import { container } from './core/container.js';
 import './core/di.js';  // 确保服务注册
 import { uiTick } from './ui/hud.js';
+import { pollGamepad } from './input/gamepad.js';
 import type { SystemManager } from './core/system_manager.js';
 
 /* ---------- 关卡流程 ---------- */
@@ -113,6 +114,9 @@ export function gameLoop(ts: number): void {
   _lastT = ts;
   // 超大 dt 保护（切标签页、休眠唤醒），防 ts 倒退
   frameDt = Math.max(0, Math.min(0.2, frameDt || FIXED_DT));
+
+  // 手柄轮询：菜单 / 暂停 / 覆盖层中亦需响应，故置于战斗分支之外
+  pollGamepad(ts, frameDt);
 
   // 战斗中推进模拟；其余状态（升级/商店/结算）完全暂停（不渲染）。
   if (sm.is(STATE.PLAYING) && !gSt().paused) {

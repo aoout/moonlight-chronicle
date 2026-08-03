@@ -1,0 +1,84 @@
+/* =========================================================
+   蚀月远征 · 手柄适配 · 焦点框 + 操作提示条
+   ========================================================= */
+
+/* ---------- 焦点高亮 ---------- */
+.gamepad-focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-color: var(--gold) !important;
+  box-shadow:
+    0 0 24px rgba(233, 201, 135, .55),
+    inset 0 0 18px rgba(233, 201, 135, .12) !important;
+  z-index: 1;
+  transition: outline-offset .15s var(--ease-out-expo),
+              box-shadow .2s var(--ease-out-expo);
+}
+
+/* ---------- 操作提示条（回合指示器同款，略深色） ---------- */
+.gamepad-hint {
+  position: fixed;
+  top: 18px;
+  right: 200px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 20px 8px;
+  border-radius: 999px;
+  background: rgba(10, 12, 28, .48);
+  backdrop-filter: blur(var(--glass-blur-ghost));
+  border: 1px solid var(--glass-border-ghost);
+  box-shadow:
+    var(--glass-edge-inset),
+    0 5px 28px rgba(0, 0, 0, .5),
+    0 0 var(--eclipse-glow-spread) var(--eclipse-glow-soft);
+  font-family: var(--font-body);
+  color: rgba(244, 236, 216, .82);
+  pointer-events: none;
+  white-space: nowrap;
+  /* 中轴由 JS 设定 left，width 和 left 同步过渡，保证中心点不变 */
+  transition: width .38s var(--ease-out-expo),
+              left .38s var(--ease-out-expo);
+  animation: riseIn .4s var(--ease-out-expo) both;
+}
+.gamepad-hint::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 22%;
+  right: 22%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(233,201,135,.75), transparent);
+  pointer-events: none;
+}
+.gamepad-hint.hidden { display: none !important; }
+
+.gh-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 6px;
+}
+.gh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .5));
+}
+.gh-btn svg { display: block; }
+.gh-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  color: rgba(244, 236, 216, .78);
+}
+.gh-sep {
+  width: 1px;
+  height: 16px;
+  background: rgba(233, 201, 135, .22);
+  margin: 0 4px;
+}

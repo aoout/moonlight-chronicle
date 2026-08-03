@@ -10,6 +10,8 @@ import { bindDebugKeys } from './debug/panel.js';
 import { initRenderEventBridge } from './render/event_bridge.js';
 import { initUIEventBridge } from './ui/event_bridge.js';
 import { initHudReactive } from './ui/hud_reactive.js';
+import { initGamepad } from './input/gamepad.js';
+import { initHint } from './ui/gamepad_hint.js';
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 renderState.set('canvas', canvas);
@@ -36,6 +38,8 @@ initUIEventBridge();
 initHudReactive();
 bindDebugKeys();
 fillIconSpans();
+initHint();
+initGamepad();
 requestAnimationFrame(gameLoop);
 
 // 阻止方向键滚动

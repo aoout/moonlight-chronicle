@@ -25,6 +25,7 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
 
   /* 蚀蛆：分段软体蠕虫，逐节蠕动，环节纹 + 口器 + 粘液 */
   grub(ctx, e, s, wob, fa, t, time) {
+    ctx.save(); ctx.rotate(fa + Math.PI);
     const c = e.color;
     const ph = time * 3;
     // 三段身体（头节 + 中节 + 尾节），相位错开蠕动
@@ -54,10 +55,12 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     ctx.beginPath(); ctx.ellipse(s * 0.25, wob - s * 0.42, s * 0.3, s * 0.14, -0.4, 0, TAU); ctx.fill();
     // 眼
     enemyEye(ctx, s * 0.55, wob - s * 0.18, s * 0.11);
+    ctx.restore();
   },
 
   /* 噬光鼠：鼠身 + 头 + 双耳 + 长尾 + 胡须獠牙 */
   rat(ctx, e, s, wob, fa, t, time) {
+    ctx.save(); ctx.rotate(fa);
     const c = e.color;
     const run = Math.sin(time * 10) * 0.9;   // 奔跑颤动
     ctx.translate(run, 0);
@@ -94,10 +97,12 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     ctx.fillStyle = '#fff8ea';
     ctx.beginPath(); ctx.moveTo(s * 1.3, wob + s * 0.12); ctx.lineTo(s * 1.42, wob + s * 0.3); ctx.lineTo(s * 1.24, wob + s * 0.2); ctx.closePath(); ctx.fill();
     enemyEye(ctx, s * 0.72, wob - s * 0.28, s * 0.09);
+    ctx.restore();
   },
 
   /* 蚀甲兽：重装甲虫，三片弧甲 + 步足 + 甲缝 */
   armored(ctx, e, s, wob, fa, t, time) {
+    ctx.save(); ctx.rotate(fa);
     const c = e.color;
     const breathe = 1 + Math.sin(time * 2) * 0.03;
     // 步足（四对，着地摆动）
@@ -126,10 +131,12 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     ctx.fillStyle = shade(c, 18);
     ctx.beginPath(); ctx.ellipse(sx * 0.72, wob - s * 0.1, s * 0.34, s * 0.3, 0.1, 0, TAU); ctx.fill();
     enemyEye(ctx, sx * 0.85, wob - s * 0.14, s * 0.08);
+    ctx.restore();
   },
 
   /* 噬光翼：翼魔，双片蝙蝠翼扑扇 + 尖耳獠牙 */
   wing(ctx, e, s, wob, fa, t, time) {
+    ctx.save(); ctx.rotate(fa);
     const c = e.color;
     const flap = Math.sin(time * 5) * 0.35;
     // 翼（双片，膜状：外缘锯齿 + 翼骨）
@@ -170,6 +177,7 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     }
     enemyEye(ctx, s * 0.14, wob - s * 0.2, s * 0.1, '#3d1216');
     enemyEye(ctx, -s * 0.2, wob - s * 0.15, s * 0.08, '#3d1216');
+    ctx.restore();
   },
 
   /* 狂角魔：恶魔冲撞者，双弯角 + 怒目 + 鼻息（冲锋低头） */
@@ -177,6 +185,7 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     const c = e.color;
     const dashing = e.state === 'dashMove';           // 冲锋姿态：低头前倾
     const lean = dashing ? 0.45 : Math.sin(time * 2) * 0.04;
+    ctx.rotate(fa);
     ctx.save();
     ctx.rotate(lean * (dashing ? Math.sign(Math.cos(fa)) || 1 : 1));
     // 身体
