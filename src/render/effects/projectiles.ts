@@ -385,6 +385,19 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
       ctx.beginPath(); ctx.moveTo(-pr.r * 0.6, -pr.r * 0.4); ctx.lineTo(-pr.r * 2.4, 0); ctx.lineTo(-pr.r * 0.6, pr.r * 0.4); ctx.closePath(); ctx.fill();
       return;
     }
+    // 蚀涎魔毒弹：亮绿毒涎（光晕 + 毒液滴 + 拉丝拖尾）
+    if (pr.spit) {
+      ctx.save(); ctx.rotate(ang);
+      ctx.shadowColor = '#7fd6a4'; ctx.shadowBlur = 12;
+      ctx.fillStyle = pr.color;
+      ctx.beginPath(); ctx.ellipse(0, 0, pr.r * 1.2, pr.r * 0.85, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#eafff4';
+      ctx.beginPath(); ctx.arc(-pr.r * 0.25, -pr.r * 0.22, pr.r * 0.36, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(127,214,164,.6)';
+      ctx.beginPath(); ctx.moveTo(-pr.r * 0.9, 0); ctx.lineTo(-pr.r * 2.6, pr.r * 0.14); ctx.lineTo(-pr.r * 0.9, pr.r * 0.44); ctx.closePath(); ctx.fill();
+      ctx.restore();
+      return;
+    }
     // 通用敌弹：尖刺弹
     ctx.save(); ctx.rotate(ang);
     ctx.fillStyle = pr.color;

@@ -91,9 +91,9 @@ export function spawnEnemyProjectile(e: EnemyInstance, ang: number): void {
   world.add('projectiles', createEntity(
     Position(e.x, e.y),
     Velocity(Math.cos(ang) * projSpd, Math.sin(ang) * projSpd),
-    Renderable('#7fd6a4', 5),
+    Renderable('#7fd6a4', 6),
     Combat(projDmg * enemyScale(gs.stage).dmg, 0),
     Timer(0, 4),
-    { enemy: true, hit: new Set() }
+    { enemy: true, spit: true, hit: new Set() }
   ));
 }
