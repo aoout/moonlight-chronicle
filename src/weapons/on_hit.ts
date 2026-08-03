@@ -6,7 +6,7 @@ import { RNG } from '../utils.js';
 import { PALETTE } from '../data/palette.js';
 import { hurtPlayer, damageEnemy } from '../domain/combat.js';
 import { AudioEngine } from '../audio/engine.js';
-import { addFx, spawnImpact, spawnStar, spawnRing, spawnStreak, spawnGlow, spawnSpark } from '../render/effects/fx.js';
+import { addFx, spawnImpact, spawnStar, spawnRing, spawnStreak, spawnGlow, spawnSpark, spawnShard } from '../render/effects/fx.js';
 import { chainLightning } from './chain_lightning.js';
 import type { Player, Projectile, EnemyInstance } from '../types/core.d.ts';
 
@@ -68,18 +68,49 @@ export const ON_HIT: Record<string, (args: OnHitArgs) => boolean> = {
   weaponSpecific({ target, isPlayer, pr, p }) {
     if (isPlayer) return false;
     const e = target as EnemyInstance;
-    if (pr.wId === 'nova') {
+    const w = pr.wId || '';
+    if (w === 'nova') {
       spawnStar(e.x, e.y, PALETTE.fireBright, 14);
       spawnRing(e.x, e.y, pr.color || '#fff', 0.35, 36, 2.5);
-    } else if (pr.wId === 'shadow') {
+    } else if (w === 'shadow') {
       spawnStar(e.x, e.y, PALETTE.violetDark, 10);
-    } else if (pr.wId === 'storm') {
+      spawnShard(e.x, e.y, PALETTE.violetDark, 4, 120);
+    } else if (w === 'storm') {
       spawnRing(e.x, e.y, pr.color || '#8fe3d8', 0.32, 28, 2.2);
-      spawnSpark(e.x, e.y, '#8fe3d8', 4, 100);
-    } else if (pr.wId === 'lance') {
+      spawnSpark(e.x, e.y, '#8fe3d8', 5, 110);
+    } else if (w === 'lance') {
       spawnStreak(e.x, e.y, Math.atan2(pr.vy || 0, pr.vx || 0), 30, 2, '#ffffff', 0.25);
-    } else if (pr.wId === 'arc' && pr.chain) {
-      chainLightning(p, e, pr.dmg, pr.chainCount || 0, pr.chainFall || 0.65, pr.chainRange || 340, pr.color || '#fff', pr.wId);
+      spawnSpark(e.x, e.y, '#9fd6e8', 3, 90);
+    } else if (w === 'moonRing') {
+      // 月辉回刃：月牙闪光 + 金色星尘
+      spawnRing(e.x, e.y, '#e9c987', 0.3, 26, 2);
+      spawnSpark(e.x, e.y, '#e9c987', 4, 120);
+      spawnStar(e.x, e.y, '#ffffff', 6);
+    } else if (w === 'frost') {
+      // 霜环：冰晶碎片迸裂
+      spawnShard(e.x, e.y, '#cfeefb', 5, 130);
+      spawnRing(e.x, e.y, '#9fd6e8', 0.25, 22, 1.8);
+    } else if (w === 'beam') {
+      // 月光束：光爆
+      spawnRing(e.x, e.y, '#ffe9a8', 0.3, 30, 2.5);
+      spawnGlow(e.x, e.y, 14, '#fff5d6', 0.25);
+      spawnSpark(e.x, e.y, '#ffffff', 5, 160);
+    } else if (w === 'crossbow') {
+      // 连弩：箭光迸射
+      spawnStreak(e.x, e.y, Math.atan2(pr.vy || 0, pr.vx || 0), 22, 1.5, '#ffffff', 0.2);
+      spawnSpark(e.x, e.y, '#ffe9a8', 2, 80);
+    } else if (w === 'meteor') {
+      // 陨星：爆炸火环 + 碎片
+      spawnRing(e.x, e.y, PALETTE.fire, 0.4, 44, 3);
+      spawnShard(e.x, e.y, '#ff8a5c', 6, 170);
+      spawnGlow(e.x, e.y, 16, '#ff6b6b', 0.3);
+    } else if (w === 'phantom') {
+      // 幻影：紫雾迸散
+      spawnRing(e.x, e.y, '#c9b8f0', 0.3, 24, 2);
+      spawnGlow(e.x, e.y, 12, '#b49ae8', 0.25);
+      spawnSpark(e.x, e.y, '#c9b8f0', 3, 90);
+    } else if (w === 'arc' && pr.chain) {
+      chainLightning(p, e, pr.dmg, pr.chainCount || 0, pr.chainFall || 0.65, pr.chainRange || 340, pr.color || '#fff', pr.wId || 'arc');
     }
     return false;
   },

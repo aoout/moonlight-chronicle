@@ -180,6 +180,7 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
   }
   p.hp -= dmg;
   p.invuln = 0.45;
+  EventBus.emit('audio:sfx', { name: 'hurt' });
   renderState.set('hitFlash', 0.3);
   shakeScreen(8);
   EventBus.emit('player:hurt', { damage: dmg, hp: p.hp, maxHp: p.maxHp });
@@ -187,7 +188,7 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
   EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 26, text: '-' + Math.round(dmg), color: '#e2546a' });
   if (p.effects.tideRegen && dmg > 0) p.effects.regenBuff = 2;
   if (p.thorns > 0 && e && 'hp' in e) damageEnemy(e as EnemyInstance, dmg * p.thorns, false, 'thorns');
-  if (p.hp <= 0) { p.hp = 0; EventBus.emit('audio:sfx', { name: 'hurt' }); EventBus.emit('player:died'); playerDeath(); }
+  if (p.hp <= 0) { p.hp = 0; EventBus.emit('player:died'); playerDeath(); }
 }
 
 export function healPlayer(n: number): void {

@@ -63,14 +63,28 @@ export const AudioEngine = (() => {
     master.gain.value = 0.9;
     master.connect(ctx.destination);
 
-    // 音效总线
+    // 音效总线：干声直连 + 短混响（月表空寂的回响，不再是干声合成器）
     sfxBus = ctx.createGain();
     sfxBus.gain.value = 0.5;
-    sfxBus.connect(ctx.destination);
+    const sfxDry = ctx.createGain(); sfxDry.gain.value = 0.8; sfxDry.connect(ctx.destination);
+    const sfxConv = ctx.createConvolver();
+    sfxConv.buffer = makeImpulse(ctx, 1.1, 2.0);
+    const sfxWet = ctx.createGain(); sfxWet.gain.value = 0.3;
+    sfxConv.connect(sfxWet); sfxWet.connect(ctx.destination);
+    sfxBus.connect(sfxDry); sfxBus.connect(sfxConv);
     sfxTable = createSfxTable(ctx, sfxBus);
 
     // 混响（BGM 空间效果）
     reverbBus = setupReverb(ctx, master);
+  }
+
+  function makeImpulse(ctx: AudioContext, sec: number, decay: number): AudioBuffer {
+    const buf = ctx.createBuffer(2, ctx.sampleRate * sec, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, decay);
+    }
+    return buf;
   }
 
   function start(): void {
