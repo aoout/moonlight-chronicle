@@ -3,6 +3,7 @@
    派生属性 / 创建 / 武器管理 / 金币 / 经验
    从 PlayerSystem 静态方法迁出
    ========================================================= */
+import { achOnWeapon } from '../systems/AchievementSystem.js';
 import { STATE, sm } from '../core/states.js';
 import { playerState } from '../state/player.js';
 import { statsState } from '../state/stats.js';
@@ -53,6 +54,7 @@ export function addWeapon(id: string): boolean {
   if (p.weapons.length >= CONFIG.MAX_WEAPONS) return false;
   if (p.weapons.find(w => w.id === id)) return false;
   p.weapons.push({ id, lv: 1 });
+  achOnWeapon();
   pSt().weaponCd[id] = 0;
   codexAdd('weapons', id);
   return true;

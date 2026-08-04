@@ -15,6 +15,7 @@ import { AudioEngine } from '../audio/engine.js';
 import { $, el, html, showScreen, showStageBanner, toast } from './hud_utils.js';
 import { openShop, renderStatGroupsInto } from './shop/index.js';
 import { bindCodex } from './codex.js';
+import { bindAchievements } from './achievements.js';
 import { bindSettingsUI, closeSettings, isSettingsOpen } from './settings_panel.js';
 import { startRun, startStage } from '../game.js';
 import { LevelUpPanel } from './components/LevelUpPanel.js';
@@ -210,5 +211,6 @@ export function bindUI(): void {
   // 窗口失焦时清零所有按键，防止 WASD 卡键
   window.addEventListener('blur', () => { iSt().keys = {}; });
   bindCodex();
+  bindAchievements();
   bindSettingsUI();
 }

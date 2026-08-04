@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 流程层：关卡 / 主循环 / 更新
    ========================================================= */
+import { initAchievements, achSessionStart } from './systems/AchievementSystem.js';
 import { STATE, sm } from './core/states.js';
 import { stageState } from './state/stage.js';
 import { statsState } from './state/stats.js';
@@ -60,6 +61,7 @@ export function startStage(n: number): void {
 }
 
 export function startRun(): void {
+  initAchievements();
   sm.transition(STATE.PLAYING);
   stageState.set('stage', 1);
   statsState.patch({
@@ -82,6 +84,7 @@ export function startRun(): void {
   gameState.set('_resumeState', STATE.PLAYING);
   gameState.set('levelUpOpen', false);
   gameState.set('shopOpen', false);
+  achSessionStart(gSt().depth || 0);
   // 蚀月深度 ≥1：随机施加一个蚀之诅咒
   stageState.set('curse', gSt().depth >= 1 ? pick(CURSES) : null);
   playerState.set('player', createPlayer());

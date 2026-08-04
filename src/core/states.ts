@@ -2,6 +2,7 @@
    蚀月远征 · 状态常量与状态机实例
    独立于 state.ts，避免状态切片导入时的循环依赖
    ========================================================= */
+import { achOnStageCleared } from '../systems/AchievementSystem.js';
 import { StateMachine } from './state_machine.js';
 
 /* 游戏状态常量枚举 */
@@ -33,6 +34,7 @@ export const sm = new StateMachine({
 
 /** 关卡结算（进入商店） */
 export function endStage(_early?: boolean): void {
+  achOnStageCleared();
   sm.transition(STATE.SHOP);
 }
 

@@ -17,6 +17,7 @@ import { queryRadius } from '../systems/SpatialSystem.js';
 import { persistUnlocked } from '../persistence/save.js';
 import { world } from '../ecs/World.js';
 import { endStage, playerDeath } from '../core/states.js';
+import { achOnDamage, achOnHurt, achOnDodge, achOnShieldAbsorb } from '../systems/AchievementSystem.js';
 import { shakeScreen } from '../state/render.js';
 import { spawnEnemy } from './spawn.js';
 import { Position, Velocity } from '../ecs/entity_factories.js';
@@ -88,6 +89,7 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
   dmg = Math.max(1, Math.round(dmg));
   e.hp -= dmg;
   e.flash = 0.12;
+  achOnDamage(dmg, isCrit);
   EventBus.emit('combat:hit', { target: e, damage: dmg, crit: isCrit, srcType, srcW });
   const rs = { ...sSt().runStats };
   rs.totalDmg += dmg;
@@ -105,7 +107,7 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
     healPlayer(dmg * p.lifesteal);
   }
   EventBus.emit('visual:hitFx', { x: e.x, y: e.y, dmg, crit: isCrit });
-  if (e.hp <= 0) { killEnemy(e, srcType); EventBus.emit('enemy:killed', { type: e.type || '', boss: !!e.boss }); }
+  if (e.hp <= 0) { killEnemy(e, srcType); EventBus.emit('enemy:killed', { type: e.type || '', boss: !!e.boss, srcType }); }
 }
 
 export function killEnemy(e: EnemyInstance, srcType?: string): void {
@@ -164,6 +166,7 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
   if (!p) return;
   if (p.invuln > 0 || sm.current !== STATE.PLAYING) return;
   if (RNG() < p.dodge) {
+    achOnDodge();
     EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 30, text: '闪避', color: '#9fd6e8' });
     if (p.effects.cloak) { p.invuln = Math.max(p.invuln, 0.8); p.effects.cloakTimer = 0.8; }
     return;
@@ -172,6 +175,7 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
   if ((p.effects.shield ?? 0) > 0) {
     const abs = Math.min(p.effects.shield ?? 0, dmg);
     p.effects.shield = (p.effects.shield ?? 0) - abs;
+    achOnShieldAbsorb(abs);
     dmg -= abs;
     if (dmg <= 0) { EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 26, text: '护盾', color: '#9fd6e8' }); return; }
   }
@@ -193,6 +197,7 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
   }
   p.hp -= dmg;
   p.invuln = 0.45;
+  achOnHurt();
   EventBus.emit('audio:sfx', { name: 'hurt' });
   // 攻击者攻击动作特效（近战接触伤害：撕咬/撞击/重拳等）
   const atkType = e && 'type' in e ? (e as any).type : '';

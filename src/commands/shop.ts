@@ -3,6 +3,7 @@
    封装 UI 触发的多步骤状态变更（金币扣除 / 武器增删 / 属性重算）
    UI 层只需调用命令并依据返回值给出反馈（toast / 音效 / 重渲染）
    ========================================================= */
+import { achOnItemBuy } from '../systems/AchievementSystem.js';
 import { statsState } from '../state/stats.js';
 import { playerState } from '../state/player.js';
 import { addWeapon, upgradeWeapon, removeWeapon, computeDerived } from '../domain/player.js';
@@ -52,6 +53,7 @@ export function purchaseItem(item: any, price: number): Result {
   const cnt = prev + 1;
   p.effects.boughtItems = p.effects.boughtItems || {};
   p.effects.boughtItems[item.id] = cnt;
+  achOnItemBuy(item.rarity === 'legend');
   computeDerived(p);
   return { ok: true };
 }

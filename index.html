@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="css/shop.css">
   <link rel="stylesheet" href="css/result.css">
   <link rel="stylesheet" href="css/codex.css">
+  <link rel="stylesheet" href="css/achievements.css">
   <link rel="stylesheet" href="css/settings.css">
   <link rel="stylesheet" href="css/gamepad.css">
 </head>
@@ -43,6 +44,7 @@
           <em id="continue-info">第 1 夜</em>
         </button>
         <button id="btn-codex" class="menu-btn ghost">蚀之图鉴</button>
+        <button id="btn-achievements" class="menu-btn ghost">蚀月功勋</button>
         <button id="btn-how" class="menu-btn ghost">如何作战</button>
         <button id="btn-settings" class="menu-btn ghost"><span class="ic" data-ic="gear"></span> 月蚀之仪</button>
       </div>
@@ -88,6 +90,19 @@
       <div class="codex-grid" id="codex-grid"></div>
       <div class="codex-foot">
         <button id="btn-codex-close" class="menu-btn ghost small">返回</button>
+      </div>
+    </div>
+
+    <!-- ===== 蚀月功勋：成就 ===== -->
+    <div id="achievements" class="overlay hidden">
+      <div class="ach-head">
+        <div class="overlay-title">蚀月功勋</div>
+        <div class="overlay-sub">守月人于月背留下的荣耀刻痕</div>
+      </div>
+      <div class="ach-count" id="achievement-count">0 / 0</div>
+      <div class="ach-grid" id="achievement-grid"></div>
+      <div class="ach-foot">
+        <button id="btn-achievements-close" class="menu-btn ghost small">回到月台</button>
       </div>
     </div>
 
