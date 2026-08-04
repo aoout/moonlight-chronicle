@@ -34,7 +34,7 @@ export const BASE_STATS: Record<string, number> = {
   area:1.0, duration:1.0, luck:1.0, xpGain:1.0, goldGain:1.0,
   dodge:0, cdr:0, magnet:90, thorns:0,
   speedToCrit:0, armorToAtk:0, hpToAtk:0, atkToSpd:0, critToAtk:0,
-  onKillHp:0, lowHpDmg:0, fullHpCrit:0, chainLightning:0, pierce:0,
+  onKillHp:0, onLevelUpHp:0, lowHpDmg:0, fullHpCrit:0, chainLightning:0, pierce:0,
   boom:0, autoPick:0, scaleLevel:0, scaleStage:0, luckToGold:0,
   timeStop:0, echo:0,
 };

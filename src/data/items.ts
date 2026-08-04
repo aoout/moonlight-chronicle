@@ -22,6 +22,7 @@ const APPLY_FN: Record<string, (p: Player) => void> = {
   area1:   p => { p.area += 0.12; p.magnet += 20; },
   regen1:  p => { p.regen += 0.8; },
   xp:      p => { p.xpGain += 0.25; },
+  lvHeal:  p => { p.xpGain += 0.30; p.onLevelUpHp += 12; },
   gold:    p => { p.goldGain += 0.2; },
   speedCrit:  p => { p.speedToCrit += 0.12; },
   armorAtk:   p => { p.armorToAtk += 0.6; },

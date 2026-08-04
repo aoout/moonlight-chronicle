@@ -96,6 +96,7 @@ export function gainXp(n: number): void {
     statsState.set('xp', statsState.get('xp') - statsState.get('xpNeeded'));
     statsState.set('xpNeeded', xpNeeded(p.level + 1));
     p.level++;
+    if (p.onLevelUpHp) p.hp = Math.min(p.maxHp, p.hp + p.onLevelUpHp);
     statsState.set('level', p.level);
     statsState.set('levelQueue', statsState.get('levelQueue') + 1);
   }

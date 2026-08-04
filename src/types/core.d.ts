@@ -76,7 +76,7 @@ export interface Player {
   speedToCrit: number; armorToAtk: number; hpToAtk: number;
   atkToSpd: number; critToAtk: number;
   /* 特殊效果 */
-  onKillHp: number; lowHpDmg: number; fullHpCrit: number;
+  onKillHp: number; onLevelUpHp: number; lowHpDmg: number; fullHpCrit: number;
   chainLightning: number; pierce: number; boom: number;
   autoPick: number; scaleLevel: number; scaleStage: number;
   luckToGold: number; timeStop: number; echo: number;
