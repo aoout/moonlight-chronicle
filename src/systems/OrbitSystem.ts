@@ -36,8 +36,8 @@ export class OrbitSystem extends System {
         ph.fireT = 0.55;
         const a = angTo(ph, t);
         world.add('projectiles', { x: ph.x, y: ph.y, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300,
-          r: 5, dmg: ph.dmg, pierce: p.pierce, color: '#c9b8f0', hit: new Set(), wId: 'phantom', life: 2 });
-        spawnGlow(ph.x + Math.cos(a) * 14, ph.y + Math.sin(a) * 14, 6, '#c9b8f0', 0.22);
+          r: 5, dmg: ph.dmg, pierce: p.pierce, color: '#dbe8ff', hit: new Set(), wId: 'phantom', life: 2 });
+        spawnGlow(ph.x + Math.cos(a) * 14, ph.y + Math.sin(a) * 14, 6, '#dbe8ff', 0.22);
       }
     }
     world.compact('phantoms', ph => ph.t >= ph.max);

@@ -105,10 +105,10 @@ export const ON_HIT: Record<string, (args: OnHitArgs) => boolean> = {
       spawnShard(e.x, e.y, '#ff8a5c', 6, 170);
       spawnGlow(e.x, e.y, 16, '#ff6b6b', 0.3);
     } else if (w === 'phantom') {
-      // 幻影：紫雾迸散
-      spawnRing(e.x, e.y, '#c9b8f0', 0.3, 24, 2);
-      spawnGlow(e.x, e.y, 12, '#b49ae8', 0.25);
-      spawnSpark(e.x, e.y, '#c9b8f0', 3, 90);
+      // 幻影：月雾迸散
+      spawnRing(e.x, e.y, '#dbe8ff', 0.3, 24, 2);
+      spawnGlow(e.x, e.y, 12, '#cfe0f8', 0.25);
+      spawnSpark(e.x, e.y, '#dbe8ff', 3, 90);
     } else if (w === 'arc' && pr.chain) {
       chainLightning(p, e, pr.dmg, pr.chainCount || 0, pr.chainFall || 0.65, pr.chainRange || 340, pr.color || '#fff', pr.wId || 'arc');
     }

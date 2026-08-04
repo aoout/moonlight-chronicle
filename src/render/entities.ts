@@ -136,14 +136,14 @@ export function drawPhantoms(rc: RenderContext): void {
     ctx.save();
     ctx.translate(ph.x, ph.y);
     ctx.globalAlpha = 0.5 + 0.18 * Math.sin(rc.time * 4 + ph.t * 6);
-    ctx.fillStyle = '#c9b8f0';
+    ctx.fillStyle = '#dbe8ff';
     // 光晕层（径向渐变替代 shadowBlur）
     const glowG = ctx.createRadialGradient(0, 0, 0, 0, 0, 18);
-    glowG.addColorStop(0, '#c9b8f0');
+    glowG.addColorStop(0, '#dbe8ff');
     glowG.addColorStop(1, 'transparent');
     ctx.fillStyle = glowG;
     ctx.beginPath(); ctx.arc(0, 0, 18, 0, 6.28); ctx.fill();
-    ctx.fillStyle = '#c9b8f0';
+    ctx.fillStyle = '#dbe8ff';
     ctx.beginPath(); ctx.arc(0, 0, 12, 0, 6.28); ctx.fill();
     // 月牙蚀刻（轮廓）
     ctx.strokeStyle = 'rgba(22,16,44,.55)'; ctx.lineWidth = 2;

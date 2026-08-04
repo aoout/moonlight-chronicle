@@ -23,7 +23,7 @@ export function phantomTick(dt: number): void {
   const projSpeed = fp.speed || 300;
   const projR = fp.radius || 5;
   const projLife = fp.life || 2;
-  const color = fp.color || '#c9b8f0';
+  const color = fp.color || '#dbe8ff';
 
   for (const ph of world.query('phantoms')) {
     ph.t += dt;
