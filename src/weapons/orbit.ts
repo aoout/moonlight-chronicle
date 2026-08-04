@@ -44,5 +44,8 @@ export function orbitTick(dt: number): void {
         }
       }
     }
+  } else {
+    // 武器被出售/移除后清空残留环绕位置，避免月牙残留在场上
+    p.effects.orbits = [];
   }
 }

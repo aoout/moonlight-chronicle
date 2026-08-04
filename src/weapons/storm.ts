@@ -82,5 +82,8 @@ export function stormTick(dt: number): void {
         });
       }
     }
+  } else {
+    // 武器被出售/移除后清空残留核心位置，避免风暴核心残留在场上
+    p.effects.stormCores = [];
   }
 }
