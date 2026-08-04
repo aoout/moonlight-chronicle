@@ -89,8 +89,8 @@
   "shadow": {
     "id": "shadow", "name": "影袭之刃", "icon": "wShadow", "tag": "追踪",
     "desc": "追踪之刃锁定目标，暴击越高附加伤害越高。",
-    "formula": "攻击 ×(0.7+0.13L) + 溢出暴伤×攻击 ×0.9",
-    "formulaDmg": "effAtk * (0.7 + 0.13 * level) + max(0, critDmg - 1.5) * effAtk * 0.9",
+    "formula": "攻击 ×(1.1+0.15L) + 溢出暴伤×攻击 ×0.9",
+    "formulaDmg": "effAtk * (1.1 + 0.15 * level) + max(0, critDmg - 1.5) * effAtk * 0.9",
     "cd": 0.9, "range": 520, "speed": 460, "homing": true, "color": "#6b5cf0",
     "proj": 1,
     "fire": {
