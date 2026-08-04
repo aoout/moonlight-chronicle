@@ -14,7 +14,7 @@ const ICON_MAP = ICONS;
 const APPLY_FN: Record<string, (p: Player) => void> = {
   b_hp:       p => { p.maxHp += 12; p.hp += 12; },
   b_atk:      p => { p.atk += 2; },
-  b_spd:      p => { p.speed += 5; },
+  b_spd:      p => { p.speed += 12; },
   b_crit:     p => { p.critRate += 0.03; },
   b_armor:    p => { p.armor += 1.5; },
   b_atkspd:   p => { p.atkSpd += 0.08; },

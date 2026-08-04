@@ -1,7 +1,7 @@
 {
   "b_hp": { "id": "b_hp", "name": "月髓", "icon": "heart", "tier": "common", "weight": 12, "desc": "生命上限 <span class=\"stat-up\">+12</span>" },
   "b_atk": { "id": "b_atk", "name": "锋芒", "icon": "sword", "tier": "common", "weight": 12, "desc": "攻击力 <span class=\"stat-up\">+2</span>" },
-  "b_spd": { "id": "b_spd", "name": "疾行", "icon": "arrow", "tier": "common", "weight": 10, "desc": "移速 <span class=\"stat-up\">+5</span>" },
+  "b_spd": { "id": "b_spd", "name": "疾行", "icon": "arrow", "tier": "common", "weight": 10, "desc": "移速 <span class=\"stat-up\">+12</span>" },
   "b_crit": { "id": "b_crit", "name": "鹰眼", "icon": "diamond", "tier": "common", "weight": 9, "desc": "暴击率 <span class=\"stat-up\">+3%</span>" },
   "b_armor": { "id": "b_armor", "name": "砺甲", "icon": "shield", "tier": "common", "weight": 9, "desc": "护甲 <span class=\"stat-up\">+1.5</span>" },
   "b_atkspd": { "id": "b_atkspd", "name": "迅捷", "icon": "bolt", "tier": "common", "weight": 9, "desc": "攻速 <span class=\"stat-up\">+8%</span>" },

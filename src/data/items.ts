@@ -46,7 +46,7 @@ const APPLY_FN: Record<string, (p: Player) => void> = {
   critDmg1:   p => { p.critDmg += 0.4; },
   timeStop:   p => { p.timeStop += 1; },
   vamp:       p => { p.lifesteal += 0.1; },
-  atkSpd2:    p => { p.atkSpd += 0.2; p.speed += 5; },
+  atkSpd2:    p => { p.atkSpd += 0.2; p.speed += 20; },
   luck1:      p => { p.luck += 0.35; p.goldGain += 0.15; },
   dash1:      p => { p.speed *= 1.08; p.dodge += 0.08; p.speed += 30; },
   shield1:    p => { p.effects.shieldMax = 30; p.effects.shield = 30; },

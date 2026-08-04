@@ -296,7 +296,7 @@
     "icon": "galeGear",
     "rarity": "epic",
     "price": 34,
-    "desc": "攻速 <span class=\"stat-up\">+20%</span>，移速 <span class=\"stat-up\">+5%</span>。"
+    "desc": "攻速 <span class=\"stat-up\">+20%</span>，移速 <span class=\"stat-up\">+20</span>。"
   },
   "luck1": {
     "id": "luck1",
