@@ -11,6 +11,14 @@ const session: Record<string, number> = {};
 /* 累计计数（跨局，持久化） */
 const accum: Record<string, number> = {};
 const earned: Record<string, boolean> = {};
+const best: Record<string, number> = {};
+/* 启动时载入持久化数据 */
+(() => {
+  const s = loadAch();
+  Object.assign(accum, s.counts);
+  Object.assign(earned, s.earned);
+  Object.assign(best, s.best);
+})();
 
 let _hitThisStage = false;
 let _hitThisRun = false;
@@ -22,7 +30,7 @@ let _moonOnly = true;        // 本局是否仅初始武器
 let _winStage = 0;
 
 function persist(): void {
-  saveAch({ counts: accum, earned });
+  saveAch({ counts: accum, earned, best });
 }
 
 /* ---------- 会话启动（startRun 调用） ---------- */
@@ -38,6 +46,15 @@ export function achSessionStart(depth: number): void {
 }
 
 /* ---------- 关键点钩子（由 combat/player/shop 调用） ---------- */
+/* ---------- 局末结算：单局统计并入历史最佳 ---------- */
+export function achSessionEnd(): void {
+  for (const k of Object.keys(session)) {
+    const v = session[k] || 0;
+    if (v > (best[k] || 0)) best[k] = v;
+  }
+  persist();
+}
+
 export function achOnKill(type: string, srcType: string | undefined, boss: boolean): void {
   inc('kill', 1); inc('stageKills', 1);
   if (boss) inc('boss', 1);
@@ -88,13 +105,16 @@ export function achOnTimestop(): void { inc('timestop', 1); }
 export function initAchievements(): void {
   EventBus.on('enemy:killed', (d: any) => achOnKill(d.type || '', '', !!d.boss));
   EventBus.on('boss:killed', (d: any) => achOnKill(d.type || '', '', true));
-  EventBus.on('player:died', () => { _died = true; });
+  EventBus.on('player:died', () => { _died = true; achSessionEnd(); });
   EventBus.on('player:levelup', (d: any) => achOnLevel(d.level || 0));
   EventBus.on('stage:start', () => { achOnStageStart(); tryUnlock(); });
   EventBus.on('game:runEnd', (d: any) => {
     if (d && d.win) {
       _winStage = d.stage || 0;
+      session['winStage'] = d.stage || 0;
       session['gold'] = d.gold || 0;
+      if (!_hitThisRun) session['noDeath'] = 1;
+      if (_moonOnly) session['moonOnly'] = 1;
       inc('run', 1);
       // 夜数累计（按通关夜数）
       inc('stage', d.stage || 0);
@@ -102,6 +122,7 @@ export function initAchievements(): void {
         if (_runDepth >= 9) inc('depth9', 1);
       }
     }
+    achSessionEnd();
     tryUnlock();
   });
 }
@@ -177,7 +198,40 @@ function tryUnlock(): void {
 
 /* ---------- 对外读取 ---------- */
 export function achProgressOf(a: AchievementDef): number {
-  return Math.min(testOf(a), a.target);
+  if (a.cumulative) return Math.min(testOf(a), a.target);
+  // 单局成就：显示历史最佳成绩（主菜单/面板查看）
+  return Math.min(bestOf(a) || 0, a.target);
+}
+function bestOf(a: AchievementDef): number {
+  switch (a.kind) {
+    case 'kill': return best['stageKills'] || 0;
+    case 'boss': return best['boss'] || 0;
+    case 'gold': return best['gold'] || 0;
+    case 'stage': return best['winStage'] || 0;
+    case 'level': return best['maxLevel'] || 0;
+    case 'weapon': return best['weapons'] || 0;
+    case 'item': return a.id === 'a_item_legend3' ? (best['legendItems'] || 0) : (best['items'] || 0);
+    case 'dodge': return best['dodges'] || 0;
+    case 'crit': return a.id === 'a_critdmg_100k' ? (best['critDmg'] || 0) : (best['crits'] || 0);
+    case 'depth': return best['depth9'] || 0;
+    case 'damage': return best['maxDmg'] || 0;
+    case 'shield': return best['shieldAbsorb'] || 0;
+    case 'thorns': return best['thorns'] || 0;
+    case 'starfall': return best['starfall'] || 0;
+    case 'chain': return best['chain'] || 0;
+    case 'boom': return best['boom'] || 0;
+    case 'timestop': return best['timestop'] || 0;
+    case 'custom':
+      switch (a.id) {
+        case 'a_noHit_stage': return best['noHitStages'] || 0;
+        case 'a_noHit_run': return (best['winStage'] || 0) >= 20 ? 1 : 0;
+        case 'a_moon_only': return best['moonOnly'] || 0;
+        case 'a_no_death': return best['noDeath'] || 0;
+        case 'a_fast_boss': return best['fastBoss'] || 0;
+      }
+      return 0;
+  }
+  return 0;
 }
 export function achIsEarned(id: string): boolean { return !!earned[id]; }
 export function achEarnedTotal(): number { return Object.keys(earned).length; }

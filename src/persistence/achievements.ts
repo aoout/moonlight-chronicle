@@ -7,14 +7,15 @@ const ACH_KEY = 'eclipse_achievements_save';
 export interface AchSave {
   counts: Record<string, number>;   // 累计计数型进度（跨局）
   earned: Record<string, boolean>;   // 已解锁成就
+  best: Record<string, number>;      // 单局成就历史最佳成绩
 }
 
 export function loadAch(): AchSave {
   try {
     const d = JSON.parse(localStorage.getItem(ACH_KEY) || '{}');
-    return { counts: d.counts || {}, earned: d.earned || {} };
+    return { counts: d.counts || {}, earned: d.earned || {}, best: d.best || {} };
   } catch (e) {
-    return { counts: {}, earned: {} };
+    return { counts: {}, earned: {}, best: {} };
   }
 }
 

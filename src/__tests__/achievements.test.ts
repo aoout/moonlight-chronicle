@@ -14,7 +14,7 @@ vi.hoisted(() => {
 
 import { ACHIEVEMENTS } from '../data/achievements.js';
 import {
-  achSessionStart, achOnKill, achOnDamage, achOnHurt, achOnDodge,
+  achSessionStart, achSessionEnd, achOnKill, achOnDamage, achOnHurt, achOnDodge,
   achIsEarned, achProgressOf, achOnWeapon, achOnItemBuy,
 } from '../systems/AchievementSystem.js';
 
@@ -53,8 +53,31 @@ describe('蚀月功勋', () => {
     achSessionStart(0);
     achOnWeapon();
     achOnWeapon(); achOnWeapon(); achOnWeapon(); achOnWeapon();
-    expect(achProgressOf(a('a_weapon_5'))).toBe(5);
     for (let i = 0; i < 15; i++) achOnItemBuy(false);
+    achSessionEnd();
+    expect(achProgressOf(a('a_weapon_5'))).toBe(5);
     expect(achProgressOf(a('a_item_15'))).toBe(15);
+  });
+});
+
+describe('单局成就历史最佳', () => {
+  it('局末结算后 best 记录最高单局成绩', () => {
+    achSessionStart(0);
+    for (let i = 0; i < 500; i++) achOnKill('grub', undefined, false);
+    achOnDamage(2500, true);
+    achSessionEnd();
+    // 局末结算（未解锁时进度读 best）
+    expect(achProgressOf(a('a_kill_500'))).toBe(500);
+    // 第二局更差：best 保持
+    achSessionStart(0);
+    for (let i = 0; i < 100; i++) achOnKill('grub', undefined, false);
+    expect(achProgressOf(a('a_kill_500'))).toBe(500);
+    expect(achProgressOf(a('a_dmg_2000'))).toBe(2000);
+  });
+
+  it('单局达成后 best 不达标则不解锁（仅当前局判定）', () => {
+    achSessionStart(0);
+    for (let i = 0; i < 500; i++) achOnKill('grub', undefined, false);
+    expect(achIsEarned('a_kill_500')).toBe(true);   // 当前局 500 → 解锁
   });
 });
