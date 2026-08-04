@@ -14,9 +14,9 @@ interface HintItem { b: string; l: string }
 const HINTS: Record<string, HintItem[]> = {
   menu:     [{ b: 'dpad', l: '选择' }, { b: 'a', l: '确认' }],
   playing:  [{ b: 'ls', l: '移动' }, { b: 'menu', l: '暂停' }],
-  pause:    [{ b: 'dpad', l: '选择' }, { b: 'a', l: '确认' }, { b: 'b', l: '继续' }],
+  pause:    [{ b: 'a', l: '继续远征' }, { b: 'b', l: '返回主菜单' }],
   levelup:  [{ b: 'dpad', l: '选择' }, { b: 'lb', l: '上一项' }, { b: 'rb', l: '下一项' }, { b: 'a', l: '烙印' }],
-  shop:     [{ b: 'dpad', l: '选择' }, { b: 'a', l: '购买 / 下一夜' }, { b: 'b', l: '下一夜' }],
+  shop:     [{ b: 'lb', l: '上一区' }, { b: 'rb', l: '下一区' }, { b: 'dpad', l: '导航' }, { b: 'a', l: '查看 / 购买' }, { b: 'b', l: '下一夜' }],
   result:   [{ b: 'a', l: '重返远征' }],
   codex:    [{ b: 'lb', l: '上一类' }, { b: 'rb', l: '下一类' }, { b: 'dpad', l: '浏览' }, { b: 'b', l: '返回' }],
   gate:     [{ b: 'dpad', l: '选择' }, { b: 'a', l: '确定' }, { b: 'b', l: '返回' }],

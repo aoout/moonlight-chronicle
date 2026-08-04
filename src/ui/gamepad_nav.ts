@@ -77,8 +77,32 @@ function getActiveContext(): FocusContext {
       return { key, items: _collect('#levelup-cards .card') };
     case 'shop': {
       const cards = _collect('#shop-cards .card');
+      const weapons = _collect('#shop-weapons .pw-item');
+      const items = _collect('#shop-items .si-item');
+      const mechToggle = _collect('.mech-toggle');
+      // 详情面板打开时，纳入关闭/出售按钮
+      const pwDetail = document.getElementById('pw-detail');
+      const pwClose = pwDetail && !pwDetail.classList.contains('hidden')
+        ? document.getElementById('pwd-close') : null;
+      const pwSell = pwDetail && !pwDetail.classList.contains('hidden')
+        ? document.getElementById('pwd-sell') : null;
+      const siDetail = document.getElementById('si-detail');
+      const siClose = siDetail && !siDetail.classList.contains('hidden')
+        ? document.getElementById('sid-close') : null;
       const next = document.getElementById('btn-shop-next');
-      return { key, items: [...cards, ...(next ? [next] : [])] };
+      return {
+        key,
+        items: [
+          ...cards,
+          ...weapons,
+          ...items,
+          ...mechToggle,
+          ...(pwClose ? [pwClose] : []),
+          ...(pwSell ? [pwSell] : []),
+          ...(siClose ? [siClose] : []),
+          ...(next ? [next] : []),
+        ].filter((x): x is HTMLElement => !!x),
+      };
     }
     case 'pause': {
       const resume = document.getElementById('btn-resume');
@@ -104,6 +128,23 @@ function renderFocus(ctx: FocusContext): void {
   const el = ctx.items[_focusIndex];
   if (!el) return;
   el.classList.add('gamepad-focus');
+  // 在可滚动容器内聚焦时，滚到可见区（而非整页滚动）
+  let parent: HTMLElement | null = el.parentElement;
+  while (parent) {
+    const st = getComputedStyle(parent);
+    if (st.overflowY === 'auto' || st.overflowY === 'scroll') {
+      const er = el.getBoundingClientRect();
+      const pr = parent.getBoundingClientRect();
+      if (er.top < pr.top || er.bottom > pr.bottom) {
+        parent.scrollTo({
+          top: el.offsetTop - parent.clientHeight / 2 + el.clientHeight / 2,
+          behavior: 'smooth',
+        });
+      }
+      break;
+    }
+    parent = parent.parentElement;
+  }
   el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
@@ -194,6 +235,7 @@ export function handleConfirm(): void {
   const ctx = getActiveContext();
   switch (ctx.key) {
     case 'playing': return;
+    case 'pause': clickById('btn-resume'); return;       // A = 继续远征（最常用，一键触发）
     case 'result': clickById('btn-retry'); return;
     case 'howto': clickById('btn-close-how'); return;
     default:
@@ -209,7 +251,7 @@ export function handleCancel(): void {
     case 'codex': clickById('btn-codex-close'); break;
     case 'gate': clickById('btn-gate-close'); break;
     case 'shop': dispatchEscape(); break;       // B = 踏入下一夜（同 Escape）
-    case 'pause': dispatchEscape(); break;      // B = 继续远征
+    case 'pause': clickById('btn-pause-quit'); break;  // B = 返回主菜单（符合 B=返回的直觉）
     case 'result': clickById('btn-retry'); break;
     // levelup / menu / playing：B 无操作
   }
@@ -223,13 +265,56 @@ function switchCodexTab(delta: number): void {
   if (next) next.click();
 }
 
+/* ---------- 商店区块切换 ---------- */
+
+type ShopSection = 'cards' | 'weapons' | 'items' | 'stats' | 'detail' | 'next';
+
+function getShopSection(el: HTMLElement): ShopSection {
+  if (el.closest('#shop-cards')) return 'cards';
+  if (el.closest('#shop-weapons') || el.id === 'pwd-close' || el.id === 'pwd-sell') return 'weapons';
+  if (el.closest('#shop-items') || el.id === 'sid-close') return 'items';
+  if (el.closest('.mech-group') || el.classList.contains('mech-toggle')) return 'stats';
+  if (el.id === 'btn-shop-next') return 'next';
+  return 'cards';
+}
+
+const SHOP_SECTION_ORDER: ShopSection[] = ['cards', 'weapons', 'items', 'stats', 'next'];
+
+function cycleShopSection(delta: number): void {
+  const ctx = getActiveContext();
+  if (ctx.key !== 'shop' || !ctx.items.length) return;
+  const cur = ctx.items[_focusIndex] || ctx.items[0];
+  const curSection = getShopSection(cur);
+  // 从当前区块开始，跳过空区块，找到下一个有元素的区块
+  const sections = SHOP_SECTION_ORDER;
+  let idx = sections.indexOf(curSection);
+  for (let i = 0; i < sections.length; i++) {
+    idx = (idx + delta + sections.length) % sections.length;
+    const target = sections[idx];
+    // 找到该区块中的第一个元素
+    const firstInSection = ctx.items.find(el => getShopSection(el) === target);
+    if (firstInSection) {
+      const ni = ctx.items.indexOf(firstInSection);
+      if (ni >= 0 && ni !== _focusIndex) {
+        _focusIndex = ni;
+        renderFocus(ctx);
+      }
+      return;
+    }
+  }
+}
+
 export function handlePrev(): void {
-  if (getActiveContextKey() === 'codex') switchCodexTab(-1);
+  const key = getActiveContextKey();
+  if (key === 'codex') switchCodexTab(-1);
+  else if (key === 'shop') cycleShopSection(-1);
   else handleNav('left');
 }
 
 export function handleNext(): void {
-  if (getActiveContextKey() === 'codex') switchCodexTab(1);
+  const key = getActiveContextKey();
+  if (key === 'codex') switchCodexTab(1);
+  else if (key === 'shop') cycleShopSection(1);
   else handleNav('right');
 }
 
