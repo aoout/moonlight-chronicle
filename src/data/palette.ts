@@ -6,6 +6,7 @@ export const PALETTE = {
   gold:'#e9c987', goldBright:'#ffd98a', goldPale:'#f6e3b8', goldDeep:'#c8a05f',
   ice:'#9fd6e8', iceLight:'#cfeff8', iceWhite:'#eafcff',
   violet:'#b49ae8', violetDark:'#7c6d9e',
+  shadow:'#6b5cf0', shadowDark:'#4a3fcc',
   blood:'#e2546a', bloodDark:'#a0284a',
   fire:'#ff8a5c', fireBright:'#ffe9a8', ember:'#ffb84d', hot:'#ff6b6b',
   jade:'#7fd6a4', white:'#ffffff',

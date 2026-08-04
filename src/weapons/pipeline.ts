@@ -177,7 +177,8 @@ function spawnTrailFx(pr: Projectile, dt: number, moveType: string): void {
   }
   if (moveType === 'homing' && RNG() < 0.4) {
     if (pr.wId === 'shadow') {
-      addFx({ x: pr.x, y: pr.y, vx: -pr.vx * 0.08, vy: -pr.vy * 0.08, life: 0.35, max: 0.35, size: pr.r * 0.95, color: RNG() < 0.4 ? PALETTE.violetDark : pr.color });
+      // 影袭之刃：暗影残影拖尾（渐隐暗色虚影，亮暗交替增强「影」感）
+      addFx({ x: pr.x, y: pr.y, vx: -pr.vx * 0.08, vy: -pr.vy * 0.08, life: 0.32, max: 0.32, size: pr.r * (0.85 + RNG() * 0.5), color: RNG() < 0.4 ? PALETTE.shadowDark : pr.color });
     } else {
       addFx({ x: pr.x, y: pr.y, vx: -pr.vx * 0.1, vy: -pr.vy * 0.1, life: 0.3, max: 0.3, size: pr.r * 0.8, color: pr.color });
     }

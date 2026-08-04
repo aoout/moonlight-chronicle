@@ -91,12 +91,12 @@
     "desc": "追踪之刃锁定目标，暴击越高附加伤害越高。",
     "formula": "攻击 ×(0.7+0.13L) + 溢出暴伤×攻击 ×0.9",
     "formulaDmg": "effAtk * (0.7 + 0.13 * level) + max(0, critDmg - 1.5) * effAtk * 0.9",
-    "cd": 0.9, "range": 520, "speed": 460, "homing": true, "color": "#b49ae8",
+    "cd": 0.9, "range": 520, "speed": 460, "homing": true, "color": "#6b5cf0",
     "proj": 1,
     "fire": {
       "targeting": "nearest", "pattern": "volley",
       "count": "1 + projCount",
-      "projectile": { "type": "homing", "speed": 460, "range": 520, "radius": 6, "color": "#b49ae8" }
+      "projectile": { "type": "homing", "speed": 460, "range": 520, "radius": 6, "color": "#6b5cf0" }
     }
   },
   "storm": {

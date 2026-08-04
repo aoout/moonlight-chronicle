@@ -73,8 +73,8 @@ export const ON_HIT: Record<string, (args: OnHitArgs) => boolean> = {
       spawnStar(e.x, e.y, PALETTE.fireBright, 14);
       spawnRing(e.x, e.y, pr.color || '#fff', 0.35, 36, 2.5);
     } else if (w === 'shadow') {
-      spawnStar(e.x, e.y, PALETTE.violetDark, 10);
-      spawnShard(e.x, e.y, PALETTE.violetDark, 4, 120);
+      spawnStar(e.x, e.y, PALETTE.shadowDark, 10);
+      spawnShard(e.x, e.y, PALETTE.shadowDark, 4, 120);
     } else if (w === 'storm') {
       spawnRing(e.x, e.y, pr.color || '#8fe3d8', 0.32, 28, 2.2);
       spawnSpark(e.x, e.y, '#8fe3d8', 5, 110);
