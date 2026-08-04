@@ -76,6 +76,7 @@ function trackBalls(e: any, n: number, speed: number, accel: number, color: stri
       homing: true, x: e.x, y: e.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
       target: p, speed, accel, r: opts.r ?? 8, dmg: e.dmg * (opts.dmgMul ?? 0.8),
       color, hit: new Set(), enemy: true, t: 0, life: opts.life ?? 4, orb: true,
+      speedMax: opts.speedMax, turnRate: opts.turnRate, lockT: opts.lockT,
     }));
   }
 }
@@ -161,9 +162,9 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     spawnRing(e.x, e.y, '#b49ae8', 0.4, 32, 2);
     spawnBurst(e.x, e.y, '#7c6d9e', 12);
     spawnSpark(e.x, e.y, '#b49ae8', 8, 140);
-    // 快球先行 + 慢球后发（前后夹击，玩家无单一躲避方向）
-    trackBalls(e, 3, 220, 90, '#9a86c8', { dmgMul: 0.7, life: 4 });
-    trackBalls(e, 2, 158, 60, '#b49ae8', { dmgMul: 0.62, life: 4.5 });
+    // 快球先行 + 慢球后发（前后夹击；转向受限可被急转甩开）
+    trackBalls(e, 3, 210, 55, '#9a86c8', { dmgMul: 0.7, life: 4, speedMax: 300, turnRate: 2.4, lockT: 2.6 });
+    trackBalls(e, 2, 150, 35, '#b49ae8', { dmgMul: 0.62, life: 4.5, speedMax: 235, turnRate: 1.9, lockT: 3.2 });
     ringShot(e, 12, 230, '#7c6d9e', { r: 6, dmgMul: 0.55, life: 3, mark: 'wave' });
     p.effects.curseTimer = Math.max(p.effects.curseTimer || 0, 3);
     spawnText(p.x, p.y - 40, '蚀咒', '#9a86c8');

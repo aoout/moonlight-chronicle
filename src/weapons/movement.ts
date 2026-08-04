@@ -30,13 +30,25 @@ export const MOVEMENT: Record<string, (pr: Projectile, dt: number, p: Player) =>
     return true;
   },
 
-  /** 追踪运动（敌弹支持 accel 加速，越追越快） */
+  /** 追踪运动（平滑转向 + 速度上限：可被走位甩开，保留策略性） */
   homing(pr, dt, _p) {
-    if (pr.accel) pr.speed = (pr.speed || 0) + pr.accel * dt;
+    if (pr.accel) pr.speed = Math.min(pr.speedMax ?? 999, (pr.speed || 0) + pr.accel * dt);
+    // 追踪时限：锁定一段时间后失去目标（变直线，玩家可拖过）
+    if (pr.lockT !== undefined) {
+      pr.lockT -= dt;
+      if (pr.lockT <= 0) pr.target = undefined;
+    }
     if (pr.target && !pr.target.dead) {
-      const a = angTo(pr, pr.target);
-      pr.vx = Math.cos(a) * pr.speed;
-      pr.vy = Math.sin(a) * pr.speed;
+      const want = Math.atan2(pr.target.y - pr.y, pr.target.x - pr.x);
+      const cur = Math.atan2(pr.vy || 0, pr.vx || 0);
+      // 平滑转向：受 turnRate 限制（rad/s），急转弯可甩开
+      let diff = want - cur;
+      while (diff > Math.PI) diff -= 6.2832;
+      while (diff < -Math.PI) diff += 6.2832;
+      const maxTurn = (pr.turnRate ?? 999) * dt;
+      const na = cur + Math.max(-maxTurn, Math.min(maxTurn, diff));
+      pr.vx = Math.cos(na) * pr.speed;
+      pr.vy = Math.sin(na) * pr.speed;
     }
     pr.x += pr.vx * dt;
     pr.y += pr.vy * dt;

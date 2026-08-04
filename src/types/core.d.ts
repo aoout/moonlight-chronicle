@@ -252,6 +252,10 @@ export interface Projectile {
   chainRange?: number;
   size?: number;
   max?: number;
+  /* 追踪弹（homing）参数：速度上限 / 转向率 / 锁定时限 */
+  speedMax?: number;
+  turnRate?: number;
+  lockT?: number;
   /* 视图基础设施 */
   _meta?: Record<string, any>;
   _idx?: number;
