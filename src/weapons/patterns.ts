@@ -131,9 +131,9 @@ function createProjectile(p: Player, target: TargetingResult, cfg: WeaponFireCon
   // 创建上下文对象
   const ctx = { angle, target, p, cfg, projCfg, wId, baseDmg, lv: cfg.lv || 1 };
 
-  // 陨石类投射物在目标位置生成，而非玩家位置
-  const startX = typeName === 'meteor' ? (target?.x ?? p.x) : p.x;
-  const startY = typeName === 'meteor' ? (target?.y ?? p.y) : p.y;
+  // 陨石/蚀潮类投射物在目标位置生成，而非玩家位置
+  const startX = (typeName === 'meteor' || typeName === 'tide') ? (target?.x ?? p.x) : p.x;
+  const startY = (typeName === 'meteor' || typeName === 'tide') ? (target?.y ?? p.y) : p.y;
 
   const pr = world.add('projectiles', {
     ...Position(startX, startY),

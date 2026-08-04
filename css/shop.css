@@ -130,12 +130,32 @@
   color: rgba(244,236,216,.78); margin-bottom: 5px;
 }
 .sgt-ic { font-size: 13px; color: var(--gold); display: flex; }
+/* 秘宝之效折叠区 */
+.mech-group .stat-group-title {
+  margin-bottom: 0;
+}
+.mech-toggle {
+  width: 100%;
+  background: none; border: none; outline: none; padding: 0;
+  font-family: inherit; text-align: left;
+  cursor: pointer; user-select: none;
+  transition: color .3s ease;
+}
+.mech-toggle:hover { color: var(--gold); }
+.mech-toggle:hover .sgt-ic { filter: drop-shadow(0 0 6px var(--gold-glow)); }
+.mech-caret {
+  margin-left: auto;
+  font-size: 9px; color: rgba(244,236,216,.5);
+  transition: transform .3s ease;
+}
+.mech-grid { display: none; }
+.mech-group.open .mech-grid { display: grid; }
+.mech-group.open .mech-caret { transform: rotate(90deg); }
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 14px; }
 .stat-row {
   display: flex; align-items: center; gap: 6px;
   padding: 3px 0; font-size: 11px;
 }
-.stat-row.zero { opacity: .35; }
 .stat-row.flash { animation: statFlash .8s ease; }
 .sr-ic { font-size: 12px; color: var(--ice); display: flex; flex: none; }
 .sr-name { color: rgba(244,236,216,.65); letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

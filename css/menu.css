@@ -4,17 +4,22 @@
   position: absolute; top: 50%; left: 50%;
   width: 560px; height: 560px; transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle at 46% 42%, rgba(244,236,216,.16), rgba(233,201,135,.05) 42%, transparent 70%);
-  box-shadow: 0 0 140px rgba(233,201,135,.16), inset 0 0 120px rgba(233,201,135,.05);
-  animation: orbPulse 5s ease-in-out infinite;
+  background: radial-gradient(circle at 46% 42%, rgba(246,238,222,.23), rgba(233,201,135,.09) 42%, transparent 70%);
+  box-shadow: 0 0 150px rgba(233,201,135,.21), inset 0 0 120px rgba(233,201,135,.07);
+  animation: orbFade 1.8s cubic-bezier(.22,1,.36,1) both, orbPulse 5s 2.2s ease-in-out infinite;
   pointer-events: none;
+}
+/* 光球入场：从柔焦虚影中缓缓浮现（不动 transform，与呼吸动画互不冲突） */
+@keyframes orbFade {
+  from { opacity: 0; filter: blur(18px); }
+  to   { opacity: 1; filter: blur(0); }
 }
 @keyframes orbPulse {
   0%,100% { transform: translate(-50%,-50%) scale(1); opacity: .9; }
   50% { transform: translate(-50%,-50%) scale(1.06); opacity: 1; }
 }
-.menu-title-wrap { text-align: center; z-index: 2; animation: riseIn 1s cubic-bezier(.22,1,.36,1) both; }
-@keyframes riseIn { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: translateY(0); } }
+.menu-title-wrap { text-align: center; z-index: 2; animation: riseIn 1.1s .15s cubic-bezier(.22,1,.36,1) both; }
+@keyframes riseIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
 .menu-kicker {
   letter-spacing: .55em; font-size: 12px; color: var(--gold);
@@ -34,7 +39,7 @@
   font-weight: 400;
 }
 
-.menu-cards { display: flex; gap: 18px; z-index: 2; animation: riseIn 1.1s .15s cubic-bezier(.22,1,.36,1) both; }
+.menu-cards { display: flex; gap: 18px; z-index: 2; animation: riseIn 1.2s .35s cubic-bezier(.22,1,.36,1) both; }
 
 .menu-btn {
   position: relative; cursor: pointer; border: none; outline: none;
@@ -84,7 +89,7 @@
   box-shadow: inset 0 0 30px rgba(233,201,135,.1), 0 6px 30px rgba(233,201,135,.16);
   transform: translateY(-2px);
 }
-.menu-hint { font-size: 12px; letter-spacing: .18em; color: rgba(244,236,216,.4); z-index: 2; animation: riseIn 1.2s .3s both; }
+.menu-hint { font-size: 12px; letter-spacing: .18em; color: rgba(244,236,216,.4); z-index: 2; animation: riseIn 1.2s .6s both; }
 
 .howto {
   position: fixed; inset: 0; z-index: 50;
@@ -117,6 +122,30 @@
 .menu-depth {
   font-size: 11px; letter-spacing: .3em; color: rgba(159,214,232,.6);
   margin-top: 8px; text-shadow: 0 0 10px rgba(159,214,232,.3);
+  /* 占位高度：避免 JS 填充文本时高度突变挤压下方布局 */
+  min-height: 1.2em;
+  /* 入场与标题/按钮衔接，不再“突然出现” */
+  animation: riseIn 1s .25s cubic-bezier(.22,1,.36,1) both;
+}
+/* 数字与档位名保持与整体同观感（HTML 结构分离，视觉不变） */
+.menu-depth b {
+  /* 固定两位宽度：1→10 更新时行宽不再突变，杜绝居中布局跳动 */
+  display: inline-block;
+  min-width: 2ch;
+  text-align: center;
+}
+.menu-depth b,
+.menu-depth em {
+  font-weight: inherit;
+  font-style: normal;
+}
+/* 数字滚动：每个新数字自上滑入 */
+#menu-depth-num.num-roll {
+  animation: numRollIn .2s cubic-bezier(.22,1,.36,1);
+}
+@keyframes numRollIn {
+  from { transform: translateY(-.55em); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
 }
 
 /* ===== 远征之门（蚀月深度选择） ===== */
@@ -164,7 +193,7 @@
     height: min(380px, 60vh);
   }
   .menu-title-wrap {
-    animation: riseIn 1s cubic-bezier(.22,1,.36,1) both;
+    animation: riseIn 1s .05s cubic-bezier(.22,1,.36,1) both;
   }
   .menu-kicker {
     font-size: 9px;
@@ -188,7 +217,7 @@
     width: auto;
     max-width: 90vw;
     justify-content: center;
-    animation: riseIn 1.1s .1s cubic-bezier(.22,1,.36,1) both;
+    animation: riseIn 1.1s .25s cubic-bezier(.22,1,.36,1) both;
   }
   .menu-btn {
     padding: 9px 18px;
@@ -219,7 +248,7 @@
   .menu-hint {
     font-size: 9px;
     letter-spacing: .14em;
-    animation: riseIn 1.2s .2s both;
+    animation: riseIn 1.2s .45s both;
   }
   .menu-depth {
     font-size: 9px;
@@ -375,3 +404,15 @@
   }
 }
 
+
+/* 动效偏好降级：关闭首页入场与呼吸动画，静态呈现 */
+@media (prefers-reduced-motion: reduce) {
+  .menu-orb,
+  .menu-title-wrap,
+  .menu-depth,
+  #menu-depth-num,
+  .menu-cards,
+  .menu-hint {
+    animation: none;
+  }
+}

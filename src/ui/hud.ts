@@ -42,7 +42,7 @@ function contrastText(hex: string): string {
 }
 
 type WeaponBarEl = HTMLElement & { _sig?: string, _liqSig?: string | null };
-type WeaponSlotEl = HTMLElement & { _wasCool?: boolean };
+type WeaponSlotEl = HTMLElement & { _wasCool?: boolean; _prevCur?: number };
 
 /* 当前回合道具造成的总伤害（武器 + 道具 = 100%） */
 function sumItemDmg(p: any): number {
@@ -130,14 +130,16 @@ function updateWeaponCds(): void {
     const cur = pSt().weaponCd[w.id] || 0;
     const full = pSt().weaponCdFull[w.id] || 0.001;
     const prog = clamp(1 - cur / full, 0, 1);
+    const prevCur = slot._prevCur ?? full;
     slot.style.setProperty('--cddeg', (prog * 360).toFixed(1) + 'deg');
     slot.classList.toggle('cool', prog < 1);
-    if (prog >= 1 && slot._wasCool) {          // 冷却完成：边框亮起脉冲
+    // 冷却完成检测：冷却值从极小跳回满值 → 武器刚开火 → 脉冲反馈
+    if (cur > prevCur && prevCur <= full * 0.05) {
       slot.classList.remove('ready-pulse');
       void slot.offsetWidth;
       slot.classList.add('ready-pulse');
     }
-    slot._wasCool = prog < 1;
+    slot._prevCur = cur;
     // --- 液面占比（签名缓存，低频） ---
     const d = wDmg[w.id] || 0;
     const pct = total > 0 ? d / total * 100 : 0;

@@ -132,5 +132,17 @@
     "fire": { "targeting": "self", "pattern": "phantom",
       "projectile": { "speed": 300, "range": 600, "radius": 5, "color": "#c9b8f0", "life": 2 }
     }
+  },
+  "tideAnchor": {
+    "id": "tideAnchor", "name": "蚀潮之锚", "icon": "wTideAnchor", "tag": "深度·重击",
+    "desc": "坠入蚀潮之锚，以守月人的血肉与蚀月深度为引，引动深渊潮压。",
+    "formula": "(攻击 ×(0.75+0.13L) + 生命上限 ×(12%+1.5%L)) ×(1+月蚀深度×12%)",
+    "formulaDmg": "(effAtk * (0.75 + 0.13 * level) + maxHp * (0.12 + 0.015 * level)) * (1 + depth * 0.12)",
+    "cd": 2.8, "aoe": 130, "color": "#5fb8a8",
+    "count": 1,
+    "fire": {
+      "targeting": "denseArea", "pattern": "single",
+      "projectile": { "type": "tide", "delay": 0.5, "aoe": 130, "radius": 12, "color": "#5fb8a8" }
+    }
   }
 }

@@ -88,9 +88,41 @@ export function showCurseBanner(curse: CurseDef): void {
   setTimeout(() => b.remove(), 3500);
 }
 
+/* ---------- 蚀月深度数字滚动：从旧值逐个数到新值，每个数字自上滑入 ---------- */
+const NUM_ROLL_STEP_MS = 130;
+let numRollTimer = 0;
+
+function rollMenuDepthNum(el: HTMLElement, to: number): void {
+  window.clearTimeout(numRollTimer);
+  const reduced = typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const from = parseInt(el.textContent || '1', 10) || 1;
+  if (from === to || reduced) {
+    el.textContent = String(to);
+    return;
+  }
+  const step = from < to ? 1 : -1;
+  let v = from;
+  const bump = (): void => {
+    el.textContent = String(v);
+    el.classList.remove('num-roll');
+    void el.offsetWidth; /* 重启动画 */
+    el.classList.add('num-roll');
+  };
+  const tick = (): void => {
+    v += step;
+    bump();
+    if (v !== to) numRollTimer = window.setTimeout(tick, NUM_ROLL_STEP_MS);
+  };
+  numRollTimer = window.setTimeout(tick, NUM_ROLL_STEP_MS);
+}
+
 export function refreshMenuDepth(): void {
-  const md = $('menu-depth');
-  if (md) md.textContent = '蚀月深度 · ' + (gSt().unlocked + 1) + ' / 10 · ' + LEVELS[gSt().unlocked].tag;
+  /* 静态文案（蚀月深度 · / 10）已在 HTML 中，只刷新数字与档位 tag */
+  const num = $('menu-depth-num');
+  if (num) rollMenuDepthNum(num, gSt().unlocked + 1);
+  const tag = $('menu-depth-tag');
+  if (tag) tag.textContent = LEVELS[gSt().unlocked].tag;
   const save = loadRunMeta();
   const btn = $('btn-continue');
   if (btn && save && save.player && save.stage > 0) {

@@ -25,24 +25,35 @@ const MECH: Record<string, { name: string; icon: string; fmt: (v: any) => string
 
 type StatItem = string | { key: string; show?: string; fmt?: (v: number) => string };
 
-// 属性面板分组
+// 属性面板分组：仅守月人本体属性（秘宝机制效果归入下方折叠区）
 const SHOP_PANEL_GROUPS: { title: string; icon: string; stats: StatItem[] }[] = [
   { title:'战意', icon:ICONS.sword, stats:[
     { key:'atk', show:'effAtk' },
     'atkSpd',
     { key:'critRate', show:'effCrit' },
-    'critDmg','projCount','area','pierce','chainLightning','echo','lowHpDmg','fullHpCrit','boom','scaleLevel','scaleStage',
+    'critDmg','projCount','area',
   ]},
-  { title:'守护', icon:ICONS.shield, stats:['maxHp','armor','dodge','thorns','lifesteal','regen','onKillHp'] },
+  { title:'守护', icon:ICONS.shield, stats:['maxHp','armor','dodge','thorns','lifesteal','regen'] },
   { title:'疾驰', icon:ICONS.arrow, stats:[
     { key:'speed', show:'effSpeed' },
   ]},
   { title:'天命', icon:ICONS.gem, stats:[
     'luck',
     { key:'goldGain', show:'effGold', fmt: (v: number) =>'×'+v.toFixed(1) },
-    'xpGain','magnet','autoPick','cdr','duration','timeStop',
+    'xpGain','magnet','cdr','duration',
   ]},
 ];
+
+// 秘宝之效：由秘宝/武器带来的机制效果，非守月人本体属性，折叠展示
+const MECH_GROUP: { title: string; icon: string; stats: StatItem[] } = {
+  title:'秘宝之效', icon:ICONS.diamond, stats:[
+    'pierce','chainLightning','echo','timeStop','lowHpDmg','fullHpCrit',
+    'autoPick','boom','onKillHp','scaleLevel','scaleStage',
+  ],
+};
+
+/* 秘宝折叠区展开状态（商店/暂停面板共用，保留用户选择） */
+let _mechOpen = false;
 
 let _shopPanelPrev: Record<string, any> = {};
 
@@ -115,6 +126,56 @@ export function renderShopPanel(p: any): void {
   renderStatGroupsInto(st, p, _shopPanelPrev || (_shopPanelPrev = {}));
 }
 
+/* 渲染单行属性 */
+function statRow(item: StatItem, p: any, prev?: Record<string, any> | null): HTMLElement | null {
+  const key = typeof item === 'string' ? item : item.key;
+  const def: any = STATS[key] || MECH[key];
+  if (!def) return null;
+  const valKey = typeof item === 'object' && (item as any).show ? (item as any).show : key;
+  const v = p[valKey] || 0;
+  const itObj = item as any;
+  const fmt = typeof item === 'object' && itObj.fmt ? itObj.fmt : def.fmt;
+  const changed = prev && prev[key] !== undefined && prev[key] !== v;
+  /* 0 是正常数值（护甲 0 即没有护甲），照常显示，不做弱化 */
+  const row = el('div', 'stat-row' + (changed ? ' flash' : ''));
+  row.innerHTML = html`
+    <span class="sr-ic">${def.icon}</span>
+    <span class="sr-name">${def.name}</span>
+    <span class="sr-val">${fmt(v)}</span>
+  `;
+  if (prev) prev[key] = v;
+  return row;
+}
+
+/* 秘宝之效折叠区：仅当存在已生效的机制效果时渲染；只列非零项 */
+function renderMechGroup(container: HTMLElement, p: any, prev?: Record<string, any> | null): void {
+  const active = MECH_GROUP.stats
+    .filter(item => {
+      const key = typeof item === 'string' ? item : item.key;
+      const valKey = typeof item === 'object' && (item as any).show ? (item as any).show : key;
+      return (p[valKey] || 0) !== 0;
+    })
+    .map(item => statRow(item, p, prev))
+    .filter((r): r is HTMLElement => !!r);
+  if (!active.length) return;
+  const sec = el('div', 'stat-group mech-group' + (_mechOpen ? ' open' : ''));
+  const btn = el('button', 'stat-group-title mech-toggle', html`
+    <span class="sgt-ic">${MECH_GROUP.icon}</span>${MECH_GROUP.title}
+    <span class="mech-caret">${_mechOpen ? '▾' : '▸'}</span>
+  `);
+  btn.onclick = () => {
+    _mechOpen = !_mechOpen;
+    sec.classList.toggle('open', _mechOpen);
+    const caret = sec.querySelector('.mech-caret');
+    if (caret) caret.textContent = _mechOpen ? '▾' : '▸';
+  };
+  sec.appendChild(btn);
+  const grid = el('div', 'stat-grid mech-grid');
+  active.forEach(row => grid.appendChild(row));
+  sec.appendChild(grid);
+  container.appendChild(sec);
+}
+
 /* 通用属性分组渲染 */
 export function renderStatGroupsInto(container: HTMLElement, p: any, prev?: Record<string, any> | null): void {
   SHOP_PANEL_GROUPS.forEach(g => {
@@ -124,24 +185,11 @@ export function renderStatGroupsInto(container: HTMLElement, p: any, prev?: Reco
       `));
     const grid = el('div', 'stat-grid');
     g.stats.forEach(item => {
-      const key = typeof item === 'string' ? item : item.key;
-      const def: any = STATS[key] || MECH[key];
-      if (!def) return;
-      const valKey = typeof item === 'object' && (item as any).show ? (item as any).show : key;
-      const v = p[valKey] || 0;
-      const itObj = item as any;
-      const fmt = typeof item === 'object' && itObj.fmt ? itObj.fmt : def.fmt;
-      const changed = prev && prev[key] !== undefined && prev[key] !== v;
-      const row = el('div', 'stat-row' + (v === 0 ? ' zero' : '') + (changed ? ' flash' : ''));
-      row.innerHTML = html`
-        <span class="sr-ic">${def.icon}</span>
-        <span class="sr-name">${def.name}</span>
-        <span class="sr-val">${v === 0 ? '—' : fmt(v)}</span>
-      `;
-      grid.appendChild(row);
-      if (prev) prev[key] = v;
+      const row = statRow(item, p, prev);
+      if (row) grid.appendChild(row);
     });
     sec.appendChild(grid);
     container.appendChild(sec);
   });
+  renderMechGroup(container, p, prev);
 }

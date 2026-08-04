@@ -40,7 +40,7 @@ function _enemyCanvas(id: string, def: any, isBoss: boolean): HTMLCanvasElement 
   if (isBoss) {
     const shapes = BOSS_SHAPES as any;
     const fn = shapes[id] || shapes.final;
-    if (fn) fn(ctx, def, s, 0, 0, 0);
+    if (fn) fn(ctx, def, s, 0, 0, 0, 0);
   } else {
     const shapes = ENEMY_SHAPES as any;
     const fn = shapes[id] || shapes._default;

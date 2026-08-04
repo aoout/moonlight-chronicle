@@ -84,6 +84,14 @@ export const PROJECTILE_TYPES: Record<string, ProjectileTypeDef> = {
     onHit: ['meteor'],
   },
 
+  /** 蚀潮之锚（延迟下落 · 潮汐） */
+  tide: {
+    createFlags: (ctx) => ({ tide: true, delay: 0.5, aoe: (ctx.projCfg.aoe || 130) * ctx.p.area }),
+    movement: 'meteor',
+    hit: 'aoe',
+    onHit: ['meteor'],
+  },
+
   /** 酸液池 */
   acid: {
     createFlags: (_ctx) => ({ acid: true, life: 2 }),
@@ -138,6 +146,7 @@ export const PROJECTILE_TYPES: Record<string, ProjectileTypeDef> = {
  * 获取投射物的类型名
  */
 export function resolveProjectileType(pr: Projectile): string {
+  if (pr.tide) return 'tide';
   if (pr.meteor) return 'meteor';
   if (pr.acid) return 'acid';
   if (pr.ground) return 'ground';

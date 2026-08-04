@@ -25,7 +25,7 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
 
   /* 蚀蛆：分段软体蠕虫，逐节蠕动，环节纹 + 口器 + 粘液 */
   grub(ctx, e, s, wob, fa, t, time) {
-    ctx.save(); ctx.rotate(fa + Math.PI);
+    ctx.save();
     const c = e.color;
     const ph = time * 3;
     // 三段身体（头节 + 中节 + 尾节），相位错开蠕动
@@ -60,7 +60,7 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
 
   /* 噬光鼠：鼠身 + 头 + 双耳 + 长尾 + 胡须獠牙 */
   rat(ctx, e, s, wob, fa, t, time) {
-    ctx.save(); ctx.rotate(fa);
+    ctx.save();
     const c = e.color;
     const run = Math.sin(time * 10) * 0.9;   // 奔跑颤动
     ctx.translate(run, 0);
@@ -102,7 +102,7 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
 
   /* 蚀甲兽：重装甲虫，三片弧甲 + 步足 + 甲缝 */
   armored(ctx, e, s, wob, fa, t, time) {
-    ctx.save(); ctx.rotate(fa);
+    ctx.save();
     const c = e.color;
     const breathe = 1 + Math.sin(time * 2) * 0.03;
     // 步足（四对，着地摆动）
@@ -136,7 +136,7 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
 
   /* 噬光翼：翼魔，双片蝙蝠翼扑扇 + 尖耳獠牙 */
   wing(ctx, e, s, wob, fa, t, time) {
-    ctx.save(); ctx.rotate(fa);
+    ctx.save();
     const c = e.color;
     const flap = Math.sin(time * 5) * 0.35;
     // 翼（双片，膜状：外缘锯齿 + 翼骨）
@@ -185,7 +185,6 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     const c = e.color;
     const dashing = e.state === 'dashMove';           // 冲锋姿态：低头前倾
     const lean = dashing ? 0.45 : Math.sin(time * 2) * 0.04;
-    ctx.rotate(fa);
     ctx.save();
     ctx.rotate(lean * (dashing ? Math.sign(Math.cos(fa)) || 1 : 1));
     // 身体
@@ -247,8 +246,8 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     // 高光
     ctx.fillStyle = 'rgba(255,255,255,.16)';
     ctx.beginPath(); ctx.ellipse(-s * 0.3, wob - s * 0.4, s * 0.3, s * 0.16, -0.5, 0, TAU); ctx.fill();
-    // 喙管（朝向目标，蓄力时更长更亮）
-    ctx.save(); ctx.rotate(fa);
+    // 喙管（基准朝右，外层旋转负责整体朝向）
+    ctx.save();
     const beakLen = charging ? 1.85 : 1.55;
     ctx.fillStyle = c;
     ctx.beginPath();

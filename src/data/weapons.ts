@@ -7,6 +7,7 @@ import { compileFormula } from './parser.js';
 import { validateEntries, validateAndWarn } from './validate.js';
 import weaponsData from './weapons.json';
 import upgradeCost from './upgrade_cost.json';
+import { sState } from '../state/stage.js';
 import type { WeaponDef, Player } from '../types/core.d.ts';
 
 const WEAPONS: Record<string, WeaponDef> = {};
@@ -36,11 +37,11 @@ for (const [key, data] of Object.entries(weaponsData)) {
   if (typeof def.icon === 'string') {
     def.icon = ICON_MAP[def.icon] || def.icon;
   }
-  // 预编译 dmg 公式：解析一次，闭包求值
+  // 预编译 dmg 公式：解析一次，闭包求值（上下文注入 level 与当前月蚀深度 depth）
   const formula = def.formulaDmg as string | undefined;
   const compiledDmg = formula ? compileFormula(formula) : null;
   if (compiledDmg) {
-    def.dmg = (p: Player, lv: number) => compiledDmg({ ...p, level: lv });
+    def.dmg = (p: Player, lv: number) => compiledDmg({ ...p, level: lv, depth: sState().depth });
   }
   // cd 从常量转为函数
   if (typeof def.cd === 'number') {

@@ -62,7 +62,7 @@ export function drawEnemies(rc: RenderContext): void {
     // 脚下阴影（俯视投影）
     ctx.fillStyle = 'rgba(0,0,0,.3)';
     ctx.beginPath(); ctx.ellipse(0, s * 0.92, s * 1.15, s * 0.42, 0, 0, 6.28); ctx.fill();
-    // 身体造型（使用离屏缓存，每4帧刷新以支持动画）
+    // 身体造型（使用离屏缓存，每4帧刷新以支持动画；缓存为基准朝向，外层做旋转）
     ctx.save();
     const cacheKey = 'enemy_' + (e.type || 'default') + '_' + (e.color || '#888') + '_' + Math.round(s);
     const cacheSize = Math.ceil(s * 4) + 40;
@@ -77,6 +77,7 @@ export function drawEnemies(rc: RenderContext): void {
     const cacheCanvas = shouldRefresh
       ? shapeCache.refresh(cacheKey, cacheSize, cacheSize, drawBody)
       : shapeCache.get(cacheKey, cacheSize, cacheSize, drawBody);
+    ctx.rotate(fa);
     ctx.drawImage(cacheCanvas, -cacheSize / 2, -cacheSize / 2);
     ctx.restore();
     // 受击白闪（不缓存，实时绘制）

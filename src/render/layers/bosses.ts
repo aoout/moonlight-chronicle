@@ -269,7 +269,6 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
 
   /* 噬月魔龙：龙头 + 双翼扑扇 + 长尾 + 火喉（蓄力喷火） */
   dragon(ctx, e, s, wob, fa, t, time) {
-    ctx.save(); ctx.rotate(fa);
     const c = e.color;
     const ch = chargeOf(e);
     const flap = Math.sin(time * 3.2) * 0.3;
@@ -313,7 +312,6 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     // 眼
     eye(ctx, -s * 0.35, wob - s * 0.3, s * 0.13, '#2a0c0c');
     eye(ctx, s * 0.35, wob - s * 0.3, s * 0.13, '#2a0c0c');
-    ctx.restore();
   },
 
   /* 蚀月枭：羽翼扑扇 + 尖喙 + 电光羽毛（落雷蓄力） */

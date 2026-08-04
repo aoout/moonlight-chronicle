@@ -193,6 +193,9 @@
 /* 主菜单按钮图标 */
 .menu-btn .ic {
   display: inline-block;
+  /* 固定占位：JS 填充 SVG 前后宽度一致，避免按钮/按钮组布局跳动 */
+  width: 1em;
+  height: 1em;
   margin-right: 8px;
   color: var(--gold);
   vertical-align: -0.12em;

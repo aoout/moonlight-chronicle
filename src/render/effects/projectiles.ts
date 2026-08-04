@@ -212,6 +212,41 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     }
   },
 
+  /* 蚀潮之锚：落点预警（旋转潮环 + 深潮涡心 + 潮涌波纹 + 水泡上浮） */
+  tide(ctx, pr) {
+    const k = Math.min(1, pr.t / (pr.delay || 0.5));
+    ctx.globalAlpha = 0.3 + 0.7 * k;
+    // 1. 旋转潮环（青绿虚线，回旋如漩涡）
+    ctx.save();
+    ctx.setLineDash([11, 8]);
+    ctx.lineDashOffset = -pr.t * 55;
+    ctx.strokeStyle = '#5fb8a8'; ctx.lineWidth = 2.4;
+    ctx.shadowColor = '#5fb8a8'; ctx.shadowBlur = 20;
+    ctx.beginPath(); ctx.arc(0, 0, 10 + pr.t * 30, 0, TAU); ctx.stroke();
+    ctx.restore();
+    ctx.setLineDash([]);
+    // 2. 深潮涡心
+    ctx.fillStyle = 'rgba(44,93,104,.28)';
+    ctx.beginPath(); ctx.arc(0, 0, 8 + pr.t * 26, 0, TAU); ctx.fill();
+    // 3. 潮涌波纹（白色小弧，旋转如潮汐）
+    ctx.globalAlpha = 0.55;
+    ctx.strokeStyle = '#cfeff8'; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.arc(0, 0, 6 + pr.t * 20, pr.t * 3, pr.t * 3 + 1.5); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 6 + pr.t * 20, pr.t * 3 + 3.14, pr.t * 3 + 4.6); ctx.stroke();
+    // 4. 水泡上浮（青白气泡）
+    ctx.globalAlpha = 0.8;
+    for (let i = 0; i < 4; i++) {
+      const a = pr.t * 4 + i * 1.57;
+      const rr = 13 + pr.t * 32;
+      const by = -Math.abs(Math.sin(pr.t * 3.2 + i * 1.3)) * 7;
+      dot(ctx, Math.cos(a) * rr, Math.sin(a) * rr + by, 1.6, '#eafcff', 4);
+    }
+    // 5. 中心潮核
+    ctx.globalAlpha = 1;
+    dot(ctx, 0, 0, 2.4, '#dff7f2', 9);
+    ctx.shadowBlur = 0;
+  },
+
   /* 月光束：脉动光柱（呼吸宽窄 + 三层光 + 光束粒子） */
   beam(ctx, pr) {
     const dx = Math.cos(pr.dir), dy = Math.sin(pr.dir);
@@ -531,6 +566,7 @@ export function drawProjectiles(rc: RenderContext): void {
     ctx.save();
     ctx.translate(pr.x, pr.y);
     if (pr.meteor) PROJ_RENDER.meteor(ctx, pr);
+    else if (pr.tide) PROJ_RENDER.tide(ctx, pr);
     else if (pr.acid) PROJ_RENDER.acid(ctx, pr);
     else if (pr.ground) PROJ_RENDER.ground(ctx, pr);
     else if (pr.breath) PROJ_RENDER.breath(ctx, pr);

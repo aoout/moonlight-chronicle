@@ -71,6 +71,12 @@ function spawnFireEffects(p: Player, def: WeaponDef, wId: string): void {
   }
   if (wId === 'meteor') spawnRing(p.x, p.y, PALETTE.fire, 0.35, 40, 2.5);
   if (wId === 'arc') spawnGlow(mx, my, 13, PALETTE.violet, 0.3);
+  if (wId === 'tideAnchor') {
+    // 蚀潮之锚开火：玩家身前涌起潮环与飞溅水光
+    spawnRing(p.x, p.y, '#5fb8a8', 0.4, 46, 3);
+    spawnSpark(p.x, p.y, '#cfeff8', 5, 170);
+    spawnGlow(p.x, p.y, 16, '#2c5d68', 0.35);
+  }
 }
 
 /* =========================================================
@@ -86,9 +92,13 @@ function spawnFireEffects(p: Player, def: WeaponDef, wId: string): void {
 export function executeProjPipeline(pr: Projectile, dt: number, p: Player): void {
   pr.hit = pr.hit || new Set();
 
-  // 特殊投射物：陨石（独立处理，因逻辑复杂）
+  // 特殊投射物：陨石 / 蚀潮（独立处理，因逻辑复杂）
   if (pr.meteor) {
     tickMeteor(pr, dt, p);
+    return;
+  }
+  if (pr.tide) {
+    tickTide(pr, dt, p);
     return;
   }
 
@@ -178,8 +188,42 @@ function spawnTrailFx(pr: Projectile, dt: number, moveType: string): void {
 }
 
 /* =========================================================
-   3. 特殊投射物处理（陨石 — 逻辑复杂，单独处理）
+   3. 特殊投射物处理（陨石 / 蚀潮 — 逻辑复杂，单独处理）
    ========================================================= */
+function tickTide(pr: Projectile, dt: number, p: Player): void {
+  pr.t = (pr.t || 0) + dt;
+  // 坠落水花（青白潮滴，下坠翻涌）
+  if (RNG() < 0.6) {
+    addFx({ x: pr.x, y: pr.y, vx: (RNG() - 0.5) * 40, vy: RNG() * 60 + 30, life: 0.4, max: 0.4, size: RNG() < 0.5 ? 2 : 4, color: RNG() < 0.5 ? '#cfeff8' : '#5fb8a8' });
+  }
+  if (pr.t >= (pr.delay || 0.5)) {
+    // 潮压喷涌：水花 + 水刃 + 白水光 + 双水环 + 潮芒 + 深潮辉光
+    spawnBurst(pr.x, pr.y, PALETTE.iceLight, 20);
+    spawnShard(pr.x, pr.y, PALETTE.ice, 8, 260);
+    spawnSpark(pr.x, pr.y, '#ffffff', 10, 280);
+    spawnRing(pr.x, pr.y, '#5fb8a8', 0.5, 130, 4.5);
+    spawnRing(pr.x, pr.y, '#cfeff8', 0.7, 215, 2);
+    spawnStar(pr.x, pr.y, '#8fe3d8', 24);
+    spawnGlow(pr.x, pr.y, 30, '#2c5d68', 0.5);
+    // 升腾水泡（潮压把水泡顶向高空）
+    for (let i = 0; i < 6; i++) {
+      addFx({
+        x: pr.x + (RNG() - 0.5) * 140, y: pr.y + (RNG() - 0.5) * 20,
+        vx: (RNG() - 0.5) * 30, vy: -RNG() * 130 - 40,
+        life: 0.8, max: 0.8, size: 2 + RNG() * 3,
+        color: RNG() < 0.5 ? '#cfeff8' : '#8fe3d8',
+      });
+    }
+    shakeScreen(9);
+    for (const e of queryRadius(pr.x, pr.y, pr.aoe || 130)) {
+      if (e.dead) continue;
+      damageEnemy(e, pr.dmg * (1.4 - dist(e, pr) / (pr.aoe || 130)), RNG() < p.effCrit, 'tide', pr.wId);
+    }
+    pr.dead = 1;
+  }
+}
+
+/* 陨石（焚天陨星 · 火系） */
 function tickMeteor(pr: Projectile, dt: number, p: Player): void {
   pr.t = (pr.t || 0) + dt;
   if (RNG() < 0.6) {

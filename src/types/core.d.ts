@@ -168,6 +168,7 @@ export interface EnemyDef {
   split?: number;
   splitHp?: number;
   dash?: number;
+  dashCount?: number;
   projSpd?: number;
   projDmg?: number;
   ranged?: boolean;
@@ -196,6 +197,7 @@ export interface EnemyInstance {
   split?: number;
   splitHp?: number;
   dash?: number;
+  dashCount?: number;
   projSpd?: number;
   projDmg?: number;
   ranged?: boolean;
@@ -239,6 +241,8 @@ export interface Projectile {
   /* 非 schema 字段（视图动态属性） */
   color?: string;
   wId?: string;
+  accel?: number;
+  tide?: number;
   hit?: Set<EnemyInstance>;
   target?: EnemyInstance;
   dur?: number;

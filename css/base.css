@@ -13,6 +13,12 @@ html, body {
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-overflow-scrolling: touch;
+  /* 整页加载淡入：刷新不再瞬间全亮 */
+  animation: pageIn .6s ease both;
+}
+@keyframes pageIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* 交互元素允许触摸操作 */

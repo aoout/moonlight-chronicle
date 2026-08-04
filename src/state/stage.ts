@@ -3,7 +3,7 @@
    关卡流程、时间、Boss、深度、诅咒
    ========================================================= */
 import { Store } from '../core/store.js';
-import { CONFIG } from '../data/index.js';
+import { CONFIG } from '../data/stages.js';
 import type { EnemyInstance, CurseDef } from '../types/core.d.ts';
 
 export interface StageState {

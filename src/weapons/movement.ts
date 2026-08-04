@@ -30,8 +30,9 @@ export const MOVEMENT: Record<string, (pr: Projectile, dt: number, p: Player) =>
     return true;
   },
 
-  /** 追踪运动 */
+  /** 追踪运动（敌弹支持 accel 加速，越追越快） */
   homing(pr, dt, _p) {
+    if (pr.accel) pr.speed = (pr.speed || 0) + pr.accel * dt;
     if (pr.target && !pr.target.dead) {
       const a = angTo(pr, pr.target);
       pr.vx = Math.cos(a) * pr.speed;

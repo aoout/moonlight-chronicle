@@ -1,12 +1,12 @@
 {
   "behemoth": { "name": "蚀潮巨兽", "hp": 900, "spd": 46, "size": 34, "dmg": 22, "gold": 60, "xp": 30, "r": 0.5, "color": "#5c8a9e", "icon": "triUp", "desc": "第六夜，蚀潮自月背翻涌而出", "attCd": 3.4, "skills": ["tidalWave"] },
-  "tideMother": { "name": "潮噬之母", "hp": 860, "spd": 44, "size": 36, "dmg": 23, "gold": 64, "xp": 32, "r": 0.5, "color": "#6fa8a0", "icon": "ringDot", "desc": "第六夜，潮噬之母分娩蚀潮", "attCd": 3.2, "skills": ["spawnTide", "spawnTide"] },
+  "tideMother": { "name": "潮噬之母", "hp": 860, "spd": 44, "size": 36, "dmg": 23, "gold": 64, "xp": 32, "r": 0.5, "color": "#6fa8a0", "icon": "ringDot", "desc": "第六夜，潮噬之母分娩蚀潮", "attCd": 3.2, "skills": ["spawnTide", "tidalWave"] },
   "erodeChariot": { "name": "蚀壳战车", "hp": 820, "spd": 52, "size": 30, "dmg": 24, "gold": 60, "xp": 30, "r": 0.5, "color": "#7a8aa5", "icon": "square", "desc": "第六夜，蚀壳战车碾过月面", "attCd": 2.8, "skills": ["ram"] },
   "lord": { "name": "噬月君主", "hp": 2200, "spd": 58, "size": 42, "dmg": 30, "gold": 120, "xp": 50, "r": 0.55, "color": "#b49ae8", "icon": "diamond", "desc": "第十二夜，君主亲临吞噬月辉", "attCd": 3.4, "skills": ["moonSlash", "wave", "minions"] },
-  "moonWraith": { "name": "月影巫王", "hp": 2050, "spd": 56, "size": 44, "dmg": 31, "gold": 122, "xp": 52, "r": 0.55, "color": "#9a86c8", "icon": "moon", "desc": "第十二夜，月影巫王低语蚀咒", "attCd": 3.0, "skills": ["shadowOrb"] },
+  "moonWraith": { "name": "月影巫王", "hp": 2050, "spd": 56, "size": 44, "dmg": 31, "gold": 122, "xp": 52, "r": 0.55, "color": "#9a86c8", "icon": "moon", "desc": "第十二夜，月影巫王低语蚀咒", "attCd": 3.0, "skills": ["shadowOrb", "lightning"] },
   "moonSwordsman": { "name": "断月剑豪", "hp": 2150, "spd": 62, "size": 40, "dmg": 33, "gold": 124, "xp": 54, "r": 0.55, "color": "#c8c2e8", "icon": "sword", "desc": "第十二夜，断月之刃划过月辉", "attCd": 2.6, "skills": ["triSlash"] },
   "dragon": { "name": "裂空魔龙", "hp": 4200, "spd": 66, "size": 50, "dmg": 40, "gold": 200, "xp": 80, "r": 0.6, "color": "#e2546a", "icon": "gem", "desc": "第十八夜，魔龙撕裂穹顶降临", "attCd": 2.4, "skills": ["breath", "minions"] },
-  "stormOwl": { "name": "蚀雷巨枭", "hp": 4000, "spd": 64, "size": 52, "dmg": 41, "gold": 205, "xp": 82, "r": 0.6, "color": "#8f9aee", "icon": "storm", "desc": "第十八夜，蚀雷巨枭撕裂雷云", "attCd": 2.2, "skills": ["lightning"] },
+  "stormOwl": { "name": "蚀雷巨枭", "hp": 4000, "spd": 64, "size": 52, "dmg": 41, "gold": 205, "xp": 82, "r": 0.6, "color": "#8f9aee", "icon": "storm", "desc": "第十八夜，蚀雷巨枭撕裂雷云", "attCd": 2.2, "skills": ["lightning", "shadowOrb"] },
   "abyssMother": { "name": "深渊巢母", "hp": 4400, "spd": 58, "size": 54, "dmg": 38, "gold": 210, "xp": 85, "r": 0.6, "color": "#a05a6e", "icon": "target", "desc": "第十八夜，深渊巢母孵化万噬", "attCd": 2.6, "skills": ["acidMist", "minions"] },
   "final": { "name": "蚀月终焉", "hp": 8500, "spd": 70, "size": 60, "dmg": 55, "gold": 500, "xp": 150, "r": 0.65, "color": "#ffb84d", "icon": "moonFull", "desc": "第二十夜，蚀月化身——终焉之潮", "attCd": 2.6, "skills": ["tidalWave", "shadowOrb", "breath", "eclipsePulse"] }
 }

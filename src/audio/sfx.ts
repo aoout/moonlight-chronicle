@@ -241,6 +241,7 @@ export function createSfxTable(ctx: AudioCtx, sfxBus: GainNode): Record<string, 
     w_crossbow: () => { noiseClick(c, b, 0.05, { vol: 0.11, hp: 5200, pan: -0.2 }); pluck(c, b, 1568, 0.07, { vol: 0.08, bright: 4200, pan: 0.2 }); },            // 机括嗒响 + 高弦 ping
     w_arc:      () => { pluck(c, b, 880, 0.22, { vol: 0.09, bright: 3800, type: 'sawtooth' }); pluck(c, b, 1320, 0.16, { vol: 0.07, bright: 4600, delay: 0.03 }); noiseClick(c, b, 0.1, { vol: 0.06, hp: 6000, delay: 0.02 }); },  // 电弧噼啪
     w_meteor:   () => { thump(c, b, 150, 0.6, { vol: 0.16, glide: 55 }); noiseClick(c, b, 0.5, { vol: 0.09, lp: 700, delay: 0.06 }); },                        // 陨星轰鸣落地
+    w_tideAnchor: () => { thump(c, b, 120, 0.7, { vol: 0.17, glide: 45 }); noiseClick(c, b, 0.55, { vol: 0.1, lp: 520, delay: 0.05 }); whoosh(c, b, 0.3, { vol: 0.08, pan: -0.1, delay: 0.12 }); },  // 蚀潮重击：低频轰鸣 + 潮水涌动
     w_frost:    () => { bell(c, b, 1250, 0.3, { vol: 0.1, pan: -0.2 }); bell(c, b, 1660, 0.26, { vol: 0.08, delay: 0.05, pan: 0.1 }); bell(c, b, 2093, 0.22, { vol: 0.06, delay: 0.1, pan: 0.3 }); },  // 冰晶散落
     w_beam:     () => { pad(c, b, 700, 0.35, { vol: 0.08, dark: 2600, vibrato: 0.004 }); pluck(c, b, 1400, 0.2, { vol: 0.05, bright: 3200, delay: 0.02 }); },  // 光束嗡鸣
     w_orbit:    () => { [440, 554, 659].forEach((f, i) => bell(c, b, f, 0.22, { vol: 0.07, delay: i * 0.04, pan: (i - 1) * 0.2 })); },                        // 环绕空灵琶音

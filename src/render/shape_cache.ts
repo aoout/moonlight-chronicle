@@ -1,7 +1,24 @@
 /* =========================================================
    蚀月远征 · 离屏 Canvas 缓存工具
    用预渲染替代重复 Canvas 2D 绘图调用，大幅减少 draw call
+   无 DOM 环境（测试/SSR）自动降级为 noop 画布，渲染管线不崩溃
    ========================================================= */
+
+/** 无 DOM 环境的降级画布：方法全部 noop，仅保证管线可运行 */
+function createFallbackCanvas(width: number, height: number): HTMLCanvasElement {
+  const noop = () => {};
+  const ctx = new Proxy({} as CanvasRenderingContext2D, {
+    get: (_t, k) => {
+      // 渐变工厂需返回带 addColorStop 的对象，否则调用方在渐变上调用会崩
+      if (k === 'createRadialGradient' || k === 'createLinearGradient') {
+        return () => ({ addColorStop: noop });
+      }
+      return noop;
+    },
+    set: () => true,
+  });
+  return { width, height, getContext: () => ctx } as unknown as HTMLCanvasElement;
+}
 
 export class ShapeCache {
   private _cache = new Map<string, HTMLCanvasElement>();
@@ -22,7 +39,9 @@ export class ShapeCache {
   ): HTMLCanvasElement {
     let canvas = this._cache.get(key);
     if (!canvas || canvas.width !== width || canvas.height !== height) {
-      canvas = document.createElement('canvas');
+      canvas = typeof document !== 'undefined'
+        ? document.createElement('canvas')
+        : createFallbackCanvas(width, height);
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d')!;
@@ -43,7 +62,9 @@ export class ShapeCache {
   ): HTMLCanvasElement {
     let canvas = this._cache.get(key);
     if (!canvas) {
-      canvas = document.createElement('canvas');
+      canvas = typeof document !== 'undefined'
+        ? document.createElement('canvas')
+        : createFallbackCanvas(width, height);
       this._cache.set(key, canvas);
     }
     canvas.width = width;
