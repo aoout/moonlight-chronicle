@@ -42,11 +42,11 @@ export function renderAchievements(): void {
       '<div class="ach-body">' +
         '<div class="ach-name">' + (earned ? a.name : '？？？') + '</div>' +
         '<div class="ach-tag ' + meta.cls + '">' + meta.label + '</div>' +
-        (earned
-          ? '<div class="ach-desc">' + a.desc + '</div>'
-          : '<div class="ach-desc">' + (a.hint || '尚未达成') + (a.cumulative ? '' : '（单局）') + '</div>') +
-        '<div class="ach-bar"><i style="width:' + pct + '%"></i></div>' +
-        '<div class="ach-prog">' + (earned ? '已达成' : Math.min(prog, a.target) + ' / ' + a.target) + '</div>' +
+        '<div class="ach-desc">' + a.desc + (a.cumulative ? '' : '（单局）') + '</div>' +
+        (a.cumulative
+          ? '<div class="ach-bar"><i style="width:' + pct + '%"></i></div>' +
+            '<div class="ach-prog">' + (earned ? '已达成' : '进度 ' + Math.min(prog, a.target) + ' / ' + a.target) + '</div>'
+          : '<div class="ach-prog">' + (earned ? '已达成' : '单局内达成') + '</div>') +
       '</div>' +
       (earned ? '<div class="ach-check">✓</div>' : '');
     grid.appendChild(card);
