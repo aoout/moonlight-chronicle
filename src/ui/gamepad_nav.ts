@@ -29,6 +29,8 @@ export function getActiveContextKey(): string {
   if (howto && !howto.classList.contains('hidden')) return 'howto';
   const codex = document.getElementById('codex');
   if (codex && !codex.classList.contains('hidden')) return 'codex';
+  const ach = document.getElementById('achievements');
+  if (ach && !ach.classList.contains('hidden')) return 'achievements';
   const gate = document.getElementById('levelselect');
   if (gate && !gate.classList.contains('hidden')) return 'gate';
   const lu = document.getElementById('levelup');
@@ -67,6 +69,11 @@ function getActiveContext(): FocusContext {
       const cards = _collect('#codex-grid .codex-card');
       const close = document.getElementById('btn-codex-close');
       return { key, items: [...tabs, ...cards, ...(close ? [close] : [])] };
+    }
+    case 'achievements': {
+      const cards = _collect('#achievement-grid .ach-card');
+      const close = document.getElementById('btn-achievements-close');
+      return { key, items: [...cards, ...(close ? [close] : [])] };
     }
     case 'gate': {
       const cards = _collect('#gate-grid .gate-card:not(.locked)');
@@ -249,6 +256,7 @@ export function handleCancel(): void {
     case 'settings': clickById('btn-settings-close'); break;
     case 'howto': clickById('btn-close-how'); break;
     case 'codex': clickById('btn-codex-close'); break;
+    case 'achievements': clickById('btn-achievements-close'); break;
     case 'gate': clickById('btn-gate-close'); break;
     case 'shop': dispatchEscape(); break;       // B = 踏入下一夜（同 Escape）
     case 'pause': clickById('btn-pause-quit'); break;  // B = 返回主菜单（符合 B=返回的直觉）

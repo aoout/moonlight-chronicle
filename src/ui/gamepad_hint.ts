@@ -19,6 +19,7 @@ const HINTS: Record<string, HintItem[]> = {
   shop:     [{ b: 'lb', l: '上一区' }, { b: 'rb', l: '下一区' }, { b: 'dpad', l: '导航' }, { b: 'a', l: '查看 / 购买' }, { b: 'b', l: '下一夜' }],
   result:   [{ b: 'a', l: '重返远征' }],
   codex:    [{ b: 'lb', l: '上一类' }, { b: 'rb', l: '下一类' }, { b: 'dpad', l: '浏览' }, { b: 'b', l: '返回' }],
+  achievements: [{ b: 'dpad', l: '浏览功勋' }, { b: 'b', l: '返回' }],
   gate:     [{ b: 'dpad', l: '选择' }, { b: 'a', l: '确定' }, { b: 'b', l: '返回' }],
   howto:    [{ b: 'a', l: '关闭' }, { b: 'b', l: '关闭' }],
 };
