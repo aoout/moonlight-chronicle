@@ -6,9 +6,10 @@ import { stageState } from '../state/stage.js';
 import { statsState } from '../state/stats.js';
 import { playerState } from '../state/player.js';
 import { gameState } from '../state/game.js';
-import { CURSES } from '../data/index.js';
+import { CURSES, LEVELS } from '../data/index.js';
 import { computeDerived } from '../domain/player.js';
 import { startStage } from '../game.js';
+import { isDevMode } from '../debug/dev_mode.js';
 
 import { gSt, sSt, pSt, gmSt } from '../state/accessors.js';
 
@@ -18,9 +19,11 @@ function loadUnlocked(): number {
   try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}'); return Math.max(0, s.unlocked || 0); } catch (e) { return 0; }
 }
 export function persistUnlocked(): void {
+  if (isDevMode()) return;  // 开发者模式：解锁进度只读覆盖，不持久化
   try { localStorage.setItem(SAVE_KEY, JSON.stringify({ unlocked: gSt().unlocked })); } catch (e) {}
 }
-stageState.set('unlocked', loadUnlocked());
+// 开发者模式：深度全解锁（只读覆盖，不持久化）
+stageState.set('unlocked', isDevMode() ? LEVELS.length - 1 : loadUnlocked());
 
 /* ---------- 月光烙记：局内进度存档（每夜开始自动烙下，可追忆重进） ---------- */
 const RUN_SAVE_KEY = 'eclipse_run_save_v1';

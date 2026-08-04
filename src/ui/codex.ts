@@ -7,6 +7,7 @@ import { iconSVG } from './icons.js';
 import { ENEMIES, BOSSES, WEAPONS, SHOP_ITEMS } from '../data/index.js';
 import { AudioEngine } from '../audio/engine.js';
 import { codexUnlocked } from '../persistence/codex.js';
+import { isDevMode } from '../debug/dev_mode.js';
 import { weaponRangeText } from './shop.js';
 import { ENEMY_SHAPES, BOSS_SHAPES } from '../render/index.js';
 import type { WeaponDef, ShopItemDef } from '../types/core.d.ts';
@@ -81,9 +82,6 @@ export function renderCodex(tab: string): void {
   const sub = $('codex-sub');
   if (sub) sub.textContent = (CODEX_TABS.find(t => t.key === tab) || {}).desc || '';
 
-  const unlocked = codexUnlocked(tab);
-  const unSet = new Set(unlocked);
-
   let entries: { id: string; d: any; meta: string }[] = [];
   if (tab === 'enemies') entries = Object.entries(ENEMIES).map(([id, d]) => ({ id, d, meta: 'enemy' }));
   else if (tab === 'bosses') entries = Object.entries(BOSSES).map(([id, d]) => ({ id, d, meta: 'boss' }));
@@ -94,6 +92,9 @@ export function renderCodex(tab: string): void {
       .map(it => ({ id: it.id, d: it, meta: 'item' }))
       .sort((a, b) => (rank[a.d.rarity] ?? 2) - (rank[b.d.rarity] ?? 2) || (a.d.price - b.d.price));
   }
+
+  // 开发者模式：当前 tab 全解锁（只读覆盖，不写存档）
+  const unSet = isDevMode() ? new Set(entries.map(e => e.id)) : new Set(codexUnlocked(tab));
 
   const total = entries.length;
   const got = entries.filter(e => unSet.has(e.id)).length;

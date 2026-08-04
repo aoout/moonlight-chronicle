@@ -18,6 +18,7 @@ import { bindCodex } from './codex.js';
 import { bindAchievements } from './achievements.js';
 import { bindSettingsUI, closeSettings, isSettingsOpen } from './settings_panel.js';
 import { startRun, startStage } from '../game.js';
+import { isDevMode } from '../debug/dev_mode.js';
 import { LevelUpPanel } from './components/LevelUpPanel.js';
 import { ResultPanel } from './components/ResultPanel.js';
 import { PausePanel } from './components/PausePanel.js';
@@ -123,7 +124,7 @@ export function refreshMenuDepth(): void {
   const num = $('menu-depth-num');
   if (num) rollMenuDepthNum(num, gSt().unlocked + 1);
   const tag = $('menu-depth-tag');
-  if (tag) tag.textContent = LEVELS[gSt().unlocked].tag;
+  if (tag) tag.textContent = LEVELS[gSt().unlocked].tag + (isDevMode() ? ' · DEV' : '');
   const save = loadRunMeta();
   const btn = $('btn-continue');
   if (btn && save && save.player && save.stage > 0) {
