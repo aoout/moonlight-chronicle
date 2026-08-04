@@ -1,0 +1,230 @@
+/* =========================================================
+   蚀月远征 · 月蚀之仪（设置面板）
+   深蚀玻璃材质 + 金色月蚀光晕，与世界观的仪式感相合
+   ========================================================= */
+
+#settings {
+  z-index: 50;
+  padding: 20px;
+  animation: fadeIn .4s both;
+}
+
+.set-panel {
+  position: relative;
+  width: min(640px, 94vw);
+  max-height: min(88vh, 780px);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-xl);
+  padding: 28px 30px 22px;
+  overflow: hidden;
+  animation: cardIn .5s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+/* ---------- 头部：蚀之徽记 ---------- */
+.set-head {
+  flex: none;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.set-emblem {
+  width: 58px; height: 58px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; color: var(--gold);
+  background: radial-gradient(circle at 50% 38%, rgba(233, 201, 135, .18), rgba(233, 201, 135, .03) 70%);
+  border: 1px solid rgba(233, 201, 135, .38);
+  box-shadow:
+    0 0 28px rgba(233, 201, 135, .22),
+    inset 0 0 20px rgba(233, 201, 135, .1);
+  animation: iconPulse 4.5s ease-in-out infinite;
+}
+.set-emblem .ic {
+  filter: drop-shadow(0 0 8px var(--gold-glow));
+}
+.set-title {
+  font-family: var(--font-title);
+  font-size: 26px; font-weight: 900; letter-spacing: .36em;
+  color: var(--moon);
+  text-shadow: 0 0 22px rgba(233, 201, 135, .35);
+}
+.set-title::before,
+.set-title::after {
+  content: '✦';
+  font-size: 11px; vertical-align: middle;
+  color: rgba(233, 201, 135, .55); margin: 0 12px; opacity: .75;
+}
+.set-sub {
+  font-size: 12px; letter-spacing: .22em;
+  color: rgba(244, 236, 216, .55);
+  margin-top: 7px;
+}
+
+/* ---------- 主体 ---------- */
+.set-body {
+  flex: 1 1 auto; min-height: 0;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 2px 6px 4px;
+  scrollbar-width: thin;
+}
+.set-group {
+  border: 1px solid rgba(233, 201, 135, .15);
+  border-radius: 12px;
+  padding: 13px 16px 12px;
+  background: rgba(233, 201, 135, .03);
+}
+.set-group-head {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 12px;
+}
+.sg-name {
+  font-family: var(--font-title);
+  font-size: 14px; letter-spacing: .22em;
+  color: var(--gold);
+}
+.sg-sub {
+  font-size: 10px; letter-spacing: .16em;
+  color: rgba(244, 236, 216, .38);
+}
+
+/* ---------- 蚀相档位 ---------- */
+.set-preset {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.set-preset-btn {
+  cursor: pointer;
+  border: 1px solid rgba(233, 201, 135, .22);
+  border-radius: 10px;
+  background: rgba(233, 201, 135, .04);
+  padding: 10px 6px 9px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-family: var(--font-body);
+  transition: all .3s cubic-bezier(.22, 1, .36, 1);
+}
+.set-preset-btn b {
+  font-size: 15px; letter-spacing: .3em;
+  color: rgba(244, 236, 216, .8); font-weight: 800;
+}
+.set-preset-btn i {
+  font-style: normal; font-size: 10px; letter-spacing: .32em;
+  color: rgba(244, 236, 216, .36);
+}
+.set-preset-btn:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+.set-preset-btn.active {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, rgba(233, 201, 135, .2), rgba(233, 201, 135, .05));
+  box-shadow:
+    0 0 20px rgba(233, 201, 135, .2),
+    inset 0 0 16px rgba(233, 201, 135, .1);
+}
+.set-preset-btn.active b {
+  color: var(--gold);
+  text-shadow: 0 0 10px var(--gold-glow);
+}
+.set-preset-btn.active i { color: rgba(233, 201, 135, .65); }
+
+/* ---------- 细项行 ---------- */
+.set-row {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 14px;
+  padding: 9px 0;
+}
+.set-row + .set-row {
+  border-top: 1px dashed rgba(233, 201, 135, .12);
+}
+.set-info { min-width: 0; }
+.set-name {
+  font-size: 14px; letter-spacing: .16em;
+  color: var(--moon); font-weight: 700;
+}
+.set-desc {
+  font-size: 10px; letter-spacing: .1em;
+  color: rgba(244, 236, 216, .4);
+  margin-top: 2px;
+}
+.set-opts {
+  display: flex; gap: 6px; flex: none;
+}
+.set-opts button {
+  cursor: pointer;
+  border: 1px solid rgba(233, 201, 135, .22);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: rgba(244, 236, 216, .55);
+  font-family: var(--font-body);
+  font-size: 11px; letter-spacing: .2em; font-weight: 700;
+  padding: 6px 14px;
+  min-height: var(--touch-target-sm);
+  transition: all .3s cubic-bezier(.22, 1, .36, 1);
+}
+.set-opts button:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.set-opts button.active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: linear-gradient(135deg, rgba(233, 201, 135, .22), rgba(233, 201, 135, .08));
+  box-shadow:
+    0 0 14px rgba(233, 201, 135, .18),
+    inset 0 0 10px rgba(233, 201, 135, .1);
+}
+
+/* ---------- 底部 ---------- */
+.set-foot {
+  flex: none;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 12px;
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid rgba(233, 201, 135, .16);
+}
+.set-note {
+  font-size: 10px; letter-spacing: .2em;
+  color: rgba(159, 214, 232, .55);
+}
+
+/* 主菜单按钮图标 */
+.menu-btn .ic {
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--gold);
+  vertical-align: -0.12em;
+}
+
+/* ---------- 移动端适配 ---------- */
+@media (pointer: coarse) and (orientation: landscape),
+       (max-width: 900px) and (orientation: landscape),
+       (max-height: 560px) {
+  #settings { padding: 10px; }
+  .set-panel {
+    padding: 16px 16px 12px;
+    max-height: 92vh;
+    border-radius: 12px;
+  }
+  .set-head { margin-bottom: 10px; }
+  .set-emblem { width: 40px; height: 40px; font-size: 19px; margin-bottom: 6px; }
+  .set-title { font-size: 19px; letter-spacing: .3em; }
+  .set-sub { font-size: 10px; letter-spacing: .16em; margin-top: 4px; }
+  .set-body { gap: 10px; }
+  .set-group { padding: 10px 12px 9px; }
+  .set-group-head { margin-bottom: 8px; }
+  .sg-name { font-size: 12px; }
+  .sg-sub { font-size: 9px; }
+  .set-preset { gap: 6px; }
+  .set-preset-btn { padding: 7px 4px 6px; }
+  .set-preset-btn b { font-size: 12px; letter-spacing: .22em; }
+  .set-preset-btn i { font-size: 9px; letter-spacing: .24em; }
+  .set-row { padding: 6px 0; gap: 10px; }
+  .set-name { font-size: 12px; }
+  .set-desc { font-size: 9px; }
+  .set-opts button { padding: 5px 10px; font-size: 10px; letter-spacing: .12em; }
+  .set-note { font-size: 9px; }
+  .set-foot { margin-top: 10px; padding-top: 10px; }
+}

@@ -4,6 +4,7 @@
 import { PALETTE } from '../../data/palette.js';
 import type { RenderContext } from '../context.js';
 import { shapeCache } from '../shape_cache.js';
+import { settingsState } from '../../state/settings.js';
 
 /* 预渲染简单圆形粒子（含阴影） */
 function drawCircleParticle(ctx: CanvasRenderingContext2D): void {
@@ -55,8 +56,11 @@ export function drawParticles(rc: RenderContext): void {
   ctx.restore();
 
   // ---- 单独绘制复杂粒子 ----
+  const glowFx = settingsState.get('glowFx');
   for (const pa of list) {
     if (!(pa.chain || pa.ring || pa.spark || pa.star || pa.shard || pa.streak || pa.glow || pa.timestop || pa.echo)) continue;
+    // 辉光溢彩关闭时：省略星芒 / 碎片 / 流光 / 光晕等重光效，保留命中反馈（电弧/冲击环/火花）
+    if (!glowFx && (pa.star || pa.shard || pa.streak || pa.glow)) continue;
     const life = 1 - (pa.t || 0) / (pa.max || 0.7);
     ctx.save();
     if (pa.chain) {

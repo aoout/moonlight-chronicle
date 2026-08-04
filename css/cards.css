@@ -118,6 +118,117 @@
 .card.cant-afford .card-price { color: var(--blood); border-color: rgba(226,84,106,.4); background: rgba(226,84,106,.08); opacity: .75; }
 .card.weapon-card { height: 256px; }
 
+/* 移动端卡片适配（横屏优先，兼顾高度受限场景） */
+@media (pointer: coarse) and (orientation: landscape),
+       (max-width: 1080px) and (orientation: landscape),
+       (max-height: 520px) {
+  .cards {
+    gap: 8px;
+    padding: 0 8px;
+    max-width: none;
+  }
+  .card {
+    width: min(150px, 22vw);
+    height: auto;
+    min-height: 160px;
+    padding: 8px 10px 7px;
+    border-radius: 10px;
+    gap: 3px;
+  }
+  .card.weapon-card {
+    height: auto;
+    min-height: 150px;
+  }
+  .card-rarity {
+    font-size: 7px;
+    letter-spacing: .22em;
+    gap: 5px;
+  }
+  .card-rarity::before {
+    width: 8px;
+  }
+  .card-name {
+    font-size: 12px;
+    letter-spacing: .08em;
+    margin-top: 1px;
+  }
+  .card-ic {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+    margin: 2px auto 3px;
+    border-radius: 10px;
+  }
+  .card-desc {
+    font-size: 9px;
+    padding-top: 4px;
+    margin-top: 1px;
+    line-height: 1.4;
+  }
+  .card-price {
+    font-size: 10px;
+    padding: 3px 10px;
+    gap: 4px;
+  }
+  .upgrade-tier {
+    font-size: 8px;
+    margin-top: 2px;
+    letter-spacing: .12em;
+  }
+  .overlay-title {
+    font-size: 20px;
+    letter-spacing: .22em;
+    margin-bottom: 4px;
+  }
+  .overlay-sub {
+    font-size: 10px;
+    margin-bottom: 10px;
+    letter-spacing: .18em;
+  }
+}
+
+/* 超紧凑横屏（height < 380px）进一步压缩卡片 */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 380px),
+       (max-height: 380px) {
+  .cards {
+    gap: 6px;
+    padding: 0 4px;
+  }
+  .card {
+    width: min(130px, 18vw);
+    min-height: 135px;
+    padding: 6px 8px 5px;
+    border-radius: 8px;
+    gap: 2px;
+  }
+  .card.weapon-card {
+    min-height: 130px;
+  }
+  .card-name {
+    font-size: 11px;
+  }
+  .card-ic {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+  .card-desc {
+    font-size: 8px;
+    line-height: 1.35;
+  }
+  .card-price {
+    font-size: 9px;
+    padding: 2px 8px;
+  }
+  .overlay-title {
+    font-size: 16px;
+  }
+  .overlay-sub {
+    font-size: 8px;
+    margin-bottom: 6px;
+  }
+}
+
 /* 升级卡 */
 .card.upgrade-card .card-desc { font-size: 12px; }
 .upgrade-tier { display: block; margin-top: 7px; font-size: 10px; letter-spacing: .18em; color: var(--ice); text-align: center; }

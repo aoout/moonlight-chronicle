@@ -9,6 +9,18 @@ html, body {
   color: var(--moon);
   -webkit-font-smoothing: antialiased;
   user-select: none;
+  /* 移动端：禁用双击缩放、长按菜单等 */
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 交互元素允许触摸操作 */
+button, .card, .menu-btn, .gate-card, .codex-card,
+.pw-item, .si-item, .codex-tabs button,
+.sell-btn, .pwd-close, .sid-close {
+  touch-action: manipulation;
+  cursor: pointer;
 }
 
 #app { position: fixed; inset: 0; }

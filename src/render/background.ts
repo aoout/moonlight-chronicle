@@ -3,19 +3,29 @@
    ========================================================= */
 import type { RenderContext } from './context.js';
 import { shapeCache } from './shape_cache.js';
+import { settingsState } from '../state/settings.js';
 
 /* ---------- 离屏背景缓存 ---------- */
 let _bgCache: HTMLCanvasElement | null = null;
 let _bgCacheW = 0, _bgCacheH = 0;
 
+/** 失效背景缓存（切「月镜析度」或「月面蚀刻」后强制重建） */
+export function invalidateBackgroundCache(): void {
+  _bgCache = null;
+  _bgCacheW = 0;
+  _bgCacheH = 0;
+}
+
 function initBackgroundCache(rc: RenderContext): void {
   if (_bgCache && _bgCacheW === rc.width && _bgCacheH === rc.height) return;
+  const dpr = rc.dpr || 1;
   _bgCache = document.createElement('canvas');
-  _bgCache.width = rc.width;
-  _bgCache.height = rc.height;
+  _bgCache.width = Math.floor(rc.width * dpr);
+  _bgCache.height = Math.floor(rc.height * dpr);
   _bgCacheW = rc.width;
   _bgCacheH = rc.height;
   const bc = _bgCache.getContext('2d') as CanvasRenderingContext2D;
+  bc.scale(dpr, dpr);
 
   // 月面底色（俯视：月灰蓝渐变）
   const grd = bc.createRadialGradient(rc.width / 2, rc.height / 2, 60, rc.width / 2, rc.height / 2, Math.max(rc.width, rc.height) * 0.72);
@@ -45,7 +55,9 @@ function initBackgroundCache(rc: RenderContext): void {
   }
 
   // 环形山（立体凹陷：左上亮边 + 右下暗边 + 内凹）
-  for (let i = 0; i < 14; i++) {
+  const detail = settingsState.get('bgDetail');
+  const craters = detail ? 14 : 6;
+  for (let i = 0; i < craters; i++) {
     const cx = ((i * 61.7 + 9) % 100) / 100 * rc.width;
     const cy = ((i * 43.3 + 55) % 100) / 100 * rc.height;
     const cr = 8 + (i * 7.3 % 26);
@@ -62,7 +74,8 @@ function initBackgroundCache(rc: RenderContext): void {
   // 月面裂纹（确定性走向，不抖动）
   bc.strokeStyle = 'rgba(0,0,0,.22)';
   bc.lineWidth = 1;
-  for (let i = 0; i < 6; i++) {
+  const cracks = detail ? 6 : 0;
+  for (let i = 0; i < cracks; i++) {
     const bx = ((i * 173 + 30) % 100) / 100 * rc.width;
     const by = ((i * 97 + 12) % 100) / 100 * rc.height;
     bc.beginPath();
@@ -99,7 +112,8 @@ export function drawBackground(rc: RenderContext): void {
   initBackgroundCache(rc);
   ctx.drawImage(_bgCache as HTMLCanvasElement, 0, 0);
 
-  // 微尘：使用离屏缓存，每 5 秒刷新一次
+  // 微尘：使用离屏缓存，每 5 秒刷新一次（受「月面蚀刻」节制）
+  if (!settingsState.get('bgDetail')) return;
   const dustKey = 'dust_' + rc.width + 'x' + rc.height;
   const shouldRefresh = rc.time - _dustLastRefresh >= DUST_REFRESH_INTERVAL;
   if (shouldRefresh) _dustLastRefresh = rc.time;

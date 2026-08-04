@@ -245,6 +245,193 @@
   .result-stats { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* 移动端 HUD 适配 */
+@media (pointer: coarse) and (max-width: 900px), (max-width: 760px) {
+  .hud {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .hud-bar {
+    height: 20px;
+    border-radius: 7px;
+  }
+  .hud-bar.xp-bar {
+    height: 12px;
+  }
+  .bar-ic {
+    font-size: 11px;
+    left: 6px;
+  }
+  .bar-label {
+    font-size: 9px;
+  }
+  .stage-chip {
+    padding: 5px 12px 6px;
+    gap: 6px;
+  }
+  .moonphase {
+    font-size: 13px;
+  }
+  #stage-num {
+    font-size: 12px;
+  }
+  #stage-name {
+    font-size: 9px;
+  }
+  .stage-chip .stage-track {
+    bottom: 2px;
+    height: 2px;
+  }
+  .coin, .killcount {
+    padding: 5px 10px;
+    font-size: 11px;
+    gap: 5px;
+  }
+  .coin.big {
+    font-size: 16px;
+    padding: 8px 18px;
+  }
+  .wave-text {
+    margin-top: 8px;
+    font-size: 10px;
+    min-height: 13px;
+  }
+  .toast-wrap {
+    top: 68px;
+  }
+  .toast {
+    padding: 8px 18px;
+    font-size: 11px;
+  }
+  /* 武器槽 */
+  .weapon-slot-bar {
+    bottom: 10px;
+    gap: 6px;
+  }
+  .wslot {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+  }
+  .wslot .w-icon {
+    font-size: 18px;
+  }
+  .wslot .w-name {
+    font-size: 7px;
+    max-width: 42px;
+  }
+  .wslot .w-lvl {
+    font-size: 7px;
+  }
+  .wpct {
+    font-size: 7px;
+    top: 2px;
+    right: 3px;
+  }
+  .wliquid {
+    border-radius: 0 0 8px 8px;
+  }
+  .wslot::before {
+    border-radius: 8px;
+    padding: 2px;
+  }
+  /* Boss 血条 */
+  .boss-bar {
+    top: 62px;
+    width: min(400px, 55vw);
+  }
+  .bb-name {
+    font-size: 13px;
+  }
+  .bb-name::before, .bb-name::after {
+    width: 24px;
+  }
+  .bb-track {
+    height: 8px;
+  }
+  /* 关卡横幅 */
+  .stage-banner .sb-kicker {
+    font-size: 10px;
+  }
+  .stage-banner .sb-title {
+    font-size: clamp(28px, 6vw, 48px);
+  }
+  .stage-banner .sb-sub {
+    font-size: 11px;
+  }
+  /* 诅咒横幅 */
+  .curse-banner {
+    top: 100px;
+    padding: 8px 18px;
+    gap: 10px;
+  }
+  .cb-ic {
+    font-size: 18px;
+  }
+  .cb-title {
+    font-size: 12px;
+  }
+  .cb-desc {
+    font-size: 10px;
+  }
+  /* 伤害数字 */
+  .dmg-num {
+    font-size: 12px;
+  }
+  .dmg-num.crit {
+    font-size: 18px;
+  }
+  /* 暂停面板 */
+  .pause-body { grid-template-columns: 1fr; gap: 14px; width: min(500px, 90vw); }
+  .pause-stats { max-height: 28vh; }
+  .pause-stage { padding: 14px 16px; }
+  .pause-stage-name { font-size: 13px; }
+  .pause-time { font-size: 10px; }
+  .pause-hptext { font-size: 9px; }
+  .pause-stats .stat-row { font-size: 10px; padding: 3px 6px; }
+  .pause-foot { gap: 10px; margin-top: 14px; flex-direction: column; align-items: center; }
+}
+
+/* ===== 虚拟摇杆 ===== */
+.joystick-zone {
+  position: fixed;
+  z-index: 16;
+  touch-action: none;
+  pointer-events: auto;
+}
+.joystick-zone.hidden {
+  display: none !important;
+}
+.joystick-base {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(10, 12, 28, .35);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(233, 201, 135, .2);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, .4), 0 0 20px rgba(233, 201, 135, .06);
+  pointer-events: none;
+  will-change: left, top, opacity;
+}
+.joystick-knob {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, rgba(233, 201, 135, .35), rgba(233, 201, 135, .08));
+  border: 1.5px solid rgba(233, 201, 135, .4);
+  box-shadow: 0 0 16px rgba(233, 201, 135, .15), inset 0 0 12px rgba(233, 201, 135, .06);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.joystick-knob::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 12px; height: 12px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(233, 201, 135, .5);
+  box-shadow: 0 0 10px rgba(233, 201, 135, .4);
+}
+
 
 /* 蚀之诅咒横幅（血色月蚀光晕） */
 .curse-banner {

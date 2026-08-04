@@ -69,6 +69,16 @@
   --radius-xl: 16px;
   --radius-pill: 999px;
 
+  /* ---------- 移动端适配令牌 ---------- */
+  --touch-target: 44px;          /* 触控最小目标尺寸 */
+  --touch-target-sm: 36px;
+  --joystick-size: 130px;       /* 虚拟摇杆尺寸 */
+  --joystick-knob: 44px;        /* 摇杆柄尺寸 */
+  --hud-scale: 1;               /* HUD 缩放因子 */
+  --card-scale: 1;              /* 卡片缩放因子 */
+  --font-scale: 1;              /* 字体缩放因子 */
+  --mobile-gap: 10px;           /* 移动端间距 */
+
   /* ---------- 通用过渡曲线 ---------- */
   --ease-out-expo: cubic-bezier(.22, 1, .36, 1);
   --ease-in-out: cubic-bezier(.22, 1, .36, 1);
@@ -157,6 +167,67 @@
 .card-gradient { background: var(--glass-bg-frost); }
 .glass-shadow { box-shadow: var(--glass-edge-inset), 0 5px 28px rgba(0, 0, 0, .5); }
 .top-line { position: absolute; top: 0; left: 16%; right: 16%; height: 1px; background: var(--glass-edge-top); pointer-events: none; }
+
+/* ---------- 移动端响应式覆盖 ---------- */
+@media (pointer: coarse) and (max-width: 900px), (max-width: 760px) {
+  :root {
+    --touch-target: clamp(44px, 12vw, 54px);
+    --touch-target-sm: clamp(36px, 9vw, 44px);
+    --joystick-size: clamp(110px, 28vw, 150px);
+    --joystick-knob: clamp(40px, 10vw, 50px);
+    --hud-scale: 0.82;
+    --card-scale: 0.85;
+    --font-scale: 0.88;
+    --mobile-gap: 8px;
+  }
+}
+
+/* 横屏锁定提示 */
+.orientation-lock {
+  display: none;
+  position: fixed; inset: 0; z-index: 999;
+  background: var(--bg-0);
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 24px;
+}
+.orientation-lock .ol-icon {
+  width: 80px; height: 80px;
+  border: 3px solid var(--gold);
+  border-radius: 12px;
+  position: relative;
+  animation: orientPulse 2s ease-in-out infinite;
+}
+.orientation-lock .ol-icon::before {
+  content: ''; position: absolute;
+  top: 50%; left: 50%;
+  width: 40px; height: 2px;
+  background: var(--gold);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px var(--gold-glow);
+}
+.orientation-lock .ol-icon::after {
+  content: ''; position: absolute;
+  top: 8px; left: 50%;
+  width: 16px; height: 16px;
+  border: 2px solid var(--gold);
+  border-right: none; border-bottom: none;
+  transform: translateX(-50%) rotate(-45deg);
+}
+.orientation-lock .ol-text {
+  font-family: var(--font-title);
+  font-size: 18px; letter-spacing: .2em;
+  color: var(--moon);
+  text-align: center;
+}
+.orientation-lock .ol-sub {
+  font-size: 13px; letter-spacing: .14em;
+  color: rgba(244,236,216,.55);
+  text-align: center;
+}
+@keyframes orientPulse {
+  0%, 100% { opacity: .7; transform: rotate(90deg); }
+  50% { opacity: 1; transform: rotate(90deg) scale(1.08); }
+}
 
 /* ---------- 通用动画关键帧 ---------- */
 @keyframes fadeIn {

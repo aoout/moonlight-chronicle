@@ -1,6 +1,6 @@
 {
   "moonRing": {
-    "id": "moonRing", "name": "月辉回刃", "icon": "moon", "tag": "回旋·疾风",
+    "id": "moonRing", "name": "月辉回刃", "icon": "wMoonRing", "tag": "回旋·疾风",
     "desc": "掷出回旋月刃，命中归途造成二段伤害。",
     "formula": "攻击 ×(0.55+0.12L) + 移速 ×0.12",
     "formulaDmg": "effAtk * (0.55 + 0.12 * level) + speed * 0.12",
@@ -11,7 +11,7 @@
     }
   },
   "crossbow": {
-    "id": "crossbow", "name": "蚀星连弩", "icon": "crossbow", "tag": "速射",
+    "id": "crossbow", "name": "蚀星连弩", "icon": "wCrossbow", "tag": "速射",
     "desc": "朝最近之敌连发蚀星矢，攻速越高威力越强。",
     "formula": "攻击 ×(0.8+0.15L) + 攻速×攻击 ×0.4",
     "formulaDmg": "effAtk * (0.8 + 0.15 * level) + atkSpd * effAtk * 0.4",
@@ -23,7 +23,7 @@
     }
   },
   "arc": {
-    "id": "arc", "name": "弧光引雷", "icon": "chain", "tag": "连锁",
+    "id": "arc", "name": "弧光引雷", "icon": "wArc", "tag": "连锁",
     "desc": "电弧在敌群间跳跃，连锁 3 次，伤害逐级衰减。",
     "formula": "攻击 ×(0.9+0.16L)，连锁×0.65",
     "formulaDmg": "effAtk * (0.9 + 0.16 * level)",
@@ -34,10 +34,10 @@
     }
   },
   "meteor": {
-    "id": "meteor", "name": "焚天陨星", "icon": "meteor", "tag": "重击·范围",
+    "id": "meteor", "name": "焚天陨星", "icon": "wMeteor", "tag": "重击·范围",
     "desc": "召唤陨星轰击敌群密集处，造成大范围重创。",
-    "formula": "攻击 ×(2.8+0.5L) + 生命上限 ×8%",
-    "formulaDmg": "effAtk * (2.8 + 0.5 * level) + maxHp * 0.08",
+    "formula": "攻击 ×(2.8+0.5L) + 生命上限 ×13%",
+    "formulaDmg": "effAtk * (2.8 + 0.5 * level) + maxHp * 0.13",
     "cd": 3.2, "aoe": 130, "color": "#ff6b6b",
     "count": 1,
     "fire": {
@@ -46,9 +46,9 @@
     }
   },
   "frost": {
-    "id": "frost", "name": "霜华之环", "icon": "snow", "tag": "脉冲·生命",
+    "id": "frost", "name": "霜华之环", "icon": "wFrost", "tag": "脉冲·生命",
     "desc": "周期性爆发冰环，伤害随生命上限成长。",
-    "formula": "攻击 ×(0.7+0.12L) + 生命上限 ×10%",
+    "formula": "攻击 ×(0.7+0.12L) + 生命上限 ×(10%+2%L)",
     "formulaDmg": "effAtk * (0.7 + 0.12 * level) + maxHp * 0.10 * (1 + level * 0.2)",
     "cd": 2.0, "aoe": 200, "slow": 0.4, "color": "#7fd6e4",
     "fire": {
@@ -57,7 +57,7 @@
     }
   },
   "beam": {
-    "id": "beam", "name": "圣裁光柱", "icon": "shine", "tag": "穿透·直线",
+    "id": "beam", "name": "圣裁光柱", "icon": "wBeam", "tag": "穿透·直线",
     "desc": "贯穿敌阵的圣光，无限穿透，暴击率愈高愈烈。",
     "formula": "攻击 ×(1.05+0.18L) + 暴击率×攻击 ×1.5",
     "formulaDmg": "effAtk * (1.05 + 0.18 * level) + critRate * effAtk * 1.5",
@@ -68,14 +68,14 @@
     }
   },
   "orbit": {
-    "id": "orbit", "name": "环舞之刃", "icon": "target", "tag": "环绕",
+    "id": "orbit", "name": "环舞之刃", "icon": "wOrbit", "tag": "环绕",
     "desc": "月刃环绕身周，持续切割靠近的敌人。",
-    "formula": "攻击 ×(0.38+0.08L)×6 / 刃",
-    "formulaDmg": "effAtk * (0.38 + 0.08 * level) * 6",
+    "formula": "攻击 ×(0.4+0.1L)×6 / 刃",
+    "formulaDmg": "effAtk * (0.4 + 0.1 * level) * 6",
     "tick": 0.22, "radius": 120, "blades": 2, "angularSpd": 1.6, "color": "#e9c987"
   },
   "lance": {
-    "id": "lance", "name": "潮涌之枪", "icon": "lance", "tag": "贯穿",
+    "id": "lance", "name": "潮涌之枪", "icon": "wLance", "tag": "贯穿",
     "desc": "投出贯穿之枪，穿透 4 敌，随移速飞得更远。",
     "formula": "攻击 ×(1.2+0.2L) + 移速 ×(0.08+0.02L)",
     "formulaDmg": "effAtk * (1.2 + 0.2 * level) + speed * (0.08 + 0.02 * level)",
@@ -87,9 +87,9 @@
     }
   },
   "shadow": {
-    "id": "shadow", "name": "影袭之刃", "icon": "star", "tag": "追踪",
+    "id": "shadow", "name": "影袭之刃", "icon": "wShadow", "tag": "追踪",
     "desc": "追踪之刃锁定目标，暴击越高附加伤害越高。",
-    "formula": "攻击 ×(0.7+0.13L) + 溢暴伤 ×0.9",
+    "formula": "攻击 ×(0.7+0.13L) + 溢出暴伤×攻击 ×0.9",
     "formulaDmg": "effAtk * (0.7 + 0.13 * level) + max(0, critDmg - 1.5) * effAtk * 0.9",
     "cd": 0.9, "range": 520, "speed": 460, "homing": true, "color": "#b49ae8",
     "proj": 1,
@@ -100,16 +100,16 @@
     }
   },
   "storm": {
-    "id": "storm", "name": "风暴之眼", "icon": "storm", "tag": "环绕·弹幕",
+    "id": "storm", "name": "风暴之眼", "icon": "wStorm", "tag": "环绕·弹幕",
     "desc": "两个风暴之核环绕身周，向前方倾泻弹幕。",
-    "formula": "攻击 ×(1.0+0.18L)",
-    "formulaDmg": "effAtk * (1.0 + 0.18 * level)",
+    "formula": "攻击 ×(1.0+0.18L) + 移速×攻速 ×0.02",
+    "formulaDmg": "effAtk * (1.0 + 0.18 * level) + speed * atkSpd * 0.02",
     "tick": 0.56, "cores": 2, "radius": 115, "proj": 1, "pierce": 0,
     "angularSpd": 3.0, "spread": 0.16, "projRadius": 5,
     "speed": 390, "range": 507, "color": "#8fe3d8"
   },
   "nova": {
-    "id": "nova", "name": "破晓之辉", "icon": "sun", "tag": "爆发·终极",
+    "id": "nova", "name": "破晓之辉", "icon": "wNova", "tag": "爆发·终极",
     "desc": "蓄力后朝四面发射贯穿月辉，清场之选。",
     "formula": "攻击 ×(1.5+0.25L) + 移速 ×0.1",
     "formulaDmg": "effAtk * (1.5 + 0.25 * level) + speed * 0.1",
@@ -122,7 +122,7 @@
     }
   },
   "phantom": {
-    "id": "phantom", "name": "月影残像", "icon": "moon", "tag": "召唤·幻影",
+    "id": "phantom", "name": "月影残像", "icon": "wPhantom", "tag": "召唤·幻影",
     "desc": "月光在蚀雾中折射出的残像，替守月人而战。",
     "formula": "召唤 2+⌊L/2⌋ 个分身，各自发射 攻击×(0.45+0.08L) 的月牙",
     "formulaDmg": "effAtk * (0.45 + 0.08 * level) * (2 + floor(level / 2))",

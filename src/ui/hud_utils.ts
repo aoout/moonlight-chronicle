@@ -2,6 +2,9 @@
    蚀月远征 · HUD 工具函数
    通用的 DOM 辅助与 HUD 动画函数
    ========================================================= */
+import { stageState } from '../state/stage.js';
+import { CONFIG } from '../data/index.js';
+import { settingsState } from '../state/settings.js';
 
 /** HTML 标签模板：简洁、安全的 HTML 构建 */
 export function html(strings: TemplateStringsArray, ...values: any[]): string {
@@ -39,6 +42,7 @@ export function showScreen(id: string): void {
 
 /* ---------- 伤害数字 ---------- */
 export function addDmgNumber(x: number, y: number, n: number | string, crit: boolean): void {
+  if (!settingsState.get('dmgNumbers')) return;
   const layer = $('fx-layer');
   if (!layer) return;
   const d = el('div', 'dmg-num' + (crit ? ' crit' : ''), String(n));
@@ -49,6 +53,7 @@ export function addDmgNumber(x: number, y: number, n: number | string, crit: boo
 }
 
 export function spawnText(x: number, y: number, str: string, color?: string): void {
+  if (!settingsState.get('dmgNumbers')) return;
   const layer = $('fx-layer');
   if (!layer) return;
   const d = el('div', 'dmg-num', str);
@@ -60,9 +65,6 @@ export function spawnText(x: number, y: number, str: string, color?: string): vo
 }
 
 /* ---------- 关卡横幅 ---------- */
-import { stageState } from '../state/stage.js';
-import { CONFIG } from '../data/index.js';
-
 export function showStageBanner(stageName: string, isBoss: boolean, bossName?: string | null): void {
   const wrap = document.getElementById('game');
   if (!wrap) return;

@@ -158,6 +158,360 @@
   .panel-essence { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* 移动端商店适配（横屏优先，兼顾高度受限场景） */
+@media (pointer: coarse) and (orientation: landscape),
+       (max-width: 1080px) and (orientation: landscape),
+       (max-height: 520px) {
+  .shop-body {
+    grid-template-columns: 1.3fr 1fr;
+    max-height: calc(100vh - 120px);
+    gap: 12px;
+    width: min(1200px, 98vw);
+  }
+  .shop-bazaar {
+    overflow-y: auto;
+    gap: 8px;
+  }
+  .shop-panel {
+    max-height: calc(100vh - 130px);
+    padding: 10px 12px 9px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+  .shop-header {
+    margin-bottom: 0;
+  }
+  .overlay-title {
+    font-size: 20px;
+    letter-spacing: .22em;
+  }
+  .overlay-sub {
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+  .panel-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+  .panel-title {
+    font-size: 10px;
+    letter-spacing: .22em;
+    margin-bottom: 5px;
+  }
+  .panel-hpbar {
+    height: 5px;
+  }
+  .panel-hptext {
+    font-size: 8px;
+    margin-top: 2px;
+  }
+  .panel-essence {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+  }
+  .ess {
+    padding: 5px 2px 4px;
+    border-radius: 7px;
+    gap: 1px;
+  }
+  .ess-ic {
+    font-size: 11px;
+  }
+  .ess b {
+    font-size: 12px;
+  }
+  .ess i {
+    font-size: 7px;
+    letter-spacing: .14em;
+  }
+  .panel-sec-title {
+    font-size: 8px;
+    letter-spacing: .28em;
+    margin-bottom: 3px;
+  }
+  .sec-hint {
+    display: none;
+  }
+  .pw-list {
+    gap: 3px;
+  }
+  .pw-item {
+    padding: 3px 6px 3px 4px;
+    font-size: 9px;
+    gap: 4px;
+    border-radius: 6px;
+  }
+  .pw-ic {
+    font-size: 11px;
+  }
+  .si-list {
+    gap: 3px;
+  }
+  .si-item {
+    padding: 3px 6px 3px 4px;
+    font-size: 9px;
+    gap: 4px;
+    border-radius: 6px;
+  }
+  .si-ic {
+    font-size: 10px;
+  }
+  .stat-group {
+    padding: 5px 7px 4px;
+    border-radius: 7px;
+  }
+  .stat-group-title {
+    font-size: 8px;
+    letter-spacing: .24em;
+    margin-bottom: 2px;
+    gap: 4px;
+  }
+  .sgt-ic {
+    font-size: 10px;
+  }
+  .stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1px 8px;
+  }
+  .stat-row {
+    font-size: 9px;
+    padding: 1px 0;
+    gap: 3px;
+  }
+  .sr-ic {
+    font-size: 9px;
+  }
+  .sr-val {
+    font-size: 9px;
+  }
+  .shop-footer {
+    gap: 12px;
+    margin-top: 6px;
+    flex-direction: row;
+    align-items: center;
+  }
+  .coin.big {
+    font-size: 12px;
+    padding: 5px 14px;
+  }
+  .menu-btn.primary {
+    padding: 9px 22px;
+    font-size: 11px;
+    letter-spacing: .16em;
+  }
+  /* 武器详情 */
+  .pw-detail {
+    padding: 8px 10px;
+    margin-top: 6px;
+    border-radius: 9px;
+  }
+  .pwd-head {
+    gap: 6px;
+  }
+  .pwd-ic {
+    font-size: 18px;
+  }
+  .pwd-name {
+    font-size: 11px;
+    letter-spacing: .1em;
+  }
+  .pwd-lv {
+    font-size: 8px;
+    margin-top: 1px;
+  }
+  .pwd-close {
+    font-size: 14px;
+    padding: 2px 4px;
+  }
+  .pwd-formula {
+    font-size: 8px;
+    padding: 5px 7px;
+    margin-top: 6px;
+  }
+  .pwd-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 1px 8px;
+    margin-top: 6px;
+  }
+  .pwd-stat {
+    font-size: 9px;
+    padding: 1px 0;
+  }
+  .pwd-calc {
+    margin-top: 6px;
+  }
+  .pwd-calc-row {
+    font-size: 8px;
+    padding: 1px 0;
+    gap: 4px;
+  }
+  .pwd-calc-row span {
+    width: 46px;
+  }
+  .pwd-calc-row b {
+    width: 34px;
+  }
+  .pwd-calc-total {
+    font-size: 9px;
+    padding: 5px 9px;
+    margin-top: 5px;
+    letter-spacing: .1em;
+  }
+  .pwd-calc-total b {
+    font-size: 12px;
+  }
+  .pwd-sell {
+    margin-top: 6px;
+  }
+  .sell-btn {
+    font-size: 9px;
+    padding: 5px 14px;
+    letter-spacing: .08em;
+  }
+  /* 道具详情 */
+  .si-detail {
+    padding: 8px 10px;
+    margin-top: 6px;
+    border-radius: 9px;
+  }
+  .sid-head {
+    gap: 6px;
+  }
+  .sid-ic {
+    font-size: 16px;
+  }
+  .sid-name {
+    font-size: 11px;
+    letter-spacing: .1em;
+  }
+  .sid-tag {
+    font-size: 7px;
+    padding: 1px 5px;
+    margin-top: 2px;
+  }
+  .sid-close {
+    font-size: 14px;
+    padding: 2px 4px;
+  }
+  .sid-desc {
+    font-size: 9px;
+    padding: 6px 8px;
+    margin-top: 6px;
+    line-height: 1.45;
+  }
+  .sid-effect-title {
+    font-size: 7px;
+    letter-spacing: .22em;
+    margin-bottom: 2px;
+  }
+  .sid-effect-row {
+    font-size: 8px;
+    padding: 2px 5px;
+  }
+  .sid-stat-title {
+    font-size: 7px;
+    letter-spacing: .22em;
+    margin-bottom: 2px;
+  }
+  .sid-stat-row {
+    font-size: 9px;
+    padding: 3px 5px;
+  }
+  .sid-stat-val {
+    font-size: 10px;
+  }
+}
+
+/* 超紧凑横屏（height < 400px）进一步压缩商店 */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 400px),
+       (max-height: 400px) {
+  .shop-body {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 8px;
+    max-height: calc(100vh - 90px);
+  }
+  .shop-panel {
+    padding: 7px 9px 6px;
+    gap: 5px;
+    max-height: calc(100vh - 100px);
+  }
+  .overlay-title {
+    font-size: 16px;
+    letter-spacing: .18em;
+  }
+  .overlay-sub {
+    font-size: 8px;
+    margin-bottom: 4px;
+  }
+  .panel-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+  .panel-head {
+    gap: 8px;
+  }
+  .panel-title {
+    font-size: 9px;
+    letter-spacing: .18em;
+    margin-bottom: 3px;
+  }
+  .panel-hpbar {
+    height: 4px;
+  }
+  .panel-hptext {
+    display: none;
+  }
+  .panel-essence {
+    gap: 3px;
+  }
+  .ess {
+    padding: 3px 1px 3px;
+    border-radius: 5px;
+  }
+  .ess-ic {
+    font-size: 9px;
+  }
+  .ess b {
+    font-size: 10px;
+  }
+  .ess i {
+    display: none;
+  }
+  .pw-item {
+    padding: 2px 5px 2px 3px;
+    font-size: 8px;
+  }
+  .si-item {
+    padding: 2px 5px 2px 3px;
+    font-size: 8px;
+  }
+  .stat-group {
+    padding: 3px 5px 3px;
+  }
+  .stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0 6px;
+  }
+  .stat-row {
+    font-size: 8px;
+    padding: 0;
+  }
+  .shop-footer {
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .coin.big {
+    font-size: 10px;
+    padding: 4px 12px;
+  }
+  .menu-btn.primary {
+    padding: 7px 18px;
+    font-size: 10px;
+  }
+}
+
 
 .sec-hint { font-size: 9px; letter-spacing: .18em; color: rgba(244,236,216,.35); font-weight: 400; margin-left: 8px; }
 .pw-item { cursor: pointer; transition: all .22s cubic-bezier(.22,1,.36,1); }

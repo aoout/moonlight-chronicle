@@ -69,9 +69,9 @@ export class PlayerSystem extends System {
     if (keys['s'] || keys['arrowdown']) my += 1;
     if (keys['a'] || keys['arrowleft']) mx -= 1;
     if (keys['d'] || keys['arrowright']) mx += 1;
-    // 手柄摇杆 / D-Pad 合成向量（已含死区，单位向量或 0）
+    // 手柄摇杆 / D-Pad / 虚拟摇杆合成向量（已含死区，单位向量或 0）
     const gp = iSt().gamepad;
-    if (gp.connected && (gp.moveX !== 0 || gp.moveY !== 0)) {
+    if ((gp.connected || gp.touchActive) && (gp.moveX !== 0 || gp.moveY !== 0)) {
       mx = gp.moveX;
       my = gp.moveY;
     }

@@ -23,3 +23,78 @@
 .result-stat .v { font-family: var(--font-title); font-size: 24px; color: var(--gold); }
 .result-stat .k { font-size: 11px; letter-spacing: .2em; color: rgba(244,236,216,.55); margin-top: 4px; }
 
+/* 移动端结算适配（横屏优先） */
+@media (pointer: coarse) and (orientation: landscape),
+       (max-width: 900px) and (orientation: landscape),
+       (max-height: 520px) {
+  .result-inner {
+    gap: 4px;
+    padding: 14px 20px;
+    max-height: 94vh;
+    overflow-y: auto;
+  }
+  .result-icon {
+    font-size: 36px;
+  }
+  .result-title {
+    font-size: 24px;
+    letter-spacing: .18em;
+  }
+  .result-sub {
+    font-size: 10px;
+    margin-bottom: 4px;
+    letter-spacing: .16em;
+  }
+  .result-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin: 6px 0 10px;
+  }
+  .result-stat {
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+  .result-stat .v {
+    font-size: 16px;
+  }
+  .result-stat .k {
+    font-size: 8px;
+    letter-spacing: .14em;
+    margin-top: 2px;
+  }
+}
+
+/* 超紧凑横屏结算 */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 380px),
+       (max-height: 380px) {
+  .result-inner {
+    gap: 2px;
+    padding: 10px 16px;
+  }
+  .result-icon {
+    font-size: 28px;
+  }
+  .result-title {
+    font-size: 20px;
+    letter-spacing: .14em;
+  }
+  .result-sub {
+    font-size: 9px;
+    margin-bottom: 2px;
+  }
+  .result-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin: 4px 0 6px;
+  }
+  .result-stat {
+    padding: 5px 8px;
+  }
+  .result-stat .v {
+    font-size: 13px;
+  }
+  .result-stat .k {
+    font-size: 7px;
+  }
+}
+

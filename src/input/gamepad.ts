@@ -99,7 +99,15 @@ export function pollGamepad(ts: number, dt: number): void {
 
   if (!gp) {
     // 无手柄：清零移动轴（防止残留），但仍刷新焦点/提示
-    inputState.patch({ gamepad: { ...gs, moveX: 0, moveY: 0 } });
+    // 注意：如果触摸输入活跃，则保留触摸写入的 moveX/moveY
+    const touchActive = gs.touchActive;
+    inputState.patch({
+      gamepad: {
+        ...gs,
+        moveX: touchActive ? gs.moveX : 0,
+        moveY: touchActive ? gs.moveY : 0,
+      },
+    });
     navTick();
     refreshHint();
     return;
@@ -122,6 +130,11 @@ export function pollGamepad(ts: number, dt: number): void {
   if (gp.buttons[13]?.pressed) my = 1;
   if (gp.buttons[14]?.pressed) mx = -1;
   if (gp.buttons[15]?.pressed) mx = 1;
+  // 如果手柄无输入但触摸活跃，保留触摸输入
+  if (mx === 0 && my === 0 && gs.touchActive) {
+    mx = gs.moveX;
+    my = gs.moveY;
+  }
   gs.moveX = mx;
   gs.moveY = my;
 

@@ -4,17 +4,31 @@
 import { RNG, rand } from '../../utils.js';
 import { world } from '../../ecs/World.js';
 import { addDmgNumber } from '../../ui/hud_utils.js';
+import { settingsState } from '../../state/settings.js';
+
+/** 蚀尘浓度：按粒子密度系数的精确缩放（全局小数累积，避免逐个抽样产生间隙） */
+let _densityAcc = 0;
+function densityBudget(n: number): number {
+  const m = settingsState.get('particleDensity');
+  _densityAcc += n * m;
+  const out = Math.floor(_densityAcc);
+  _densityAcc -= out;
+  return out;
+}
 
 export function releaseParticle(pa: any): void {
   // 池化粒子由 PARTICLE_POOL 管理，此函数保留调用兼容但无操作
 }
 
 export function addFx(pa: any): void {
-  const pool = world.getPool('particles'); if (pool && pool.count >= 512) return;
+  const pool = world.getPool('particles');
+  const cap = Math.floor(512 * settingsState.get('particleDensity'));
+  if (pool && pool.count >= cap) return;
   world.add('particles', pa);
 }
 export function spawnBurst(x: number, y: number, color: string, n: number): void {
-  for (let i = 0; i < n; i++) {
+  const budget = densityBudget(n);
+  for (let i = 0; i < budget; i++) {
     const a = RNG() * 6.28, sp = rand(30, 130);
     addFx({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.3, 0.7), max: 0.7, size: rand(1.5, 3.5), color });
   }
@@ -25,7 +39,8 @@ export function spawnRing(x: number, y: number, color: string, max?: number, r1?
 }
 /* 方向火花（短线段） */
 export function spawnSpark(x: number, y: number, color: string, n: number, sp: number): void {
-  for (let i = 0; i < n; i++) {
+  const budget = densityBudget(n);
+  for (let i = 0; i < budget; i++) {
     const a = RNG() * 6.28, s = rand(sp * 0.4, sp);
     addFx({ spark: true, x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, max: rand(0.2, 0.4), size: rand(1, 2), color });
   }
@@ -36,7 +51,8 @@ export function spawnStar(x: number, y: number, color: string, size?: number): v
 }
 /* 旋转碎片（菱形，旋转飞出） */
 export function spawnShard(x: number, y: number, color: string, n: number, sp: number): void {
-  for (let i = 0; i < n; i++) {
+  const budget = densityBudget(n);
+  for (let i = 0; i < budget; i++) {
     const a = RNG() * 6.28, s = rand(sp * 0.35, sp);
     addFx({ shard: true, x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
       rot: RNG() * 6.28, vr: rand(-9, 9), size: rand(2, 4.5), max: rand(0.35, 0.6), color });

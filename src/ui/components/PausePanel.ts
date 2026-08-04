@@ -5,6 +5,7 @@ import { Component } from '../component.js';
 import { STATE, sm } from '../../core/states.js';
 import { playerState } from '../../state/player.js';
 import { stageState } from '../../state/stage.js';
+import { EventBus } from '../../core/event_bus.js';
 import { clamp } from '../../utils.js';
 import { AudioEngine } from '../../audio/engine.js';
 import { $, html } from '../hud_utils.js';
@@ -27,9 +28,11 @@ export class PausePanel extends Component<{}> {
       this._renderContent();
       $('pause').classList.remove('hidden');
       AudioEngine.playSfx('open');
+      EventBus.emit('pause:open', {});
     } else {
       $('pause').classList.add('hidden');
       AudioEngine.playSfx('close');
+      EventBus.emit('pause:close', {});
     }
   }
 

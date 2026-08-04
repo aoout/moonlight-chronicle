@@ -4,6 +4,7 @@ export default defineConfig({
   // 开发服务器配置
   server: {
     port: 3000,
+    host: true,   // 监听所有网络接口，输出局域网链接
     open: true,
   },
   // 构建配置

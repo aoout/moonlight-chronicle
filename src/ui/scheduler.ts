@@ -15,11 +15,13 @@ import { AudioEngine } from '../audio/engine.js';
 import { $, el, html, showScreen, showStageBanner, toast } from './hud_utils.js';
 import { openShop, renderStatGroupsInto } from './shop/index.js';
 import { bindCodex } from './codex.js';
+import { bindSettingsUI, closeSettings, isSettingsOpen } from './settings_panel.js';
 import { startRun, startStage } from '../game.js';
 import { LevelUpPanel } from './components/LevelUpPanel.js';
 import { ResultPanel } from './components/ResultPanel.js';
 import { PausePanel } from './components/PausePanel.js';
 import { GateScreen } from './components/GateScreen.js';
+import { initMobileActionBar, showMobileActionBar, hideMobileActionBar } from './mobile_action_bar.js';
 import type { CurseDef } from '../types/core.d.ts';
 
 import { pSt, gSt, gmSt, iSt } from '../state/accessors.js';
@@ -89,11 +91,6 @@ export function showCurseBanner(curse: CurseDef): void {
 export function refreshMenuDepth(): void {
   const md = $('menu-depth');
   if (md) md.textContent = '蚀月深度 · ' + (gSt().unlocked + 1) + ' / 10 · ' + LEVELS[gSt().unlocked].tag;
-  const bg = $('btn-gate');
-  if (bg) {
-    bg.classList.toggle('gate-locked', gSt().unlocked === 0);
-    bg.title = gSt().unlocked === 0 ? '通关当前远征，蚀月之门便会开启' : '选择蚀月深度';
-  }
   const save = loadRunMeta();
   const btn = $('btn-continue');
   if (btn && save && save.player && save.stage > 0) {
@@ -113,6 +110,11 @@ export function bindUI(): void {
   refreshMenuDepth();
   document.addEventListener('click', () => AudioEngine.start(), { once: true });
 
+  // 移动端操作栏
+  initMobileActionBar();
+  sm.onEnter(STATE.PLAYING, () => showMobileActionBar());
+  sm.onExit(STATE.PLAYING, () => hideMobileActionBar());
+
   // 监听 GateScreen 的选择事件
   window.addEventListener('gate:selected', () => {
     refreshMenuDepth();
@@ -126,17 +128,6 @@ export function bindUI(): void {
     else { toast('没有可追忆的月痕'); $('btn-continue').classList.add('hidden'); }
   };
   $('btn-retry').onclick = () => { AudioEngine.playSfx('click'); enterGame(); };
-  $('btn-gate').onclick = () => {
-    if (gSt().unlocked > 0) { AudioEngine.playSfx('click'); openGate(); }
-    else {
-      AudioEngine.playSfx('click');
-      toast('通关当前远征，蚀月之门便会开启');
-      const bg = $('btn-gate');
-      bg.classList.remove('shake');
-      void bg.offsetWidth;
-      bg.classList.add('shake');
-    }
-  };
   $('btn-gate-close').onclick = () => { AudioEngine.playSfx('close'); closeOverlay('levelselect'); };
   $('btn-how').onclick = () => { AudioEngine.playSfx('click'); $('howto').classList.remove('hidden'); };
   $('btn-close-how').onclick = () => { AudioEngine.playSfx('close'); $('howto').classList.add('hidden'); };
@@ -165,6 +156,12 @@ export function bindUI(): void {
   window.addEventListener('keydown', e => {
     const k = e.key.toLowerCase();
     iSt().keys[k] = true;
+    // 月蚀之仪：设置面板打开时 Escape 优先关闭面板（收敛单一监听，避免与其他入口冲突）
+    if (k === 'escape' && isSettingsOpen()) {
+      AudioEngine.playSfx('close');
+      closeSettings();
+      return;
+    }
     if ((k === '1' || k === '2' || k === '3') && sm.current === STATE.LEVELUP) {
       const cards = document.querySelectorAll('#levelup-cards .card');
       const idx = +k - 1;
@@ -181,4 +178,5 @@ export function bindUI(): void {
   // 窗口失焦时清零所有按键，防止 WASD 卡键
   window.addEventListener('blur', () => { iSt().keys = {}; });
   bindCodex();
+  bindSettingsUI();
 }

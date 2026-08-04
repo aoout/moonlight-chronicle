@@ -15,11 +15,11 @@
               box-shadow .2s var(--ease-out-expo);
 }
 
-/* ---------- 操作提示条（回合指示器同款，略深色） ---------- */
-.gamepad-hint {
+/* =========================================================
+   通用提示条（hint-bar）—— 手柄提示、移动操作栏等复用
+   ========================================================= */
+.hint-bar {
   position: fixed;
-  top: 18px;
-  right: 200px;
   z-index: 60;
   display: inline-flex;
   align-items: center;
@@ -36,14 +36,14 @@
     0 0 var(--eclipse-glow-spread) var(--eclipse-glow-soft);
   font-family: var(--font-body);
   color: rgba(244, 236, 216, .82);
-  pointer-events: none;
   white-space: nowrap;
   /* 中轴由 JS 设定 left，width 和 left 同步过渡，保证中心点不变 */
   transition: width .38s var(--ease-out-expo),
-              left .38s var(--ease-out-expo);
+              left .38s var(--ease-out-expo),
+              opacity .3s ease;
   animation: riseIn .4s var(--ease-out-expo) both;
 }
-.gamepad-hint::before {
+.hint-bar::before {
   content: '';
   position: absolute;
   top: 0;
@@ -53,32 +53,97 @@
   background: linear-gradient(90deg, transparent, rgba(233,201,135,.75), transparent);
   pointer-events: none;
 }
-.gamepad-hint.hidden { display: none !important; }
+.hint-bar.hidden { display: none !important; }
 
-.gh-item {
+.hb-item {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   padding: 0 6px;
 }
-.gh-btn {
+.hb-item.hb-clickable {
+  cursor: pointer;
+  padding: 2px 10px;
+  margin: -2px 0;
+  border-radius: 999px;
+  transition: all .2s ease;
+}
+.hb-item.hb-clickable:hover {
+  background: rgba(233, 201, 135, .12);
+}
+.hb-item.hb-clickable:active {
+  background: rgba(233, 201, 135, .2);
+}
+.hb-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
   line-height: 1;
+  color: rgba(244, 236, 216, .9);
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .5));
 }
-.gh-btn svg { display: block; }
-.gh-label {
+.hb-btn svg { display: block; }
+.hb-label {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: .18em;
-  color: rgba(244, 236, 216, .78);
+  color: rgba(244, 236, 216, .85);
 }
-.gh-sep {
+.hb-sep {
   width: 1px;
   height: 16px;
-  background: rgba(233, 201, 135, .22);
+  background: rgba(233, 201, 135, .28);
   margin: 0 4px;
+}
+
+/* ---------- 移动端操作栏：放在 .hud-right 内，与金币/杀敌数对齐 */
+.mobile-action-bar {
+  position: static !important;
+  display: inline-flex;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--glass-bg-ghost);
+  backdrop-filter: blur(var(--glass-blur-ghost));
+  border: 1px solid var(--glass-border-ghost);
+  box-shadow:
+    var(--glass-edge-inset),
+    0 5px 28px rgba(0, 0, 0, .5),
+    0 0 var(--eclipse-glow-spread) var(--eclipse-glow-soft);
+  z-index: auto;
+  transition: opacity .3s ease;
+  animation: riseIn .4s var(--ease-out-expo) both;
+}
+.mobile-action-bar::before { display: none; }
+.mobile-action-bar .hb-btn {
+  color: var(--gold);
+  font-size: 16px;
+}
+.mobile-action-bar .hb-label {
+  color: rgba(244, 236, 216, .9);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.mobile-action-bar .hb-item {
+  padding: 0 4px;
+  gap: 6px;
+}
+.mobile-action-bar .hb-item.hb-clickable {
+  padding: 0 8px;
+  margin: 0 -4px;
+  border-radius: 999px;
+}
+.mobile-action-bar .hb-sep {
+  height: 14px;
+  margin: 0 2px;
+}
+
+/* ---------- 手柄操作提示条（作为 hint-bar 的修饰 class，只加差异化属性） ---------- */
+.gamepad-hint {
+  pointer-events: none;
+}
+.gamepad-hint::before {
+  /* 覆盖 hint-bar::before，避免双线叠加 */
+  background: linear-gradient(90deg, transparent, rgba(233,201,135,.75), transparent);
 }

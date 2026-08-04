@@ -20,6 +20,7 @@ export interface RenderContext {
   hitFlash: number;
   width: number;
   height: number;
+  dpr: number;
 }
 
 /** 可复用的渲染上下文对象（避免每帧分配） */
@@ -38,6 +39,7 @@ const _rc: RenderContext = {
   hitFlash: 0,
   width: 0,
   height: 0,
+  dpr: 1,
 };
 
 /**
@@ -59,5 +61,6 @@ export function createRenderContext(): RenderContext {
   _rc.hitFlash = rSt().hitFlash;
   _rc.width = rSt().width;
   _rc.height = rSt().height;
+  _rc.dpr = rSt().dpr;
   return _rc;
 }

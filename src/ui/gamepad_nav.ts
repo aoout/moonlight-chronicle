@@ -6,6 +6,8 @@
    避免与 scheduler 产生循环依赖。
    ========================================================= */
 
+import { inputState } from '../state/input.js';
+
 type Dir = 'up' | 'down' | 'left' | 'right';
 
 interface FocusContext {
@@ -15,11 +17,14 @@ interface FocusContext {
 
 let _focusIndex = -1;
 let _lastContextKey = '';
+let _wasConnected = false;
 
 /* ---------- 上下文探测 ---------- */
 
 /** 仅通过 hidden/active 类判断当前上下文（轻量，无 querySelectorAll） */
 export function getActiveContextKey(): string {
+  const settings = document.getElementById('settings');
+  if (settings && !settings.classList.contains('hidden')) return 'settings';
   const howto = document.getElementById('howto');
   if (howto && !howto.classList.contains('hidden')) return 'howto';
   const codex = document.getElementById('codex');
@@ -48,6 +53,11 @@ function _collect(selector: string): HTMLElement[] {
 function getActiveContext(): FocusContext {
   const key = getActiveContextKey();
   switch (key) {
+    case 'settings': {
+      const opts = _collect('#settings .set-preset-btn, #settings .set-opts button');
+      const close = document.getElementById('btn-settings-close');
+      return { key, items: [...opts, ...(close ? [close] : [])] };
+    }
     case 'howto': {
       const close = document.getElementById('btn-close-how');
       return { key, items: close ? [close] : [] };
@@ -90,6 +100,7 @@ function getActiveContext(): FocusContext {
 
 function renderFocus(ctx: FocusContext): void {
   document.querySelectorAll('.gamepad-focus').forEach(el => el.classList.remove('gamepad-focus'));
+  if (!inputState.get('gamepad').connected) return;
   const el = ctx.items[_focusIndex];
   if (!el) return;
   el.classList.add('gamepad-focus');
@@ -98,6 +109,17 @@ function renderFocus(ctx: FocusContext): void {
 
 /** 每帧调用：上下文切换时重置焦点，并修复失效索引 */
 export function navTick(): void {
+  const connected = inputState.get('gamepad').connected;
+  // 手柄刚断开：清除所有焦点高亮并重置索引
+  if (_wasConnected && !connected) {
+    document.querySelectorAll('.gamepad-focus').forEach(el => el.classList.remove('gamepad-focus'));
+    _focusIndex = -1;
+    _wasConnected = false;
+    return;
+  }
+  _wasConnected = connected;
+  if (!connected) return;
+
   const ctx = getActiveContext();
   if (ctx.key !== _lastContextKey) {
     _lastContextKey = ctx.key;
@@ -142,6 +164,7 @@ function findNearest(cur: HTMLElement, list: HTMLElement[], dir: Dir): HTMLEleme
 }
 
 export function handleNav(dir: Dir): void {
+  if (!inputState.get('gamepad').connected) return;
   const ctx = getActiveContext();
   if (!ctx.items.length) return;
   if (_focusIndex < 0) _focusIndex = 0;
@@ -181,6 +204,7 @@ export function handleConfirm(): void {
 export function handleCancel(): void {
   const key = getActiveContextKey();
   switch (key) {
+    case 'settings': clickById('btn-settings-close'); break;
     case 'howto': clickById('btn-close-how'); break;
     case 'codex': clickById('btn-codex-close'); break;
     case 'gate': clickById('btn-gate-close'); break;

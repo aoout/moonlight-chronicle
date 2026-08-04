@@ -17,6 +17,7 @@ import { render } from './render/index.js';
 import { getSysMan } from './systems/index.js';
 import { uiTick } from './ui/hud.js';
 import { pollGamepad } from './input/gamepad.js';
+import { settingsState } from './state/settings.js';
 
 /* ---------- 关卡流程 ---------- */
 
@@ -104,10 +105,16 @@ const FIXED_DT = 1 / 60;          // 固定步长 ≈16.67ms
 const MAX_STEPS = 4;               // 单帧最大逻辑步数（防螺旋死锁）
 let _accum = 0;
 let _lastT = 0;
+let _lastRenderT = 0;
 
 export function gameLoop(ts: number): void {
   requestAnimationFrame(gameLoop);
-  if (_lastT === 0) { _lastT = ts; return; }  // 首帧初始化基线
+  if (_lastT === 0) { _lastT = ts; _lastRenderT = ts; return; }  // 首帧初始化基线
+  // 潮汐节律：近似帧率上限（30 / 60 / 0=无羁），含 1ms 容差。
+  // 跳帧不推进 _lastT，累积器将在下一帧补足逻辑步数，模拟节奏不受限帧影响。
+  const fpsLimit = settingsState.get('fpsLimit');
+  if (fpsLimit > 0 && ts - _lastRenderT < 1000 / fpsLimit - 1) return;
+  _lastRenderT = ts;
   let frameDt = (ts - _lastT) / 1000;
   _lastT = ts;
   // 超大 dt 保护（切标签页、休眠唤醒），防 ts 倒退

@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="css/shop.css">
   <link rel="stylesheet" href="css/result.css">
   <link rel="stylesheet" href="css/codex.css">
+  <link rel="stylesheet" href="css/settings.css">
   <link rel="stylesheet" href="css/gamepad.css">
 </head>
 <body>
@@ -41,9 +42,9 @@
           <span class="continue-main"><span class="ic" data-ic="moon"></span> 追忆月痕 · 继续远征</span>
           <em id="continue-info">第 1 夜</em>
         </button>
-        <button id="btn-gate" class="menu-btn ghost">远征之门</button>
         <button id="btn-codex" class="menu-btn ghost">蚀之图鉴</button>
         <button id="btn-how" class="menu-btn ghost">如何作战</button>
+        <button id="btn-settings" class="menu-btn ghost"><span class="ic" data-ic="gear"></span> 月蚀之仪</button>
       </div>
       <div class="menu-hint">WASD / 方向键移动 · 武器自动攻击</div>
       <div id="howto" class="howto hidden">
@@ -87,6 +88,106 @@
       <div class="codex-grid" id="codex-grid"></div>
       <div class="codex-foot">
         <button id="btn-codex-close" class="menu-btn ghost small">返回</button>
+      </div>
+    </div>
+
+    <!-- ===== 月蚀之仪：辉光调校 ===== -->
+    <div id="settings" class="overlay hidden">
+      <div class="set-panel eclipse-glass-deep">
+        <div class="eclipse-edge-top"></div>
+        <div class="eclipse-top-glow"></div>
+        <div class="set-head">
+          <div class="set-emblem"><span class="ic" data-ic="moonFull"></span></div>
+          <div class="set-title">月蚀之仪</div>
+          <div class="set-sub">调校辉光显映 · 让蚀月与守月之力相合</div>
+        </div>
+        <div class="set-body">
+          <!-- 蚀相 · 档位 -->
+          <div class="set-group">
+            <div class="set-group-head">
+              <span class="sg-name">蚀相 · 档位</span>
+              <span class="sg-sub">一键调校全部辉光</span>
+            </div>
+            <div class="set-preset" id="set-preset">
+              <button class="set-preset-btn" data-preset="low"><b>蚀辉</b><i>幽暗</i></button>
+              <button class="set-preset-btn" data-preset="medium"><b>月芒</b><i>清冷</i></button>
+              <button class="set-preset-btn" data-preset="high"><b>皎月</b><i>澄明</i></button>
+              <button class="set-preset-btn" data-preset="ultra"><b>满月</b><i>辉耀</i></button>
+            </div>
+          </div>
+
+          <!-- 月镜 · 解析 -->
+          <div class="set-group">
+            <div class="set-group-head">
+              <span class="sg-name">月镜 · 解析</span>
+              <span class="sg-sub">画面精细程度</span>
+            </div>
+            <div class="set-row">
+              <div class="set-info"><div class="set-name">月镜析度</div><div class="set-desc">渲染分辨率 · 缩放画布</div></div>
+              <div class="set-opts" data-key="renderScale">
+                <button data-v="0.5">蚀影</button>
+                <button data-v="0.75">月晕</button>
+                <button data-v="1">明澈</button>
+              </div>
+            </div>
+            <div class="set-row">
+              <div class="set-info"><div class="set-name">蚀尘</div><div class="set-desc">粒子密度 · 爆点与碎屑</div></div>
+              <div class="set-opts" data-key="particleDensity">
+                <button data-v="0.5">稀疏</button>
+                <button data-v="0.75">流转</button>
+                <button data-v="1">繁盛</button>
+              </div>
+            </div>
+            <div class="set-row">
+              <div class="set-info"><div class="set-name">潮汐节律</div><div class="set-desc">帧率上限 · 节制显映</div></div>
+              <div class="set-opts" data-key="fpsLimit">
+                <button data-v="30">30</button>
+                <button data-v="60">60</button>
+                <button data-v="0">无羁</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 月仪 · 显映 -->
+          <div class="set-group">
+            <div class="set-group-head">
+              <span class="sg-name">月仪 · 显映</span>
+              <span class="sg-sub">特效与氛围</span>
+            </div>
+            <div class="set-row">
+              <div class="set-info"><div class="set-name">辉光溢彩</div><div class="set-desc">星芒 · 流光 · 光晕</div></div>
+              <div class="set-opts" data-key="glowFx">
+                <button data-v="false">隐</button>
+                <button data-v="true">绽</button>
+              </div>
+            </div>
+            <div class="set-row">
+              <div class="set-info"><div class="set-name">月震</div><div class="set-desc">命中与冲击的震屏</div></div>
+              <div class="set-opts" data-key="shake">
+                <button data-v="false">止</button>
+                <button data-v="true">震</button>
+              </div>
+            </div>
+            <div class="set-row">
+              <div class="set-info"><div class="set-name">蚀痕</div><div class="set-desc">伤害数字显映</div></div>
+              <div class="set-opts" data-key="dmgNumbers">
+                <button data-v="false">隐</button>
+                <button data-v="true">显</button>
+              </div>
+            </div>
+            <div class="set-row">
+              <div class="set-info"><div class="set-name">月面蚀刻</div><div class="set-desc">背景月海 · 环形山 · 微尘</div></div>
+              <div class="set-opts" data-key="bgDetail">
+                <button data-v="false">荒寂</button>
+                <button data-v="true">丰饶</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="set-foot">
+          <div class="set-note">辉光调校即刻显映 · 并烙于月痕之中</div>
+          <button id="btn-settings-close" class="menu-btn ghost small">回到月台</button>
+        </div>
       </div>
     </div>
 
@@ -222,6 +323,13 @@
     </div>
 
     <div id="toast" class="toast-wrap"></div>
+
+    <!-- ===== 横屏提示（移动端竖屏时显示） ===== -->
+    <div id="orientation-lock" class="orientation-lock">
+      <div class="ol-icon"></div>
+      <div class="ol-text">请旋转设备至横屏</div>
+      <div class="ol-sub">蚀月远征需要横向视野</div>
+    </div>
   </div>
 
 <script type="module" src="src/main.ts"></script>

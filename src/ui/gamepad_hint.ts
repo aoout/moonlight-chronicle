@@ -1,11 +1,13 @@
 /* =========================================================
    蚀月远征 · 手柄操作提示条
    手柄接入时于屏幕底部显示上下文相关的按键提示。
+   复用通用 HintBar 组件。
    字形为纯 SVG（无 emoji），配色取 Xbox 经典色但降饱和
    以契合月蚀金调。
    ========================================================= */
 import { inputState } from '../state/input.js';
 import { getActiveContextKey } from './gamepad_nav.js';
+import { HintBar } from './components/HintBar.js';
 
 interface HintItem { b: string; l: string }
 
@@ -21,7 +23,7 @@ const HINTS: Record<string, HintItem[]> = {
   howto:    [{ b: 'a', l: '关闭' }, { b: 'b', l: '关闭' }],
 };
 
-let _hintEl: HTMLElement | null = null;
+let hintBar: HintBar | null = null;
 let _lastKey = '';
 let _lastConnected = false;
 
@@ -91,43 +93,44 @@ function btnGlyph(name: string): string {
 /* ---------- 初始化与刷新 ---------- */
 
 export function initHint(): void {
-  _hintEl = document.createElement('div');
-  _hintEl.id = 'gamepad-hint';
-  _hintEl.className = 'gamepad-hint hidden';
-  document.body.appendChild(_hintEl);
+  hintBar = new HintBar({
+    position: { top: '18px', centerOffsetX: 280 },
+    pointerEvents: 'none',
+    className: 'gamepad-hint',
+  });
+  hintBar.mount();
+  hintBar.hide();
 }
 
 /** 每帧调用：仅在连接状态或上下文变化时改写 DOM */
 export function refreshHint(): void {
-  if (!_hintEl) return;
+  if (!hintBar) return;
   const gp = inputState.state.gamepad;
   if (gp.connected !== _lastConnected) {
     _lastConnected = gp.connected;
-    _hintEl.classList.toggle('hidden', !gp.connected);
-    _lastKey = ''; // 强制重渲染
+    _lastKey = '';
+    if (gp.connected) {
+      // 先填充内容和定位，再显示，避免空胶囊闪烁
+      const key = getActiveContextKey();
+      _lastKey = key;
+      const items = HINTS[key] || [];
+      hintBar.setItems(items.map(it => ({
+        icon: btnGlyph(it.b),
+        label: it.l,
+      })));
+      hintBar.show();
+    } else {
+      hintBar.hide();
+    }
+    return;
   }
   if (!gp.connected) return;
   const key = getActiveContextKey();
   if (key === _lastKey) return;
   _lastKey = key;
   const items = HINTS[key] || [];
-  _hintEl.innerHTML = items.map(it =>
-    '<span class="gh-item"><span class="gh-btn">' + btnGlyph(it.b) +
-    '</span><span class="gh-label">' + it.l + '</span></span>',
-  ).join('<span class="gh-sep"></span>');
-  // 中轴对称扩展：中轴固定在距视口右边界 200px 处。
-  // left = 中轴点 - width/2，宽度变化时重算 left，使中心坐标不变。
-  const el = _hintEl;
-  const prevTransition = el.style.transition;
-  el.style.transition = 'none';
-  el.style.width = 'auto';
-  const targetW = el.offsetWidth;
-  const centerX = window.innerWidth - 280;
-  el.style.left = (centerX - targetW / 2) + 'px';
-  el.style.right = 'auto';
-  // 强制重排，确保下一帧的 width 设置触发过渡
-  void el.offsetWidth;
-  el.style.transition = prevTransition;
-  el.style.width = targetW + 'px';
-  // 过渡期间宽度变化，但 left 固定 → 中心点不变 → 向两侧对称扩展
+  hintBar.setItems(items.map(it => ({
+    icon: btnGlyph(it.b),
+    label: it.l,
+  })));
 }

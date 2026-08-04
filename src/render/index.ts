@@ -19,10 +19,12 @@ export function render(): void {
   // ---- 背景层（bg-canvas）：不参与 shake，免 clearRect ----
   drawBackground(rc);
 
-  // ---- 游戏层（game-canvas）：每帧清空 + shake ----
+  // ---- 游戏层（game-canvas）：每帧清空 + DPI 缩放 + shake ----
   const ctx = rc.ctx;
   if (!ctx) return;
   ctx.save();
+  const dpr = rc.dpr || 1;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, rc.width, rc.height);
   if (rc.shake > 0.5) {
     ctx.translate(rand(-rc.shake, rc.shake) * 0.4, rand(-rc.shake, rc.shake) * 0.4);
