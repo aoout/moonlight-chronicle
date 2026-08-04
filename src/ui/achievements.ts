@@ -36,19 +36,23 @@ export function renderAchievements(): void {
     const prog = achProgressOf(a);
     const meta = RARITY_META[a.rarity];
     const card = el('div', 'ach-card' + (earned ? ' earned' : '') + ' r-' + a.rarity);
-    const pct = Math.min(100, Math.round(prog / a.target * 100));
+    const isAll = a.id === 'a_all';
+    const denom = isAll ? achTotal() - 1 : a.target;
+    const pct = Math.min(100, Math.round(prog / denom * 100));
     card.innerHTML =
       '<div class="ach-ic">' + (earned ? iconSVG(a.icon) : iconSVG('slotEmpty')) + '</div>' +
       '<div class="ach-body">' +
         '<div class="ach-name">' + (earned ? a.name : '？？？') + '</div>' +
         '<div class="ach-tag ' + meta.cls + '">' + meta.label + '</div>' +
-        '<div class="ach-desc">' + a.desc + (a.cumulative ? '' : '（单局）') + '</div>' +
+        '<div class="ach-desc">' + a.desc + '</div>' +
         '<div class="ach-bar"><i style="width:' + pct + '%"></i></div>' +
         '<div class="ach-prog">' + (earned
           ? '已达成'
-          : a.cumulative
-            ? '进度 ' + Math.min(prog, a.target) + ' / ' + a.target
-            : '历史最佳 ' + Math.min(prog, a.target) + ' / ' + a.target) + '</div>' +
+          : isAll
+            ? '已解锁 ' + Math.min(prog, denom) + ' / ' + denom
+            : a.cumulative
+              ? '进度 ' + Math.min(prog, a.target) + ' / ' + a.target
+              : '历史最佳 ' + Math.min(prog, a.target) + ' / ' + a.target) + '</div>' +
       '</div>' +
       (earned ? '<div class="ach-check">✓</div>' : '');
     grid.appendChild(card);

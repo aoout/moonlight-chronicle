@@ -179,6 +179,7 @@ function testOf(a: AchievementDef): number {
         case 'a_moon_only': return (_winStage >= 20 && _moonOnly) ? 1 : 0;
         case 'a_no_death': return (_winStage >= 20 && !_died) ? 1 : 0;
         case 'a_fast_boss': return _fastStageCheck && session.stageKills >= 50 ? 1 : 0;
+        case 'a_all': return achOtherEarned() >= ACHIEVEMENTS.length - 1 ? 1 : 0;
       }
       return 0;
   }
@@ -198,6 +199,7 @@ function tryUnlock(): void {
 
 /* ---------- 对外读取 ---------- */
 export function achProgressOf(a: AchievementDef): number {
+  if (a.id === 'a_all') return achOtherEarned();   // 月之圆满：显示其他成就已解锁数
   if (a.cumulative) return Math.min(testOf(a), a.target);
   // 单局成就：显示历史最佳成绩（主菜单/面板查看）
   return Math.min(bestOf(a) || 0, a.target);
@@ -236,3 +238,9 @@ function bestOf(a: AchievementDef): number {
 export function achIsEarned(id: string): boolean { return !!earned[id]; }
 export function achEarnedTotal(): number { return Object.keys(earned).length; }
 export function achTotal(): number { return ACHIEVEMENTS.length; }
+/* 除「月之圆满」外已解锁的成就数 */
+export function achOtherEarned(): number {
+  let n = 0;
+  for (const b of ACHIEVEMENTS) if (b.id !== 'a_all' && earned[b.id]) n++;
+  return n;
+}

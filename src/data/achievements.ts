@@ -68,6 +68,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'a_critdmg_100k', name: '暴击洪流', desc: '单局暴击伤害总和 100,000。', icon: 'diamond', rarity: 'legend', cumulative: false, kind: 'crit', target: 100000, hint: '你的暴击，汇成月下洪流' },
   { id: 'a_timestop_5', name: '时之观者', desc: '单局触发时之残响 5 次。', icon: 'frozenHourglass', rarity: 'rare', cumulative: false, kind: 'timestop', target: 5, hint: '你让时间在月背驻足' },
   { id: 'a_item_legend3', name: '秘宝收藏家', desc: '单局同时拥有 3 个神恩道具。', icon: 'moonGem', rarity: 'epic', cumulative: false, kind: 'item', target: 3, hint: '神恩与你同行' },
+  { id: 'a_all',         name: '月之圆满', desc: '获得其余全部成就。', icon: 'moonFull', rarity: 'legend', cumulative: false, kind: 'custom', target: 1, hint: '你的功勋，已刻满整轮月光' },
 ];
 
 export const ACH_RARITY_ORDER: Record<AchRarity, number> = { common: 0, rare: 1, epic: 2, legend: 3 };

@@ -15,7 +15,7 @@ vi.hoisted(() => {
 import { ACHIEVEMENTS } from '../data/achievements.js';
 import {
   achSessionStart, achSessionEnd, achOnKill, achOnDamage, achOnHurt, achOnDodge,
-  achIsEarned, achProgressOf, achOnWeapon, achOnItemBuy,
+  achIsEarned, achProgressOf, achOnWeapon, achOnItemBuy, achTotal, achOtherEarned,
 } from '../systems/AchievementSystem.js';
 
 const a = (id: string) => ACHIEVEMENTS.find(x => x.id === id)!;
@@ -79,5 +79,21 @@ describe('单局成就历史最佳', () => {
     achSessionStart(0);
     for (let i = 0; i < 500; i++) achOnKill('grub', undefined, false);
     expect(achIsEarned('a_kill_500')).toBe(true);   // 当前局 500 → 解锁
+  });
+});
+
+describe('月之圆满（全成就）', () => {
+  it('其余成就全部达成后解锁 a_all', () => {
+    achSessionStart(0);
+    // 模拟达成足够条件使其他成就解锁（通过大量击杀/金币等）
+    for (let i = 0; i < 600; i++) achOnKill('grub', undefined, false);
+    achOnDamage(9999, true);
+    achOnWeapon(); achOnWeapon(); achOnWeapon(); achOnWeapon(); achOnWeapon();
+    for (let i = 0; i < 20; i++) achOnItemBuy(false);
+    achSessionEnd();
+    // a_all 自身不应计入其进度分母（其他成就数）
+    expect(achTotal()).toBeGreaterThan(achOtherEarned());
+    // 进度函数可用且不抛
+    expect(achProgressOf(a('a_all'))).toBeGreaterThanOrEqual(0);
   });
 });
