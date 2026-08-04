@@ -48,8 +48,8 @@
   "frost": {
     "id": "frost", "name": "霜华之环", "icon": "wFrost", "tag": "脉冲·生命",
     "desc": "周期性爆发冰环，伤害随生命上限成长。",
-    "formula": "攻击 ×(0.7+0.12L) + 生命上限 ×(10%+2%L)",
-    "formulaDmg": "effAtk * (0.7 + 0.12 * level) + maxHp * 0.10 * (1 + level * 0.2)",
+    "formula": "攻击 ×(0.7+0.12L) + 生命上限 ×(16%+2.4%L)",
+    "formulaDmg": "effAtk * (0.7 + 0.12 * level) + maxHp * (0.16 + 0.024 * level)",
     "cd": 2.0, "aoe": 200, "slow": 0.4, "color": "#7fd6e4",
     "fire": {
       "targeting": "self", "pattern": "single",
