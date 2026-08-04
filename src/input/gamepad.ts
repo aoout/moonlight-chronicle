@@ -28,7 +28,7 @@ let _hasNotifiedConnect = false;
 
 export function initGamepad(): void {
   window.addEventListener('gamepadconnected', () => {
-    inputState.state.gamepad.connected = true;
+    inputState.patch({ gamepad: { ...inputState.get('gamepad'), connected: true } });
     if (!_hasNotifiedConnect) {
       _hasNotifiedConnect = true;
       toast('手柄已接入 · 守月人，月下同行');
@@ -38,10 +38,7 @@ export function initGamepad(): void {
   window.addEventListener('gamepaddisconnected', () => {
     const remaining = (navigator.getGamepads() || []).filter(g => g).length;
     if (remaining === 0) {
-      const gp = inputState.state.gamepad;
-      gp.connected = false;
-      gp.moveX = 0;
-      gp.moveY = 0;
+      inputState.patch({ gamepad: { ...inputState.get('gamepad'), connected: false, moveX: 0, moveY: 0 } });
       _hasNotifiedConnect = false;
       toast('手柄已断开');
       refreshHint();
@@ -98,12 +95,11 @@ export function pollGamepad(ts: number, dt: number): void {
   let gp: Gamepad | null = null;
   for (const p of pads) { if (p) { gp = p; break; } }
 
-  const gs = inputState.state.gamepad;
+  const gs = inputState.get('gamepad');
 
   if (!gp) {
     // 无手柄：清零移动轴（防止残留），但仍刷新焦点/提示
-    gs.moveX = 0;
-    gs.moveY = 0;
+    inputState.patch({ gamepad: { ...gs, moveX: 0, moveY: 0 } });
     navTick();
     refreshHint();
     return;

@@ -4,7 +4,7 @@
    ========================================================= */
 import { RNG, rand } from '../utils.js';
 import { world } from '../ecs/World.js';
-import { createEntity, Position, Velocity, Combat, Timer, Renderable, Projectile } from '../ecs/components.js';
+import { Position, Velocity, Combat, Timer, Renderable, Projectile } from '../ecs/entity_factories.js';
 import { compileFormula } from '../data/parser.js';
 import { PROJECTILE_TYPES } from './projectile_types.js';
 import { WEAPONS } from '../data/index.js';
@@ -84,12 +84,12 @@ export const PATTERNS: Record<string, (p: Player, target: TargetingResult, cfg: 
     const list = [];
     for (let i = 0; i < n; i++) {
       const a = (i / n) * 6.28 + RNG();
-      const ph = world.add('phantoms', createEntity(
-        Position(p.x + Math.cos(a) * posOffset, p.y + Math.sin(a) * posOffset),
-        Combat(baseDmg / n),
-        Timer(0, duration),
-        { fireT: rand(0, initFireT), lv: cfg.lv || 1 }
-      ));
+      const ph = world.add('phantoms', {
+        ...Position(p.x + Math.cos(a) * posOffset, p.y + Math.sin(a) * posOffset),
+        ...Combat(baseDmg / n),
+        ...Timer(0, duration),
+        fireT: rand(0, initFireT), lv: cfg.lv || 1,
+      });
       list.push(ph);
     }
     return list;
@@ -135,21 +135,19 @@ function createProjectile(p: Player, target: TargetingResult, cfg: WeaponFireCon
   const startX = typeName === 'meteor' ? (target?.x ?? p.x) : p.x;
   const startY = typeName === 'meteor' ? (target?.y ?? p.y) : p.y;
 
-  const pr = world.add('projectiles', createEntity(
-    Position(startX, startY),
-    Velocity(Math.cos(angle) * speed, Math.sin(angle) * speed),
-    Renderable(color, r),
-    Combat(baseDmg, pierce),
-    Projectile(wId, range, speed, r),
-    Timer(0, 0),
-    {
-      dir: angle, hit: new Set(), dead: false,
-      // 使用注册表生成类型特定属性
-      ...typeDef.createFlags(ctx),
-      // 通用属性（不依赖类型）
-      ...(projCfg.trail ? { trail: true } : {}),
-      ...(projCfg.owner ? { owner: true } : {}),
-    }
-  ));
+  const pr = world.add('projectiles', {
+    ...Position(startX, startY),
+    ...Velocity(Math.cos(angle) * speed, Math.sin(angle) * speed),
+    ...Renderable(color, r),
+    ...Combat(baseDmg, pierce),
+    ...Projectile(wId, range, speed, r),
+    ...Timer(0, 0),
+    dir: angle, hit: new Set(), dead: false,
+    // 使用注册表生成类型特定属性
+    ...typeDef.createFlags(ctx),
+    // 通用属性（不依赖类型）
+    ...(projCfg.trail ? { trail: true } : {}),
+    ...(projCfg.owner ? { owner: true } : {}),
+  });
   return pr;
 }

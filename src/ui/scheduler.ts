@@ -178,5 +178,7 @@ export function bindUI(): void {
     }
   });
   window.addEventListener('keyup', e => { iSt().keys[e.key.toLowerCase()] = false; });
+  // 窗口失焦时清零所有按键，防止 WASD 卡键
+  window.addEventListener('blur', () => { iSt().keys = {}; });
   bindCodex();
 }

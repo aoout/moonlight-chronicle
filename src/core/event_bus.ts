@@ -1,10 +1,7 @@
 /* =========================================================
    蚀月远征 · 事件总线（强类型化）
    解耦游戏逻辑与 UI，模块间通信
-   泛型参数 EventMap 由 events.ts 提供，保证事件名与 payload 类型匹配
    ========================================================= */
-import type { EventMap } from './events.js';
-
 type EventCallback<T> = (data: T) => void;
 
 export class EventBusClass<M extends Record<string, any>> {
@@ -43,4 +40,4 @@ export class EventBusClass<M extends Record<string, any>> {
 }
 
 /** 全局事件总线实例 */
-export const EventBus = new EventBusClass<EventMap>();
+export const EventBus = new EventBusClass<Record<string, any>>();

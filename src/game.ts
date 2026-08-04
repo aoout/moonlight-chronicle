@@ -14,11 +14,9 @@ import { spawnBoss, spawnEnemy } from './domain/spawn.js';
 import { pick } from './utils.js';
 import { CONFIG, STAGE_NAMES, BOSS_POOLS, CURSES } from './data/index.js';
 import { render } from './render/index.js';
-import { container } from './core/container.js';
-import './core/di.js';  // 确保服务注册
+import { getSysMan } from './systems/index.js';
 import { uiTick } from './ui/hud.js';
 import { pollGamepad } from './input/gamepad.js';
-import type { SystemManager } from './core/system_manager.js';
 
 /* ---------- 关卡流程 ---------- */
 
@@ -34,7 +32,7 @@ export function startStage(n: number): void {
   // 每回合重置武器伤害统计（占比反映当前回合输出构成；totalDmg 保留全程）
   statsState.set('runStats', { ...sSt().runStats, wDmg: {} });
   // 使用 World 重置实体池（同时清空 entityState 列表和 EntityPool）
-  container.resolve<SystemManager>('sysMan').getWorld().resetAll();
+  getSysMan().getWorld().resetAll();
   const p = pSt().player;
   if (!p) return;
   p.x = rSt().width / 2;
@@ -98,7 +96,7 @@ export function startRun(): void {
 
 export function update(dt: number): void {
   stageState.set('time', gSt().time + dt);
-  container.resolve<SystemManager>('sysMan').update(dt);
+  getSysMan().update(dt);
 }
 
 /* ---------- 固定时间步长 + 累积器 ---------- */

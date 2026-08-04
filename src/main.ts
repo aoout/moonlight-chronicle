@@ -20,13 +20,20 @@ renderState.set('ctx', canvas.getContext('2d'));
 const bgCanvas = document.getElementById('bg-canvas') as HTMLCanvasElement;
 renderState.set('ctxBg', bgCanvas.getContext('2d'));
 
+// 防抖 resize：利用 rAF 合并多次 resize 事件为每帧最多一次重排
+let _resizePending = false;
 function resize(): void {
-  renderState.set('width', window.innerWidth);
-  renderState.set('height', window.innerHeight);
-  canvas.width = renderState.get('width');
-  canvas.height = renderState.get('height');
-  bgCanvas.width = renderState.get('width');
-  bgCanvas.height = renderState.get('height');
+  if (_resizePending) return;
+  _resizePending = true;
+  requestAnimationFrame(() => {
+    renderState.set('width', window.innerWidth);
+    renderState.set('height', window.innerHeight);
+    canvas.width = renderState.get('width');
+    canvas.height = renderState.get('height');
+    bgCanvas.width = renderState.get('width');
+    bgCanvas.height = renderState.get('height');
+    _resizePending = false;
+  });
 }
 window.addEventListener('resize', resize);
 resize();

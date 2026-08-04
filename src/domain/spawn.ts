@@ -8,7 +8,7 @@ import { ENEMIES, BOSSES, enemyScale, levelEnemyScale } from '../data/index.js';
 import { world } from '../ecs/World.js';
 import { PROJECTILE_POOL } from '../ecs/entity_pool.js';
 import { codexAdd } from '../persistence/codex.js';
-import { createEntity, Position, Health, Renderable, Combat, Timer, Status, Enemy, Velocity } from '../ecs/components.js';
+import { Position, Health, Renderable, Combat, Timer, Status, Enemy, Velocity } from '../ecs/entity_factories.js';
 import type { EnemyInstance } from '../types/core.d.ts';
 
 import { gSt, rSt, pSt, eSt } from '../state/accessors.js';
@@ -31,23 +31,21 @@ export function spawnEnemy(type: string, opts?: { hpMul?: number }): EnemyInstan
   else { x = rs.width + m; y = rand(-m, rs.height + m); }
   const hp = def.hp * sc.hp * (opts && opts.hpMul ? opts.hpMul : 1) * ls.hp * (p && p.effects.enemyHpMul ? p.effects.enemyHpMul : 1);
   const dmg = def.dmg * sc.dmg * ls.dmg * (p && p.effects.enemyDmgMul ? p.effects.enemyDmgMul : 1);
-  const e = world.add('enemies', createEntity(
-    Position(x, y),
-    Health(hp),
-    Renderable(def.color, def.size),
-    Combat(dmg),
-    Timer(RNG() * 6.28, 0),
-    Status(0, 0, 0, 0),
-    Enemy(type, false),
-    Velocity(0, 0),
-    {
-      spd: def.spd, wob: rand(0.6, 1.4),
-      stateT: 0, dead: 0, state: 'chase',
-      split: def.split || 0, splitHp: def.splitHp || 0,
-      dash: def.dash || 0, projSpd: def.projSpd || 0, projDmg: def.projDmg || 0,
-      ranged: def.ranged || false,
-    }
-  ));
+  const e = world.add('enemies', {
+    ...Position(x, y),
+    ...Health(hp),
+    ...Renderable(def.color, def.size),
+    ...Combat(dmg),
+    ...Timer(RNG() * 6.28, 0),
+    ...Status(0, 0, 0, 0),
+    ...Enemy(type, false),
+    ...Velocity(0, 0),
+    spd: def.spd, wob: rand(0.6, 1.4),
+    stateT: 0, dead: 0, state: 'chase',
+    split: def.split || 0, splitHp: def.splitHp || 0,
+    dash: def.dash || 0, projSpd: def.projSpd || 0, projDmg: def.projDmg || 0,
+    ranged: def.ranged || false,
+  });
   e.maxHp = e.hp;
   return e;
 }
@@ -63,22 +61,20 @@ export function spawnBoss(type: string): EnemyInstance {
   const p = pSt().player;
   const hp = def.hp * (type === 'final' ? 1.35 : 1) * (1 + (gs.stage - 1) * 0.02) * ls.hp * (p && p.effects.enemyHpMul ? p.effects.enemyHpMul : 1);
   const dmg = def.dmg * sc.dmg * ls.dmg * (p && p.effects.enemyDmgMul ? p.effects.enemyDmgMul : 1);
-  const e = world.add('enemies', createEntity(
-    Position(rs.width / 2, -70),
-    Health(hp),
-    Renderable(def.color, def.size),
-    Combat(dmg),
-    Timer(0, 0),
-    Status(0, 0, 0, 0),
-    Enemy(type, true),
-    Velocity(0, 0),
-    {
-      stateT: 0, vx: 0, vy: 0, dead: 0,
-      spd: def.spd, attT: rand(1, 2), state: 'enter',
-      skills: def.skills || ['wave'],
-      attCd: def.attCd || 3.4,
-    }
-  ));
+  const e = world.add('enemies', {
+    ...Position(rs.width / 2, -70),
+    ...Health(hp),
+    ...Renderable(def.color, def.size),
+    ...Combat(dmg),
+    ...Timer(0, 0),
+    ...Status(0, 0, 0, 0),
+    ...Enemy(type, true),
+    ...Velocity(0, 0),
+    stateT: 0, vx: 0, vy: 0, dead: 0,
+    spd: def.spd, attT: rand(1, 2), state: 'enter',
+    skills: def.skills || ['wave'],
+    attCd: def.attCd || 3.4,
+  });
   e.maxHp = e.hp;
   stageState.set('boss', e);
   return e;

@@ -5,7 +5,6 @@
    ========================================================= */
 import { System, type SystemDeps } from './system.js';
 import { EventBus, type EventBusClass } from './event_bus.js';
-import type { EventMap } from './events.js';
 import { world, type World } from '../ecs/World.js';
 import { CONFIG } from '../data/index.js';
 
@@ -28,7 +27,7 @@ export class SystemManager {
 
   getWorld(): World { return world; }
 
-  getEventBus(): EventBusClass<EventMap> { return EventBus; }
+  getEventBus(): EventBusClass<any> { return EventBus; }
 
   getConfig(): Record<string, any> { return CONFIG; }
 

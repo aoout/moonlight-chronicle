@@ -45,6 +45,7 @@ function pluck(ctx: AudioCtx, bus: AudioNode, freq: number, dur: number, opts: P
   lp.Q.value = 0.6;
   const out = panTo(ctx, bus, opts.pan);
   const harm = opts.harm ?? [1, 2, 3.01];
+  const oscs: OscillatorNode[] = [];
   harm.forEach((h, i) => {
     const o = ctx.createOscillator();
     o.type = i === 0 ? (opts.type || 'triangle') : 'sine';
@@ -53,10 +54,13 @@ function pluck(ctx: AudioCtx, bus: AudioNode, freq: number, dur: number, opts: P
     o.connect(lp);
     o.start(t);
     o.stop(t + dur + 0.08);
-    o.onended = () => { try { o.disconnect(); } catch (e) {} };
+    oscs.push(o);
   });
   lp.connect(g); g.connect(out);
-  setTimeout(() => { try { g.disconnect(); } catch (e) {} }, (dur + 0.2) * 1000);
+  oscs[oscs.length - 1].onended = () => {
+    for (const o of oscs) try { o.disconnect(); } catch (e) {/* ignore */ }
+    try { lp.disconnect(); g.disconnect(); } catch (e) {/* ignore */ }
+  };
 }
 
 /* ---------- 音色二：钟音 bell（冰晶/秘宝，失谐泛音 + 长衰减 + 微颤音） ---------- */
@@ -69,6 +73,8 @@ function bell(ctx: AudioCtx, bus: AudioNode, freq: number, dur: number, opts: Be
   g.gain.exponentialRampToValueAtTime(vol, t + 0.004);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   const out = panTo(ctx, bus, opts.pan);
+  const oscs: OscillatorNode[] = [];
+  const ogs: GainNode[] = [];
   // 钟声泛音比：1 : 2.76 : 5.4（带失谐，冰冷金属感）
   [[1, 1], [2.76, 0.45], [5.4, 0.22], [8.1, 0.1]].forEach(([h, amp]) => {
     const o = ctx.createOscillator();
@@ -79,9 +85,15 @@ function bell(ctx: AudioCtx, bus: AudioNode, freq: number, dur: number, opts: Be
     og.gain.value = amp;
     o.connect(og); og.connect(g);
     o.start(t); o.stop(t + dur + 0.1);
-    o.onended = () => { try { o.disconnect(); og.disconnect(); } catch (e) {} };
+    oscs.push(o);
+    ogs.push(og);
   });
   g.connect(out);
+  oscs[oscs.length - 1].onended = () => {
+    for (const o of oscs) try { o.disconnect(); } catch (e) {/* ignore */ }
+    for (const og of ogs) try { og.disconnect(); } catch (e) {/* ignore */ }
+    try { g.disconnect(); } catch (e) {/* ignore */ }
+  };
 }
 
 /* ---------- 音色三：弦乐铺底 pad（长音，失谐锯齿 + 颤音 + 慢起音） ---------- */
@@ -100,6 +112,7 @@ function pad(ctx: AudioCtx, bus: AudioNode, freq: number, dur: number, opts: Pad
   lp.frequency.linearRampToValueAtTime((opts.dark ?? 1400) * 0.7, t + dur);
   lp.Q.value = 0.5;
   const out = panTo(ctx, bus, opts.pan);
+  const oscs: OscillatorNode[] = [];
   [-9, 0, 9].forEach(d => {
     const o = ctx.createOscillator();
     o.type = 'sawtooth';
@@ -107,20 +120,26 @@ function pad(ctx: AudioCtx, bus: AudioNode, freq: number, dur: number, opts: Pad
     o.detune.value = d;
     o.connect(lp);
     o.start(t); o.stop(t + dur + 0.1);
-    o.onended = () => { try { o.disconnect(); } catch (e) {} };
+    oscs.push(o);
   });
+  lp.connect(g); g.connect(out);
   // 颤音（长音细腻感）
+  let lfo: OscillatorNode | null = null, lfoG: GainNode | null = null;
   const vib = opts.vibrato ?? 0;
   if (vib > 0) {
-    const lfo = ctx.createOscillator();
+    lfo = ctx.createOscillator();
     lfo.frequency.value = 4.6;
-    const lfoG = ctx.createGain();
+    lfoG = ctx.createGain();
     lfoG.gain.value = freq * vib;
     lfo.connect(lfoG); lfoG.connect(lp.frequency);
     lfo.start(t); lfo.stop(t + dur + 0.1);
-    lfo.onended = () => { try { lfo.disconnect(); lfoG.disconnect(); } catch (e) {} };
   }
-  lp.connect(g); g.connect(out);
+  oscs[oscs.length - 1].onended = () => {
+    for (const o of oscs) try { o.disconnect(); } catch (e) {/* ignore */ }
+    try { lp.disconnect(); g.disconnect(); } catch (e) {/* ignore */ }
+    if (lfo) try { lfo.disconnect(); } catch (e) {/* ignore */ }
+    if (lfoG) try { lfoG.disconnect(); } catch (e) {/* ignore */ }
+  };
 }
 
 /* ---------- 音色四：低频冲击 thump（轰鸣/陨星/受击） ---------- */
@@ -139,7 +158,7 @@ function thump(ctx: AudioCtx, bus: AudioNode, freq: number, dur: number, opts: T
   const out = panTo(ctx, bus, opts.pan);
   o.connect(g); g.connect(out);
   o.start(t); o.stop(t + dur + 0.1);
-  o.onended = () => { try { o.disconnect(); g.disconnect(); } catch (e) {} };
+  o.onended = () => { try { o.disconnect(); g.disconnect(); } catch (e) {/* ignore */ } };
 }
 
 /* ---------- 音色五：风声 whoosh（风暴/浪潮，带通噪声扫频） ---------- */
@@ -163,7 +182,7 @@ function whoosh(ctx: AudioCtx, bus: AudioNode, dur: number, opts: WhooshOpts = {
   const out = panTo(ctx, bus, opts.pan);
   src.connect(bp); bp.connect(g); g.connect(out);
   src.start(t); src.stop(t + dur + 0.1);
-  src.onended = () => { try { src.disconnect(); bp.disconnect(); g.disconnect(); } catch (e) {} };
+  src.onended = () => { try { src.disconnect(); bp.disconnect(); g.disconnect(); } catch (e) {/* ignore */ } };
 }
 
 /* ---------- 音色六：噪声打击 click（机括/命中/敲击） ---------- */
@@ -183,7 +202,7 @@ function noiseClick(ctx: AudioCtx, bus: AudioNode, dur: number, opts: ClickOpts 
   const out = panTo(ctx, bus, opts.pan);
   src.connect(f); f.connect(g); g.connect(out);
   src.start(t); src.stop(t + dur + 0.08);
-  src.onended = () => { try { src.disconnect(); f.disconnect(); g.disconnect(); } catch (e) {} };
+  src.onended = () => { try { src.disconnect(); f.disconnect(); g.disconnect(); } catch (e) {/* ignore */ } };
 }
 
 /* =========================================================

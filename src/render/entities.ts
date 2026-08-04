@@ -26,7 +26,6 @@ export function drawEnemies(rc: RenderContext): void {
 
   // 每帧递增一次缓存刷新计数器
   _enemyCacheFrame++;
-  const doRefresh = _enemyCacheFrame % 4 === 0;
 
   for (let i = 0; i < count; i++) {
     const base = i * stride;
@@ -73,7 +72,9 @@ export function drawEnemies(rc: RenderContext): void {
       if (e.boss) drawBossBody(bctx, e, s, 0, 0, t, rc.time);
       else drawEnemyBody(bctx, e, s, 0, 0, t, 0, rc.time);
     };
-    const cacheCanvas = doRefresh
+    // 交错刷新：每帧只刷新 count/4 的敌人，避免集中刷新导致的帧率峰值
+    const shouldRefresh = (i + _enemyCacheFrame) % 4 === 0;
+    const cacheCanvas = shouldRefresh
       ? shapeCache.refresh(cacheKey, cacheSize, cacheSize, drawBody)
       : shapeCache.get(cacheKey, cacheSize, cacheSize, drawBody);
     ctx.drawImage(cacheCanvas, -cacheSize / 2, -cacheSize / 2);
@@ -135,7 +136,13 @@ export function drawPhantoms(rc: RenderContext): void {
     ctx.translate(ph.x, ph.y);
     ctx.globalAlpha = 0.5 + 0.18 * Math.sin(rc.time * 4 + ph.t * 6);
     ctx.fillStyle = '#c9b8f0';
-    ctx.shadowColor = '#c9b8f0'; ctx.shadowBlur = 12;
+    // 光晕层（径向渐变替代 shadowBlur）
+    const glowG = ctx.createRadialGradient(0, 0, 0, 0, 0, 18);
+    glowG.addColorStop(0, '#c9b8f0');
+    glowG.addColorStop(1, 'transparent');
+    ctx.fillStyle = glowG;
+    ctx.beginPath(); ctx.arc(0, 0, 18, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#c9b8f0';
     ctx.beginPath(); ctx.arc(0, 0, 12, 0, 6.28); ctx.fill();
     // 月牙蚀刻（轮廓）
     ctx.strokeStyle = 'rgba(22,16,44,.55)'; ctx.lineWidth = 2;
@@ -157,8 +164,13 @@ export function drawPlayer(rc: RenderContext): void {
     // 月轮渐变
     const g = bctx.createRadialGradient(cx - p.r * 0.3, cy - p.r * 0.35, p.r * 0.1, cx, cy, p.r);
     g.addColorStop(0, '#fff8e0'); g.addColorStop(0.6, PALETTE.goldPale); g.addColorStop(1, '#d9b26d');
+    // 光晕层（径向渐变替代 shadowBlur）
+    const glowG = bctx.createRadialGradient(cx, cy, p.r * 0.3, cx, cy, p.r + 10);
+    glowG.addColorStop(0, PALETTE.gold);
+    glowG.addColorStop(1, 'transparent');
+    bctx.fillStyle = glowG;
+    bctx.beginPath(); bctx.arc(cx, cy, p.r + 10, 0, 6.28); bctx.fill();
     bctx.fillStyle = g;
-    bctx.shadowColor = PALETTE.gold; bctx.shadowBlur = 20;
     bctx.beginPath(); bctx.arc(cx, cy, p.r, 0, 6.28); bctx.fill();
     // 月牙蚀刻（缺口朝默认方向）
     bctx.shadowBlur = 0;

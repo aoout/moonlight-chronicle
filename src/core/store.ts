@@ -20,9 +20,9 @@ export class Store<T extends Record<string, any>> {
     this._state = { ...initialState };
   }
 
-  /** 读取整个状态快照 */
+  /** 读取整个状态快照（返回浅拷贝，防止外部直接修改绕过通知） */
   get state(): T {
-    return this._state;
+    return { ...this._state };
   }
 
   /** 读取单个属性 */

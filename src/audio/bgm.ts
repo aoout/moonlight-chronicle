@@ -5,6 +5,7 @@
    和弦：Am9 → Fmaj7 → Cmaj9/E → Gsus4（低音下行，月光下的月表）
    声部：弦乐群和声 + 弦乐低音 + 独奏旋律 + 对位副旋律 + 竖琴点缀
    ========================================================= */
+import { makeImpulse } from './engine.js';
 
 type AudioCtx = AudioContext;
 
@@ -40,17 +41,6 @@ const COUNTER = [
 /* ---------- 基础工具 ---------- */
 function midi(m: number): number { return 440 * Math.pow(2, (m - 69) / 12); }
 
-function makeImpulse(ctx: AudioCtx, sec: number, decay: number): AudioBuffer {
-  const buf = ctx.createBuffer(2, ctx.sampleRate * sec, ctx.sampleRate);
-  for (let ch = 0; ch < 2; ch++) {
-    const d = buf.getChannelData(ch);
-    for (let i = 0; i < d.length; i++) {
-      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, decay);
-    }
-  }
-  return buf;
-}
-
 /* ---------- 弦乐群：多失谐锯齿 + 低通 + 缓慢起音 ---------- */
 function stringNote(ctx: AudioCtx, reverbBus: GainNode, freq: number, t: number, dur: number, vel: number, filt?: number): void {
   const oscs: OscillatorNode[] = [];
@@ -76,7 +66,11 @@ function stringNote(ctx: AudioCtx, reverbBus: GainNode, freq: number, t: number,
   });
   lp.connect(g);
   g.connect(reverbBus);
-  oscs[oscs.length - 1].onended = () => { try { lp.disconnect(); g.disconnect(); } catch (e) {} };
+  // 最后一个 oscillator 停止时清理整个链，避免 AudioNode 泄漏
+  oscs[oscs.length - 1].onended = () => {
+    for (const o of oscs) try { o.disconnect(); } catch (e) {/* ignore */ }
+    try { lp.disconnect(); g.disconnect(); } catch (e) {/* ignore */ }
+  };
 }
 
 /* ---------- 竖琴拨弦：正弦快速衰减 + 混响 ---------- */
@@ -92,7 +86,7 @@ function harpNote(ctx: AudioCtx, reverbBus: GainNode, freq: number, t: number, v
   g.connect(reverbBus);
   o.start(t);
   o.stop(t + 1.5);
-  o.onended = () => { try { o.disconnect(); g.disconnect(); } catch (e) {} };
+  o.onended = () => { try { o.disconnect(); g.disconnect(); } catch (e) {/* ignore */ } };
 }
 
 /* ---------- 编排 ---------- */

@@ -38,6 +38,8 @@ export class PlayerSystem extends System {
 
     gameState.set('_timeScale', 1);
     if (p.timeStop > 0) {
+      // 首次进入时停时初始化计时器（初始值为 0），防止 0 - dt 立即触发特效
+      if (rSt().timestopTimer === 0) renderState.set('timestopTimer', 12);
       renderState.set('timestopTimer', rSt().timestopTimer - dt);
       if (rSt().timestopTimer <= 0) {
         renderState.set('timestopTimer', 12);

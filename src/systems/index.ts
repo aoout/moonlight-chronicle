@@ -12,6 +12,22 @@ import { OrbitSystem } from './OrbitSystem.js';
 import { StormSystem } from './StormSystem.js';
 import { ParticleSystem } from './ParticleSystem.js';
 import { StageTimerSystem } from './StageTimerSystem.js';
+import { entityState } from '../state/entities.js';
+
+let _sysMan: SystemManager | null = null;
+
+/**
+ * 惰性获取 SystemManager 单例（首次调用时创建并初始化）
+ * 替代原来的 DI 容器，避免 import 时的 TDZ 问题
+ */
+export function getSysMan(): SystemManager {
+  if (!_sysMan) {
+    _sysMan = createSystemManager();
+    _sysMan.initWorld(entityState.state as any);
+  }
+  return _sysMan;
+}
+
 /**
  * 创建并注册所有 ECS System，返回 SystemManager 实例
  * 注册顺序即 update 执行顺序，与原有逻辑保持一致：

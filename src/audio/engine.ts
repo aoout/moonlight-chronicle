@@ -7,6 +7,16 @@ import { createSfxTable, type SfxContext } from './sfx.js';
 
 type AudioCtx = AudioContext;
 
+/* ---------- 共享工具：生成混响脉冲响应 ---------- */
+export function makeImpulse(ctx: AudioContext, sec: number, decay: number): AudioBuffer {
+  const buf = ctx.createBuffer(2, ctx.sampleRate * sec, ctx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, decay);
+  }
+  return buf;
+}
+
 export const AudioEngine = (() => {
   let ctx: AudioCtx | null = null;
   let master: GainNode | null = null, reverbBus: GainNode | null = null;
@@ -21,6 +31,11 @@ export const AudioEngine = (() => {
 
   /* 音效表（延迟初始化） */
   let sfxTable: Record<string, () => void> | null = null;
+
+  /* SFX 并发限流：每秒最多 30 次调用 */
+  let _sfxCount = 0;
+  let _sfxResetTime = 0;
+  const MAX_SFX_PER_SEC = 30;
 
   function applyMode(): void {
     if (!ctx || !master || !sfxBus) return;
@@ -76,15 +91,11 @@ export const AudioEngine = (() => {
 
     // 混响（BGM 空间效果）
     reverbBus = setupReverb(ctx, master);
-  }
 
-  function makeImpulse(ctx: AudioContext, sec: number, decay: number): AudioBuffer {
-    const buf = ctx.createBuffer(2, ctx.sampleRate * sec, ctx.sampleRate);
-    for (let ch = 0; ch < 2; ch++) {
-      const d = buf.getChannelData(ch);
-      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, decay);
-    }
-    return buf;
+    // 自动恢复：切回页面时 AudioContext 被 suspend 则自动 resume
+    ctx.onstatechange = () => {
+      if (ctx?.state === 'suspended') ctx.resume();
+    };
   }
 
   function start(): void {
@@ -97,10 +108,26 @@ export const AudioEngine = (() => {
 
   function stop(): void {
     stopBgm();
+    if (ctx) {
+      ctx.close();
+      ctx = null;
+      master = null;
+      reverbBus = null;
+      sfxBus = null;
+      sfxTable = null;
+    }
   }
 
   function playSfx(name: string): void {
     if (!ctx || ctx.state !== 'running' || !sfxTable) return;
+    // 每秒限流，防止弹幕密集时 AudioNode 超限
+    const now = performance.now();
+    if (now - _sfxResetTime > 1000) {
+      _sfxCount = 0;
+      _sfxResetTime = now;
+    }
+    _sfxCount++;
+    if (_sfxCount > MAX_SFX_PER_SEC) return;
     const fn = sfxTable[name];
     if (fn) fn();
   }

@@ -19,7 +19,7 @@ import { world } from '../ecs/World.js';
 import { endStage, playerDeath } from '../core/states.js';
 import { shakeScreen } from '../state/render.js';
 import { spawnEnemy } from './spawn.js';
-import { createEntity, Position, Velocity } from '../ecs/components.js';
+import { Position, Velocity } from '../ecs/entity_factories.js';
 import type { EnemyInstance, Player } from '../types/core.d.ts';
 
 import { sSt, gSt, eSt, pSt, rSt, gmSt } from '../state/accessors.js';
@@ -260,11 +260,11 @@ export function meleeHit(x: number, y: number, r: number, dmg: number, opts?: { 
 /* 掉落物生成 */
 
 export function spawnDrop(x: number, y: number, kind: string, amount: number): void {
-  world.add('drops', createEntity(
-    Position(x, y),
-    Velocity(rand(-40, 40), rand(-40, 40)),
-    { kind, amount, t: 0, take: false }
-  ));
+  world.add('drops', {
+    ...Position(x, y),
+    ...Velocity(rand(-40, 40), rand(-40, 40)),
+    kind, amount, t: 0, take: false,
+  });
 }
 
 /* 爆炸（爆裂之核） */

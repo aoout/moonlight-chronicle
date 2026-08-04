@@ -12,10 +12,17 @@ const TAU = Math.PI * 2;
 /** 需要实时动画的弹头类型（使用 pr.t 做旋转/动画，不适合缓存） */
 const ANIMATED_PROJECTILE_HEADS = new Set(['nova', 'shadow', 'storm']);
 
-/* 共用小工具：发光圆点 */
+/* 共用小工具：发光圆点（径向渐变替代 shadowBlur） */
 function dot(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string, blur = 8): void {
   ctx.save();
-  ctx.shadowColor = color; ctx.shadowBlur = blur;
+  // 光晕层（径向渐变）
+  const glowR = r + blur * 0.5;
+  const g = ctx.createRadialGradient(x, y, 0, x, y, glowR);
+  g.addColorStop(0, color);
+  g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, glowR, 0, TAU); ctx.fill();
+  // 实心核
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
   ctx.restore();
@@ -131,10 +138,15 @@ const PROJ_LINEAR_HEADS: Record<string, (ctx: CanvasRenderingContext2D, pr: any)
     ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.8, pr.t * 6, pr.t * 6 + 1.4); ctx.stroke();
     ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.8, pr.t * 6 + 3.14, pr.t * 6 + 4.54); ctx.stroke();
-    // 亮白核心
-    ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 14;
-    ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.32, 0, TAU); ctx.fill();
-    ctx.shadowBlur = 0;
+    // 亮白核心（径向渐变光晕）
+    const coreR = pr.r * 0.32;
+    const coreG = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR + 7);
+    coreG.addColorStop(0, '#ffffff');
+    coreG.addColorStop(1, 'transparent');
+    ctx.fillStyle = coreG;
+    ctx.beginPath(); ctx.arc(0, 0, coreR + 7, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(0, 0, coreR, 0, TAU); ctx.fill();
     ctx.fillStyle = 'rgba(143,227,216,0.3)';
     ctx.beginPath(); ctx.arc(0, 0, pr.r * 1.25, 0, TAU); ctx.fill();
   },
@@ -157,8 +169,13 @@ const PROJ_LINEAR_HEADS: Record<string, (ctx: CanvasRenderingContext2D, pr: any)
   },
 
   _default(ctx, pr) {
-    // 基础光球：光晕 + 高光 + 呼吸
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 12;
+    // 基础光球：光晕（径向渐变）+ 高光 + 呼吸
+    const glowR = pr.r + 6;
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, glowR);
+    g.addColorStop(0, pr.color);
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0, 0, glowR, 0, TAU); ctx.fill();
     ctx.fillStyle = pr.color;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,.9)';
@@ -428,7 +445,11 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
   },
 
   dot(ctx, pr) {
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 12;
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, pr.r + 6);
+    g.addColorStop(0, pr.color);
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0, 0, pr.r + 6, 0, TAU); ctx.fill();
     ctx.fillStyle = pr.color;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,0.8)';

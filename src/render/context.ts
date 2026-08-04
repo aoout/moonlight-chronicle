@@ -22,7 +22,7 @@ export interface RenderContext {
   height: number;
 }
 
-/** 可复用的渲染上下文对象（对象池，避免每帧分配） */
+/** 可复用的渲染上下文对象（避免每帧分配） */
 const _rc: RenderContext = {
   ctx: null,
   ctxBg: null,
@@ -41,7 +41,8 @@ const _rc: RenderContext = {
 };
 
 /**
- * 创建当前帧的渲染上下文（复用对象池，避免每帧分配新对象）
+ * 创建当前帧的渲染上下文（复用对象，避免每帧分配新对象）
+ * 注意：返回的对象仅在当前帧内有效，不可跨帧持有引用
  */
 export function createRenderContext(): RenderContext {
   _rc.ctx = rSt().ctx;

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   Position, Health, Renderable, Velocity, Combat, Timer, Status,
-  Enemy, Projectile, Drop, Particle, Phantom, Aura, createEntity,
-} from '../ecs/components.js';
+  Enemy, Projectile,
+} from '../ecs/entity_factories.js';
 
 describe('Component factories', () => {
   it('Position should create position component', () => {
@@ -105,74 +105,5 @@ describe('Component factories', () => {
   it('Projectile should include optional radius', () => {
     const c = Projectile('fire', 300, 200, 8);
     expect(c.r).toBe(8);
-  });
-
-  it('Drop should create drop component', () => {
-    const c = Drop('gold', 50);
-    expect(c.kind).toBe('gold');
-    expect(c.amount).toBe(50);
-    expect(c.t).toBe(0);
-    expect(c.take).toBe(false);
-  });
-
-  it('Particle should create particle component', () => {
-    const c = Particle(10, -5, 0.5, '#fff', 3);
-    expect(c.vx).toBe(10);
-    expect(c.vy).toBe(-5);
-    expect(c.life).toBe(0.5);
-    expect(c.color).toBe('#fff');
-    expect(c.size).toBe(3);
-    expect(c.t).toBe(0);
-  });
-
-  it('Phantom should create phantom component', () => {
-    const c = Phantom(50, 3);
-    expect(c.dmg).toBe(50);
-    expect(c.max).toBe(3);
-    expect(c.fireT).toBe(0);
-    expect(c.t).toBe(0);
-  });
-
-  it('Aura should create aura component', () => {
-    const c = Aura(0.2, 10, 200);
-    expect(c.auraSlow).toBe(0.2);
-    expect(c.auraDmg).toBe(10);
-    expect(c.auraRange).toBe(200);
-  });
-
-  it('Aura should skip undefined fields', () => {
-    const c = Aura(0.3);
-    expect(c.auraSlow).toBe(0.3);
-    expect(c.auraDmg).toBeUndefined();
-    expect(c.auraRange).toBeUndefined();
-  });
-});
-
-describe('createEntity', () => {
-  it('should merge multiple components into one object', () => {
-    const entity = createEntity(
-      Position(10, 20),
-      Health(100),
-      Renderable('red', 16),
-    );
-    expect(entity.x).toBe(10);
-    expect(entity.y).toBe(20);
-    expect(entity.hp).toBe(100);
-    expect(entity.color).toBe('red');
-    expect(entity.size).toBe(16);
-  });
-
-  it('should override earlier fields with later ones', () => {
-    const entity = createEntity(
-      { x: 1, y: 2 },
-      { x: 99 },
-    );
-    expect(entity.x).toBe(99);
-    expect(entity.y).toBe(2);
-  });
-
-  it('should handle empty component list', () => {
-    const entity = createEntity();
-    expect(Object.keys(entity).length).toBe(0);
   });
 });
