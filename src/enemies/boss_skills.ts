@@ -109,7 +109,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     // 螺旋潮圈（持续漩涡压迫）
     spiralBurst(e, 2, 10, 260, '#7fc4d8', { r: 4, dmgMul: 0.35, life: 3, mark: 'wave' });
     // 追踪潮球
-    trackBalls(e, 2, 240, 60, '#5c8a9e', { dmgMul: 0.6, life: 3.5 });
+    trackBalls(e, 2, 211, 60, '#5c8a9e', { dmgMul: 0.53, life: 3.5 });
   },
   /* 潮噬之母：产卵孵化 + 全向压制弹 + 追踪 */
   spawnTide(e: EnemyInstance) {
@@ -127,7 +127,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     }
     // 产卵时也不忘压制：全向翠弹 + 追踪泡
     ringShot(e, 12, 240, '#6fa8a0', { r: 5, dmgMul: 0.5, life: 2.5, mark: 'wave' });
-    trackBalls(e, 2, 220, 50, '#8fd8c8', { dmgMul: 0.6 });
+    trackBalls(e, 2, 194, 50, '#8fd8c8', { dmgMul: 0.53 });
   },
   /* 蚀壳战车：连续冲撞（转向追踪）×3 + 撞击震地 */
   ram(e: EnemyInstance) {
@@ -135,7 +135,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     spawnBurst(e.x, e.y, '#9aa5b8', 12);
     e.dashCount = 3;
     bossDash(e);
-    eSt().projectiles.push(PROJECTILE_POOL.addWith({ ground: true, x: e.x, y: e.y, t: 0, delay: 0.5, r: 120, dmg: e.dmg, color: '#7a8aa5' }));
+    eSt().projectiles.push(PROJECTILE_POOL.addWith({ ground: true, x: e.x, y: e.y, t: 0, delay: 0.5, r: 120, dmg: e.dmg * 0.88, color: '#7a8aa5' }));
   },
   /* 噬月君主：双波扇形斩 + X 形弹网 + 追踪 */
   moonSlash(e: EnemyInstance) {
@@ -152,7 +152,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     }
     // X 形弹网（封锁斜向走位）
     crossShot(e, 3, 0.7, 300, '#c9b8f0', { r: 6, dmgMul: 0.6, life: 1.8, mark: 'moonblade' });
-    trackBalls(e, 2, 250, 70, '#b49ae8', { dmgMul: 0.6 });
+    trackBalls(e, 2, 220, 70, '#b49ae8', { dmgMul: 0.53 });
   },
   /* 月影巫王：加速追踪球 ×5（两组错时）+ 全向弹 + 诅咒 */
   shadowOrb(e: EnemyInstance) {
@@ -162,8 +162,8 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     spawnBurst(e.x, e.y, '#7c6d9e', 12);
     spawnSpark(e.x, e.y, '#b49ae8', 8, 140);
     // 快球先行 + 慢球后发（前后夹击，玩家无单一躲避方向）
-    trackBalls(e, 3, 250, 90, '#9a86c8', { dmgMul: 0.8, life: 4 });
-    trackBalls(e, 2, 180, 60, '#b49ae8', { dmgMul: 0.7, life: 4.5 });
+    trackBalls(e, 3, 220, 90, '#9a86c8', { dmgMul: 0.7, life: 4 });
+    trackBalls(e, 2, 158, 60, '#b49ae8', { dmgMul: 0.62, life: 4.5 });
     ringShot(e, 12, 230, '#7c6d9e', { r: 6, dmgMul: 0.55, life: 3, mark: 'wave' });
     p.effects.curseTimer = Math.max(p.effects.curseTimer || 0, 3);
     spawnText(p.x, p.y - 40, '蚀咒', '#9a86c8');
@@ -185,7 +185,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
         fanShot(e, wa + da, 3, 0.5, 300, '#d8d2f0', { r: 5, dmgMul: 0.5, life: 1.7, mark: 'moonblade' });
       }
     }
-    trackBalls(e, 2, 260, 80, '#c8c2e8', { dmgMul: 0.6 });
+    trackBalls(e, 2, 229, 80, '#c8c2e8', { dmgMul: 0.53 });
   },
   /* 裂空魔龙：烈焰吐息 + 双侧绕后扇形 + 追踪火球 */
   breath(e: EnemyInstance) {
@@ -201,7 +201,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     for (const side of [-1, 1]) {
       fanShot(e, a + side * 1.9, 5, 1.2, 300, '#ffb84d', { r: 6, dmgMul: 0.55, life: 2, mark: 'ember' });
     }
-    trackBalls(e, 3, 230, 70, '#ff8a5c', { dmgMul: 0.7 });
+    trackBalls(e, 3, 202, 70, '#ff8a5c', { dmgMul: 0.62 });
   },
   /* 蚀雷巨枭：五道落雷（快速交错）+ 全向电弹 + 追踪 */
   lightning(e: EnemyInstance) {
@@ -213,7 +213,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     groundStrike(e, 5, 68, 0.8, '#8f9aee', { stagger: 0.12, spread: 120, dmgMul: 0.9, lightning: true });
     // 全向电弹（逼迫玩家在落雷间隙中走位）
     ringShot(e, 16, 250, '#8f9aee', { r: 5, dmgMul: 0.6, life: 2.5, mark: 'pulse' });
-    trackBalls(e, 2, 240, 80, '#a8d8ff', { dmgMul: 0.6 });
+    trackBalls(e, 2, 211, 80, '#a8d8ff', { dmgMul: 0.53 });
   },
   /* 深渊巢母：酸雾 + 扇形酸弹 + 追踪 */
   acidMist(e: EnemyInstance) {
@@ -225,7 +225,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     eSt().projectiles.push(PROJECTILE_POOL.addWith({ aoe: true, x: e.x, y: e.y, r: 0, maxR: 360, dmg: e.dmg * 0.2, color: '#7fce5a', t: 0, slow: 0.5, enemy: true, hit: new Set(), mist: true }));
     // 酸弹扇形（毒雾掩护下的齐射）
     fanShot(e, angTo(e, p), 12, 2.0, 240, '#7fce5a', { r: 6, dmgMul: 0.55, life: 2.2, mark: 'acid' });
-    trackBalls(e, 2, 200, 60, '#a8e88a', { dmgMul: 0.6 });
+    trackBalls(e, 2, 176, 60, '#a8e88a', { dmgMul: 0.53 });
   },
   /* 蚀月终焉：双层全向 + 螺旋 + 追踪 + 地面封锁（终焉级弹幕） */
   eclipsePulse(e: EnemyInstance) {
@@ -241,7 +241,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     // 螺旋金芒
     spiralBurst(e, 2, 10, 280, '#ffd54a', { r: 5, dmgMul: 0.45, life: 3, mark: 'pulse' });
     // 追踪蚀球
-    trackBalls(e, 4, 250, 100, '#ffb84d', { dmgMul: 0.7 });
+    trackBalls(e, 4, 220, 100, '#ffb84d', { dmgMul: 0.62 });
     // 地面封锁（落点切割走位路线）
     groundStrike(e, 4, 78, 1.0, '#ffb84d', { stagger: 0.18, spread: 160, dmgMul: 0.7 });
   },
@@ -269,7 +269,7 @@ export function bossTick(e: EnemyInstance, dt: number): void {
         const da = angTo(e, p);
         e.vx = Math.cos(da) * 460; e.vy = Math.sin(da) * 460;
         e.stateT = 0.5;
-        eSt().projectiles.push(PROJECTILE_POOL.addWith({ ground: true, x: e.x, y: e.y, t: 0, delay: 0.45, r: 110, dmg: e.dmg * 0.9, color: '#7a8aa5' }));
+        eSt().projectiles.push(PROJECTILE_POOL.addWith({ ground: true, x: e.x, y: e.y, t: 0, delay: 0.45, r: 110, dmg: e.dmg * 0.79, color: '#7a8aa5' }));
         shakeScreen(6);
       } else {
         e.state = 'chase';
@@ -302,7 +302,7 @@ export function bossWave(e: any): void {
   fanShot(e, a, 8, 1.1, 170, '#ff9d6b', { r: 7, dmgMul: 0.7, life: 3, mark: 'ember' });
   fanShot(e, a + 0.07, 7, 1.0, 260, '#ffb84d', { r: 6, dmgMul: 0.6, life: 3, mark: 'ember' });
   // 尾随追踪火球
-  trackBalls(e, 1, 240, 70, '#ff9d6b', { dmgMul: 0.6 });
+  trackBalls(e, 1, 211, 70, '#ff9d6b', { dmgMul: 0.53 });
   shakeScreen(4);
 }
 export function bossMinions(e: EnemyInstance): void {
@@ -315,7 +315,7 @@ export function bossMinions(e: EnemyInstance): void {
   spawnSpark(e.x, e.y, '#ffe9a8', 8, 150);
   // 召唤间隙的全向压制
   ringShot(e, 10, 220, '#e9c987', { r: 5, dmgMul: 0.5, life: 2.6, mark: 'pulse' });
-  trackBalls(e, 1, 230, 70, '#b49ae8', { dmgMul: 0.6 });
+  trackBalls(e, 1, 202, 70, '#b49ae8', { dmgMul: 0.53 });
 }
 export function bossDash(e: EnemyInstance): void {
   const p = pSt().player; if (!p) return;

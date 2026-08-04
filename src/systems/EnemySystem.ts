@@ -43,11 +43,11 @@ function enemyTick(e: EnemyInstance, dt: number): void {
     moveFn(e, dt, p, slowF);
   }
 
-  /* 接触伤害（所有敌人共享） */
+  /* 接触伤害（所有敌人共享；冲刺中的 Boss 接触伤害 -12%） */
   if (e.hp > 0 && p.invuln <= 0) {
     const d = dist(e, p);
     if (d < p.r + e.size - 2) {
-      hurtPlayer(e, e.dmg);
+      hurtPlayer(e, e.state === 'dashMove' ? e.dmg * 0.88 : e.dmg);
       const a = angTo(e, p);
       e.x += Math.cos(a) * 16;
       e.y += Math.sin(a) * 16;
