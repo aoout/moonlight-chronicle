@@ -70,8 +70,8 @@
   "orbit": {
     "id": "orbit", "name": "环舞之刃", "icon": "wOrbit", "tag": "环绕",
     "desc": "月刃环绕身周，持续切割靠近的敌人。",
-    "formula": "攻击 ×(0.4+0.1L)×6 / 刃",
-    "formulaDmg": "effAtk * (0.4 + 0.1 * level) * 6",
+    "formula": "攻击 ×(0.8+0.2L)×6 / 刃",
+    "formulaDmg": "effAtk * (0.8 + 0.2 * level) * 6",
     "tick": 0.22, "radius": 120, "blades": 2, "angularSpd": 1.6, "color": "#e9c987"
   },
   "lance": {
