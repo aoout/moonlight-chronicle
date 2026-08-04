@@ -91,14 +91,13 @@ export function gainXp(n: number): void {
   const p = pSt().player;
   if (!p) return;
   const amt = n * p.xpGain;
-  const st = sSt();
-  statsState.set('xp', st.xp + amt);
-  while (st.xp >= st.xpNeeded) {
-    statsState.set('xp', st.xp - st.xpNeeded);
+  statsState.set('xp', statsState.get('xp') + amt);
+  while (statsState.get('xp') >= statsState.get('xpNeeded')) {
+    statsState.set('xp', statsState.get('xp') - statsState.get('xpNeeded'));
     statsState.set('xpNeeded', xpNeeded(p.level + 1));
     p.level++;
     statsState.set('level', p.level);
-    statsState.set('levelQueue', st.levelQueue + 1);
+    statsState.set('levelQueue', statsState.get('levelQueue') + 1);
   }
-  if (st.levelQueue > 0) { gameState.set('_resumeState', sm.current); sm.transition(STATE.LEVELUP); EventBus.emit('player:levelup', { level: p.level, queue: st.levelQueue }); }
+  if (statsState.get('levelQueue') > 0) { gameState.set('_resumeState', sm.current); sm.transition(STATE.LEVELUP); EventBus.emit('player:levelup', { level: p.level, queue: statsState.get('levelQueue') }); }
 }
