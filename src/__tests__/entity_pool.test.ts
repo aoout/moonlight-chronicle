@@ -143,4 +143,34 @@ describe('EntityPool', () => {
     expect(v3.color).toBe('yellow');
     expect(v3.x).toBe(4);
   });
+
+  it('should auto-grow when adding beyond maxSize', () => {
+    const pool = new EntityPool<EnemyInstance>(3, E_SCHEMA);
+    const arr: EnemyInstance[] = [];
+    // 填满 3 个槽位
+    for (let i = 0; i < 3; i++) {
+      const v = pool.addWith({ dead: 0, x: i, type: 't' + i });
+      arr.push(v);
+    }
+    // 第 4 个触发扩容
+    const v4 = pool.addWith({ dead: 0, x: 99, type: 't4' });
+    arr.push(v4);
+    expect(pool.count).toBe(4);
+    expect(pool._maxSize).toBeGreaterThanOrEqual(4);
+    // 扩容后旧视图数据与新视图均正常
+    expect(pool.view(0).x).toBe(0);
+    expect(v4.x).toBe(99);
+    expect(v4.type).toBe('t4');
+    // 标记第 2 个为死亡：compact 走数据迁移（w !== r）分支
+    arr[1].dead = 1;
+    pool.compact(arr, e => e.dead === 1);
+    expect(pool.count).toBe(3);
+    expect(arr.length).toBe(3);
+    // x=2 从槽位 2 迁到 1，x=99 从槽位 3 迁到 2
+    expect(arr[0].x).toBe(0);
+    expect(arr[1].x).toBe(2);
+    expect(arr[1].type).toBe('t2');
+    expect(arr[2].x).toBe(99);
+    expect(arr[2].type).toBe('t4');
+  });
 });

@@ -106,9 +106,26 @@ export class EntityPool<T extends BaseEntityView> {
     return view;
   }
 
+  /** 容量不足时自动扩容（数据 / 元数据 / 视图数组同步扩展） */
+  private _ensureCapacity(idx: number): void {
+    if (idx < this._maxSize) return;
+    const newMax = Math.max(this._maxSize * 2, idx + 1);
+    const newData = new Float64Array(newMax * this._stride);
+    newData.set(this._data);
+    this._data = newData;
+    const newMeta = new Array(newMax);
+    for (let i = 0; i < this._meta.length; i++) newMeta[i] = this._meta[i];
+    this._meta = newMeta;
+    const oldLen = this._views.length;
+    this._views.length = newMax;
+    for (let i = oldLen; i < newMax; i++) this._views[i] = this._createView(i);
+    this._maxSize = newMax;
+  }
+
   /** 分配新实体，返回可复用的视图对象 */
   add(): T {
     const idx = this.count++;
+    this._ensureCapacity(idx);
     const base = idx * this._stride;
     for (let i = 0; i < this._stride; i++) this._data[base + i] = 0;
     this._meta[idx] = {};
