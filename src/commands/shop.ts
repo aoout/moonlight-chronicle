@@ -68,6 +68,7 @@ export function sellWeapon(id: string): SellResult {
   const price = weaponSellPrice(w.lv);
   removeWeapon(id);
   statsState.set('gold', statsState.state.gold + price);
+  computeDerived(p);
   return { ok: true, price };
 }
 

@@ -9,7 +9,7 @@ import { AudioEngine } from '../../audio/engine.js';
 import { iconSVG } from '../icons.js';
 import { sellWeapon as sellWeaponCmd, weaponSellPrice } from '../../commands/index.js';
 import { weaponFormulaText, weaponFormulaBreakdown, weaponProjInfo } from './formulas.js';
-import { openShop } from './open_shop.js';
+import { renderShopPanel } from './panel.js';
 
 const pSt = () => playerState.state;
 const sSt = () => statsState.state;
@@ -117,6 +117,12 @@ function sellWeapon(id: string): void {
   if (!r.ok) { if (r.reason) toast(r.reason); return; }
   AudioEngine.playSfx('sell');
   _pwSellConfirm = 0;
+  _pwSelected = null;
   toast(def.name + ' 已出售 +' + r.price);
-  openShop();
+  // 局部刷新：重建武器列表 / 属性面板 / 金币，不重新随机商店卡牌
+  //（openShop() 会重摇武器与道具池，出售不应触发）
+  const cur = pSt().player;
+  if (cur) renderShopPanel(cur);
+  const gold = $('shop-gold');
+  if (gold) gold.textContent = String(Math.floor(sSt().gold));
 }
