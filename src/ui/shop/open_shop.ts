@@ -79,15 +79,18 @@ export function openShop(): void {
     c.style.animationDelay = (i * 0.06) + 's';
     let title: string, icon: string, desc: string, price: number, rarity = 'common', tag = '';
     let def: any = null, it: any = null;
-    // 侵蚀武器：月蚀倍率行（+ 月蚀深度×(x+y×L)）
-    const eroHtml = (x: number, y: number) =>
-      '<div class="upgrade-tier eroded-tier">月蚀倍率：+ 月蚀深度×(' + (Math.round(x * 100) / 100) + '+' + (Math.round(y * 100) / 100) + '×L)</div>';
+    // 侵蚀武器：倍率构成内联合并月蚀倍率（+ 月蚀深度×(x+y×L)）
+    const formulaRow = (d: any, eroded: boolean) => {
+      const er = eroded && d.erosion
+        ? ' <span class="eroded-tier">+ 月蚀深度×(' + (Math.round(d.erosion.x * 100) / 100) + '+' + (Math.round(d.erosion.y * 100) / 100) + '×L)</span>'
+        : '';
+      return '<div class="upgrade-tier">倍率构成：' + weaponFormulaText(d) + er + '</div>';
+    };
     if (o.kind === 'newWeapon') {
       def = WEAPONS[o.id];
       rarity = 'legend'; title = def.name + (o.eroded ? '·侵蚀' : ''); icon = def.icon; tag = def.tag;
       desc = '<span class="stat-conv">新武器</span> · ' + def.desc +
-        '<div class="upgrade-tier">倍率构成：' + weaponFormulaText(def) + '</div>' +
-        (o.eroded && def.erosion ? eroHtml(def.erosion.x, def.erosion.y) : '') +
+        formulaRow(def, !!o.eroded) +
         '<div class="upgrade-tier range">⟡ ' + (weaponRangeText(def) || '—') + (def.pierce !== undefined ? ' · 穿透 ' + (def.pierce === Infinity ? '∞' : def.pierce) : '') + '</div>';
       const inflate = inflationRate(gSt().stage);
       price = Math.round(16 * (p.effects.priceMul || 1) * inflate);
@@ -97,7 +100,7 @@ export function openShop(): void {
       def = WEAPONS[o.id];
       rarity = 'epic'; title = def.name + ' 强化' + (o.eroded ? '·侵蚀' : ''); icon = def.icon; tag = '强化';
       desc = '升至 <span class="stat-up">Lv.' + (w.lv + 1) + '</span>，伤害与形态进一步提升。' +
-        (o.eroded && def.erosion ? eroHtml(def.erosion.x, def.erosion.y) : '') +
+        formulaRow(def, !!o.eroded) +
         '<div class="upgrade-tier range">⟡ ' + (weaponRangeText(def) || '—') + (def.pierce !== undefined ? ' · 穿透 ' + (def.pierce === Infinity ? '∞' : def.pierce) : '') + '</div>';
       const inflate = inflationRate(gSt().stage);
       price = Math.round(WEAPON_UPGRADE_COST[w.lv + 1] * (p.effects.priceMul || 1) * inflate);

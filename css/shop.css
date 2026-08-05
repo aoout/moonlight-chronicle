@@ -769,9 +769,9 @@
 }
 .pw-detail.eroded .pwd-name { color: #ecc8dc; }
 
-/* 商店卡片侵蚀倍率行（月蚀倍率：+月蚀深度×(x+y×L)） */
+/* 倍率构成行内的月蚀倍率项（侵蚀武器：+ 月蚀深度×(x+y×L)） */
 .card.eroded .eroded-tier {
   color: #d98ab0;
-  border-color: rgba(180, 90, 138, .35);
-  text-shadow: 0 0 10px rgba(217, 138, 176, .35);
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(217, 138, 176, .4);
 }
