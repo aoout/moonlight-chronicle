@@ -108,17 +108,19 @@ export function renderCodex(tab: string): void {
         <div class="codex-ic locked">${iconSVG('slotEmpty')}</div>
         <div class="codex-name">？？？</div>
         <div class="codex-tag">尚未见于月光之下</div>
-        <div class="codex-desc">继续远征，让月光记住它的模样</div>
+        <div class="codex-desc"><span class="desc-inner">继续远征，让月光记住它的模样</span></div>
       `;
     } else if (meta === 'enemy' || meta === 'boss') {
       const edef = d as any;
       const tier = meta === 'boss' ? '领主' : (edef.r > 0.45 ? '重装' : edef.spd > 80 ? '迅捷' : '寻常');
       const tierCls = meta === 'boss' ? 'lord' : edef.r > 0.45 ? 'heavy' : edef.spd > 80 ? 'swift' : 'common';
+      const abilities = (edef.abilities || []).map((a: string) => `<span class="codex-ability">${a}</span>`).join('');
       card.innerHTML = html`
         <div class="codex-ic"></div>
         <div class="codex-name">${edef.name}</div>
         <div class="codex-tag ${tierCls}">${tier}</div>
-        <div class="codex-desc">${edef.desc}</div>
+        <div class="codex-desc"><span class="desc-inner">${edef.desc}</span></div>
+        <div class="codex-abilities">${abilities}</div>
         <div class="codex-stat">
           <span>命 ${edef.hp}</span><span>速 ${edef.spd}</span><span>伤 ${edef.dmg}</span>
         </div>
@@ -146,7 +148,7 @@ export function renderCodex(tab: string): void {
         <div class="codex-ic">${wdef.icon}</div>
         <div class="codex-name">${wdef.name}</div>
         <div class="codex-tag epic">${wdef.tag || '兵刃'}</div>
-        <div class="codex-desc">${wdef.desc}</div>
+        <div class="codex-desc"><span class="desc-inner">${wdef.desc}</span></div>
         <div class="codex-formula">${wdef.formula || ''}</div>
         <div class="codex-stat">
           ${stats.join('')}
@@ -160,7 +162,7 @@ export function renderCodex(tab: string): void {
         <div class="codex-ic">${idef.icon}</div>
         <div class="codex-name">${idef.name}</div>
         <div class="codex-tag ${rarCls}">${rar}</div>
-        <div class="codex-desc">${idef.desc}</div>
+        <div class="codex-desc"><span class="desc-inner">${idef.desc}</span></div>
         <div class="codex-stat"><span>${idef.price} ${iconSVG('coin')}</span></div>
       `;
     }

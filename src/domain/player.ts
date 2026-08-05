@@ -48,12 +48,12 @@ export function xpNeeded(level: number): number {
   return Math.round(CONFIG.XP_PER_LEVEL * Math.pow(CONFIG.XP_GROWTH, level - 1));
 }
 
-export function addWeapon(id: string): boolean {
+export function addWeapon(id: string, opts?: { eroded?: boolean }): boolean {
   const p = pSt().player;
   if (!p) return false;
   if (p.weapons.length >= CONFIG.MAX_WEAPONS) return false;
   if (p.weapons.find(w => w.id === id)) return false;
-  p.weapons.push({ id, lv: 1 });
+  p.weapons.push({ id, lv: 1, ...(opts?.eroded ? { eroded: true } : {}) });
   achOnWeapon();
   pSt().weaponCd[id] = 0;
   codexAdd('weapons', id);

@@ -86,9 +86,9 @@ export function renderShopPanel(p: any): void {
   } else {
     p.weapons.forEach((w: any) => {
       const def = WEAPONS[w.id];
-      const li = el('div', 'pw-item', html`
+      const li = el('div', 'pw-item' + (w.eroded ? ' eroded' : ''), html`
         <span class="pw-ic" style="color:${def.color}">${def.icon}</span>
-        <span class="pw-name">${def.name}</span>
+        <span class="pw-name">${def.name}${w.eroded ? '·侵蚀' : ''}</span>
         <span class="pw-lv">Lv.${w.lv}</span>
       `);
       li.dataset.wid = w.id;

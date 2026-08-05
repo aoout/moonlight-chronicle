@@ -17,7 +17,9 @@ export function spitterMove(e: EnemyInstance, dt: number, p: Player, slowF: numb
     e.y -= Math.sin(a) * e.spd * 0.4 * slowF * dt;
   }
   e.stateT -= dt;
-  if (e.stateT <= 0 && d < 420) {
+  /* 新月·隐匿：隐匿期间失去目标，不进行喷吐 */
+  const cloaked = (p.effects.cloakTimer ?? 0) > 0;
+  if (e.stateT <= 0 && d < 420 && !cloaked) {
     e.stateT = 2.2;
     // 预判射击：朝玩家移动方向提前量（lead = 预判秒数 0.1~1s）
     const lead = clamp(d / 300, 0.1, 1);

@@ -44,8 +44,8 @@
     "max": 4,
     "name": "时之沙",
     "icon": "sandHourglass",
-    "rarity": "common",
-    "price": 17,
+    "rarity": "epic",
+    "price": 32,
     "desc": "冷却缩减 <span class=\"stat-up\">+6%</span>，武器更快出手。"
   },
   "area1": {
@@ -339,7 +339,7 @@
     "icon": "huntRing",
     "rarity": "epic",
     "price": 40,
-    "desc": "击杀敌人后攻速 <span class=\"stat-up\">+12%</span>，持续 3 秒，可叠 3 层。"
+    "desc": "击杀敌人后攻速 <span class=\"stat-up\">+6%</span>，持续 3 秒，可叠 8 层。"
   },
   "duoShoot": {
     "id": "duoShoot",
@@ -457,5 +457,23 @@
     "rarity": "epic",
     "price": 40,
     "desc": "拾取金币时恢复 <span class=\"stat-up\">0.5</span> 点生命/枚。"
+  },
+  "achJudge": {
+    "id": "achJudge",
+    "max": 1,
+    "name": "辉光审判",
+    "icon": "gloryJudge",
+    "rarity": "legend",
+    "price": 90,
+    "desc": "每 <span class=\"stat-up\">6 秒</span> 对随机敌人降下裁决辉光；每解锁 1 项成就，伤害 <span class=\"stat-up\">+8%</span>。"
+  },
+  "yourMoon": {
+    "id": "yourMoon",
+    "max": 1,
+    "name": "你的月亮",
+    "icon": "yourMoon",
+    "rarity": "legend",
+    "price": 90,
+    "desc": "守月人守望的月亮，映照着玩家世界的夜空。效果随<span class=\"stat-up\">现实月相</span>流转。"
   }
 }

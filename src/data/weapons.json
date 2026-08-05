@@ -5,6 +5,7 @@
     "formula": "攻击 ×(0.55+0.12L) + 移速 ×0.12",
     "formulaDmg": "effAtk * (0.55 + 0.12 * level) + speed * 0.12",
     "cd": 1.15, "pierce": 3, "range": 420, "speed": 380, "color": "#e9c987",
+    "erosion": {"x": 0.1, "y": 0.02},
     "fire": {
       "targeting": "nearest", "pattern": "spread", "spread": 0.3,
       "projectile": { "type": "boomerang", "speed": 380, "range": 420, "radius": 9, "pierce": 3, "color": "#e9c987", "owner": true }
@@ -16,6 +17,7 @@
     "formula": "攻击 ×(0.8+0.15L) + 攻速×攻击 ×0.4",
     "formulaDmg": "effAtk * (0.8 + 0.15 * level) + atkSpd * effAtk * 0.4",
     "cd": 0.72, "pierce": 0, "range": 400, "speed": 720, "color": "#9fd6e8",
+    "erosion": {"x": 0.1, "y": 0.02},
     "proj": 1,
     "fire": {
       "targeting": "nearest", "pattern": "single",
@@ -28,6 +30,7 @@
     "formula": "攻击 ×(0.9+0.16L)，连锁×0.65",
     "formulaDmg": "effAtk * (0.9 + 0.16 * level)",
     "cd": 1.5, "range": 340, "color": "#b49ae8",
+    "erosion": {"x": 0.15, "y": 0.03},
     "fire": {
       "targeting": "nearest", "pattern": "single",
       "projectile": { "type": "chain", "speed": 600, "range": 340, "radius": 6, "color": "#b49ae8", "pierce": 0, "chain": 4, "chainFall": 0.65, "chainRange": 340 }
@@ -39,6 +42,7 @@
     "formula": "攻击 ×(2.8+0.5L) + 生命上限 ×13%",
     "formulaDmg": "effAtk * (2.8 + 0.5 * level) + maxHp * 0.13",
     "cd": 3.2, "aoe": 130, "color": "#ff6b6b",
+    "erosion": {"x": 0.2, "y": 0.04},
     "count": 1,
     "fire": {
       "targeting": "denseArea", "pattern": "single",
@@ -51,6 +55,7 @@
     "formula": "攻击 ×(0.7+0.12L) + 生命上限 ×(16%+2.4%L)",
     "formulaDmg": "effAtk * (0.7 + 0.12 * level) + maxHp * (0.16 + 0.024 * level)",
     "cd": 2.0, "aoe": 200, "slow": 0.4, "color": "#7fd6e4",
+    "erosion": {"x": 0.15, "y": 0.03},
     "fire": {
       "targeting": "self", "pattern": "single",
       "projectile": { "type": "aoe", "aoe": 200, "slow": 0.4, "color": "#7fd6e4" }
@@ -62,6 +67,7 @@
     "formula": "攻击 ×(1.05+0.18L) + 暴击率×攻击 ×1.5",
     "formulaDmg": "effAtk * (1.05 + 0.18 * level) + critRate * effAtk * 1.5",
     "cd": 1.35, "pierce": -1, "range": 620, "speed": 900, "color": "#f4ecd8",
+    "erosion": {"x": 0.15, "y": 0.03},
     "fire": {
       "targeting": "nearest", "pattern": "single",
       "projectile": { "type": "beam", "range": 620, "color": "#f4ecd8", "pierce": -1, "dur": 0.22, "width": 14 }
@@ -72,7 +78,8 @@
     "desc": "月刃环绕身周，持续切割靠近的敌人。",
     "formula": "攻击 ×(0.8+0.2L)×6 / 刃",
     "formulaDmg": "effAtk * (0.8 + 0.2 * level) * 6",
-    "tick": 0.22, "radius": 120, "blades": 2, "angularSpd": 1.6, "color": "#e9c987"
+    "tick": 0.22, "radius": 120, "blades": 2, "angularSpd": 1.6, "color": "#e9c987",
+    "erosion": {"x": 0.08, "y": 0.02}
   },
   "lance": {
     "id": "lance", "name": "潮涌之枪", "icon": "wLance", "tag": "贯穿",
@@ -80,6 +87,7 @@
     "formula": "攻击 ×(1.2+0.2L) + 移速 ×(0.08+0.02L)",
     "formulaDmg": "effAtk * (1.2 + 0.2 * level) + speed * (0.08 + 0.02 * level)",
     "cd": 1.8, "pierce": 4, "range": 560, "color": "#6ec9e8",
+    "erosion": {"x": 0.15, "y": 0.03},
     "fire": {
       "targeting": "nearest", "pattern": "volley",
       "count": "1 + floor(projCount * 0.5)",
@@ -92,6 +100,7 @@
     "formula": "攻击 ×(1.1+0.15L) + 溢出暴伤×攻击 ×0.9",
     "formulaDmg": "effAtk * (1.1 + 0.15 * level) + max(0, critDmg - 1.5) * effAtk * 0.9",
     "cd": 0.9, "range": 520, "speed": 460, "homing": true, "color": "#6b5cf0",
+    "erosion": {"x": 0.15, "y": 0.03},
     "proj": 1,
     "fire": {
       "targeting": "nearest", "pattern": "volley",
@@ -106,7 +115,8 @@
     "formulaDmg": "effAtk * (1.0 + 0.18 * level) + speed * atkSpd * 0.03",
     "tick": 0.56, "cores": 2, "radius": 115, "proj": 1, "pierce": 0,
     "angularSpd": 3.0, "spread": 0.16, "projRadius": 5,
-    "speed": 390, "range": 507, "color": "#8fe3d8"
+    "speed": 390, "range": 507, "color": "#8fe3d8",
+    "erosion": {"x": 0.08, "y": 0.02}
   },
   "nova": {
     "id": "nova", "name": "破晓之辉", "icon": "wNova", "tag": "爆发·终极",
@@ -114,6 +124,7 @@
     "formula": "攻击 ×(1.5+0.25L) + 移速 ×0.1",
     "formulaDmg": "effAtk * (1.5 + 0.25 * level) + speed * 0.1",
     "cd": 3.8, "pierce": 5, "range": 520, "speed": 560, "color": "#ffe9a8",
+    "erosion": {"x": 0.1, "y": 0.02},
     "proj": 10,
     "fire": {
       "targeting": "facing", "pattern": "nova",
@@ -127,6 +138,7 @@
     "formula": "召唤 2+⌊L/2⌋ 个分身，各自发射 攻击×(0.5+0.12L) 的月牙",
     "formulaDmg": "effAtk * (0.5 + 0.12 * level) * (2 + floor(level / 2))",
     "cd": 4, "color": "#dbe8ff",
+    "erosion": {"x": 0.1, "y": 0.02},
     "posOffset": 42, "followDist": 96, "followSpeed": 92, "wanderSpeed": 8,
     "targetRange": 380, "fireIntv": 0.55, "duration": 5, "initFireT": 0.5,
     "fire": { "targeting": "self", "pattern": "phantom",
@@ -139,6 +151,7 @@
     "formula": "(攻击 ×(0.75+0.13L) + 生命上限 ×(12%+1.5%L)) ×(1+月蚀深度×12%)",
     "formulaDmg": "(effAtk * (0.75 + 0.13 * level) + maxHp * (0.12 + 0.015 * level)) * (1 + depth * 0.12)",
     "cd": 2.8, "aoe": 130, "color": "#5fb8a8",
+    "erosion": {"x": 0.12, "y": 0.03},
     "count": 1,
     "fire": {
       "targeting": "denseArea", "pattern": "single",

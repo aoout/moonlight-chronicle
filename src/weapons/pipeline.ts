@@ -101,6 +101,10 @@ export function executeProjPipeline(pr: Projectile, dt: number, p: Player): void
     tickTide(pr, dt, p);
     return;
   }
+  if (pr.judge) {
+    tickJudge(pr, dt, p);
+    return;
+  }
 
   // 1. 运动阶段
   const moveType = getMoveType(pr);
@@ -242,6 +246,36 @@ function tickMeteor(pr: Projectile, dt: number, p: Player): void {
     for (const e of queryRadius(pr.x, pr.y, pr.aoe || 130)) {
       if (e.dead) continue;
       damageEnemy(e, pr.dmg * (1.4 - dist(e, pr) / (pr.aoe || 130)), RNG() < p.effCrit, 'meteor', pr.wId);
+    }
+    pr.dead = 1;
+  }
+}
+
+/* 辉光审判：裁决辉光（金辉圣光 · 光系） */
+function tickJudge(pr: Projectile, dt: number, p: Player): void {
+  pr.t = (pr.t || 0) + dt;
+  // 蓄力金辉光尘（上升光尘，神圣下坠前奏）
+  if (RNG() < 0.6) {
+    addFx({
+      x: pr.x + (RNG() - 0.5) * 40, y: pr.y + (RNG() - 0.5) * 20,
+      vx: (RNG() - 0.5) * 30, vy: -RNG() * 70 - 30,
+      life: 0.45, max: 0.45, size: RNG() < 0.5 ? 2 : 3.5,
+      color: RNG() < 0.5 ? PALETTE.goldBright : PALETTE.goldPale,
+    });
+  }
+  if (pr.t >= (pr.delay || 0.5)) {
+    // 圣辉爆裂：金辉光雾 + 光刃 + 圣芒 + 双金环 + 辉星 + 白炽光晕
+    spawnBurst(pr.x, pr.y, PALETTE.goldPale, 18);
+    spawnShard(pr.x, pr.y, PALETTE.gold, 8, 240);
+    spawnSpark(pr.x, pr.y, PALETTE.goldBright, 12, 300);
+    spawnRing(pr.x, pr.y, PALETTE.goldBright, 0.5, 120, 4.5);
+    spawnRing(pr.x, pr.y, PALETTE.goldPale, 0.7, 200, 2);
+    spawnStar(pr.x, pr.y, PALETTE.goldBright, 26);
+    spawnGlow(pr.x, pr.y, 34, PALETTE.goldBright, 0.55);
+    shakeScreen(9);
+    for (const e of queryRadius(pr.x, pr.y, pr.aoe || 110)) {
+      if (e.dead) continue;
+      damageEnemy(e, pr.dmg * (1.4 - dist(e, pr) / (pr.aoe || 110)), RNG() < p.effCrit, 'judge', pr.wId);
     }
     pr.dead = 1;
   }

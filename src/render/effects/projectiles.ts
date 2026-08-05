@@ -247,6 +247,50 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.shadowBlur = 0;
   },
 
+  /* 辉光审判：落点预警（旋转裁决光环 + 圣辉涡心 + 裁决十字 + 上升光尘） */
+  judge(ctx, pr) {
+    const k = Math.min(1, pr.t / (pr.delay || 0.5));
+    ctx.globalAlpha = 0.3 + 0.7 * k;
+    // 1. 旋转裁决光环（金辉虚线外环 + 淡金内环反向转动）
+    ctx.save();
+    ctx.setLineDash([10, 7]);
+    ctx.lineDashOffset = -pr.t * 60;
+    ctx.strokeStyle = PALETTE.goldBright; ctx.lineWidth = 2.6;
+    ctx.shadowColor = PALETTE.goldBright; ctx.shadowBlur = 24;
+    ctx.beginPath(); ctx.arc(0, 0, 10 + pr.t * 30, 0, TAU); ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    ctx.setLineDash([4, 9]);
+    ctx.lineDashOffset = pr.t * 40;
+    ctx.strokeStyle = PALETTE.goldPale; ctx.lineWidth = 1.6;
+    ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.arc(0, 0, 17 + pr.t * 34, 0, TAU); ctx.stroke();
+    ctx.restore();
+    ctx.setLineDash([]);
+    // 2. 圣辉涡心
+    ctx.fillStyle = 'rgba(233,201,135,.22)';
+    ctx.beginPath(); ctx.arc(0, 0, 8 + pr.t * 26, 0, TAU); ctx.fill();
+    // 3. 裁决十字（四芒圣光，随蓄力张放）
+    ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.lineWidth = 1.5;
+    const cr = 14 + pr.t * 26;
+    ctx.beginPath();
+    ctx.moveTo(0, -cr); ctx.lineTo(0, cr);
+    ctx.moveTo(-cr, 0); ctx.lineTo(cr, 0);
+    ctx.stroke();
+    // 4. 上升光尘（金色光点随蓄力升起）
+    ctx.globalAlpha = 0.85;
+    for (let i = 0; i < 4; i++) {
+      const a = pr.t * 4 + i * 1.57;
+      const rr = 13 + pr.t * 30;
+      const by = -Math.abs(Math.sin(pr.t * 3.4 + i * 1.2)) * 8;
+      dot(ctx, Math.cos(a) * rr, Math.sin(a) * rr + by, 1.7, PALETTE.goldPale, 5);
+    }
+    // 5. 中心辉核
+    ctx.globalAlpha = 1;
+    dot(ctx, 0, 0, 2.6, '#ffffff', 10);
+    ctx.shadowBlur = 0;
+  },
+
   /* 月光束：脉动光柱（呼吸宽窄 + 三层光 + 光束粒子） */
   beam(ctx, pr) {
     const dx = Math.cos(pr.dir), dy = Math.sin(pr.dir);
@@ -567,6 +611,7 @@ export function drawProjectiles(rc: RenderContext): void {
     ctx.translate(pr.x, pr.y);
     if (pr.meteor) PROJ_RENDER.meteor(ctx, pr);
     else if (pr.tide) PROJ_RENDER.tide(ctx, pr);
+    else if (pr.judge) PROJ_RENDER.judge(ctx, pr);
     else if (pr.acid) PROJ_RENDER.acid(ctx, pr);
     else if (pr.ground) PROJ_RENDER.ground(ctx, pr);
     else if (pr.breath) PROJ_RENDER.breath(ctx, pr);

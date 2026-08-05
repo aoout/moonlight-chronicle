@@ -60,7 +60,10 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
     if (RNG() < totalCrit) isCrit = true;
   }
   if (p.lowHpDmg > 0 && p.hp <= p.maxHp * 0.3) dmg *= (1 + p.lowHpDmg);
-  if (isCrit) dmg *= p.critDmg;
+  /* 残月·将熄之勇：必爆蓄力，本次伤害必定暴击且暴伤额外 +50% */
+  const moonCrit = (p.effects.moonCrit ?? 0) > 0;
+  if (moonCrit) { p.effects.moonCrit = 0; isCrit = true; }
+  if (isCrit) dmg *= p.critDmg * (moonCrit ? 1.5 : 1);
   if (p.effects.horde) {
     const hc = Math.min(10, Math.floor(eSt().enemies.length / 10));
     if (hc > 0) dmg *= 1 + p.effects.horde * hc;
@@ -88,6 +91,11 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
   }
   dmg = Math.max(1, Math.round(dmg));
   e.hp -= dmg;
+  /* 亏凸·回澜之护：造成伤害的 12% 转化为护盾（上限 30，停止输出 6 秒后消散） */
+  if (p.effects.moonWane) {
+    p.effects.shield = Math.min(30, (p.effects.shield || 0) + dmg * 0.12);
+    p.effects.moonLastDmgT = p.effects.moonT || 0;
+  }
   e.flash = 0.12;
   achOnDamage(dmg, isCrit);
   EventBus.emit('combat:hit', { target: e, damage: dmg, crit: isCrit, srcType, srcW });
@@ -126,8 +134,18 @@ export function killEnemy(e: EnemyInstance, srcType?: string): void {
   spawnDrop(e.x, e.y, 'xp', Math.round(xpAmt * luckMul));
   spawnDrop(e.x, e.y, 'gold', Math.round(goldAmt * (e.boss ? 1 : 0.6 + RNG() * 0.8) * luckMul));
   if (p.effects.devour) spawnDrop(e.x, e.y, 'xp', p.effects.devour);
-  if (p.effects.hunt) { p.effects.huntTimer = 3; p.effects.huntStacks = Math.min(3, (p.effects.huntStacks || 0) + 1); }
+  if (p.effects.hunt) { p.effects.huntTimer = 3; p.effects.huntStacks = Math.min(8, (p.effects.huntStacks || 0) + 1); }
   if (p.onKillHp > 0) healPlayer(p.onKillHp);
+  /* 残月·将熄之勇：每击杀 3 个敌人，下一次攻击必定暴击且暴伤额外 +50% */
+  if (p.effects.moonKill) {
+    p.effects.moonKillCount = (p.effects.moonKillCount || 0) + 1;
+    if (p.effects.moonKillCount >= 3) {
+      p.effects.moonKillCount = 0;
+      p.effects.moonCrit = 1;
+      EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 30, text: '将熄之勇 · 必爆', color: '#e9c987' });
+      EventBus.emit('visual:ring', { x: p.x, y: p.y, color: '#e9c987', life: 0.4, radius: 54, width: 1.6 });
+    }
+  }
   if (p.boom > 0) boomExplosion(e.x, e.y, p);
   if (e.split) {
     for (let i = 0; i < e.split; i++) {
@@ -165,6 +183,11 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
   const p = pSt().player;
   if (!p) return;
   if (p.invuln > 0 || sm.current !== STATE.PLAYING) return;
+  /* 新月·隐匿：隐匿期间不可被命中 */
+  if ((p.effects.cloakTimer ?? 0) > 0) {
+    EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 30, text: '隐匿', color: '#9fd6e8' });
+    return;
+  }
   if (RNG() < p.dodge) {
     achOnDodge();
     EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 30, text: '闪避', color: '#9fd6e8' });
@@ -196,6 +219,12 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
     return;
   }
   p.hp -= dmg;
+  /* 下弦·月影壁垒：受击生成 5% 最大生命护盾（8 秒 CD） */
+  if (p.effects.moonWax && (p.effects.moonHurtCd ?? 0) <= 0) {
+    p.effects.moonHurtCd = 8;
+    p.effects.shield = (p.effects.shield || 0) + Math.round(p.maxHp * 0.05);
+    EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 26, text: '月影壁垒', color: '#9fd6e8' });
+  }
   p.invuln = 0.45;
   achOnHurt();
   EventBus.emit('audio:sfx', { name: 'hurt' });

@@ -8,6 +8,7 @@ import { PALETTE } from '../data/palette.js';
 import { clamp } from '../utils.js';
 import { CONFIG, WEAPONS } from '../data/index.js';
 import { iconSVG } from './icons.js';
+import { MOON_NAMES, currentMoonPhase, currentMoonIllumination } from '../data/moon_phase.js';
 
 /* ---------- HUD 刷新 ---------- */
 export function uiTick(): void {
@@ -26,6 +27,23 @@ export function uiTick(): void {
     $('wave-text').textContent = boss.name + ' 降临——将其终结！';
   } else {
     $('wave-text').textContent = '噬光之潮 · ' + Math.ceil(gSt().stageMax - gSt().stageTime) + 's';
+  }
+  // 现实月相（你的月亮：拥有道具后显示，相位/照明变化时惰性刷新）
+  const mr = $('moon-real');
+  if (mr) {
+    const hasMoon = !!p.effects.yourMoon;
+    mr.hidden = !hasMoon;
+    if (hasMoon) {
+      const ph = currentMoonPhase();
+      const ill = Math.round(currentMoonIllumination() * 100);
+      const sig = ph + ':' + ill;
+      if (mr.dataset.sig !== sig) {
+        mr.dataset.sig = sig;
+        mr.innerHTML = '<span class="mr-ic">' + iconSVG('moon') + '</span>' +
+          '<span class="mr-txt">现实 · ' + MOON_NAMES[ph] + ' · ' + ill + '%</span>';
+        mr.title = MOON_NAMES[ph] + '，月面照明 ' + ill + '%。你的月亮效果随现实月相流转。';
+      }
+    }
   }
   // 武器栏（帧级冷却动画 + 惰性重建）
   renderWeaponBar();

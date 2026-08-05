@@ -51,7 +51,7 @@ const APPLY_FN: Record<string, (p: Player) => void> = {
   dash1:      p => { p.speed *= 1.08; p.dodge += 0.08; p.speed += 30; },
   shield1:    p => { p.effects.shieldMax = 30; p.effects.shield = 30; },
   nearDeath:  p => { p.effects.nearDeath = 1; },
-  hunt:       p => { p.effects.hunt = 0.12; },
+  hunt:       p => { p.effects.hunt = 0.06; },
   duoShoot:   p => { p.effects.duoShoot = 0.18; },
   frostAura:  p => { p.effects.frostAura = 260; },
   goldMeteor: p => { p.effects.goldMeteor = 0.25; },
@@ -60,11 +60,13 @@ const APPLY_FN: Record<string, (p: Player) => void> = {
   devour:     p => { p.effects.devour = 1; },
   cloak:      p => { p.effects.cloak = 1; },
   starfall:   p => { p.effects.starfall = 1; },
+  achJudge:   p => { p.effects.achJudge = 1; },
   tideRegen:  p => { p.effects.tideRegen = 1; },
   oath:       p => { p.effects.oath = 1; },
   horde:      p => { p.effects.horde = 0.05; },
   echoSlow:   p => { p.effects.echoSlow = 1; },
   coinHeal:   p => { p.effects.coinHeal = 0.5; },
+  yourMoon:   p => { p.effects.yourMoon = 1; p.effects.moonPhase = -1; },
 };
 
 // 校验道具数据

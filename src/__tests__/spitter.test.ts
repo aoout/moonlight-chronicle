@@ -20,7 +20,7 @@ describe('蚀涎魔喷吐', () => {
       x: 300, y: 300, spd: 52, stateT: 0, ranged: true,
       projSpd: 180, projDmg: 8, size: 10, dmg: 12,
     };
-    const p: any = { x: 400, y: 300, vx: 0, vy: 0 };
+    const p: any = { x: 400, y: 300, vx: 0, vy: 0, effects: {} };
     for (let i = 0; i < 3; i++) spitterMove(e, 0.016, p, 1);
     const shots = entityState.state.projectiles;
     expect(shots.length).toBeGreaterThan(0);
@@ -50,7 +50,7 @@ describe('蚀涎魔预判瞄准', () => {
     entityState.set('projectiles', []);
     const e: any = { x: 300, y: 300, spd: 52, stateT: 0, ranged: true, projSpd: 180, projDmg: 8, size: 10, dmg: 12 };
     // 玩家向右高速移动（vx = 240px/s）
-    const p: any = { x: 400, y: 300, vx: 240, vy: 0 };
+    const p: any = { x: 400, y: 300, vx: 240, vy: 0, effects: {} };
     for (let i = 0; i < 3; i++) spitterMove(e, 0.016, p, 1);
     const shot = entityState.state.projectiles[entityState.state.projectiles.length - 1] as any;
     // 弹的飞行方向应大致朝玩家右侧（预判点），而不是离谱偏移

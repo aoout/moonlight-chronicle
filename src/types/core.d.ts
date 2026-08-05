@@ -39,6 +39,8 @@ export interface PlayerEffects {
   cloakTimer?: number;
   starfall?: number;
   starTimer?: number;
+  achJudge?: number;
+  achJudgeTimer?: number;
   tideRegen?: number;
   regenBuff?: number;
   oath?: number;
@@ -58,6 +60,30 @@ export interface PlayerEffects {
   stormFireT?: Record<string, number>;
   /* 道具统计（伤害/金币等） */
   itemStats?: Record<string, ItemStats>;
+  /* ===== 你的月亮（现实月相）===== */
+  yourMoon?: number;
+  /** 当前生效的现实月相（0-7，-1=未初始化） */
+  moonPhase?: number;
+  /** 月相加成应用前的属性快照（用于还原） */
+  moonPrev?: Record<string, number>;
+  /** 月相策略累计运行时间 */
+  moonT?: number;
+  /* 亏凸·回澜之护：伤害转化护盾 */
+  moonWane?: number;
+  /** 最近一次造成伤害的时间（用于护盾消散判定） */
+  moonLastDmgT?: number;
+  /* 下弦·月影壁垒：受击生成护盾 */
+  moonWax?: number;
+  moonHurtCd?: number;
+  /* 残月·将熄之勇：击杀计数 → 必爆 */
+  moonKill?: number;
+  moonKillCount?: number;
+  /** 必爆蓄力：下一次伤害必定暴击且暴伤额外 +50% */
+  moonCrit?: number;
+  /* 满月·月华辉光计时 */
+  moonFullT?: number;
+  /* 新月·隐匿计时 */
+  moonCloakT?: number;
 }
 
 /* ---------- 玩家 ---------- */
@@ -93,6 +119,8 @@ export interface Player {
 export interface WeaponInstance {
   id: string;
   lv: number;
+  /** 月蚀侵蚀：伤害额外 +月蚀深度×(x+yL)，随武器实例持久化 */
+  eroded?: boolean;
 }
 
 export interface WeaponDef {
@@ -103,6 +131,8 @@ export interface WeaponDef {
   desc: string;
   formula: string;
   formulaDmg?: string;
+  /** 侵蚀加成系数：伤害额外 +月蚀深度×(x + y×L)（加法） */
+  erosion?: { x: number; y: number };
   dmg: (p: Player, lv: number) => number;
   cd?: (p?: Player) => number;
   pierce?: number;
@@ -243,6 +273,7 @@ export interface Projectile {
   wId?: string;
   accel?: number;
   tide?: number;
+  judge?: number;
   hit?: Set<EnemyInstance>;
   target?: EnemyInstance;
   dur?: number;

@@ -13,6 +13,7 @@ import { AudioEngine } from '../audio/engine.js';
 import { chainLightning } from './chain_lightning.js';
 import { nearestEnemy, denseEnemySpot } from './helpers.js';
 import { executeFirePipeline, executeProjPipeline } from './pipeline.js';
+import { weaponDmg } from '../domain/erosion.js';
 
 import { pSt } from '../state/accessors.js';
 import type { WeaponInstance, Projectile } from '../types/core.d.ts';
@@ -29,7 +30,8 @@ export function weaponFire(w: WeaponInstance): number {
   if (!p) return 0;
   const def = WEAPONS[w.id];
   const lv = w.lv;
-  const baseDmg = def.dmg(p, lv);
+  // 含月蚀侵蚀加成（被侵蚀武器 +月蚀深度×(x+yL)）
+  const baseDmg = weaponDmg(w, p);
   const cd = (def.cd ? def.cd() : (def.tick ?? 0) * 2) * (1 - p.cdr);
   if (w.id === 'orbit') return cd;
   if (w.id === 'storm') return cd;

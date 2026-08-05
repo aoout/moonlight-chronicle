@@ -12,6 +12,7 @@ import { AudioEngine } from '../../audio/engine.js';
 import { iconSVG } from '../icons.js';
 import { weaponFormulaText, weaponRangeText, weaponFormulaBreakdown } from './formulas.js';
 import { renderShopPanel } from './panel.js';
+import { rollErosion } from '../../domain/erosion.js';
 
 const pSt = () => playerState.state;
 const gSt = () => stageState.state;
@@ -32,7 +33,7 @@ function fitCardContent(card: HTMLElement): void {
 }
 
 type Offer =
-  | { kind: 'newWeapon' | 'upWeapon'; id: string }
+  | { kind: 'newWeapon' | 'upWeapon'; id: string; eroded?: boolean }
   | { kind: 'item'; data: any };
 
 export function openShop(): void {
@@ -55,8 +56,8 @@ export function openShop(): void {
     if (!shuffled.length) break;
     const id = shuffled.shift()!;
     offers.push(p.weapons.find((x: any) => x.id === id)
-      ? { kind: 'upWeapon', id }
-      : { kind: 'newWeapon', id });
+      ? { kind: 'upWeapon', id, eroded: !!p.weapons.find((x: any) => x.id === id)?.eroded }
+      : { kind: 'newWeapon', id, eroded: rollErosion(gSt().depth) });
   }
 
   // 2) 道具卡
@@ -77,7 +78,7 @@ export function openShop(): void {
     let def: any = null, it: any = null;
     if (o.kind === 'newWeapon') {
       def = WEAPONS[o.id];
-      rarity = 'legend'; title = def.name; icon = def.icon; tag = def.tag;
+      rarity = 'legend'; title = def.name + (o.eroded ? '·侵蚀' : ''); icon = def.icon; tag = def.tag;
       desc = '<span class="stat-conv">新武器</span> · ' + def.desc +
         '<div class="upgrade-tier">倍率构成：' + weaponFormulaText(def) + '</div>' +
         '<div class="upgrade-tier range">⟡ ' + (weaponRangeText(def) || '—') + (def.pierce !== undefined ? ' · 穿透 ' + (def.pierce === Infinity ? '∞' : def.pierce) : '') + '</div>';
@@ -87,7 +88,7 @@ export function openShop(): void {
       const w = p.weapons.find((x: any) => x.id === o.id);
       if (!w) return;
       def = WEAPONS[o.id];
-      rarity = 'epic'; title = def.name + ' 强化'; icon = def.icon; tag = '强化';
+      rarity = 'epic'; title = def.name + ' 强化' + (o.eroded ? '·侵蚀' : ''); icon = def.icon; tag = '强化';
       desc = '升至 <span class="stat-up">Lv.' + (w.lv + 1) + '</span>，伤害与形态进一步提升。' +
         '<div class="upgrade-tier range">⟡ ' + (weaponRangeText(def) || '—') + (def.pierce !== undefined ? ' · 穿透 ' + (def.pierce === Infinity ? '∞' : def.pierce) : '') + '</div>';
       const inflate = inflationRate(gSt().stage);
@@ -100,6 +101,7 @@ export function openShop(): void {
       price = Math.round(it.price * (p.effects.priceMul || 1) * inflate);
     }
     c.classList.add('rarity-' + rarity, 'weapon-card');
+    if (o.eroded) c.classList.add('eroded');
     const iconColor = def ? ` style="color:${def.color};filter:drop-shadow(0 0 10px ${def.color}88)"` : '';
     c.innerHTML = html`
       <div class="card-inner">
@@ -113,7 +115,7 @@ export function openShop(): void {
     if (sSt().gold < price) c.classList.add('cant-afford');
     c.onclick = () => {
       let r: { ok: boolean; reason?: string };
-      if (o.kind === 'newWeapon') r = purchaseWeapon(o.id, price);
+      if (o.kind === 'newWeapon') r = purchaseWeapon(o.id, price, o.eroded);
       else if (o.kind === 'upWeapon') r = upgradeWeaponCmd(o.id, price);
       else r = purchaseItem(it, price);
       if (!r.ok) { if (r.reason) toast(r.reason); return; }

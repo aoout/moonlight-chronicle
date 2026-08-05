@@ -5,6 +5,7 @@ import { RNG, rand } from '../utils.js';
 import { WEAPONS } from '../data/index.js';
 import { world } from '../ecs/World.js';
 import { addFx, spawnGlow } from '../render/effects/fx.js';
+import { weaponDmg } from '../domain/erosion.js';
 import { AudioEngine } from '../audio/engine.js';
 
 import { pSt, gSt } from '../state/accessors.js';
@@ -26,7 +27,7 @@ export function stormTick(dt: number): void {
     const projR = def.projRadius || 5;
     const color = def.color || '#8fe3d8';
     const projPerShot = (def.proj || 1) + Math.floor(stormW.lv / 2) + Math.floor((p.projCount || 0) / 2);
-    const dmgPerProj = def.dmg(p, stormW.lv);
+    const dmgPerProj = weaponDmg(stormW, p);
 
     p.effects.stormCores = [];
     p.effects.stormFireT = p.effects.stormFireT || {};

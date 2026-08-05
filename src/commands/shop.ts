@@ -18,11 +18,11 @@ interface SellResult extends Result {
   price: number;
 }
 
-/** 购买新武器 */
-export function purchaseWeapon(id: string, price: number): Result {
+/** 购买新武器（eroded：月蚀侵蚀，伤害 +月蚀深度×(x+yL)） */
+export function purchaseWeapon(id: string, price: number, eroded?: boolean): Result {
   const s = statsState.state;
   if (s.gold < price) return { ok: false, reason: '金币不足' };
-  if (!addWeapon(id)) return { ok: false, reason: '武器栏已满（最多 5 件）' };
+  if (!addWeapon(id, { eroded })) return { ok: false, reason: '武器栏已满（最多 5 件）' };
   statsState.set('gold', s.gold - price);
   const p = playerState.state.player;
   if (p) computeDerived(p);

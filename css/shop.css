@@ -714,3 +714,57 @@
 .sid-stat-row:last-child { border-bottom: none; }
 .sid-stat-label { color: rgba(244,236,216,.58); }
 .sid-stat-val { color: var(--gold); font-weight: 800; font-size: 12px; }
+
+/* ================= 月蚀侵蚀：商店武器卡片与列表 =================
+   侵蚀武器染上更深的月蚀色（终蚀紫红），出现时金光被暗蚀渗入 */
+.card.eroded {
+  border-color: rgba(140, 60, 110, .78);
+  background: linear-gradient(168deg, rgba(38, 18, 48, .95), rgba(9, 8, 22, .97));
+  box-shadow:
+    0 10px 40px rgba(61, 16, 32, .55),
+    inset 0 0 32px rgba(94, 42, 74, .24),
+    0 0 22px rgba(140, 60, 110, .38);
+  animation: cardIn .5s cubic-bezier(.22,1,.36,1) both,
+             erodeIn 1.6s ease .18s both;
+}
+.card.eroded::before {
+  background: linear-gradient(90deg, transparent, #8a3a5e, transparent);
+  opacity: .9;
+}
+.card.eroded::after {
+  background: radial-gradient(90% 52% at 50% 0%, rgba(138, 58, 94, .18), transparent 62%);
+}
+.card.eroded .card-rarity { color: #d98ab0; }
+.card.eroded .card-name { color: #ecc8dc; text-shadow: 0 0 14px rgba(217, 138, 176, .5); }
+.card.eroded .card-ic { filter: drop-shadow(0 0 12px rgba(217, 138, 176, .5)); }
+.card.eroded .card-desc { color: rgba(236, 200, 220, .78); }
+.card.eroded:hover {
+  border-color: #b45a8a;
+  box-shadow: 0 18px 64px rgba(0,0,0,.62), 0 0 36px rgba(140, 60, 110, .55);
+}
+
+/* 侵蚀出现动画：月光的金色被暗蚀自边框渗入吞噬 */
+@keyframes erodeIn {
+  0%   { filter: brightness(1.18) saturate(.68); border-color: rgba(233, 201, 135, .45); }
+  35%  { border-color: rgba(180, 90, 138, .95); filter: brightness(1.04) saturate(1.12); }
+  70%  { filter: brightness(.95); }
+  100% { filter: brightness(1) saturate(1); border-color: rgba(140, 60, 110, .78); }
+}
+
+/* 右侧已佩戴武器列表（属性页卡片）侵蚀 */
+.pw-item.eroded {
+  border-color: rgba(180, 90, 138, .62);
+  background: linear-gradient(90deg, rgba(94, 42, 74, .2), rgba(28, 16, 40, .26));
+  box-shadow: inset 0 0 16px rgba(94, 42, 74, .2);
+}
+.pw-item.eroded .pw-name { color: #ecc8dc; }
+.pw-item.eroded .pw-ic { filter: drop-shadow(0 0 8px rgba(217, 138, 176, .65)); }
+.pw-item.eroded:hover { border-color: #b45a8a; }
+
+/* 武器详情面板侵蚀 */
+.pw-detail.eroded {
+  border-color: rgba(180, 90, 138, .55);
+  box-shadow: var(--glass-edge-inset), 0 6px 32px rgba(0,0,0,.5),
+    inset 0 0 26px rgba(94, 42, 74, .2);
+}
+.pw-detail.eroded .pwd-name { color: #ecc8dc; }

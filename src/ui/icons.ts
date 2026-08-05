@@ -191,6 +191,8 @@ export const ICONS: Record<string, string> = {
   darkCloak: IC.wrap('<path d="M12 2.5c4.6 2.7 7 7.2 7 12v7H5v-7c0-4.8 2.4-9.3 7-12Z"/><path d="M12 2.5V21.5"/>'),
   /* 群星陨落：自动陨星 · 双子星陨 */
   starfall: IC.wrap('<path d="M8 4.5c1.5 2.2 2.3 4 2.3 5.6a2.6 2.6 0 0 1-5.2 0c0-1.6.8-3.4 2.9-5.6Z"/><path d="M8 10.1l-2.4 2.4M8 10.1l2.4 2.4"/><path d="M17 7c1.5 2.2 2.3 4 2.3 5.6a2.6 2.6 0 0 1-5.2 0c0-1.6.8-3.4 2.9-5.6Z"/><path d="M17 12.6l-2.4 2.4M17 12.6l2.4 2.4"/><circle cx="20.5" cy="4" r="0.9" fill="currentColor" stroke="none"/>'),
+  /* 辉光审判：成就增伤 · 裁决圣瞳 + 辉光射线 */
+  gloryJudge: IC.wrap('<circle cx="12" cy="12" r="7.2"/><path d="M12 2.5v3.6M12 17.9v3.6M2.5 12h3.6M17.9 12h3.6M5.6 5.6l2 2M16.4 16.4l2 2M18.4 5.6l-2 2M7.6 16.4l-2 2"/><path d="M12 7.5l3 4.5-3 4.5-3-4.5 3-4.5Z"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/>'),
   /* 月汐护体：受击恢复 · 弯月 + 回潮 */
   tideMoon: IC.wrap('<path d="M19 11.5A7.5 7.5 0 1 1 11.5 4 6.2 6.2 0 0 0 19 11.5Z"/><path d="M6.5 17.5c2-1.6 4-1.6 6 0s4 1.6 6 0"/>'),
   /* 守月之约：致命保命 · 誓盾 + 契印 */
@@ -201,6 +203,8 @@ export const ICONS: Record<string, string> = {
   echoSlow: IC.wrap('<path d="M6 3h12M6 21h12M7 3c3 3 4.6 5.5 5 9 .4-3.5 2-6 5-9M7 21c3-3 4.6-5.5 5-9 .4 3.5 2 6 5 9"/><path d="M3.5 15.5c-1-2-1-6.5 0-8.5M20.5 15.5c1-2 1-6.5 0-8.5"/>'),
   /* 星屑护符：拾币回血 · 护符环 + 星 */
   starCharm: IC.wrap('<circle cx="12" cy="12" r="7.4"/><path d="M12 8.2l1.2 3.1 3.1 1.2-3.1 1.2L12 16.8l-1.2-3.1-3.1-1.2 3.1-1.2 1.2-3.1Z"/><path d="M12 3.6v1.8M12 18.6v1.8"/>'),
+  /* 你的月亮：现实月相 · 弦月之镜 + 星缀 */
+  yourMoon: IC.wrap('<circle cx="12" cy="12" r="7.6"/><path d="M12 4.4a7.6 7.6 0 0 1 0 15.2v-15.2Z" fill="currentColor" stroke="none"/><path d="M4 16.4l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1Z"/>'),
 };
 
 /* 取图标 SVG；带类名重载 */

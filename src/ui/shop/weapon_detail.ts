@@ -10,6 +10,7 @@ import { iconSVG } from '../icons.js';
 import { sellWeapon as sellWeaponCmd, weaponSellPrice } from '../../commands/index.js';
 import { weaponFormulaText, weaponFormulaBreakdown, weaponProjInfo } from './formulas.js';
 import { renderShopPanel } from './panel.js';
+import { weaponDmg, erosionBonus } from '../../domain/erosion.js';
 
 const pSt = () => playerState.state;
 const sSt = () => statsState.state;
@@ -57,12 +58,16 @@ export function showWeaponDetail(id: string): void {
   if (def.fire && (def.fire as any).chain) rows.push(['连锁', (def.fire as any).chain + ' 次']);
   if (def.slow) rows.push(['减速', (def.slow * 100).toFixed(0) + '%']);
   if (def.homing) rows.push(['追踪', '是']);
+  if (w.eroded && def.erosion) {
+    const er = def.erosion;
+    rows.push(['月蚀侵蚀', '+' + er.x.toFixed(2) + '+' + er.y.toFixed(2) + 'L ×深度（+' + (Math.round(erosionBonus(w) * 100) / 100) + '）']);
+  }
   const price = weaponSellPrice(w.lv);
   box.innerHTML = html`
     <div class="pwd-head">
       <span class="pwd-ic" style="color:${def.color};filter:drop-shadow(0 0 9px ${def.color}66)">${def.icon}</span>
       <div class="pwd-title">
-        <div class="pwd-name">${def.name}</div>
+        <div class="pwd-name">${def.name}${w.eroded ? '·侵蚀' : ''}</div>
         <div class="pwd-lv">Lv.${w.lv} · 本夜占比 ${pct}%</div>
       </div>
       <button class="pwd-close" id="pwd-close">×</button>
@@ -72,7 +77,7 @@ export function showWeaponDetail(id: string): void {
       ${weaponFormulaBreakdown(def, p, w.lv).map(s => html`
         <div class="pwd-calc-row"><span>${s.label}</span><i>${s.expr}</i><b>${Math.round(s.value * 10) / 10}</b></div>
       `).join('')}
-      <div class="pwd-calc-total">最终伤害 <b>${Math.round(def.dmg(p, w.lv))}</b></div>
+      <div class="pwd-calc-total">最终伤害 <b>${Math.round(weaponDmg(w, p))}</b></div>
     </div>
     <div class="pwd-stats">
       ${rows.map(r => html`<div class="pwd-stat"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}
@@ -82,6 +87,7 @@ export function showWeaponDetail(id: string): void {
     </div>
   `;
   box.classList.remove('hidden');
+  box.classList.toggle('eroded', !!w.eroded);
   _pwSellConfirm = 0;
   $('pwd-close').onclick = () => {
     box.classList.add('hidden');
