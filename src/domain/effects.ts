@@ -17,7 +17,7 @@ import { MOON_NAMES, currentMoonPhase } from '../data/moon_phase.js';
 import { gmSt } from '../state/accessors.js';
 
 /** 你的月亮：各月相的属性增量（add=加法增量，mul=乘法倍率）。用增量逆运算还原，避免覆盖月相期间新购入的道具加成 */
-function applyMoonEffects(p: Player, ph: number): void {
+export function applyMoonEffects(p: Player, ph: number): void {
   const b: Record<string, number> = {};
   switch (ph) {
     case 0: /* 新月：闪避 +25% */

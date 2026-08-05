@@ -93,6 +93,7 @@ export function startRun(): void {
   const curse = gSt().curse;
   if (curse && p) curse.apply(p);
   addWeapon('moonRing');
+  if (p) computeDerived(p);
   if (isDevMode()) {
     // god 模式：进入第一夜前的「第 0 夜商店」整备（下一夜 → 第 1 夜）
     stageState.set('stage', 0);

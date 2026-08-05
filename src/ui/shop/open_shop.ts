@@ -14,6 +14,7 @@ import { weaponFormulaText, weaponRangeText, weaponFormulaBreakdown } from './fo
 import { renderShopPanel } from './panel.js';
 import { rollErosion } from '../../domain/erosion.js';
 import { isDevMode } from '../../debug/dev_mode.js';
+import { currentMoonPhaseDesc } from '../../data/moon_phase.js';
 
 const pSt = () => playerState.state;
 const gSt = () => stageState.state;
@@ -107,7 +108,7 @@ export function openShop(): void {
     } else {
       it = o.data;
       rarity = it.rarity; title = it.name; icon = it.icon; tag = it.tag || (it.rarity === 'legend' ? '神恩' : it.rarity === 'epic' ? '非凡' : '寻常');
-      desc = it.desc;
+      desc = it.id === 'yourMoon' ? currentMoonPhaseDesc() : it.desc;
       const inflate = inflationRate(gSt().stage);
       price = Math.round(it.price * (p.effects.priceMul || 1) * inflate);
     }

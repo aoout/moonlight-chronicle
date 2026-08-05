@@ -5,6 +5,7 @@ import { playerState } from '../../state/player.js';
 import { SHOP_ITEMS } from '../../data/index.js';
 import { $, html } from '../hud_utils.js';
 import type { ShopItemDef, Player } from '../../types/core.d.ts';
+import { currentMoonPhaseDesc } from '../../data/moon_phase.js';
 
 const pSt = () => playerState.state;
 
@@ -85,7 +86,7 @@ export function showItemDetail(id: string): void {
       </div>
       <button class="sid-close" id="sid-close">×</button>
     </div>
-    <div class="sid-desc">${it.desc}</div>
+    <div class="sid-desc">${it.id === 'yourMoon' ? currentMoonPhaseDesc() : it.desc}</div>
     ${effects ? html`<div class="sid-effects"><div class="sid-effect-title">当前生效</div>
       ${effects.map(r => html`<div class="sid-effect-row"><span class="sid-el">${r[0]}</span><span class="sid-arrow">→</span><span class="sid-el">${r[1]}</span><span class="sid-er">${r[2]}</span><span class="sid-er">${r[3]}</span></div>`).join('')}
     </div>` : ''}

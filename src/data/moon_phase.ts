@@ -34,3 +34,21 @@ export function currentMoonPhase(): number {
 export function currentMoonIllumination(): number {
   return moonIlluminationAt(Date.now());
 }
+
+const MOON_EFFECT_DESCS: Record<number, string> = {
+  0: '闪避 +25%',
+  1: '攻击 +15%，经验获取 +15%',
+  2: '暴击率 +12%，攻速 +12%',
+  3: '攻击 +10%，范围 +10%，投射物 +1',
+  4: '攻击 +25%，暴伤 +25%',
+  5: '生命上限 +15%（含等额回复），伤害转化护盾',
+  6: '冷却缩减 +15%，受击生成护盾',
+  7: '暴伤 +25%，击杀计数 → 必爆',
+};
+
+/** 获取当前月相的效果描述，用于商店和详情页展示 */
+export function currentMoonPhaseDesc(): string {
+  const ph = currentMoonPhase();
+  const ill = Math.round(currentMoonIllumination() * 100);
+  return `当前月相：<span class="stat-up">${MOON_NAMES[ph]}</span>（月面照明 ${ill}%），效果：<span class="stat-up">${MOON_EFFECT_DESCS[ph]}</span>。`;
+}

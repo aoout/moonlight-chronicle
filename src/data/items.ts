@@ -6,6 +6,8 @@ import { ICONS } from '../ui/icons.js';
 import { validateEntries, validateAndWarn } from './validate.js';
 import itemsData from './items.json';
 import type { ShopItemDef, Player } from '../types/core.d.ts';
+import { applyMoonEffects } from '../domain/effects.js';
+import { currentMoonPhase } from './moon_phase.js';
 
 export const SHOP_ITEMS: ShopItemDef[] = [];
 
@@ -66,7 +68,7 @@ const APPLY_FN: Record<string, (p: Player) => void> = {
   horde:      p => { p.effects.horde = 0.05; },
   echoSlow:   p => { p.effects.echoSlow = 1; },
   coinHeal:   p => { p.effects.coinHeal = 0.5; },
-  yourMoon:   p => { p.effects.yourMoon = 1; p.effects.moonPhase = -1; },
+  yourMoon:   p => { p.effects.yourMoon = 1; p.effects.moonPhase = currentMoonPhase(); applyMoonEffects(p, p.effects.moonPhase); },
 };
 
 // 校验道具数据
