@@ -10,7 +10,7 @@ import { iconSVG } from '../icons.js';
 import { sellWeapon as sellWeaponCmd, weaponSellPrice } from '../../commands/index.js';
 import { weaponFormulaText, weaponFormulaBreakdown, weaponProjInfo } from './formulas.js';
 import { renderShopPanel } from './panel.js';
-import { weaponDmg, erosionBonus } from '../../domain/erosion.js';
+import { weaponDmg } from '../../domain/erosion.js';
 
 const pSt = () => playerState.state;
 const sSt = () => statsState.state;
@@ -58,10 +58,6 @@ export function showWeaponDetail(id: string): void {
   if (def.fire && (def.fire as any).chain) rows.push(['连锁', (def.fire as any).chain + ' 次']);
   if (def.slow) rows.push(['减速', (def.slow * 100).toFixed(0) + '%']);
   if (def.homing) rows.push(['追踪', '是']);
-  if (w.eroded && def.erosion) {
-    const er = def.erosion;
-    rows.push(['月蚀侵蚀', '月蚀深度×(' + (Math.round(er.x * 100) / 100) + '+' + (Math.round(er.y * 100) / 100) + '×L) · 当前 +' + (Math.round(erosionBonus(w) * 100) / 100)]);
-  }
   const price = weaponSellPrice(w.lv);
   box.innerHTML = html`
     <div class="pwd-head">
@@ -74,7 +70,7 @@ export function showWeaponDetail(id: string): void {
     </div>
     <div class="pwd-formula">${weaponFormulaText(def)}</div>
     <div class="pwd-calc">
-      ${weaponFormulaBreakdown(def, p, w.lv).map(s => html`
+      ${weaponFormulaBreakdown(def, p, w.lv, w).map(s => html`
         <div class="pwd-calc-row"><span>${s.label}</span><i>${s.expr}</i><b>${Math.round(s.value * 10) / 10}</b></div>
       `).join('')}
       <div class="pwd-calc-total">最终伤害 <b>${Math.round(weaponDmg(w, p))}</b></div>

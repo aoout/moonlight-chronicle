@@ -1,7 +1,8 @@
 /* =========================================================
    蚀月远征 · 商店：武器公式与投射物数量计算
    ========================================================= */
-import type { WeaponDef, Player } from '../../types/core.d.ts';
+import type { WeaponDef, Player, WeaponInstance } from '../../types/core.d.ts';
+import { erosionBonus } from '../../domain/erosion.js';
 
 type FormulaEntry = [string, string, (p: Player, lv: number) => any, (string | ((p: Player, lv: number) => any))?];
 
@@ -62,16 +63,28 @@ export interface FormulaBreakdownRow {
   kind: string;
 }
 
-export function weaponFormulaBreakdown(def: WeaponDef, p: Player, lv: number): FormulaBreakdownRow[] {
+export function weaponFormulaBreakdown(def: WeaponDef, p: Player, lv: number, w?: WeaponInstance): FormulaBreakdownRow[] {
   const F = WEAPON_FORMULAS[def.id];
-  if (!F) return [{ label: '攻击力', expr: Math.round(p.effAtk || 0), value: p.effAtk || 0, kind: 'part' }];
-  return F.map(s => {
-    const [label, kind, get, tpl] = s;
-    const value = get(p, lv);
-    let expr: any;
-    if (typeof tpl === 'function') expr = tpl(p, lv);
-    else if (typeof tpl === 'string') expr = tpl.replace(/L/g, String(lv));
-    else expr = (typeof value === 'number' ? Math.round(value * 100) / 100 : value);
-    return { label, expr, value, kind };
-  });
+  const rows: FormulaBreakdownRow[] = F
+    ? F.map(s => {
+        const [label, kind, get, tpl] = s;
+        const value = get(p, lv);
+        let expr: any;
+        if (typeof tpl === 'function') expr = tpl(p, lv);
+        else if (typeof tpl === 'string') expr = tpl.replace(/L/g, String(lv));
+        else expr = (typeof value === 'number' ? Math.round(value * 100) / 100 : value);
+        return { label, expr, value, kind };
+      })
+    : [{ label: '攻击力', expr: Math.round(p.effAtk || 0), value: p.effAtk || 0, kind: 'part' }];
+  // 侵蚀武器：月蚀倍率作为倍率构成的一项（加法）
+  if (w?.eroded && def.erosion) {
+    const er = def.erosion;
+    rows.push({
+      label: '月蚀侵蚀',
+      expr: '月蚀深度×(' + (Math.round(er.x * 100) / 100) + '+' + (Math.round(er.y * 100) / 100) + '×L)',
+      value: erosionBonus(w),
+      kind: 'part',
+    });
+  }
+  return rows;
 }
