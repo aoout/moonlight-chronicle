@@ -42,7 +42,7 @@ function trackItemDmg(p: Player, itemId: string, dmg: number): void {
 }
 
 /* 道具造成的伤害来源（计入道具伤害占比，而非武器） */
-const ITEM_DMG_SRC = new Set(['starfall', 'duo', 'chainItem']);
+const ITEM_DMG_SRC = new Set(['starfall', 'duo', 'chainItem', 'achJudge', 'yourMoon']);
 
 function trackItemExtraGold(p: Player, itemId: string, gold: number): void {
   const s = ensureItemStats(p, itemId);
