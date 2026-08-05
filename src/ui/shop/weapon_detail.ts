@@ -60,7 +60,7 @@ export function showWeaponDetail(id: string): void {
   if (def.homing) rows.push(['追踪', '是']);
   if (w.eroded && def.erosion) {
     const er = def.erosion;
-    rows.push(['月蚀侵蚀', '+' + er.x.toFixed(2) + '+' + er.y.toFixed(2) + 'L ×深度（+' + (Math.round(erosionBonus(w) * 100) / 100) + '）']);
+    rows.push(['月蚀侵蚀', '月蚀深度×(' + (Math.round(er.x * 100) / 100) + '+' + (Math.round(er.y * 100) / 100) + '×L) · 当前 +' + (Math.round(erosionBonus(w) * 100) / 100)]);
   }
   const price = weaponSellPrice(w.lv);
   box.innerHTML = html`

@@ -768,3 +768,10 @@
     inset 0 0 26px rgba(94, 42, 74, .2);
 }
 .pw-detail.eroded .pwd-name { color: #ecc8dc; }
+
+/* 商店卡片侵蚀倍率行（月蚀倍率：+月蚀深度×(x+y×L)） */
+.card.eroded .eroded-tier {
+  color: #d98ab0;
+  border-color: rgba(180, 90, 138, .35);
+  text-shadow: 0 0 10px rgba(217, 138, 176, .35);
+}
