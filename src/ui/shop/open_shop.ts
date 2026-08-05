@@ -13,6 +13,7 @@ import { iconSVG } from '../icons.js';
 import { weaponFormulaText, weaponRangeText, weaponFormulaBreakdown } from './formulas.js';
 import { renderShopPanel } from './panel.js';
 import { rollErosion } from '../../domain/erosion.js';
+import { isDevMode } from '../../debug/dev_mode.js';
 
 const pSt = () => playerState.state;
 const gSt = () => stageState.state;
@@ -42,7 +43,9 @@ export function openShop(): void {
   AudioEngine.playSfx('open');
   const cards = $('shop-cards');
   cards.innerHTML = '';
-  $('shop-sub').textContent = gSt().stage >= CONFIG.FINAL_STAGE ? '终焉已至，整备完毕即赴决战' : '第 ' + gSt().stage + ' 夜已渡，购置武装以御下一夜';
+  $('shop-sub').textContent = gSt().stage >= CONFIG.FINAL_STAGE ? '终焉已至，整备完毕即赴决战'
+    : gSt().stage <= 0 && isDevMode() ? '月蚀神启 · 踏入第一夜前的整备'
+    : '第 ' + gSt().stage + ' 夜已渡，购置武装以御下一夜';
 
   // 1) 武器购买 / 升级卡：池 = 未拥有 + 未满级(Lv.5)的已拥有武器，
   //    抽到已拥有的即升级，价格随等级递增
@@ -112,7 +115,7 @@ export function openShop(): void {
         <div class="card-price">${iconSVG('coin')} ${price}</div>
       </div>
     `;
-    if (sSt().gold < price) c.classList.add('cant-afford');
+    if (!isDevMode() && sSt().gold < price) c.classList.add('cant-afford');
     c.onclick = () => {
       let r: { ok: boolean; reason?: string };
       if (o.kind === 'newWeapon') r = purchaseWeapon(o.id, price, o.eroded);

@@ -29,6 +29,7 @@ stageState.set('unlocked', isDevMode() ? LEVELS.length - 1 : loadUnlocked());
 const RUN_SAVE_KEY = 'eclipse_run_save_v1';
 
 export function saveRun(): void {
+  if (isDevMode()) return;  // god 模式：不写正式存档（与 persistUnlocked 保护一致）
   try {
     const p = pSt().player;
     const data = {

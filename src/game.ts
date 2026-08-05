@@ -19,6 +19,7 @@ import { getSysMan } from './systems/index.js';
 import { uiTick } from './ui/hud.js';
 import { pollGamepad } from './input/gamepad.js';
 import { settingsState } from './state/settings.js';
+import { isDevMode } from './debug/dev_mode.js';
 
 /* ---------- 关卡流程 ---------- */
 
@@ -92,7 +93,13 @@ export function startRun(): void {
   const curse = gSt().curse;
   if (curse && p) curse.apply(p);
   addWeapon('moonRing');
-  startStage(1);
+  if (isDevMode()) {
+    // god 模式：进入第一夜前的「第 0 夜商店」整备（下一夜 → 第 1 夜）
+    stageState.set('stage', 0);
+    sm.transition(STATE.SHOP);
+  } else {
+    startStage(1);
+  }
   EventBus.emit('game:runStart', { depth: gSt().depth, curse: gSt().curse });
 }
 

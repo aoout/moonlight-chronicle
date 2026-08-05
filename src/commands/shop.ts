@@ -8,6 +8,7 @@ import { statsState } from '../state/stats.js';
 import { playerState } from '../state/player.js';
 import { addWeapon, upgradeWeapon, removeWeapon, computeDerived } from '../domain/player.js';
 import { codexAdd } from '../persistence/codex.js';
+import { isDevMode } from '../debug/dev_mode.js';
 
 interface Result {
   ok: boolean;
@@ -21,9 +22,10 @@ interface SellResult extends Result {
 /** 购买新武器（eroded：月蚀侵蚀，伤害 +月蚀深度×(x+yL)） */
 export function purchaseWeapon(id: string, price: number, eroded?: boolean): Result {
   const s = statsState.state;
-  if (s.gold < price) return { ok: false, reason: '金币不足' };
+  const god = isDevMode(); // god 模式：无限金币
+  if (!god && s.gold < price) return { ok: false, reason: '金币不足' };
   if (!addWeapon(id, { eroded })) return { ok: false, reason: '武器栏已满（最多 5 件）' };
-  statsState.set('gold', s.gold - price);
+  if (!god) statsState.set('gold', s.gold - price);
   const p = playerState.state.player;
   if (p) computeDerived(p);
   return { ok: true };
@@ -32,9 +34,10 @@ export function purchaseWeapon(id: string, price: number, eroded?: boolean): Res
 /** 升级武器 */
 export function upgradeWeaponCmd(id: string, price: number): Result {
   const s = statsState.state;
-  if (s.gold < price) return { ok: false, reason: '金币不足' };
+  const god = isDevMode(); // god 模式：无限金币
+  if (!god && s.gold < price) return { ok: false, reason: '金币不足' };
   if (!upgradeWeapon(id)) return { ok: false, reason: '无法升级' };
-  statsState.set('gold', s.gold - price);
+  if (!god) statsState.set('gold', s.gold - price);
   const p = playerState.state.player;
   if (p) computeDerived(p);
   return { ok: true };
@@ -45,8 +48,9 @@ export function purchaseItem(item: any, price: number): Result {
   const s = statsState.state;
   const p = playerState.state.player;
   if (!p) return { ok: false, reason: '无玩家' };
-  if (s.gold < price) return { ok: false, reason: '金币不足' };
-  statsState.set('gold', s.gold - price);
+  const god = isDevMode(); // god 模式：无限金币
+  if (!god && s.gold < price) return { ok: false, reason: '金币不足' };
+  if (!god) statsState.set('gold', s.gold - price);
   item.apply(p);
   codexAdd('items', item.id);
   const prev = p.effects.boughtItems?.[item.id] ?? 0;
