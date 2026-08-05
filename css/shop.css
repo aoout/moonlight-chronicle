@@ -770,7 +770,8 @@
 .pw-detail.eroded .pwd-name { color: #ecc8dc; }
 
 /* 倍率构成行内的月蚀倍率项（侵蚀武器：+ 月蚀深度×(x+y×L)） */
-.card.eroded .eroded-tier {
+.card.eroded .eroded-tier,
+.pw-detail.eroded .pwd-formula .eroded-tier {
   color: #d98ab0;
   font-weight: 600;
   text-shadow: 0 0 10px rgba(217, 138, 176, .4);

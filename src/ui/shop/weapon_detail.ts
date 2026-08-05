@@ -59,6 +59,10 @@ export function showWeaponDetail(id: string): void {
   if (def.slow) rows.push(['减速', (def.slow * 100).toFixed(0) + '%']);
   if (def.homing) rows.push(['追踪', '是']);
   const price = weaponSellPrice(w.lv);
+  // 侵蚀武器：公式行内联合并月蚀倍率（与商店卡片一致）
+  const eroFrag = w.eroded && def.erosion
+    ? ' <span class="eroded-tier">+ 月蚀深度×(' + (Math.round(def.erosion.x * 100) / 100) + '+' + (Math.round(def.erosion.y * 100) / 100) + '×L)</span>'
+    : '';
   box.innerHTML = html`
     <div class="pwd-head">
       <span class="pwd-ic" style="color:${def.color};filter:drop-shadow(0 0 9px ${def.color}66)">${def.icon}</span>
@@ -68,7 +72,7 @@ export function showWeaponDetail(id: string): void {
       </div>
       <button class="pwd-close" id="pwd-close">×</button>
     </div>
-    <div class="pwd-formula">${weaponFormulaText(def)}</div>
+    <div class="pwd-formula">${weaponFormulaText(def)}${eroFrag}</div>
     <div class="pwd-calc">
       ${weaponFormulaBreakdown(def, p, w.lv, w).map(s => html`
         <div class="pwd-calc-row"><span>${s.label}</span><i>${s.expr}</i><b>${Math.round(s.value * 10) / 10}</b></div>
