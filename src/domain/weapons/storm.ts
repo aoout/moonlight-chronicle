@@ -27,7 +27,7 @@ export function stormTick(dt: number): void {
     const projLife = range / projSpeed;
     const projR = def.projRadius || 5;
     const color = def.color || PALETTE.swift;
-    const projPerShot = (def.proj || 1) + Math.floor(stormW.lv / 2) + Math.floor((p.projCount || 0) / 2);
+    const projPerShot = (def.proj || 1) + Math.floor(stormW.lv / 3) + Math.floor((p.projCount || 0) / 3);
     const dmgPerProj = weaponDmg(stormW, p);
 
     p.effects.stormCores = [];

@@ -2,8 +2,8 @@
   "moonRing": {
     "id": "moonRing", "name": "月辉回刃", "icon": "wMoonRing", "tag": "回旋·疾风",
     "desc": "掷出回旋月刃，命中归途造成二段伤害。",
-    "formula": "攻击 ×(0.55+0.12L) + 移速 ×0.12",
-    "formulaDmg": "effAtk * (0.55 + 0.12 * level) + speed * 0.12",
+    "formula": "攻击 ×(0.55+0.12L) + 移速 ×(0.12+0.02L)",
+    "formulaDmg": "effAtk * (0.55 + 0.12 * level) + speed * (0.12 + 0.02 * level)",
     "cd": 1.15, "pierce": 3, "range": 420, "speed": 380, "color": "#e9c987",
     "erosion": {"x": 2, "y": 0.4},
     "fire": {
@@ -111,8 +111,8 @@
   "storm": {
     "id": "storm", "name": "风暴之眼", "icon": "wStorm", "tag": "环绕·弹幕",
     "desc": "两个风暴之核环绕身周，向前方倾泻弹幕。",
-    "formula": "攻击 ×(1.0+0.18L) + 移速×攻速 ×0.03",
-    "formulaDmg": "effAtk * (1.0 + 0.18 * level) + speed * atkSpd * 0.03",
+    "formula": "攻击 ×(1.0+0.18L) + 移速×攻速 ×0.05",
+    "formulaDmg": "effAtk * (1.0 + 0.18 * level) + speed * atkSpd * 0.05",
     "tick": 0.56, "cores": 2, "radius": 115, "proj": 1, "pierce": 0,
     "angularSpd": 3.0, "spread": 0.16, "projRadius": 5,
     "speed": 390, "range": 507, "color": "#8fe3d8",
@@ -121,8 +121,8 @@
   "nova": {
     "id": "nova", "name": "破晓之辉", "icon": "wNova", "tag": "爆发·终极",
     "desc": "蓄力后朝四面发射贯穿月辉，清场之选。",
-    "formula": "攻击 ×(1.5+0.25L) + 移速 ×0.1",
-    "formulaDmg": "effAtk * (1.5 + 0.25 * level) + speed * 0.1",
+    "formula": "攻击 ×(1.5+0.35L) + 移速 ×0.1",
+    "formulaDmg": "effAtk * (1.5 + 0.35 * level) + speed * 0.1",
     "cd": 3.8, "pierce": 5, "range": 520, "speed": 560, "color": "#ffe9a8",
     "erosion": {"x": 2, "y": 0.4},
     "proj": 10,
