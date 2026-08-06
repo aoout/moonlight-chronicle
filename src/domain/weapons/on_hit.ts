@@ -44,7 +44,11 @@ export const ON_HIT: Record<string, (args: OnHitArgs) => boolean> = {
   /** 减速效果 */
   slow({ target, isPlayer, pr, p }) {
     if (isPlayer) return false;
-    (target as EnemyInstance).slow = Math.max((target as EnemyInstance).slow, pr.slow || 0.4);
+    // 仅在显式配置 slow 时生效（0 或 undefined 均不减速）。
+    // 修复前用 `pr.slow || 0.4` 兜底，会导致未配置 slow 的 aoe
+    // 投射物被隐式减速 0.4 —— 魔法数字，违背数值 rationale。
+    if (!pr.slow) return false;
+    (target as EnemyInstance).slow = Math.max((target as EnemyInstance).slow, pr.slow);
     return false;
   },
 

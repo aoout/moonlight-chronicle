@@ -73,7 +73,7 @@ export const PROJECTILE_TYPES: Record<string, ProjectileTypeDef> = {
     createFlags: (ctx) => ({ aoe: true, maxR: (ctx.projCfg.aoe || 200) * ctx.p.area, slow: ctx.projCfg.slow || 0 }),
     movement: 'stationary',
     hit: 'aoe',
-    onHit: ['damage'],
+    onHit: ['damage', 'slow'],
   },
 
   /** 陨石（延迟下落） */
