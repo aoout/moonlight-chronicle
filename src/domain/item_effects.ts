@@ -75,3 +75,8 @@ export function applyItemEffect(id: string, p: Player): void {
 export function hasItemEffect(id: string): boolean {
   return id in APPLY_FN;
 }
+
+/** 已登记效果的全部 id（用于数据校验：反查 items.json 里不存在的死实现） */
+export function itemEffectIds(): string[] {
+  return Object.keys(APPLY_FN);
+}

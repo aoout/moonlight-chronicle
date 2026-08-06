@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { EntityPool, E_SCHEMA } from '../engine/ecs/entity_pool.js';
-import type { EnemyInstance } from '../types/core.d.ts';
+import { EntityPool, E_SCHEMA } from '../../engine/ecs/entity_pool.js';
+import type { EnemyInstance } from '../../types/core.d.ts';
 
 describe('EntityPool', () => {
   it('should create a pool with correct size', () => {

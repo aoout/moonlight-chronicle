@@ -73,6 +73,22 @@ export class StateMachine {
     return true;
   }
 
+  /**
+   * 回到初始状态。
+   *
+   * 只重置状态位，**保留已注册的钩子** —— 钩子是启动时接线的一部分，
+   * 「重开一局」不应该把接线也拔掉。需要连钩子一起清的场景用 clearHooks()。
+   */
+  reset(): void {
+    this._current = this._config.initial;
+  }
+
+  /** 清空全部钩子（仅在拆除/重建接线时使用） */
+  clearHooks(): void {
+    this._hooks = {};
+    this._globalHooks = [];
+  }
+
   /** 检查当前状态 */
   is(state: string): boolean { return this._current === state; }
 

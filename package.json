@@ -10,14 +10,17 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test": "vitest run",
+    "coverage": "vitest run --coverage --coverage.clean=false",
     "arch": "node scripts/check-arch.mjs",
     "arch:cycles": "madge --extensions ts --circular src/",
-    "verify": "npm run typecheck && npm run arch && npm run test",
+    "check-only": "node scripts/check-only.mjs",
+    "verify": "npm run typecheck && npm run arch && npm run check-only && npm run coverage",
     "lint": "eslint 'src/**/*.ts'",
     "format": "prettier --write 'src/**/*.ts' 'css/**/*.css'"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
+    "@vitest/coverage-v8": "^4.1.10",
     "autoprefixer": "^10.5.4",
     "cssnano": "^8.0.2",
     "eslint": "^10.8.0",

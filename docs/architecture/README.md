@@ -96,8 +96,10 @@
 npm run typecheck    # tsc --noEmit
 npm run arch         # 分层方向检查（scripts/check-arch.mjs）
 npm run arch:cycles  # 循环依赖检查（madge）
-npm run test         # vitest
-npm run verify       # 以上三项（typecheck + arch + test）
+npm run test         # vitest（快，不含覆盖率）
+npm run check-only   # 扫描测试文件，拦截遗留的 .only
+npm run coverage     # vitest --coverage（带阈值门禁，clean=false 避沙箱拦截）
+npm run verify       # typecheck + arch + check-only + coverage
 npm run build        # verify 通过后才打包
 ```
 
@@ -105,17 +107,25 @@ npm run build        # verify 通过后才打包
 `scripts/check-arch.mjs` 顶部的 `LAYERS` 数组里，改层级或加豁免都在那里。
 它已接入 `npm run build`，违反分层的代码无法构建通过。
 
+`npm run verify` 现在是**全量质量门禁**：除了类型与分层，还会跑覆盖率阈值
+（见 [`adr/0004-test-strategy.md`](./adr/0004-test-strategy.md)）。
+未达 `vitest.config.js` 中 `coverage.thresholds` 的层/文件无法构建。
+
 ## 四、当前状态
 
 - 循环依赖：**0**（重构前 14）
 - 向上依赖：**0**（重构前 50）
-- 测试：16 文件 / 100 用例全绿
+- 测试：**22 文件 / 375 用例全绿**（见 ADR-0004）
+- 覆盖率基线：Statements 36.26% · Branches 26.84% · Functions 31.69% · Lines 36.26%
 - 生产构建：297.86 kB（gzip 93.46 kB）
 
 ## 五、已知的遗留项
 
-- `src/__tests__/` 有 100 个用例，但集中在领域计算与配置解析；
-  `features/` 与 `app/` 基本无测试覆盖。
+- `features/ui`、`platform/audio`、`features/input` 基本无单元覆盖，
+  且**刻意不纳入覆盖率门槛** —— 它们由运行时冒烟覆盖，强行加像素/行为断言
+  会威胁"不碰 UI 美术"的硬约束。
+- `domain/effects`、`domain/drop`、`domain/weapons/pipeline` 等内部逻辑尚未测深，
+  暂无对应 lock-in 阈值（阈值只给"已刻意测深"的层/文件）。
 - `scripts/check-arch.mjs` 只检查**静态 import 方向**，不检查
   运行时通过端口/事件产生的实际耦合强度。端口注册点需要人工守。
 - 若干导出符号疑似无人使用（约 100 个候选，含大量类型与调试 API 误报），

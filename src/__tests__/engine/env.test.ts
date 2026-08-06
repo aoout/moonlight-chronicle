@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { isDevMode } from '../engine/env.js';
+import { isDevMode } from '../../engine/env.js';
 
 describe('dev mode', () => {
   afterEach(() => {
