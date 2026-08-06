@@ -20,6 +20,7 @@ import { uiTick } from './ui/hud.js';
 import { pollGamepad } from './input/gamepad.js';
 import { settingsState } from './state/settings.js';
 import { isDevMode } from './debug/dev_mode.js';
+import { isBenchActive } from './debug/bench/state.js';
 
 /* ---------- 关卡流程 ---------- */
 
@@ -120,6 +121,8 @@ let _lastRenderT = 0;
 
 export function gameLoop(ts: number): void {
   requestAnimationFrame(gameLoop);
+  // 基准测试激活时，跳过正常更新/渲染，由 runner 的独立 RAF 循环接管
+  if (isBenchActive()) { _lastT = ts; _lastRenderT = ts; return; }
   if (_lastT === 0) { _lastT = ts; _lastRenderT = ts; return; }  // 首帧初始化基线
   // 潮汐节律：近似帧率上限（30 / 60 / 0=无羁），含 1ms 容差。
   // 跳帧不推进 _lastT，累积器将在下一帧补足逻辑步数，模拟节奏不受限帧影响。

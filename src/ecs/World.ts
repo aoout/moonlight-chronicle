@@ -49,12 +49,20 @@ export class World {
   /* ========== 空间哈希网格 ========== */
   private _spatialGrid = new Map<string, EnemyInstance[]>();
 
+  /* 基于时间戳的去重（替代 Set 分配） */
+  private _queryId = 1;
+  private _queryStamps = new Uint32Array(ENEMY_POOL._maxSize);
+
   private _cellKey(c: number, r: number): string { return c + ',' + r; }
   private _cellCoord(v: number): number { return Math.floor(v / SPATIAL_CELL); }
 
   /** 重建空间网格（每帧由 SpatialSystem 调用） */
   buildSpatialGrid(): void {
     this._spatialGrid.clear();
+    // 确保时间戳数组足够大
+    if (this._queryStamps.length < ENEMY_POOL._maxSize) {
+      this._queryStamps = new Uint32Array(ENEMY_POOL._maxSize);
+    }
     for (const e of this._lists.enemies) {
       if (e.dead) continue;
       const key = this._cellKey(this._cellCoord(e.x), this._cellCoord(e.y));
@@ -64,18 +72,27 @@ export class World {
     }
   }
 
-  /** 返回 (x,y) 周围相邻 cell 内的所有敌人（去重） */
+  /** 返回 (x,y) 周围相邻 cell 内的所有敌人（去重，基于时间戳避免 Set 分配） */
   neighborEnemies(x: number, y: number, radius?: number): EnemyInstance[] {
+    this._queryId++;
+    // 溢出保护：重置所有时间戳
+    if (this._queryId >= 0xFFFFFFFF) {
+      this._queryId = 1;
+      this._queryStamps.fill(0);
+    }
     const col = this._cellCoord(x), row = this._cellCoord(y);
     const cellR = radius !== undefined ? Math.ceil(radius / SPATIAL_CELL) : 1;
-    const seen = new Set<EnemyInstance>();
     const out: EnemyInstance[] = [];
     for (let dc = -cellR; dc <= cellR; dc++) {
       for (let dr = -cellR; dr <= cellR; dr++) {
         const cell = this._spatialGrid.get(this._cellKey(col + dc, row + dr));
         if (!cell) continue;
         for (const e of cell) {
-          if (!seen.has(e)) { seen.add(e); out.push(e); }
+          const idx = e._idx!;
+          if (this._queryStamps[idx] !== this._queryId) {
+            this._queryStamps[idx] = this._queryId;
+            out.push(e);
+          }
         }
       }
     }

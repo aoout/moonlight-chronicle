@@ -2,7 +2,7 @@
    蚀月远征 · 武器：碰撞检测模块
    可组合的碰撞检测行为，供 PROJ_TICK 使用
    ========================================================= */
-import { dist } from '../utils.js';
+import { distSq } from '../utils.js';
 import { neighborEnemies, queryRadius } from '../systems/SpatialSystem.js';
 import { pSt } from '../state/accessors.js';
 import type { Player, Projectile, EnemyInstance } from '../types/core.d.ts';
@@ -25,7 +25,7 @@ export const HIT_DETECTION: Record<string, (pr: Projectile, dt: number, p: Playe
       // 敌人投射物：检测玩家
       const p = pSt().player;
       if (!p) return [];
-      if (dist(pr, p) < pr.r + p.r - 2) return [{ target: p, isPlayer: true }];
+      if (distSq(pr, p) < (pr.r + p.r - 2) ** 2) return [{ target: p, isPlayer: true }];
       return [];
     }
     // 玩家投射物：检测敌人
@@ -33,7 +33,7 @@ export const HIT_DETECTION: Record<string, (pr: Projectile, dt: number, p: Playe
     const hits = [];
     for (const e of candidates) {
       if (e.dead || pr.hit!.has(e)) continue;
-      if (dist(pr, e) < pr.r + e.size * 0.75) {
+      if (distSq(pr, e) < (pr.r + e.size * 0.75) ** 2) {
         hits.push({ target: e, isPlayer: false });
         pr.hit!.add(e);
       }
@@ -47,7 +47,8 @@ export const HIT_DETECTION: Record<string, (pr: Projectile, dt: number, p: Playe
     const candidates = neighborEnemies(pr.x, pr.y, pr.maxR || pr.r);
     for (const e of candidates) {
       if (e.dead || pr.hit!.has(e)) continue;
-      if (dist(e, pr) < (pr.r || pr.maxR || 200)) {
+      const r = pr.r || pr.maxR || 200;
+      if (distSq(e, pr) < r * r) {
         hits.push({ target: e, isPlayer: false });
         pr.hit!.add(e);
       }
@@ -100,14 +101,14 @@ export const HIT_DETECTION: Record<string, (pr: Projectile, dt: number, p: Playe
     const candidates = neighborEnemies(pr.x, pr.y, pr.maxR || 200);
     for (const e of candidates) {
       if (e.dead || pr.hit!.has(e)) continue;
-      if (dist(e, pr) < pr.r) {
+      if (distSq(e, pr) < pr.r * pr.r) {
         hits.push({ target: e, isPlayer: false });
         pr.hit!.add(e);
       }
     }
     // 玩家检测（敌人 AOE）
     if (pr.enemy) {
-      if (dist(p, pr) < pr.r) {
+      if (distSq(p, pr) < pr.r * pr.r) {
         hits.push({ target: p, isPlayer: true });
       }
     }

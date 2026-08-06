@@ -5,6 +5,7 @@
 import { FPSCounter, SystemProfiler, DrawCallCounter } from './performance.js';
 import { drawEntityMonitor } from './entity_monitor.js';
 import { drawSpatialDebug } from './spatial_debug.js';
+import { drawBenchUI, bindBenchKeys } from './bench/index.js';
 
 let _visible = false;
 let _showGrid = false;
@@ -41,6 +42,7 @@ export function renderDebug(ctx: any): void {
   profiler.draw(ctx);
   drawCalls.draw(ctx);
   drawEntityMonitor(ctx);
+  drawBenchUI(ctx);  // 基准测试 UI（F6 切换显示）
 }
 
 /**
@@ -64,4 +66,5 @@ export function bindDebugKeys(): void {
       toggleGrid();
     }
   });
+  bindBenchKeys();  // F5 运行基准测试，F6 切换 UI
 }

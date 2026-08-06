@@ -7,8 +7,8 @@ import { PALETTE } from '../data/palette.js';
 import { TARGETING } from './targeting.js';
 import { PATTERNS } from './patterns.js';
 import { MOVEMENT } from './movement.js';
-import { HIT_DETECTION } from './hit_detection.js';
-import { ON_HIT } from './on_hit.js';
+import { HIT_DETECTION, type HitResult } from './hit_detection.js';
+import { ON_HIT, type OnHitArgs } from './on_hit.js';
 import { PROJECTILE_TYPES, resolveProjectileType } from './projectile_types.js';
 import { addFx, spawnBurst, spawnSpark, spawnGlow, spawnRing, spawnStar, spawnShard, spawnStreak } from '../render/effects/fx.js';
 import { shakeScreen } from '../state/render.js';
@@ -17,7 +17,6 @@ import { damageEnemy } from '../domain/combat.js';
 import { AudioEngine } from '../audio/engine.js';
 import type { Player, Projectile } from '../types/core.d.ts';
 import type { WeaponInstance, WeaponDef } from '../types/core.d.ts';
-import type { OnHitArgs } from './on_hit.js';
 
 /* =========================================================
    1. 开火管线：将武器定义翻译为投射物
@@ -106,25 +105,36 @@ export function executeProjPipeline(pr: Projectile, dt: number, p: Player): void
     return;
   }
 
-  // 1. 运动阶段
-  const moveType = getMoveType(pr);
-  const moveFn = MOVEMENT[moveType];
-  if (moveFn) {
-    const alive = moveFn(pr, dt, p);
-    if (!alive) return;
+  // 缓存投射物类型函数引用（首次运行时初始化，消除每帧类型解析开销）
+  const meta = pr._meta!;
+  if (!meta._cached) {
+    const typeName = resolveProjectileType(pr);
+    const typeDef = PROJECTILE_TYPES[typeName] || PROJECTILE_TYPES.linear;
+    meta._moveType = typeDef.movement;
+    meta._moveFn = MOVEMENT[typeDef.movement];
+    meta._hitFn = HIT_DETECTION[typeDef.hit];
+    meta._onHitFns = typeDef.onHit.map(name => ON_HIT[name]).filter(Boolean);
+    meta._cached = true;
   }
 
-  // 2. 碰撞检测阶段
-  const hitType = getHitType(pr);
-  const hitFn = HIT_DETECTION[hitType];
+  // 1. 运动阶段（缓存函数引用）
+  const moveFn = meta._moveFn as (pr: Projectile, dt: number, p: Player) => boolean;
+  if (moveFn) {
+    if (!moveFn(pr, dt, p)) return;
+  }
+
+  // 2. 碰撞检测阶段（缓存函数引用）
+  const hitFn = meta._hitFn as (pr: Projectile, dt: number, p: Player) => HitResult[];
   if (hitFn) {
     const hits = hitFn(pr, dt, p);
 
-    // 3. 命中效果阶段
+    // 3. 命中效果阶段（缓存函数列表）
+    const onHitFns = meta._onHitFns as ((args: OnHitArgs) => boolean)[];
     for (const hit of hits) {
-      const onHitFns = getOnHitEffects(pr);
-      for (const fn of onHitFns) {
-        fn({ target: hit.target, isPlayer: hit.isPlayer, pr, p });
+      if (onHitFns) {
+        for (const fn of onHitFns) {
+          fn({ target: hit.target, isPlayer: hit.isPlayer, pr, p });
+        }
       }
 
       // 穿透处理
@@ -136,29 +146,7 @@ export function executeProjPipeline(pr: Projectile, dt: number, p: Player): void
   }
 
   // 4. 尾迹特效
-  spawnTrailFx(pr, dt, moveType);
-}
-
-/* 确定投射物类型配置（从注册表获取） */
-function getTypeConfig(pr: Projectile): any {
-  const typeName = resolveProjectileType(pr);
-  return PROJECTILE_TYPES[typeName] || PROJECTILE_TYPES.linear;
-}
-
-/* 确定运动类型 */
-function getMoveType(pr: Projectile): string {
-  return getTypeConfig(pr).movement;
-}
-
-/* 确定碰撞检测类型 */
-function getHitType(pr: Projectile): string {
-  return getTypeConfig(pr).hit;
-}
-
-/* 确定命中效果列表 */
-function getOnHitEffects(pr: Projectile): ((args: OnHitArgs) => boolean)[] {
-  const cfg = getTypeConfig(pr);
-  return cfg.onHit.map((name: string) => ON_HIT[name]).filter(Boolean);
+  spawnTrailFx(pr, dt, meta._moveType as string);
 }
 
 /* 穿透处理 */
