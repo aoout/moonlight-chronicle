@@ -209,12 +209,16 @@ function showCodexDetail(id: string, meta: string): void {
         </div>
       </div>
     `;
-    const ic = head.querySelector('.cd-ic');
-    if (ic) ic.appendChild(_enemyCanvas(id, d, meta === 'boss'));
   }
 
   head.innerHTML = headHtml;
   body.innerHTML = bodyHtml;
+  // 敌人/Boss 图标：canvas 需在 DOM 就绪后挂载（先 innerHTML 再查询节点）
+  if (meta === 'enemy' || meta === 'boss') {
+    const d = (meta === 'boss' ? BOSSES : ENEMIES)[id] as any;
+    const ic = head.querySelector('.cd-ic');
+    if (ic) ic.appendChild(_enemyCanvas(id, d, meta === 'boss'));
+  }
   box.classList.remove('hidden');
 }
 
