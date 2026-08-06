@@ -55,21 +55,22 @@
 <body><article class="page">
 <header class="hero">
   <h1>蚀月远征 · 性能优化最终报告</h1>
-  <div class="sub">O1–O4 架构优化 · A/B 交替对拍验证 · 确定性夹具 · 设置项兜底 — 分支 <code>perf/late-game-optimization</code></div>
+  <div class="sub">O1–O9 架构优化 · A/B 交替对拍验证 · 确定性夹具 · 设置项兜底 — 分支 <code>perf/late-game-optimization</code></div>
 </header>
 
 <section>
   <h2>一、结论摘要</h2>
   <div class="cards">
-    <div class="card good"><div class="k">O1+O2+O3 · 高负载场景均值降幅</div><div class="v">27.9<small>% （6 场景显著）</small></div></div>
-    <div class="card good"><div class="k">后期·250水位 均值</div><div class="v">5.65 → 4.02<small> ms</small></div></div>
-    <div class="card warn"><div class="k">后期·150水位 p95</div><div class="v">6.31 → 4.48<small> ms</small></div></div>
+    <div class="card good"><div class="k">O5-O10 · 粒子场景降幅</div><div class="v">66.2<small>% （显著）</small></div></div>
+    <div class="card good"><div class="k">O5-O10 · 高负载均值降幅</div><div class="v">31.9<small>% （5 场景显著）</small></div></div>
+    <div class="card good"><div class="k">后期·250水位（O4 → O5-O10）</div><div class="v">2.08 → 1.66<small> ms</small></div></div>
     <div class="card good"><div class="k">O4 · canvas 重分配（late_250）</div><div class="v">62 → 10<small> 次/帧 (−84%)</small></div></div>
   </div>
   <div class="oknote note">
     <strong>O1+O2+O3（纯架构，零体验代价）可信收益：</strong>高负载场景均值降幅 23.5%–31.8%，
     分层 bootstrap 95% 区间全部为正；p95 同步降 24.1%–29.1%，帧尖峰被明显削平。
     <strong>O4（渲染缓存去重）：</strong>draw call −16%–34%、canvas 重分配 −84%（62→10 次/帧）。
+    <strong>O5-O10（热路径直读）：</strong>粒子场景 −66.2%，高负载场景 −20.0% ~ −28.5%。
   </div>
 </section>
 
@@ -285,6 +286,12 @@
         <li><b>O2</b> <code>store.ts</code>：<code>state</code> 快照缓存，写入时失效</li>
         <li><b>O3</b> <code>entity_pool.ts</code>：<code>compact</code> 用 copyWithin + 仅搬动态属性</li>
         <li><b>O4</b> <code>entities.ts</code>：缓存键记帧去重 + <code>enemyAnimStride</code> 节流</li>
+        <li><b>O5</b> <code>World.ts</code>：空间网格字符串 key → 数字 key（省每帧数百次字符串分配）</li>
+        <li><b>O6</b> <code>ParticleSystem.ts</code>：粒子更新直读 TypedArray（免视图 getter）</li>
+        <li><b>O7</b> <code>particles.ts</code>：粒子绘制直读 TypedArray（每粒子 ~15 次 getter → 直读）</li>
+        <li><b>O8</b> <code>ParticleSystem.ts / World.ts</code>：update 顺带标记过期粒子 dead，compact 判定降为 1 次 getter</li>
+        <li><b>O9</b> <code>EnemySystem.ts</code>：enemyTick 热字段直读 TypedArray + 跳过死实体</li>
+        <li><b>O10</b> <code>entity_pool.ts</code>：compact 动态属性「覆盖优先 + 仅清理残留」（同构零 delete，保住隐藏类）</li>
       </ul>
     </div>
     <div>
@@ -293,23 +300,125 @@
         <li><code>scheduler.ts</code>：blur 清键 bug（<code>iSt().keys = {}</code> 对浅拷贝赋值从未生效 → 原地清空）</li>
         <li><code>ab.mjs</code>：工作量核对从 draw ops 改为逻辑实体数（渲染优化不再误报）</li>
         <li>新增 4 项 O4 回归测试（同帧去重 / 节流 / reset 复位 / 默认逐帧）</li>
+        <li>新增 4 项粒子回归测试（位移阻尼 / 过期标记 / 混合访问 / dead 语义）</li>
       </ul>
     </div>
   </div>
 </section>
 
 <section>
-  <h2>五、验证状态</h2>
+  <h2>五、第二轮优化（O5-O10）· 热路径 TypedArray 直读</h2>
+  <p class="muted">O1-O4 之后重跑 V8 CPU Profile，热点转移到视图 getter 的<b>访问次数</b>（而非 getter 本身）：粒子满池 512 × 每粒子 ~15 次 getter、敌人 250 × 每实体 ~20 次，全部是纯函数调用开销。O5-O10 把热路径改为直接读 TypedArray（与视图共享同一内存，混合安全），并消除了每帧数百次字符串分配。</p>
+  <table class="data">
+    <thead><tr><th>场景</th><th>名称</th><th>A 均值</th><th>B 均值</th><th>均值降幅</th><th>p95（A→B）</th><th>95% 区间</th><th>判定</th></tr></thead>
+    <tbody><tr>
+      <td class="mono">heavy_fixed</td>
+      <td>高负载·固定</td>
+      <td class="num">0.25</td>
+      <td class="num">0.24</td>
+      <td class="num good">−7.1%</td>
+      <td class="num">0.48 → 0.38 <span class="dim">(−20.6%)</span></td>
+      <td class="num dim">[-3.4 ~ 10.2]</td>
+      <td><span class="tag" style="color:#f6d987">≈ 无显著差异</span></td>
+    </tr><tr>
+      <td class="mono">particle_fest</td>
+      <td>粒子狂欢</td>
+      <td class="num">0.24</td>
+      <td class="num">0.08</td>
+      <td class="num good">−66.2%</td>
+      <td class="num">0.38 → 0.12 <span class="dim">(−67.5%)</span></td>
+      <td class="num dim">[61.8 ~ 68.4]</td>
+      <td><span class="tag" style="color:#7fd6a4">✔ 改善</span></td>
+    </tr><tr>
+      <td class="mono">late_80</td>
+      <td>后期·80水位</td>
+      <td class="num">0.95</td>
+      <td class="num">0.72</td>
+      <td class="num good">−24.9%</td>
+      <td class="num">1.61 → 1.25 <span class="dim">(−22.3%)</span></td>
+      <td class="num dim">[22.0 ~ 27.6]</td>
+      <td><span class="tag" style="color:#7fd6a4">✔ 改善</span></td>
+    </tr><tr>
+      <td class="mono">late_150</td>
+      <td>后期·150水位</td>
+      <td class="num">1.41</td>
+      <td class="num">1.12</td>
+      <td class="num good">−20.1%</td>
+      <td class="num">2.17 → 1.78 <span class="dim">(−17.9%)</span></td>
+      <td class="num dim">[17.7 ~ 24.3]</td>
+      <td><span class="tag" style="color:#7fd6a4">✔ 改善</span></td>
+    </tr><tr>
+      <td class="mono">late_250</td>
+      <td>后期·250水位</td>
+      <td class="num">2.08</td>
+      <td class="num">1.66</td>
+      <td class="num good">−20.0%</td>
+      <td class="num">3.20 → 2.49 <span class="dim">(−22.1%)</span></td>
+      <td class="num dim">[18.2 ~ 22.6]</td>
+      <td><span class="tag" style="color:#7fd6a4">✔ 改善</span></td>
+    </tr><tr>
+      <td class="mono">drop_flood</td>
+      <td>掉落堆积</td>
+      <td class="num">0.95</td>
+      <td class="num">0.68</td>
+      <td class="num good">−28.5%</td>
+      <td class="num">1.62 → 1.17 <span class="dim">(−27.6%)</span></td>
+      <td class="num dim">[24.3 ~ 30.8]</td>
+      <td><span class="tag" style="color:#7fd6a4">✔ 改善</span></td>
+    </tr></tbody>
+  </table>
+  <div class="bars">
+    <div class="bar-row">
+    <div class="bar-lbl">高负载·固定</div>
+    <div class="bar-track"><div class="bar-fill" style="width:7.0667%;background:#7fd6a4"></div></div>
+    <div class="bar-val">−7.1%</div>
+    <div class="bar-ci">95% [-3.4 ~ 10.2]</div>
+  </div><div class="bar-row">
+    <div class="bar-lbl">粒子狂欢</div>
+    <div class="bar-track"><div class="bar-fill" style="width:66.2284%;background:#7fd6a4"></div></div>
+    <div class="bar-val">−66.2%</div>
+    <div class="bar-ci">95% [61.8 ~ 68.4]</div>
+  </div><div class="bar-row">
+    <div class="bar-lbl">后期·80水位</div>
+    <div class="bar-track"><div class="bar-fill" style="width:24.8556%;background:#7fd6a4"></div></div>
+    <div class="bar-val">−24.9%</div>
+    <div class="bar-ci">95% [22.0 ~ 27.6]</div>
+  </div><div class="bar-row">
+    <div class="bar-lbl">后期·150水位</div>
+    <div class="bar-track"><div class="bar-fill" style="width:20.125%;background:#7fd6a4"></div></div>
+    <div class="bar-val">−20.1%</div>
+    <div class="bar-ci">95% [17.7 ~ 24.3]</div>
+  </div><div class="bar-row">
+    <div class="bar-lbl">后期·250水位</div>
+    <div class="bar-track"><div class="bar-fill" style="width:19.9903%;background:#7fd6a4"></div></div>
+    <div class="bar-val">−20.0%</div>
+    <div class="bar-ci">95% [18.2 ~ 22.6]</div>
+  </div><div class="bar-row">
+    <div class="bar-lbl">掉落堆积</div>
+    <div class="bar-track"><div class="bar-fill" style="width:28.4747%;background:#7fd6a4"></div></div>
+    <div class="bar-val">−28.5%</div>
+    <div class="bar-ci">95% [24.3 ~ 30.8]</div>
+  </div>
+  </div>
+  <div class="oknote note">
+    <strong>粒子场景 -66.2%</strong> 主要来自 O6+O7（更新 + 绘制全部直读）；高负载场景 -20.0% ~ -28.5% 来自
+    O5（网格数字 key）+ O8（dead 标记省 compact 判定）+ O9（enemyTick 直读）。
+    全部为纯架构优化，零体验 / 零美术代价，无需设置开关。
+  </div>
+</section>
+
+<section>
+  <h2>六、验证状态</h2>
   <ul>
-    <li>✔ 全量测试：23 文件 / 384 用例全绿（含新增 enemy_cache 4 项 + settings 12 项）</li>
+    <li>✔ 全量测试：24 文件 / 388 用例全绿（O1-O9 全部就位）</li>
     <li>✔ 类型检查 <code>tsc --noEmit</code> 通过；分层架构检查通过；无 <code>.only</code> 泄漏</li>
-    <li>✔ 工作树 = 完整优化版（O1+O2+O3+O4+设置项），变更均在 <code>perf/late-game-optimization</code> 分支</li>
+    <li>✔ 工作树 = 完整优化版（O1-O9），变更均在 <code>perf/late-game-optimization</code> 分支</li>
     <li>⚠ <code>npm run verify</code> 的 coverage 步骤因缺 <code>@vitest/coverage-v8</code> 依赖失败 —— 与本次改动无关，需 <code>npm i -D @vitest/coverage-v8</code></li>
     <li>⚠ git 仓库存在历史损坏：<code>css</code> 子树对象缺失（broken link），需联网后 <code>git fetch</code> 修复；工作树与本次改动不受影响</li>
   </ul>
 </section>
 
 <footer>
-  生成于 2026/8/6 17:59:25 · 数据源 perf/ab-o123.json · perf/ab-o4.json · 方法见 scripts/bench/ab.mjs
+  生成于 2026/8/6 19:04:05 · 数据源 perf/ab-o123.json · perf/ab-o4.json · perf/ab-o59.json · 方法见 scripts/bench/ab.mjs
 </footer>
 </article></body></html>

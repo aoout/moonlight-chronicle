@@ -1,0 +1,397 @@
+{
+  "schema": "moonlight-bench-ab/1",
+  "timestamp": "2026-08-06T11:03:08.848Z",
+  "durationMs": 47484,
+  "sequence": [
+    "A",
+    "B",
+    "B",
+    "A",
+    "A",
+    "B"
+  ],
+  "rounds": 3,
+  "variants": {
+    "A": {
+      "label": "O4基线",
+      "dir": "perf/variants/BaseO4"
+    },
+    "B": {
+      "label": "O5-O10",
+      "dir": "perf/variants/O5-O7"
+    }
+  },
+  "env": {
+    "node": "v22.22.2",
+    "platform": "win32",
+    "arch": "x64",
+    "cpus": "12th Gen Intel(R) Core(TM) i5-12450H"
+  },
+  "method": {
+    "isolation": "每次运行独立 node 进程",
+    "order": "ABBA 交替，抵消时间漂移",
+    "ci": "分层 bootstrap（先重采样运行，再重采样帧），2000 次"
+  },
+  "scenarios": [
+    {
+      "id": "heavy_fixed",
+      "label": "高负载·固定",
+      "frames": 400,
+      "a": {
+        "runs": [
+          0.2349,
+          0.2533,
+          0.2599
+        ],
+        "median": 0.2533,
+        "p95": 0.4765,
+        "update": 0.1183,
+        "render": 0.1335
+      },
+      "b": {
+        "runs": [
+          0.2345,
+          0.25,
+          0.2354
+        ],
+        "median": 0.2354,
+        "p95": 0.3783,
+        "update": 0.1135,
+        "render": 0.1271
+      },
+      "pairedDiff": {
+        "values": [
+          0.0004,
+          0.0033,
+          0.0245
+        ],
+        "median": 0.0033,
+        "mean": 0.0094
+      },
+      "deltaMs": 0.0179,
+      "deltaPct": 7.0667,
+      "p95DeltaPct": 20.6086,
+      "boot": {
+        "diffCi": [
+          -0.0083,
+          0.0269
+        ],
+        "pctCi": [
+          -3.3836,
+          10.2328
+        ],
+        "diffMedian": 0.0095,
+        "pctMedian": 3.7979
+      },
+      "workload": {
+        "entA": 103,
+        "entB": 103,
+        "entDriftPct": 0,
+        "opsA": 1862,
+        "opsB": 1862,
+        "opsDriftPct": 0
+      },
+      "verdict": "inconclusive"
+    },
+    {
+      "id": "particle_fest",
+      "label": "粒子狂欢",
+      "frames": 400,
+      "a": {
+        "runs": [
+          0.2453,
+          0.2362,
+          0.2434
+        ],
+        "median": 0.2434,
+        "p95": 0.3774,
+        "update": 0.1238,
+        "render": 0.1196
+      },
+      "b": {
+        "runs": [
+          0.0822,
+          0.076,
+          0.0895
+        ],
+        "median": 0.0822,
+        "p95": 0.1228,
+        "update": 0.0114,
+        "render": 0.0708
+      },
+      "pairedDiff": {
+        "values": [
+          0.1631,
+          0.1602,
+          0.1539
+        ],
+        "median": 0.1602,
+        "mean": 0.1590
+      },
+      "deltaMs": 0.1612,
+      "deltaPct": 66.2284,
+      "p95DeltaPct": 67.4615,
+      "boot": {
+        "diffCi": [
+          0.1476,
+          0.1690
+        ],
+        "pctCi": [
+          61.8162,
+          68.4115
+        ],
+        "diffMedian": 0.1587,
+        "pctMedian": 65.4506
+      },
+      "workload": {
+        "entA": 200,
+        "entB": 200,
+        "entDriftPct": 0,
+        "opsA": 2432,
+        "opsB": 2432,
+        "opsDriftPct": 0
+      },
+      "verdict": "faster"
+    },
+    {
+      "id": "late_80",
+      "label": "后期·80水位",
+      "frames": 500,
+      "a": {
+        "runs": [
+          0.9513,
+          0.9523,
+          0.9802
+        ],
+        "median": 0.9523,
+        "p95": 1.6135,
+        "update": 0.5774,
+        "render": 0.3794
+      },
+      "b": {
+        "runs": [
+          0.712,
+          0.7447,
+          0.7156
+        ],
+        "median": 0.7156,
+        "p95": 1.2537,
+        "update": 0.4243,
+        "render": 0.3012
+      },
+      "pairedDiff": {
+        "values": [
+          0.2393,
+          0.2076,
+          0.2645
+        ],
+        "median": 0.2393,
+        "mean": 0.2371
+      },
+      "deltaMs": 0.2367,
+      "deltaPct": 24.8556,
+      "p95DeltaPct": 22.2993,
+      "boot": {
+        "diffCi": [
+          0.2100,
+          0.2702
+        ],
+        "pctCi": [
+          21.9649,
+          27.5912
+        ],
+        "diffMedian": 0.2400,
+        "pctMedian": 24.8280
+      },
+      "workload": {
+        "entA": 437,
+        "entB": 437,
+        "entDriftPct": 0,
+        "opsA": 4105,
+        "opsB": 4105,
+        "opsDriftPct": 0
+      },
+      "verdict": "faster"
+    },
+    {
+      "id": "late_150",
+      "label": "后期·150水位",
+      "frames": 500,
+      "a": {
+        "runs": [
+          1.4029,
+          1.4097,
+          1.4077
+        ],
+        "median": 1.4077,
+        "p95": 2.1733,
+        "update": 0.8673,
+        "render": 0.5389
+      },
+      "b": {
+        "runs": [
+          1.1244,
+          1.1611,
+          1.0732
+        ],
+        "median": 1.1244,
+        "p95": 1.7836,
+        "update": 0.6734,
+        "render": 0.4509
+      },
+      "pairedDiff": {
+        "values": [
+          0.2784,
+          0.2485,
+          0.3345
+        ],
+        "median": 0.2784,
+        "mean": 0.2871
+      },
+      "deltaMs": 0.2832,
+      "deltaPct": 20.1250,
+      "p95DeltaPct": 17.9312,
+      "boot": {
+        "diffCi": [
+          0.2477,
+          0.3448
+        ],
+        "pctCi": [
+          17.7064,
+          24.2550
+        ],
+        "diffMedian": 0.2939,
+        "pctMedian": 20.8305
+      },
+      "workload": {
+        "entA": 600,
+        "entB": 600,
+        "entDriftPct": 0,
+        "opsA": 6531,
+        "opsB": 6531,
+        "opsDriftPct": 0
+      },
+      "verdict": "faster"
+    },
+    {
+      "id": "late_250",
+      "label": "后期·250水位",
+      "frames": 400,
+      "a": {
+        "runs": [
+          2.076,
+          2.0995,
+          2.0649
+        ],
+        "median": 2.076,
+        "p95": 3.1954,
+        "update": 1.2966,
+        "render": 0.7735
+      },
+      "b": {
+        "runs": [
+          1.661,
+          1.6808,
+          1.6289
+        ],
+        "median": 1.661,
+        "p95": 2.4908,
+        "update": 1.0253,
+        "render": 0.6357
+      },
+      "pairedDiff": {
+        "values": [
+          0.4150,
+          0.4186,
+          0.4360
+        ],
+        "median": 0.4186,
+        "mean": 0.4232
+      },
+      "deltaMs": 0.4150,
+      "deltaPct": 19.9903,
+      "p95DeltaPct": 22.0504,
+      "boot": {
+        "diffCi": [
+          0.3751,
+          0.4776
+        ],
+        "pctCi": [
+          18.2490,
+          22.6491
+        ],
+        "diffMedian": 0.4244,
+        "pctMedian": 20.3593
+      },
+      "workload": {
+        "entA": 791,
+        "entB": 791,
+        "entDriftPct": 0,
+        "opsA": 9430.5,
+        "opsB": 9430.5,
+        "opsDriftPct": 0
+      },
+      "verdict": "faster"
+    },
+    {
+      "id": "drop_flood",
+      "label": "掉落堆积",
+      "frames": 450,
+      "a": {
+        "runs": [
+          0.9454,
+          0.9058,
+          0.9717
+        ],
+        "median": 0.9454,
+        "p95": 1.6159,
+        "update": 0.5746,
+        "render": 0.3708
+      },
+      "b": {
+        "runs": [
+          0.6728,
+          0.6908,
+          0.6762
+        ],
+        "median": 0.6762,
+        "p95": 1.1694,
+        "update": 0.3984,
+        "render": 0.2799
+      },
+      "pairedDiff": {
+        "values": [
+          0.2726,
+          0.2150,
+          0.2955
+        ],
+        "median": 0.2726,
+        "mean": 0.2610
+      },
+      "deltaMs": 0.2692,
+      "deltaPct": 28.4747,
+      "p95DeltaPct": 27.6316,
+      "boot": {
+        "diffCi": [
+          0.2208,
+          0.2975
+        ],
+        "pctCi": [
+          24.3168,
+          30.7664
+        ],
+        "diffMedian": 0.2598,
+        "pctMedian": 27.6210
+      },
+      "workload": {
+        "entA": 445,
+        "entB": 445,
+        "entDriftPct": 0,
+        "opsA": 3987,
+        "opsB": 3987,
+        "opsDriftPct": 0
+      },
+      "verdict": "faster"
+    }
+  ]
+}

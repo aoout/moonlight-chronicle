@@ -51,7 +51,7 @@ export class World {
   private _compactFrame = 0;
 
   /* ========== 空间哈希网格 ========== */
-  private _spatialGrid = new Map<number, EnemyInstance[]>();
+  private _spatialGrid = new Map<string, EnemyInstance[]>();
 
   /* 基于时间戳的去重（替代 Set 分配） */
   private _queryId = 1;
@@ -60,17 +60,8 @@ export class World {
   /* 共享空数组（当网格为空时复用，避免分配） */
   private static EMPTY: EnemyInstance[] = [];
 
+  private _cellKey(c: number, r: number): string { return c + ',' + r; }
   private _cellCoord(v: number): number { return Math.floor(v / SPATIAL_CELL); }
-
-  /**
-   * 数字格子键：`(col+OFF) << 12 | (row+OFF)`。
-   * 屏幕 1280×720 / 120px 格子 → col∈[-1,11]、row∈[-1,7]，
-   * 但敌人可被击退出屏，留 ±32 格余量（即 3840px），OFF=32 保证非负。
-   * 相比字符串 `c+','+r`：省掉每帧数百次小字符串分配与散列，是 GC 与查找双赢。
-   */
-  private _cellKeyNum(c: number, r: number): number {
-    return ((c + 32) << 12) | (r + 32);
-  }
 
   /** 重建空间网格（每帧由 SpatialSystem 调用） */
   buildSpatialGrid(): void {
@@ -81,7 +72,7 @@ export class World {
     }
     for (const e of this._lists.enemies) {
       if (e.dead) continue;
-      const key = this._cellKeyNum(this._cellCoord(e.x), this._cellCoord(e.y));
+      const key = this._cellKey(this._cellCoord(e.x), this._cellCoord(e.y));
       let cell = this._spatialGrid.get(key);
       if (!cell) { cell = []; this._spatialGrid.set(key, cell); }
       cell.push(e);
@@ -103,7 +94,7 @@ export class World {
     const out: EnemyInstance[] = [];
     for (let dc = -cellR; dc <= cellR; dc++) {
       for (let dr = -cellR; dr <= cellR; dr++) {
-        const cell = this._spatialGrid.get(this._cellKeyNum(col + dc, row + dr));
+        const cell = this._spatialGrid.get(this._cellKey(col + dc, row + dr));
         if (!cell) continue;
         for (const e of cell) {
           const idx = e._idx;
@@ -196,10 +187,8 @@ export class World {
     }
 
     // 粒子自然过期非常频繁，按帧降频压缩，避免每帧全池扫描。
-    // O8：ParticleSystem.update 已顺带把过期粒子 dead 置 1，
-    // 判定从 `(pa.t||0) >= (pa.max||0.7)`（2 次 getter）降为 1 次。
     if (this._compactDirty.particles || this._compactFrame % 4 === 0) {
-      this.compact('particles', pa => !!pa.dead);
+      this.compact('particles', pa => (pa.t || 0) >= (pa.max || 0.7));
       this._compactDirty.particles = false;
     }
   }

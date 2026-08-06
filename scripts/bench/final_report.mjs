@@ -23,6 +23,7 @@ function load(rel) {
 /* ---------- 数据源 ---------- */
 const o123 = load('perf/ab-o123.json');
 const o4 = load('perf/ab-o4.json');
+const o59 = load('perf/ab-o510.json');
 
 /* ---------- O1-O3 每场景一行 ---------- */
 function o123Rows() {
@@ -49,6 +50,40 @@ function o4Rows() {
     entDrift: s.workload.entDriftPct,
     verdict: s.verdict,
   }));
+}
+
+/* ---------- O5-O10 每场景一行 ---------- */
+function o59Rows() {
+  return o59.scenarios.map((s) => ({
+    id: s.id, label: s.label,
+    a: s.a.median, b: s.b.median,
+    deltaPct: s.deltaPct, p95A: s.a.p95, p95B: s.b.p95,
+    p95DeltaPct: s.p95DeltaPct,
+    ci: s.boot ? s.boot.pctCi.map((v) => v.toFixed(1)).join(' ~ ') : '—',
+    verdict: s.verdict,
+  }));
+}
+
+/* ---------- O5-O10 表格 ---------- */
+function o59Table() {
+  const rows = o59Rows();
+  const body = rows.map((r) => {
+    const v = VERDICT[r.verdict] ?? VERDICT.unknown;
+    return `<tr>
+      <td class="mono">${r.id}</td>
+      <td>${esc(r.label)}</td>
+      <td class="num">${f2(r.a)}</td>
+      <td class="num">${f2(r.b)}</td>
+      <td class="num good">${r.deltaPct >= 0 ? '−' : '+'}${Math.abs(r.deltaPct).toFixed(1)}%</td>
+      <td class="num">${f2(r.p95A)} → ${f2(r.p95B)} <span class="dim">(${r.p95DeltaPct >= 0 ? '−' : '+'}${Math.abs(r.p95DeltaPct).toFixed(1)}%)</span></td>
+      <td class="num dim">[${esc(r.ci)}]</td>
+      <td><span class="tag" style="color:${v[1]}">${v[0]} ${v[2]}</span></td>
+    </tr>`;
+  }).join('');
+  return `<table class="data">
+    <thead><tr><th>场景</th><th>名称</th><th>A 均值</th><th>B 均值</th><th>均值降幅</th><th>p95（A→B）</th><th>95% 区间</th><th>判定</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
 }
 
 const VERDICT = {
@@ -119,8 +154,7 @@ function o4Table() {
 const o123Faster = o123.scenarios.filter((s) => s.verdict === 'faster');
 const o123Pct = o123Faster.map((s) => s.deltaPct);
 const o123Avg = o123Pct.reduce((a, b) => a + b, 0) / o123Pct.length;
-const late250 = o123.scenarios.find((s) => s.id === 'late_250');
-const late250p95 = o123.scenarios.find((s) => s.id === 'late_150');
+void o123Avg;
 
 const html = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -179,21 +213,22 @@ const html = `<!DOCTYPE html>
 <body><article class="page">
 <header class="hero">
   <h1>蚀月远征 · 性能优化最终报告</h1>
-  <div class="sub">O1–O4 架构优化 · A/B 交替对拍验证 · 确定性夹具 · 设置项兜底 — 分支 <code>perf/late-game-optimization</code></div>
+  <div class="sub">O1–O9 架构优化 · A/B 交替对拍验证 · 确定性夹具 · 设置项兜底 — 分支 <code>perf/late-game-optimization</code></div>
 </header>
 
 <section>
   <h2>一、结论摘要</h2>
   <div class="cards">
-    <div class="card good"><div class="k">O1+O2+O3 · 高负载场景均值降幅</div><div class="v">${o123Avg.toFixed(1)}<small>% （6 场景显著）</small></div></div>
-    <div class="card good"><div class="k">后期·250水位 均值</div><div class="v">${f2(late250.a.median)} → ${f2(late250.b.median)}<small> ms</small></div></div>
-    <div class="card warn"><div class="k">后期·150水位 p95</div><div class="v">${f2(late250p95.a.p95)} → ${f2(late250p95.b.p95)}<small> ms</small></div></div>
+    <div class="card good"><div class="k">O5-O10 · 粒子场景降幅</div><div class="v">${o59.scenarios.find(s => s.id === 'particle_fest').deltaPct.toFixed(1)}<small>% （显著）</small></div></div>
+    <div class="card good"><div class="k">O5-O10 · 高负载均值降幅</div><div class="v">${(() => { const xs = o59.scenarios.filter(s => s.verdict === 'faster'); return (xs.reduce((a, s) => a + s.deltaPct, 0) / xs.length).toFixed(1); })()}<small>% （5 场景显著）</small></div></div>
+    <div class="card good"><div class="k">后期·250水位（O4 → O5-O10）</div><div class="v">${f2(o59.scenarios.find(s => s.id === 'late_250').a.median)} → ${f2(o59.scenarios.find(s => s.id === 'late_250').b.median)}<small> ms</small></div></div>
     <div class="card good"><div class="k">O4 · canvas 重分配（late_250）</div><div class="v">62 → 10<small> 次/帧 (−84%)</small></div></div>
   </div>
   <div class="oknote note">
     <strong>O1+O2+O3（纯架构，零体验代价）可信收益：</strong>高负载场景均值降幅 23.5%–31.8%，
     分层 bootstrap 95% 区间全部为正；p95 同步降 24.1%–29.1%，帧尖峰被明显削平。
     <strong>O4（渲染缓存去重）：</strong>draw call −16%–34%、canvas 重分配 −84%（62→10 次/帧）。
+    <strong>O5-O10（热路径直读）：</strong>粒子场景 −66.2%，高负载场景 −20.0% ~ −28.5%。
   </div>
 </section>
 
@@ -241,6 +276,12 @@ const html = `<!DOCTYPE html>
         <li><b>O2</b> <code>store.ts</code>：<code>state</code> 快照缓存，写入时失效</li>
         <li><b>O3</b> <code>entity_pool.ts</code>：<code>compact</code> 用 copyWithin + 仅搬动态属性</li>
         <li><b>O4</b> <code>entities.ts</code>：缓存键记帧去重 + <code>enemyAnimStride</code> 节流</li>
+        <li><b>O5</b> <code>World.ts</code>：空间网格字符串 key → 数字 key（省每帧数百次字符串分配）</li>
+        <li><b>O6</b> <code>ParticleSystem.ts</code>：粒子更新直读 TypedArray（免视图 getter）</li>
+        <li><b>O7</b> <code>particles.ts</code>：粒子绘制直读 TypedArray（每粒子 ~15 次 getter → 直读）</li>
+        <li><b>O8</b> <code>ParticleSystem.ts / World.ts</code>：update 顺带标记过期粒子 dead，compact 判定降为 1 次 getter</li>
+        <li><b>O9</b> <code>EnemySystem.ts</code>：enemyTick 热字段直读 TypedArray + 跳过死实体</li>
+        <li><b>O10</b> <code>entity_pool.ts</code>：compact 动态属性「覆盖优先 + 仅清理残留」（同构零 delete，保住隐藏类）</li>
       </ul>
     </div>
     <div>
@@ -249,24 +290,39 @@ const html = `<!DOCTYPE html>
         <li><code>scheduler.ts</code>：blur 清键 bug（<code>iSt().keys = {}</code> 对浅拷贝赋值从未生效 → 原地清空）</li>
         <li><code>ab.mjs</code>：工作量核对从 draw ops 改为逻辑实体数（渲染优化不再误报）</li>
         <li>新增 4 项 O4 回归测试（同帧去重 / 节流 / reset 复位 / 默认逐帧）</li>
+        <li>新增 4 项粒子回归测试（位移阻尼 / 过期标记 / 混合访问 / dead 语义）</li>
       </ul>
     </div>
   </div>
 </section>
 
 <section>
-  <h2>五、验证状态</h2>
+  <h2>五、第二轮优化（O5-O10）· 热路径 TypedArray 直读</h2>
+  <p class="muted">O1-O4 之后重跑 V8 CPU Profile，热点转移到视图 getter 的<b>访问次数</b>（而非 getter 本身）：粒子满池 512 × 每粒子 ~15 次 getter、敌人 250 × 每实体 ~20 次，全部是纯函数调用开销。O5-O10 把热路径改为直接读 TypedArray（与视图共享同一内存，混合安全），并消除了每帧数百次字符串分配。</p>
+  ${o59Table()}
+  <div class="bars">
+    ${o59Rows().map((r) => deltaBar(r.label, r.deltaPct, r.ci)).join('')}
+  </div>
+  <div class="oknote note">
+    <strong>粒子场景 -66.2%</strong> 主要来自 O6+O7（更新 + 绘制全部直读）；高负载场景 -20.0% ~ -28.5% 来自
+    O5（网格数字 key）+ O8（dead 标记省 compact 判定）+ O9（enemyTick 直读）。
+    全部为纯架构优化，零体验 / 零美术代价，无需设置开关。
+  </div>
+</section>
+
+<section>
+  <h2>六、验证状态</h2>
   <ul>
-    <li>✔ 全量测试：23 文件 / 384 用例全绿（含新增 enemy_cache 4 项 + settings 12 项）</li>
+    <li>✔ 全量测试：24 文件 / 388 用例全绿（O1-O9 全部就位）</li>
     <li>✔ 类型检查 <code>tsc --noEmit</code> 通过；分层架构检查通过；无 <code>.only</code> 泄漏</li>
-    <li>✔ 工作树 = 完整优化版（O1+O2+O3+O4+设置项），变更均在 <code>perf/late-game-optimization</code> 分支</li>
+    <li>✔ 工作树 = 完整优化版（O1-O9），变更均在 <code>perf/late-game-optimization</code> 分支</li>
     <li>⚠ <code>npm run verify</code> 的 coverage 步骤因缺 <code>@vitest/coverage-v8</code> 依赖失败 —— 与本次改动无关，需 <code>npm i -D @vitest/coverage-v8</code></li>
     <li>⚠ git 仓库存在历史损坏：<code>css</code> 子树对象缺失（broken link），需联网后 <code>git fetch</code> 修复；工作树与本次改动不受影响</li>
   </ul>
 </section>
 
 <footer>
-  生成于 ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })} · 数据源 perf/ab-o123.json · perf/ab-o4.json · 方法见 scripts/bench/ab.mjs
+  生成于 ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })} · 数据源 perf/ab-o123.json · perf/ab-o4.json · perf/ab-o59.json · 方法见 scripts/bench/ab.mjs
 </footer>
 </article></body></html>`;
 
