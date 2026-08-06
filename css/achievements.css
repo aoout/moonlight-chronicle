@@ -1,24 +1,24 @@
-/* 蚀月远征 · 蚀月功勋（成就面板） */
+/* 蚀月远征 · 蚀月功勋（成就面板，月蚀之仪化：深蚀玻璃橱窗） */
 #achievements {
   overflow: hidden;
-  display: flex; flex-direction: column; align-items: center;
-  padding: 30px 24px 22px;
+  display: flex; align-items: center; justify-content: center;
+  /* padding 已移至 .overlay-panel */
 }
-.ach-head { flex: none; text-align: center; margin-bottom: 6px; }
+.ach-head { flex: none; margin-bottom: 6px; }
 .ach-head .overlay-title::before,
 .ach-head .overlay-title::after {
   content: '✦'; font-size: 12px; vertical-align: middle;
-  color: rgba(233,201,135,.5); margin: 0 14px; opacity: .7;
+  color: rgba(var(--gold-rgb), .5); margin: 0 14px; opacity: .7;
 }
 .ach-count {
   flex: none; text-align: center; font-size: 12px; letter-spacing: .3em;
-  color: rgba(233,201,135,.75); margin: 8px 0 12px;
-  text-shadow: 0 0 12px rgba(233,201,135,.3);
+  color: rgba(var(--gold-rgb), .75); margin: 8px 0 12px;
+  text-shadow: 0 0 12px rgba(var(--gold-rgb), .3);
 }
 .ach-grid {
   flex: 1 1 auto; min-height: 0;
-  width: 100%; max-width: 1180px;
-  overflow-y: auto; padding: 2px 10px 14px;
+  width: 100%;
+  overflow-y: auto; padding: 2px 6px 10px;
   scrollbar-width: thin;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 12px; margin: 0 auto; align-content: start;
@@ -26,58 +26,105 @@
 .ach-card {
   position: relative; display: flex; align-items: center; gap: 13px;
   border-radius: 12px; padding: 12px 14px;
-  background: linear-gradient(168deg, rgba(17,20,46,.85), rgba(7,9,22,.9));
-  border: 1px solid rgba(233,201,135,.13);
-  box-shadow: inset 0 0 24px rgba(0,0,0,.3);
+  /* 毛玻璃基底由 .eclipse-glass-frost + .eclipse-glass--frosted 提供 */
   transition: all .3s cubic-bezier(.22,1,.36,1);
 }
-.ach-card:hover { transform: translateY(-2px); border-color: rgba(233,201,135,.35); }
-/* 稀有度描边 */
-.ach-card.r-legend { border-color: rgba(233,201,135,.4); }
-.ach-card.r-legend .ach-ic { color: var(--gold); }
-.ach-card.r-epic { border-color: rgba(180,154,232,.35); }
-.ach-card.r-epic .ach-ic { color: #b49ae8; }
-.ach-card.r-rare { border-color: rgba(159,214,232,.3); }
-.ach-card.r-rare .ach-ic { color: #9fd6e8; }
-.ach-card.r-common .ach-ic { color: rgba(244,236,216,.65); }
-/* 已达成 */
-.ach-card.earned {
-  border-color: rgba(233,201,135,.55);
-  background: linear-gradient(168deg, rgba(26,29,60,.92), rgba(10,12,28,.92));
-  box-shadow: inset 0 0 30px rgba(233,201,135,.06), 0 0 18px rgba(233,201,135,.12);
+/* 顶部蚀痕高光线（与卡片/图鉴同一语言） */
+.ach-card::before {
+  content: ''; position: absolute; top: 0; left: 16%; right: 16%; height: 1px;
+  background: var(--glass-edge-top);
+  pointer-events: none;
 }
-.ach-ic { flex: none; font-size: 26px; line-height: 1; filter: drop-shadow(0 0 8px currentColor); }
+.ach-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(var(--gold-rgb), .6);
+}
+/* 稀有度色相：覆盖光晕变量（与卡片 rarity 模式一致），只改光晕不动层级 */
+.ach-card.r-legend {
+  border-color: rgba(var(--gold-rgb), .42);
+  --eclipse-glow-soft: rgba(var(--gold-rgb), .16);
+  --eclipse-glow-mid: rgba(var(--gold-rgb), .32);
+  --eclipse-glow-inner: inset 0 0 34px rgba(var(--gold-rgb), .12);
+}
+.ach-card.r-legend .ach-ic { color: var(--gold); }
+.ach-card.r-epic {
+  border-color: rgba(var(--violet-rgb), .38);
+  --eclipse-glow-soft: rgba(var(--violet-rgb), .12);
+  --eclipse-glow-mid: rgba(var(--violet-rgb), .26);
+  --eclipse-glow-inner: inset 0 0 30px rgba(var(--violet-rgb), .09);
+}
+.ach-card.r-epic .ach-ic { color: var(--violet); }
+.ach-card.r-rare {
+  border-color: rgba(var(--ice-rgb), .34);
+  --eclipse-glow-soft: rgba(var(--ice-rgb), .12);
+  --eclipse-glow-mid: rgba(var(--ice-rgb), .24);
+  --eclipse-glow-inner: inset 0 0 30px rgba(var(--ice-rgb), .08);
+}
+.ach-card.r-rare .ach-ic { color: var(--ice); }
+.ach-card.r-common .ach-ic { color: rgba(var(--moon-rgb), .65); }
+/* 已达成：光晕增强（其余视觉随玻璃基底自动统一） */
+.ach-card.earned {
+  border-color: rgba(var(--gold-rgb), .6);
+  --eclipse-glow-soft: rgba(var(--gold-rgb), .18);
+  --eclipse-glow-mid: rgba(var(--gold-rgb), .38);
+  --eclipse-glow-strong: rgba(var(--gold-rgb), .55);
+  --eclipse-glow-inner: inset 0 0 32px rgba(var(--gold-rgb), .1);
+}
+/* 图标：玻璃小底座（磨砂底 + 内影 + 主题色辉光脉动） */
+.ach-ic {
+  flex: none; font-size: 26px; line-height: 1;
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 35% 30%, rgba(var(--moon-rgb), .08), rgba(8, 10, 26, .35));
+  border: 1px solid rgba(var(--moon-rgb), .14);
+  box-shadow: var(--glass-edge-inset), inset 0 0 14px rgba(0, 0, 0, .35);
+  color: var(--gold);
+  transition: transform .3s var(--ease-out-expo), box-shadow .3s var(--ease-out-expo);
+}
 .ach-ic svg { width: 26px; height: 26px; display: block; }
-.ach-card.locked .ach-ic { filter: none; }
+.ach-card:hover .ach-ic { transform: scale(1.1); box-shadow: var(--glass-edge-inset), inset 0 0 14px rgba(0, 0, 0, .35), 0 0 16px var(--eclipse-glow-mid); }
+.ach-card.locked .ach-ic { filter: grayscale(.6) opacity(.55); }
 .ach-body { flex: 1 1 auto; min-width: 0; }
-.ach-name { font-family: var(--font-title); font-size: 14px; letter-spacing: .1em; color: #f4ecd8; }
-.ach-card:not(.earned) .ach-name { color: rgba(244,236,216,.45); }
+.ach-name { font-family: var(--font-title); font-size: 14px; letter-spacing: .1em; color: var(--moon); }
+.ach-card:not(.earned) .ach-name { color: rgba(var(--moon-rgb), .45); }
 .ach-tag {
   display: inline-block; font-size: 9px; letter-spacing: .2em; font-weight: 800;
   padding: 1px 8px; border-radius: 8px; border: 1px solid; margin-top: 2px;
 }
-.ach-tag.common { color: rgba(244,236,216,.55); border-color: rgba(244,236,216,.25); }
-.ach-tag.rare { color: #9fd6e8; border-color: rgba(159,214,232,.4); }
-.ach-tag.epic { color: #b49ae8; border-color: rgba(180,154,232,.45); }
-.ach-tag.legend { color: var(--gold); border-color: rgba(233,201,135,.5); }
+.ach-tag.common { color: rgba(var(--moon-rgb), .55); border-color: rgba(var(--moon-rgb), .25); }
+.ach-tag.rare { color: #9fd6e8; border-color: rgba(var(--ice-rgb), .4); }
+.ach-tag.epic { color: #b49ae8; border-color: rgba(var(--violet-rgb), .45); }
+.ach-tag.legend { color: var(--gold); border-color: rgba(var(--gold-rgb), .5); }
 .ach-desc {
-  font-size: 10.5px; line-height: 1.55; color: rgba(244,236,216,.55);
+  font-size: 10.5px; line-height: 1.55; color: rgba(var(--moon-rgb), .55);
   margin-top: 3px; min-height: 16px;
 }
-.ach-card.earned .ach-desc { color: rgba(244,236,216,.72); }
+.ach-card.earned .ach-desc { color: rgba(var(--moon-rgb), .72); }
 .ach-bar {
   height: 3px; border-radius: 2px; margin-top: 7px;
-  background: rgba(244,236,216,.12); overflow: hidden;
+  background: rgba(var(--moon-rgb), .14);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, .4);
+  overflow: hidden;
 }
 .ach-bar i {
   display: block; height: 100%; border-radius: 2px;
-  background: linear-gradient(90deg, rgba(159,214,232,.5), var(--gold));
+  background: linear-gradient(90deg, var(--ice), var(--gold));
+  box-shadow: 0 0 6px var(--eclipse-glow-mid);
   transition: width .5s cubic-bezier(.22,1,.36,1);
 }
-.ach-prog { font-size: 9.5px; letter-spacing: .12em; color: rgba(244,236,216,.4); margin-top: 3px; }
+.ach-card.earned .ach-bar i {
+  background: linear-gradient(90deg, var(--gold-deep), var(--gold), #ffe9a8);
+  box-shadow: 0 0 8px var(--gold-glow);
+}
+.ach-prog { font-size: 9.5px; letter-spacing: .12em; color: rgba(var(--moon-rgb), .4); margin-top: 3px; }
 .ach-card.earned .ach-prog { color: var(--gold); }
 .ach-check {
   flex: none; font-size: 16px; color: var(--gold);
   filter: drop-shadow(0 0 8px var(--gold-glow));
 }
-.ach-foot { flex: none; text-align: center; margin-top: 14px; }
+.ach-foot {
+  flex: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid rgba(var(--gold-rgb), .16);
+}

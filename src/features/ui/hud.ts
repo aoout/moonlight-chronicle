@@ -14,19 +14,29 @@ import { MOON_NAMES, currentMoonPhase, currentMoonIllumination } from '../../con
 export function uiTick(): void {
   const p = pSt().player;
   if (!p) return;
-  // 血条（帧级平滑）
+  // 血条（帧级平滑）；数值变化时 pop 反馈（掉血/回血的"重量感"）
   const hpPct = clamp(p.hp / p.maxHp * 100, 0, 100);
   $('hp-fill').style.width = hpPct + '%';
-  $('hp-text').textContent = p.hp.toFixed(0) + ' / ' + p.maxHp.toFixed(0);
+  const hpText = $('hp-text');
+  const hpStr = p.hp.toFixed(0) + ' / ' + p.maxHp.toFixed(0);
+  if (hpText.textContent !== hpStr) {
+    hpText.textContent = hpStr;
+    hpText.classList.remove('pop');
+    void hpText.offsetWidth; /* 强制重排以重置动画 */
+    hpText.classList.add('pop');
+  }
   // 关卡进度条（帧级动画）
   const prog = $('stage-progress');
   prog.style.width = clamp(gSt().stageTime / gSt().stageMax * 100, 0, 100) + '%';
-  // 波次文字（帧级倒计时）
+  // 波次文字（帧级倒计时；Boss 降临切换血色警示态）
   const boss = gSt().boss;
+  const wt = $('wave-text');
   if (boss) {
-    $('wave-text').textContent = boss.name + ' 降临——将其终结！';
+    wt.textContent = boss.name + ' 降临——将其终结！';
+    wt.classList.add('boss');
   } else {
-    $('wave-text').textContent = '噬光之潮 · ' + Math.ceil(gSt().stageMax - gSt().stageTime) + 's';
+    wt.textContent = '噬光之潮 · ' + Math.ceil(gSt().stageMax - gSt().stageTime) + 's';
+    wt.classList.remove('boss');
   }
   // 现实月相（你的月亮：拥有道具后显示，相位/照明变化时惰性刷新）
   const mr = $('moon-real');

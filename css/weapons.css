@@ -17,12 +17,11 @@
     0 4px 22px rgba(0, 0, 0, .42),
     0 0 var(--eclipse-glow-spread) var(--eclipse-glow-soft);
   transition: all .3s cubic-bezier(.22,1,.36,1);
-  animation: slotIn .5s cubic-bezier(.22,1,.36,1) both;
+  animation: slotIn .5s cubic-bezier(.22,1,.36,1) both; /* slotIn 权威定义见 tokens.css */
 }
-@keyframes slotIn { from { opacity: 0; transform: translateY(14px) scale(.8); } to { opacity: 1; transform: translateY(0) scale(1); } }
-.wslot.filled { border-color: rgba(233,201,135,.55); box-shadow: inset 0 0 24px rgba(233,201,135,.08), 0 0 16px rgba(233,201,135,.14); }
+.wslot.filled { border-color: rgba(var(--gold-rgb), .55); box-shadow: inset 0 0 24px rgba(var(--gold-rgb), .08), 0 0 16px rgba(var(--gold-rgb), .14); }
 .wslot .w-icon { font-size: 24px; line-height: 1; position: relative; }
-.wslot .wi-base { display: block; filter: drop-shadow(0 0 8px rgba(233,201,135,.5)); }
+.wslot .wi-base { display: block; filter: drop-shadow(0 0 8px rgba(var(--gold-rgb), .5)); }
 .wslot .wi-fill {
   position: absolute; inset: 0;
   color: var(--fill-txt, #9fe8ff);
@@ -42,10 +41,15 @@
   color: var(--fill-txt, #9fe8ff);
   clip-path: inset(calc((1 - var(--covl, 0)) * 100%) 0 0 0);
 }
-.wslot .w-name { font-size: 9px; letter-spacing: .06em; color: rgba(244,236,216,.75); max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wslot .w-name { font-size: 9px; letter-spacing: .06em; color: rgba(var(--moon-rgb), .75); max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wslot .w-lvl { font-size: 9px; font-weight: 800; color: var(--gold); }
-.wslot.empty { opacity: .35; border-style: dashed; }
-.wslot.empty .w-icon { opacity: .4; }
+.wslot.empty {
+  border-style: dashed;
+  border-color: rgba(var(--moon-rgb), .16);
+  background: rgba(var(--moon-rgb), .03);
+  animation: slotEmptyBreath 3.2s ease-in-out infinite; /* 蚀刻月纹呼吸 */
+}
+.wslot.empty .w-icon { opacity: .35; }
 
 /* 蚀月远征 · 武器槽 · 液面/冷却 */
 .wslot { position: relative; overflow: hidden; }
@@ -67,9 +71,8 @@
 .w-wave {
   position: absolute; top: -6px; left: 0; width: 200%; height: 6px;
   fill: var(--wcolor,#e9c987); opacity: .9;
-  animation: waveShift 2.8s linear infinite;
+  animation: waveShift 2.8s linear infinite; /* waveShift 权威定义见 tokens.css */
 }
-@keyframes waveShift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 /* 冷却：边框跑条（填充 0°→360°），颜色随卡牌对比度/浸润强调色，光晕随主题色 */
 .wslot::before {
@@ -108,22 +111,16 @@
 .wslot.cool .w-name, .wslot.cool .w-lvl { opacity: .45; }
 
 /* 冷却完成：整圈边框亮起脉冲 */
-.wslot.ready-pulse { animation: cdPulse .4s ease; }
+.wslot.ready-pulse { animation: cdPulse .4s ease; } /* cdPulse/iconPop 权威定义见 tokens.css */
 .wslot.ready-pulse .w-icon { animation: iconPop .4s ease; }
-@keyframes cdPulse {
-  0%   { border-color: rgba(233,201,135,.2); box-shadow: 0 0 0 rgba(0,0,0,0); }
-  40%  { border-color: var(--gold); box-shadow: 0 0 26px rgba(233,201,135,.9), 0 0 0 3px rgba(233,201,135,.25); }
-  100% { border-color: rgba(233,201,135,.2); box-shadow: 0 0 0 rgba(0,0,0,0); }
-}
-@keyframes iconPop { 0% { transform: scale(1); } 45% { transform: scale(1.14); } 100% { transform: scale(1); } }
 
 
 /* 秘宝槽：道具伤害占比（紫色秘宝调，与武器金/青区分） */
 .wslot.item-slot {
-  border-color: rgba(180,154,232,.5);
-  box-shadow: inset 0 0 24px rgba(180,154,232,.1), 0 0 16px rgba(180,154,232,.16);
+  border-color: rgba(var(--violet-rgb), .5);
+  box-shadow: inset 0 0 24px rgba(var(--violet-rgb), .1), 0 0 16px rgba(var(--violet-rgb), .16);
 }
-.wslot.item-slot .wi-base { filter: drop-shadow(0 0 8px rgba(180,154,232,.6)); }
+.wslot.item-slot .wi-base { filter: drop-shadow(0 0 8px rgba(var(--violet-rgb), .6)); }
 .wslot.item-slot .w-name { color: rgba(220,210,246,.85); }
 .wslot.item-slot::before {
   background: conic-gradient(from 0deg, transparent 0deg, #b49ae8 40deg, transparent 90deg);

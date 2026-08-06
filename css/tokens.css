@@ -13,17 +13,33 @@
   /* 语义色 */
   --gold: #e9c987;
   --gold-deep: #c8a05f;
-  --gold-glow: rgba(233, 201, 135, .55);
+  --gold-glow: rgba(var(--gold-rgb), .55);
   --moon: #f4ecd8;
   --ice: #9fd6e8;
   --blood: #e2546a;
   --jade: #7fd6a4;
   --violet: #b49ae8;
 
+  /* RGB 片段：供 rgba(var(--x-rgb), a) 复用，金色/语义色仅需维护一处 */
+  --gold-rgb: 233, 201, 135;
+  --moon-rgb: 244, 236, 216;
+  --ice-rgb: 159, 214, 232;
+  --blood-rgb: 226, 84, 106;
+  --jade-rgb: 127, 214, 164;
+  --violet-rgb: 180, 154, 232;
+
+  /* 类型强调色（图鉴等按类型着色，与 Canvas palette 双轨一致） */
+  --swift: #8fe3d8;   /* 疾行/敏捷 */
+  --heavy: #ff9d6b;   /* 重甲/厚重 */
+  --lord: #ff7a8a;    /* 领主/灾厄 */
+
+  /* 蚀月赤红：蚀月状态的警示红（= palette.hot #ff6b6b） */
+  --eclipsed: #ff6b6b;
+
   /* 面板 & 线条 */
   --panel: rgba(13, 16, 38, .72);
   --panel-solid: #0d1030;
-  --line: rgba(233, 201, 135, .22);
+  --line: rgba(var(--gold-rgb), .22);
 
   /* ---------- 月蚀玻璃 · 参数化变量 ---------- */
   /* 玻璃三等级：透蚀(ghost) / 凝蚀(frost) / 深蚀(deep) */
@@ -35,20 +51,24 @@
   --glass-blur-frost: 12px;
   --glass-blur-deep: 18px;
 
-  --glass-border-ghost: rgba(233, 201, 135, .18);
-  --glass-border-frost: rgba(233, 201, 135, .28);
-  --glass-border-deep: rgba(233, 201, 135, .36);
+  /* 毛玻璃 · 质感参数（可选叠加） */
+  --glass-saturate: 1;              /* 背景色彩透出系数（毛玻璃 >1） */
+  --glass-noise: url('noise.png'); /* 磨砂噪点贴图（css/noise.png，PNG 兼容 Firefox 背景图） */
+
+  --glass-border-ghost: rgba(var(--gold-rgb), .18);
+  --glass-border-frost: rgba(var(--gold-rgb), .28);
+  --glass-border-deep: rgba(var(--gold-rgb), .36);
 
   /* 月蚀光晕 · 参数化（任何组件可覆盖） */
   --eclipse-glow-color: var(--gold);
-  --eclipse-glow-soft: rgba(233, 201, 135, .10);
-  --eclipse-glow-mid: rgba(233, 201, 135, .22);
-  --eclipse-glow-strong: rgba(233, 201, 135, .38);
+  --eclipse-glow-soft: rgba(var(--gold-rgb), .10);
+  --eclipse-glow-mid: rgba(var(--gold-rgb), .22);
+  --eclipse-glow-strong: rgba(var(--gold-rgb), .38);
   --eclipse-glow-spread: 24px;
-  --eclipse-glow-inner: inset 0 0 30px rgba(233, 201, 135, .06);
+  --eclipse-glow-inner: inset 0 0 30px rgba(var(--gold-rgb), .06);
 
   /* 玻璃高光边缘 */
-  --glass-edge-top: linear-gradient(90deg, transparent, rgba(233, 201, 135, .72), transparent);
+  --glass-edge-top: linear-gradient(90deg, transparent, rgba(var(--gold-rgb), .72), transparent);
   --glass-edge-inset: inset 0 1px 0 rgba(255, 255, 255, .07);
 
   /* 字体 */
@@ -103,7 +123,7 @@
 /* 透蚀：高透明、轻模糊 — HUD徽章、Toast、浮层提示 */
 .eclipse-glass-ghost {
   background: var(--glass-bg-ghost);
-  backdrop-filter: blur(var(--glass-blur-ghost));
+  backdrop-filter: blur(var(--glass-blur-ghost)) saturate(var(--glass-saturate, 1));
   border: 1px solid var(--glass-border-ghost);
   box-shadow:
     var(--glass-edge-inset),
@@ -114,7 +134,7 @@
 /* 凝蚀：中透明、中模糊 — 卡片、铭牌、商店面板 */
 .eclipse-glass-frost {
   background: var(--glass-bg-frost);
-  backdrop-filter: blur(var(--glass-blur-frost));
+  backdrop-filter: blur(var(--glass-blur-frost)) saturate(var(--glass-saturate, 1));
   border: 1px solid var(--glass-border-frost);
   box-shadow:
     var(--glass-edge-inset),
@@ -126,7 +146,7 @@
 /* 深蚀：低透明、重模糊 — 模态层、暂停面板、覆盖层 */
 .eclipse-glass-deep {
   background: var(--glass-bg-deep);
-  backdrop-filter: blur(var(--glass-blur-deep));
+  backdrop-filter: blur(var(--glass-blur-deep)) saturate(var(--glass-saturate, 1));
   border: 1px solid var(--glass-border-deep);
   box-shadow:
     var(--glass-edge-inset),
@@ -149,7 +169,91 @@
   pointer-events: none;
 }
 
+/* ---------- 月蚀玻璃 · 色相变体 ----------
+   通过覆盖光晕变量整体变色，不改模糊半径与背景透明度（层级感不因颜色而变）。
+   用法：class="eclipse-glass-frost eclipse-glass--violet"
+   语义：紫=史诗/蚀之神秘 · 血=危险/侵蚀 · 青=冰寒/进阶 · 翠=自然/恢复 */
+.eclipse-glass--violet {
+  --eclipse-glow-soft: rgba(var(--violet-rgb), .10);
+  --eclipse-glow-mid: rgba(var(--violet-rgb), .24);
+  --eclipse-glow-strong: rgba(var(--violet-rgb), .38);
+  --eclipse-glow-inner: inset 0 0 30px rgba(var(--violet-rgb), .07);
+}
+.eclipse-glass--blood {
+  --eclipse-glow-soft: rgba(var(--blood-rgb), .10);
+  --eclipse-glow-mid: rgba(var(--blood-rgb), .22);
+  --eclipse-glow-strong: rgba(var(--blood-rgb), .36);
+  --eclipse-glow-inner: inset 0 0 30px rgba(var(--blood-rgb), .06);
+}
+.eclipse-glass--ice {
+  --eclipse-glow-soft: rgba(var(--ice-rgb), .10);
+  --eclipse-glow-mid: rgba(var(--ice-rgb), .22);
+  --eclipse-glow-strong: rgba(var(--ice-rgb), .36);
+  --eclipse-glow-inner: inset 0 0 30px rgba(var(--ice-rgb), .06);
+}
+.eclipse-glass--jade {
+  --eclipse-glow-soft: rgba(var(--jade-rgb), .10);
+  --eclipse-glow-mid: rgba(var(--jade-rgb), .22);
+  --eclipse-glow-strong: rgba(var(--jade-rgb), .36);
+  --eclipse-glow-inner: inset 0 0 30px rgba(var(--jade-rgb), .06);
+}
+
+/* ---------- 月蚀毛玻璃 · 质感层 ----------
+   叠加在任何玻璃等级之上：class="eclipse-glass-ghost eclipse-glass--frosted"
+   毛玻璃 = 月蚀玻璃（品牌结构层）+ 磨砂质感（噪点颗粒 + 背景色彩透出）。
+   只加纹理层：不碰模糊半径/透明度/阴影组合，层级与等级体系不受影响。
+   战斗阶段指示器（stage-chip）等需要「磨砂通透」观感的组件适用。 */
+.eclipse-glass--frosted {
+  --glass-saturate: 1.5;               /* 背后星夜色彩透出（毛玻璃的标志） */
+  background-image: var(--glass-noise); /* 磨砂噪点颗粒 */
+}
+
+/* ---------- 覆盖层面板 · 深蚀玻璃橱窗 ----------
+   网格型页面（图鉴/成就）的月蚀之仪化容器：
+   深蚀玻璃底 + 顶部蚀痕/柔光，内部分头/体/脚三段。
+   用法：<div class="overlay-panel eclipse-glass-deep"> + edge/glow 装饰 */
+.overlay-panel {
+  position: relative;
+  display: flex; flex-direction: column;
+  width: min(1180px, 94vw);
+  max-height: min(92vh, 880px);
+  border-radius: var(--radius-xl);
+  padding: 18px 28px 16px;   /* 顶部紧凑：头部空间让位给网格内容 */
+  overflow: hidden;
+  animation: cardIn .5s cubic-bezier(.22,1,.36,1) both;
+}
+/* 网格橱窗头部紧凑化：徽记/标题缩小、间距收拢（月蚀之仪小面板保留原尺寸） */
+.overlay-panel .set-head { margin-bottom: 8px; }
+.overlay-panel .set-emblem {
+  width: 40px; height: 40px; font-size: 18px;
+  margin-bottom: 6px;
+}
+.overlay-panel .overlay-title { font-size: 24px; margin-bottom: 2px; }
+.overlay-panel .overlay-sub { font-size: 11px; margin-bottom: 0; letter-spacing: .22em; }
+.overlay-panel .codex-tabs { margin-top: 8px; margin-bottom: 2px; }
+.overlay-panel .codex-count,
+.overlay-panel .ach-count { margin: 5px 0 8px; }
+
 /* ---------- 通用样式 ---------- */
+
+/* 全局滚动条（图鉴/成就/商店/设置等滚动容器的统一细腻观感）：
+   - Chrome/Edge：::-webkit-scrollbar 金细条
+   - Firefox：scrollbar-color + scrollbar-width（::-webkit-scrollbar 不适用） */
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(var(--gold-rgb), .3);
+  border-radius: 4px;
+  border: 2px solid transparent;          /* 内缩 2px，视觉更纤细 */
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--gold-rgb), .5); }
+*::-webkit-scrollbar-corner { background: transparent; }
+/* Firefox：跟随同款月华金（scrollbar-color 可继承；thin 细化） */
+html {
+  scrollbar-color: rgba(var(--gold-rgb), .3) transparent;
+  scrollbar-width: thin;
+}
 
 /* 金色渐变文字 */
 .gold-text {
@@ -159,7 +263,7 @@
 
 /* 金色边框按钮/徽章基础 */
 .gold-border {
-  border: 1px solid rgba(233, 201, 135, .3);
+  border: 1px solid rgba(var(--gold-rgb), .3);
 }
 
 /* 向后兼容：旧类名映射到新玻璃系统 */
@@ -181,6 +285,51 @@
     --mobile-gap: 8px;
   }
 }
+
+/* ---------- 月蚀玻璃 · 性能档位联动 ----------
+   玻璃的模糊与光晕是性能税，随玩家「蚀相档位」升降（玩家取舍，非硬编码降级）。
+   DOM 侧由 src/features/ui/glass_quality.ts 将档位同步到 <html data-preset>。
+   high/ultra（默认）保留完整材质；medium 模糊减半；low 关闭模糊（仅剩纯色衬底与描边）。 */
+html[data-preset="medium"] {
+  --glass-blur-ghost: 3px;
+  --glass-blur-frost: 6px;
+  --glass-blur-deep: 9px;
+  --glass-saturate: 1;               /* 毛玻璃色彩透出归位 */
+  --eclipse-glow-soft: rgba(var(--gold-rgb), .06);
+  --eclipse-glow-mid: rgba(var(--gold-rgb), .14);
+  --eclipse-glow-strong: rgba(var(--gold-rgb), .24);
+  --eclipse-glow-spread: 16px;
+  --eclipse-glow-inner: inset 0 0 20px rgba(var(--gold-rgb), .04);
+}
+html[data-preset="low"] {
+  --glass-blur-ghost: 0px;
+  --glass-blur-frost: 0px;
+  --glass-blur-deep: 0px;
+  --glass-saturate: 1;
+  --eclipse-glow-spread: 0px;
+  --eclipse-glow-inner: none;
+}
+html[data-preset="low"] .eclipse-glass-ghost,
+html[data-preset="low"] .eclipse-glass-frost,
+html[data-preset="low"] .eclipse-glass-deep {
+  backdrop-filter: none;   /* 低档位彻底免除重采样开销 */
+  background: var(--panel); /* 收束为纯色衬底，视觉秩序不塌 */
+}
+html[data-preset="low"] .eclipse-top-glow { display: none; }
+
+/* 系统偏好「减少透明」：玻璃收束为纯色衬底（无障碍细腻化） */
+@media (prefers-reduced-transparency: reduce) {
+  .eclipse-glass-ghost,
+  .eclipse-glass-frost,
+  .eclipse-glass-deep {
+    backdrop-filter: none;
+    background: var(--panel);
+  }
+  .eclipse-top-glow { display: none; }
+}
+
+/* 文本选区：月华金晕染 */
+::selection { background: rgba(var(--gold-rgb), .3); color: var(--moon); }
 
 /* 横屏锁定提示 */
 .orientation-lock {
@@ -221,7 +370,7 @@
 }
 .orientation-lock .ol-sub {
   font-size: 13px; letter-spacing: .14em;
-  color: rgba(244,236,216,.55);
+  color: rgba(var(--moon-rgb), .55);
   text-align: center;
 }
 @keyframes orientPulse {
@@ -290,7 +439,7 @@
 }
 
 @keyframes statFlash {
-  0% { background: rgba(233, 201, 135, .3); transform: translateX(-5px); }
+  0% { background: rgba(var(--gold-rgb), .3); transform: translateX(-5px); }
   100% { background: transparent; transform: none; }
 }
 
@@ -300,9 +449,9 @@
 }
 
 @keyframes cdPulse {
-  0%   { border-color: rgba(233, 201, 135, .2); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
-  40%  { border-color: var(--gold); box-shadow: 0 0 26px rgba(233, 201, 135, .9), 0 0 0 3px rgba(233, 201, 135, .25); }
-  100% { border-color: rgba(233, 201, 135, .2); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+  0%   { border-color: rgba(var(--gold-rgb), .2); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+  40%  { border-color: var(--gold); box-shadow: 0 0 26px rgba(var(--gold-rgb), .9), 0 0 0 3px rgba(var(--gold-rgb), .25); }
+  100% { border-color: rgba(var(--gold-rgb), .2); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
 }
 
 @keyframes iconPop {
@@ -316,16 +465,15 @@
   to { transform: translateX(-50%); }
 }
 
-@keyframes gateShake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-5px); }
-  40% { transform: translateX(5px); }
-  60% { transform: translateX(-3px); }
-  80% { transform: translateX(3px); }
+@keyframes erodeIn {
+  0%   { filter: brightness(1.18) saturate(.68); border-color: rgba(var(--gold-rgb), .45); }
+  35%  { border-color: rgba(180, 90, 138, .95); filter: brightness(1.04) saturate(1.12); }
+  70%  { filter: brightness(.95); }
+  100% { filter: brightness(1) saturate(1); border-color: rgba(140, 60, 110, .78); }
 }
 
 @keyframes titleShine {
-  from { filter: brightness(3) drop-shadow(0 0 30px rgba(233, 201, 135, .9)); letter-spacing: .6em; }
+  from { filter: brightness(3) drop-shadow(0 0 30px rgba(var(--gold-rgb), .9)); letter-spacing: .6em; }
   to { filter: none; }
 }
 
@@ -336,4 +484,27 @@
 
 @keyframes curseOut {
   to { opacity: 0; transform: translateX(-50%) translateY(-18px); }
+}
+
+@keyframes waveBossPulse {
+  0%, 100% { opacity: .82; }
+  50% { opacity: 1; }
+}
+
+/* ---------- v1.2 主菜单 / HUD / 卡片升级动画 ---------- */
+@keyframes titleGlow {
+  0%, 100% { filter: drop-shadow(0 0 26px rgba(var(--gold-rgb), .35)); }
+  50% { filter: drop-shadow(0 0 46px rgba(var(--gold-rgb), .6)); }
+}
+@keyframes numPop {
+  0% { transform: scale(1.3); color: var(--gold); }
+  100% { transform: scale(1); }
+}
+@keyframes slotEmptyBreath {
+  0%, 100% { box-shadow: inset 0 0 12px rgba(var(--moon-rgb), .03); }
+  50% { box-shadow: inset 0 0 22px rgba(var(--moon-rgb), .09); }
+}
+@keyframes cardIconGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px var(--card-ic-glow, rgba(var(--ice-rgb), .25))); }
+  50% { filter: drop-shadow(0 0 14px var(--card-ic-glow, rgba(var(--ice-rgb), .5))); }
 }

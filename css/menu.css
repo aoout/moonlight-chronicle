@@ -4,8 +4,8 @@
   position: absolute; top: 50%; left: 50%;
   width: 560px; height: 560px; transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle at 46% 42%, rgba(246,238,222,.23), rgba(233,201,135,.09) 42%, transparent 70%);
-  box-shadow: 0 0 150px rgba(233,201,135,.21), inset 0 0 120px rgba(233,201,135,.07);
+  background: radial-gradient(circle at 46% 42%, rgba(246,238,222,.23), rgba(var(--gold-rgb), .09) 42%, transparent 70%);
+  box-shadow: 0 0 150px rgba(var(--gold-rgb), .21), inset 0 0 120px rgba(var(--gold-rgb), .07);
   animation: orbFade 1.8s cubic-bezier(.22,1,.36,1) both, orbPulse 5s 2.2s ease-in-out infinite;
   pointer-events: none;
 }
@@ -14,12 +14,8 @@
   from { opacity: 0; filter: blur(18px); }
   to   { opacity: 1; filter: blur(0); }
 }
-@keyframes orbPulse {
-  0%,100% { transform: translate(-50%,-50%) scale(1); opacity: .9; }
-  50% { transform: translate(-50%,-50%) scale(1.06); opacity: 1; }
-}
+/* 呼吸动画 orbPulse 权威定义见 tokens.css */
 .menu-title-wrap { text-align: center; z-index: 2; animation: riseIn 1.1s .15s cubic-bezier(.22,1,.36,1) both; }
-@keyframes riseIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
 .menu-kicker {
   letter-spacing: .55em; font-size: 12px; color: var(--gold);
@@ -31,18 +27,18 @@
   letter-spacing: .14em; line-height: 1.05;
   background: linear-gradient(180deg, #fbf4dd 0%, var(--gold) 55%, #9a7a42 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 0 26px rgba(233,201,135,.35));
+  animation: titleGlow 4.5s ease-in-out infinite; /* 常驻月华呼吸 */
   margin-bottom: 10px;
 }
 .menu-subtitle {
-  font-size: 15px; letter-spacing: .28em; color: rgba(244,236,216,.72);
+  font-size: 15px; letter-spacing: .28em; color: rgba(var(--moon-rgb), .72);
   font-weight: 400;
 }
 
 .menu-cards { display: flex; gap: 18px; z-index: 2; animation: riseIn 1.2s .35s cubic-bezier(.22,1,.36,1) both; }
 
 .menu-btn {
-  position: relative; cursor: pointer; border: none; outline: none;
+  position: relative; cursor: pointer; border: none;
   font-family: var(--font-body); font-weight: 700;
   padding: 16px 42px; font-size: 15px; letter-spacing: .22em;
   color: var(--moon); background: transparent;
@@ -56,23 +52,40 @@
   transform: translateX(-120%); transition: transform .7s;
 }
 .menu-btn:hover::after { transform: translateX(120%); }
+/* 按下：轻微下压（与 hover 抬升形成按压手感） */
+.menu-btn:active:not(:disabled) { transform: translateY(0) scale(.97); }
 .menu-btn.primary {
   background: linear-gradient(135deg, #f6e3b8, #d9b26d 40%, #8a6a34);
   border-color: transparent; color: #241a08;
-  box-shadow: 0 4px 34px rgba(233,201,135,.28), inset 0 1px 0 rgba(255,255,255,.4);
+  box-shadow:
+    0 4px 34px rgba(var(--gold-rgb), .3),
+    inset 0 1px 0 rgba(255,255,255,.4),
+    inset 0 -10px 24px rgba(138, 106, 52, .22);
 }
 .menu-btn.primary:hover {
-  box-shadow: 0 6px 44px rgba(233,201,135,.5), inset 0 1px 0 rgba(255,255,255,.5);
+  box-shadow:
+    0 8px 52px rgba(var(--gold-rgb), .55),
+    inset 0 1px 0 rgba(255,255,255,.5),
+    inset 0 -12px 28px rgba(138, 106, 52, .28);
   transform: translateY(-2px);
 }
-.menu-btn.ghost:hover { background: rgba(233,201,135,.08); border-color: var(--gold); transform: translateY(-2px); }
+.menu-btn.ghost {
+  background: linear-gradient(180deg, rgba(var(--gold-rgb), .04), transparent 55%);
+  border-color: rgba(var(--gold-rgb), .2);
+}
+.menu-btn.ghost:hover {
+  background: linear-gradient(180deg, rgba(var(--gold-rgb), .18), rgba(var(--gold-rgb), .05));
+  border-color: var(--gold);
+  box-shadow: 0 0 26px rgba(var(--gold-rgb), .2), inset 0 0 20px rgba(var(--gold-rgb), .1);
+  transform: translateY(-2px);
+}
 .menu-btn.small { padding: 10px 26px; font-size: 13px; }
 /* 追忆月痕：局内存档继续入口（月痕烙记） */
 .menu-btn.continue {
   display: inline-flex; flex-direction: column; gap: 5px; padding: 12px 40px;
-  border-color: rgba(233,201,135,.45);
-  background: linear-gradient(180deg, rgba(233,201,135,.10), rgba(233,201,135,.02));
-  box-shadow: inset 0 0 26px rgba(233,201,135,.05), 0 0 22px rgba(233,201,135,.08);
+  border-color: rgba(var(--gold-rgb), .45);
+  background: linear-gradient(180deg, rgba(var(--gold-rgb), .10), rgba(var(--gold-rgb), .02));
+  box-shadow: inset 0 0 26px rgba(var(--gold-rgb), .05), 0 0 22px rgba(var(--gold-rgb), .08);
 }
 .menu-btn.continue .continue-main {
   display: flex; align-items: center; gap: 9px;
@@ -81,49 +94,52 @@
 .menu-btn.continue .continue-main .ic { color: var(--gold); filter: drop-shadow(0 0 8px var(--gold-glow)); }
 .menu-btn.continue em {
   font-style: normal; font-size: 11px; letter-spacing: .3em;
-  color: rgba(233,201,135,.72);
+  color: rgba(var(--gold-rgb), .72);
 }
 .menu-btn.continue:hover {
   border-color: var(--gold);
-  background: linear-gradient(180deg, rgba(233,201,135,.18), rgba(233,201,135,.05));
-  box-shadow: inset 0 0 30px rgba(233,201,135,.1), 0 6px 30px rgba(233,201,135,.16);
+  background: linear-gradient(180deg, rgba(var(--gold-rgb), .18), rgba(var(--gold-rgb), .05));
+  box-shadow: inset 0 0 30px rgba(var(--gold-rgb), .1), 0 6px 30px rgba(var(--gold-rgb), .16);
   transform: translateY(-2px);
 }
-.menu-hint { font-size: 12px; letter-spacing: .18em; color: rgba(244,236,216,.4); z-index: 2; animation: riseIn 1.2s .6s both; }
+.menu-hint { font-size: 12px; letter-spacing: .18em; color: rgba(var(--moon-rgb), .4); z-index: 2; animation: riseIn 1.2s .6s both; }
 
+/* 如何作战：月蚀之仪规范（深蚀玻璃面板，复用 set-* 类；遮罩与覆盖层同款月蚀氛围） */
 .howto {
   position: fixed; inset: 0; z-index: 50;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(4,5,13,.6); backdrop-filter: blur(10px);
-  animation: fadeIn .4s both;
+  background:
+    radial-gradient(55% 38% at 50% 0%, rgba(var(--gold-rgb), .07), transparent 65%),
+    radial-gradient(65% 45% at 50% 110%, rgba(var(--violet-rgb), .10), transparent 72%),
+    radial-gradient(80% 90% at 50% 40%, rgba(6, 8, 22, .74), rgba(3, 4, 12, .92));
+  backdrop-filter: blur(14px);
+  animation: fadeIn .4s both; /* fadeIn 权威定义见 tokens.css */
 }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.howto-inner {
-  max-width: 560px; margin: 0 24px; padding: 40px 44px;
-  background: var(--glass-bg-deep);
-  backdrop-filter: blur(var(--glass-blur-deep));
-  border: 1px solid var(--glass-border-deep);
-  border-radius: 14px;
-  box-shadow:
-    var(--glass-edge-inset),
-    0 10px 56px rgba(0, 0, 0, .62),
-    0 0 calc(var(--eclipse-glow-spread) * 1.2) var(--eclipse-glow-strong),
-    var(--eclipse-glow-inner);
+/* 面板微调：比月蚀之仪略窄，内容更紧凑（双类提升特异性，压过 .set-panel 宽度） */
+.set-panel.howto-panel { width: min(600px, 92vw); }
+/* 条目：组内说明段落 */
+.howto-item {
+  margin: 0;
+  font-size: 13.5px; line-height: 1.75;
+  color: rgba(var(--moon-rgb), .82);
 }
-.howto h2 { font-family: var(--font-title); letter-spacing: .2em; color: var(--gold); margin-bottom: 18px; font-size: 22px; }
-.howto ul { list-style: none; }
-.howto li { padding: 9px 0; border-bottom: 1px dashed rgba(233,201,135,.14); font-size: 14px; line-height: 1.7; color: rgba(244,236,216,.85); }
-.howto li:last-child { border-bottom: none; }
-.howto b { color: var(--gold); font-weight: 800; }
-.howto .menu-btn { margin-top: 20px; }
+.howto-item b { color: var(--gold); font-weight: 800; }
+/* 徽记：作战之剑 */
+.howto .set-emblem .ic { color: var(--gold); filter: drop-shadow(0 0 8px var(--gold-glow)); }
 
 
-/* 蚀月深度 · 菜单显示 */
+/* 蚀月深度 · 菜单显示（透蚀玻璃徽章） */
 .menu-depth {
-  font-size: 11px; letter-spacing: .3em; color: rgba(159,214,232,.6);
-  margin-top: 8px; text-shadow: 0 0 10px rgba(159,214,232,.3);
-  /* 占位高度：避免 JS 填充文本时高度突变挤压下方布局 */
-  min-height: 1.2em;
+  display: inline-block;
+  padding: 7px 22px;
+  border-radius: 999px;
+  background: var(--glass-bg-ghost);
+  backdrop-filter: blur(var(--glass-blur-ghost)) saturate(var(--glass-saturate, 1));
+  border: 1px solid var(--glass-border-ghost);
+  box-shadow: var(--glass-edge-inset), 0 0 20px var(--eclipse-glow-soft);
+  font-size: 11px; letter-spacing: .3em; color: rgba(var(--ice-rgb), .65);
+  margin-top: 10px;
+  text-shadow: 0 0 10px rgba(var(--ice-rgb), .3);
   /* 入场与标题/按钮衔接，不再“突然出现” */
   animation: riseIn 1s .25s cubic-bezier(.22,1,.36,1) both;
 }
@@ -175,8 +191,8 @@
 .gate-card.locked { opacity: .38; cursor: not-allowed; border-style: dashed; }
 .gate-moon { font-size: 30px; display: flex; filter: drop-shadow(0 0 10px currentColor); }
 .gate-name { font-family: var(--font-title); font-size: 14px; letter-spacing: .14em; color: var(--moon); }
-.gate-tag { font-size: 9px; letter-spacing: .22em; color: rgba(244,236,216,.5); }
-.gate-lock { position: absolute; top: 8px; right: 10px; color: rgba(244,236,216,.35); display: flex; }
+.gate-tag { font-size: 9px; letter-spacing: .22em; color: rgba(var(--moon-rgb), .5); }
+.gate-lock { position: absolute; top: 8px; right: 10px; color: rgba(var(--moon-rgb), .35); display: flex; }
 .gate-foot { margin-top: 18px; }
 @media (max-width: 760px) { .gate-grid { grid-template-columns: repeat(3, 1fr); } }
 
@@ -253,25 +269,14 @@
   .menu-depth {
     font-size: 9px;
     letter-spacing: .2em;
-    margin-top: 2px;
+    margin-top: 4px;
+    padding: 5px 14px;
   }
 
-  /* 作战手记 */
-  .howto-inner {
-    padding: 18px 22px;
-    margin: 0 16px;
-    max-width: 680px;
-    max-height: 86vh;
-    overflow-y: auto;
-  }
-  .howto h2 {
-    font-size: 16px;
-    margin-bottom: 10px;
-  }
-  .howto li {
+  /* 作战手记：set-panel 复用月蚀之仪移动端适配；条目文字随行缩放 */
+  .howto-item {
     font-size: 11px;
-    padding: 5px 0;
-    line-height: 1.5;
+    line-height: 1.6;
   }
 
   /* 远征之门 */
@@ -301,9 +306,10 @@
     margin-top: 10px;
   }
 
-  /* 图鉴 */
-  #codex {
-    padding: 10px 12px 10px;
+  /* 图鉴/成就：深蚀玻璃橱窗移动端紧凑化 */
+  .overlay-panel {
+    padding: 14px 12px 10px;
+    border-radius: var(--radius-lg);
   }
   .codex-tabs {
     gap: 4px;
@@ -318,7 +324,6 @@
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 8px;
     padding: 2px 2px 8px;
-    max-height: calc(100vh - 170px);
   }
   .codex-card {
     padding: 10px 8px 8px;
@@ -400,7 +405,6 @@
 
   .codex-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    max-height: calc(100vh - 140px);
   }
 }
 

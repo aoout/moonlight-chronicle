@@ -8,8 +8,8 @@
   outline-offset: 3px;
   border-color: var(--gold) !important;
   box-shadow:
-    0 0 24px rgba(233, 201, 135, .55),
-    inset 0 0 18px rgba(233, 201, 135, .12) !important;
+    0 0 24px rgba(var(--gold-rgb), .55),
+    inset 0 0 18px rgba(var(--gold-rgb), .12) !important;
   z-index: 1;
   transition: outline-offset .15s var(--ease-out-expo),
               box-shadow .2s var(--ease-out-expo);
@@ -35,7 +35,7 @@
     0 5px 28px rgba(0, 0, 0, .5),
     0 0 var(--eclipse-glow-spread) var(--eclipse-glow-soft);
   font-family: var(--font-body);
-  color: rgba(244, 236, 216, .82);
+  color: rgba(var(--moon-rgb), .82);
   white-space: nowrap;
   /* 中轴由 JS 设定 left，width 和 left 同步过渡，保证中心点不变 */
   transition: width .38s var(--ease-out-expo),
@@ -50,7 +50,7 @@
   left: 22%;
   right: 22%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(233,201,135,.75), transparent);
+  background: linear-gradient(90deg, transparent, rgba(var(--gold-rgb), .75), transparent);
   pointer-events: none;
 }
 .hint-bar.hidden { display: none !important; }
@@ -69,10 +69,10 @@
   transition: all .2s ease;
 }
 .hb-item.hb-clickable:hover {
-  background: rgba(233, 201, 135, .12);
+  background: rgba(var(--gold-rgb), .12);
 }
 .hb-item.hb-clickable:active {
-  background: rgba(233, 201, 135, .2);
+  background: rgba(var(--gold-rgb), .2);
 }
 .hb-btn {
   display: inline-flex;
@@ -80,7 +80,7 @@
   justify-content: center;
   font-size: 16px;
   line-height: 1;
-  color: rgba(244, 236, 216, .9);
+  color: rgba(var(--moon-rgb), .9);
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .5));
 }
 .hb-btn svg { display: block; }
@@ -88,12 +88,12 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: .18em;
-  color: rgba(244, 236, 216, .85);
+  color: rgba(var(--moon-rgb), .85);
 }
 .hb-sep {
   width: 1px;
   height: 16px;
-  background: rgba(233, 201, 135, .28);
+  background: rgba(var(--gold-rgb), .28);
   margin: 0 4px;
 }
 
@@ -120,7 +120,7 @@
   font-size: 16px;
 }
 .mobile-action-bar .hb-label {
-  color: rgba(244, 236, 216, .9);
+  color: rgba(var(--moon-rgb), .9);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .12em;
@@ -145,5 +145,5 @@
 }
 .gamepad-hint::before {
   /* 覆盖 hint-bar::before，避免双线叠加 */
-  background: linear-gradient(90deg, transparent, rgba(233,201,135,.75), transparent);
+  background: linear-gradient(90deg, transparent, rgba(var(--gold-rgb), .75), transparent);
 }

@@ -35,7 +35,7 @@ export function renderAchievements(): void {
     const earned = achIsEarned(a.id);
     const prog = achProgressOf(a);
     const meta = RARITY_META[a.rarity];
-    const card = el('div', 'ach-card' + (earned ? ' earned' : '') + ' r-' + a.rarity);
+    const card = el('div', 'ach-card eclipse-glass-frost eclipse-glass--frosted' + (earned ? ' earned' : '') + ' r-' + a.rarity);
     const isAll = a.id === 'a_all';
     const denom = isAll ? achTotal() - 1 : a.target;
     const pct = Math.min(100, Math.round(prog / denom * 100));

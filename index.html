@@ -50,16 +50,55 @@
       </div>
       <div class="menu-hint">WASD / 方向键移动 · 武器自动攻击</div>
       <div id="howto" class="howto hidden">
-        <div class="howto-inner">
-          <h2>作战手记</h2>
-          <ul>
-            <li><b>二十夜</b>：共 20 关，每关 30 秒，关间踏入<b>月幕集市</b>采购。</li>
-            <li><b>武器</b>：最多同时佩戴 5 件武器，自动索敌攻击，各有独特的倍率构成。</li>
-            <li><b>升级</b>：吸收月华结晶积累经验，升级可从三张命运卡中选择其一。</li>
-            <li><b>强敌</b>：第 6 / 12 / 18 关遭遇蚀潮领主；第 20 关迎战强化终焉。</li>
-            <li><b>集市道具</b>：不止数值加减——转模、连锁、血统、神恩……创造你的流派。</li>
-          </ul>
-          <button id="btn-close-how" class="menu-btn ghost small">明白了</button>
+        <div class="set-panel eclipse-glass-deep howto-panel">
+          <div class="eclipse-edge-top"></div>
+          <div class="eclipse-top-glow"></div>
+          <div class="set-head">
+            <div class="set-emblem"><span class="ic" data-ic="expeditionBook"></span></div>
+            <div class="set-title">作战手记</div>
+            <div class="set-sub">守月人的月下战斗要诀</div>
+          </div>
+          <div class="set-body">
+            <div class="set-group">
+              <div class="set-group-head">
+                <span class="sg-name">征程 · 二十夜</span>
+                <span class="sg-sub">月夜之途</span>
+              </div>
+              <p class="howto-item">共 20 关，每关 30 秒，关间踏入<b>月幕集市</b>采购补给。</p>
+            </div>
+            <div class="set-group">
+              <div class="set-group-head">
+                <span class="sg-name">兵刃 · 武器</span>
+                <span class="sg-sub">自动索敌</span>
+              </div>
+              <p class="howto-item">最多同时佩戴 5 件武器，自动索敌攻击，各有独特的<b>倍率构成</b>。</p>
+            </div>
+            <div class="set-group">
+              <div class="set-group-head">
+                <span class="sg-name">命运 · 升级</span>
+                <span class="sg-sub">月华结晶</span>
+              </div>
+              <p class="howto-item">吸收月华结晶积累经验，升级可从三张<b>命运卡</b>中选择其一。</p>
+            </div>
+            <div class="set-group">
+              <div class="set-group-head">
+                <span class="sg-name">强敌 · 蚀潮领主</span>
+                <span class="sg-sub">月蚀之敌</span>
+              </div>
+              <p class="howto-item">第 6 / 12 / 18 关遭遇<b>蚀潮领主</b>；第 20 关迎战强化终焉。</p>
+            </div>
+            <div class="set-group">
+              <div class="set-group-head">
+                <span class="sg-name">集市 · 道具</span>
+                <span class="sg-sub">流派之源</span>
+              </div>
+              <p class="howto-item">不止数值加减——<b>转模、连锁、血统、神恩</b>……创造你的流派。</p>
+            </div>
+          </div>
+          <div class="set-foot">
+            <div class="set-note">月光铸刃，蚀潮难侵</div>
+            <button id="btn-close-how" class="menu-btn ghost small">明白了</button>
+          </div>
         </div>
       </div>
     </div>
@@ -76,33 +115,45 @@
 
     <!-- ===== 蚀之图鉴 ===== -->
     <div id="codex" class="overlay hidden">
-      <div class="codex-head">
-        <div class="overlay-title">蚀之图鉴</div>
-        <div class="overlay-sub" id="codex-sub">游荡于月背的蚀之眷族</div>
-      </div>
-      <div class="codex-tabs" id="codex-tabs">
-        <button data-tab="enemies" class="active"><span class="ic" data-ic="dotRing"></span> 蚀物</button>
-        <button data-tab="bosses"><span class="ic" data-ic="crown"></span> 领主</button>
-        <button data-tab="weapons"><span class="ic" data-ic="sword"></span> 兵刃</button>
-        <button data-tab="items"><span class="ic" data-ic="gem"></span> 秘宝</button>
-      </div>
-      <div class="codex-count" id="codex-count">已见 0 / 0</div>
-      <div class="codex-grid" id="codex-grid"></div>
-      <div class="codex-foot">
-        <button id="btn-codex-close" class="menu-btn ghost small">返回</button>
+      <div class="overlay-panel eclipse-glass-deep">
+        <div class="eclipse-edge-top"></div>
+        <div class="eclipse-top-glow"></div>
+        <div class="codex-head set-head">
+          <div class="set-emblem"><span class="ic" data-ic="book"></span></div>
+          <div class="overlay-title">蚀之图鉴</div>
+          <div class="overlay-sub" id="codex-sub">游荡于月背的蚀之眷族</div>
+        </div>
+        <div class="codex-tabs" id="codex-tabs">
+          <button data-tab="enemies" class="active"><span class="ic" data-ic="dotRing"></span> 蚀物</button>
+          <button data-tab="bosses"><span class="ic" data-ic="crown"></span> 领主</button>
+          <button data-tab="weapons"><span class="ic" data-ic="sword"></span> 兵刃</button>
+          <button data-tab="items"><span class="ic" data-ic="gem"></span> 秘宝</button>
+        </div>
+        <div class="codex-count" id="codex-count">已见 0 / 0</div>
+        <div class="codex-grid" id="codex-grid"></div>
+        <div class="codex-foot">
+          <div class="set-note">蚀物毕录 · 月背之秘尽览</div>
+          <button id="btn-codex-close" class="menu-btn ghost small">返回</button>
+        </div>
       </div>
     </div>
 
     <!-- ===== 蚀月功勋：成就 ===== -->
     <div id="achievements" class="overlay hidden">
-      <div class="ach-head">
-        <div class="overlay-title">蚀月功勋</div>
-        <div class="overlay-sub">守月人于月背留下的荣耀刻痕</div>
-      </div>
-      <div class="ach-count" id="achievement-count">0 / 0</div>
-      <div class="ach-grid" id="achievement-grid"></div>
-      <div class="ach-foot">
-        <button id="btn-achievements-close" class="menu-btn ghost small">回到月台</button>
+      <div class="overlay-panel eclipse-glass-deep">
+        <div class="eclipse-edge-top"></div>
+        <div class="eclipse-top-glow"></div>
+        <div class="ach-head set-head">
+          <div class="set-emblem"><span class="ic" data-ic="crown"></span></div>
+          <div class="overlay-title">蚀月功勋</div>
+          <div class="overlay-sub">守月人于月背留下的荣耀刻痕</div>
+        </div>
+        <div class="ach-count" id="achievement-count">0 / 0</div>
+        <div class="ach-grid" id="achievement-grid"></div>
+        <div class="ach-foot">
+          <div class="set-note">功勋已烙 · 荣光长存月背</div>
+          <button id="btn-achievements-close" class="menu-btn ghost small">回到月台</button>
+        </div>
       </div>
     </div>
 
@@ -218,13 +269,13 @@
     <div id="game" class="screen">
       <div class="hud">
         <div class="hud-left">
-          <div class="hud-bar hp-bar">
+          <div class="hud-bar hp-bar eclipse-glass-frost eclipse-glass--frosted">
             <div class="bar-ic"><span class="ic" data-ic="heart"></span></div>
             <div class="bar-fill" id="hp-fill"></div>
             <div class="bar-gloss"></div>
             <div class="bar-label" id="hp-text">0 / 0</div>
           </div>
-          <div class="hud-bar xp-bar">
+          <div class="hud-bar xp-bar eclipse-glass-frost eclipse-glass--frosted">
             <div class="bar-ic"><span class="ic" data-ic="spark"></span></div>
             <div class="bar-fill" id="xp-fill"></div>
             <div class="bar-gloss"></div>
@@ -232,7 +283,7 @@
           </div>
         </div>
         <div class="hud-center">
-          <div class="stage-chip">
+          <div class="stage-chip eclipse-glass-ghost eclipse-glass--frosted">
             <span class="moonphase" id="moonphase"></span>
             <span class="sc-main"><span id="stage-num">第 1 夜</span><span class="sc-sep">·</span><span id="stage-name"></span></span>
             <span class="moon-real" id="moon-real" hidden></span>
@@ -241,8 +292,8 @@
           <div class="wave-text" id="wave-text"></div>
         </div>
         <div class="hud-right">
-          <div class="coin"><span class="ic" data-ic="coin"></span><span id="gold-text">0</span></div>
-          <div class="killcount"><span class="ic" data-ic="skull"></span><span id="kill-text">0</span></div>
+          <div class="coin eclipse-glass-ghost eclipse-glass--frosted"><span class="ic" data-ic="coin"></span><span id="gold-text">0</span></div>
+          <div class="killcount eclipse-glass-ghost eclipse-glass--frosted"><span class="ic" data-ic="skull"></span><span id="kill-text">0</span></div>
         </div>
       </div>
 
@@ -317,7 +368,7 @@
         <div class="overlay-title">月蚀之刻</div>
         <div class="overlay-sub">战局暂驻，月光凝滞</div>
         <div class="pause-body">
-          <div class="pause-stage">
+          <div class="pause-stage eclipse-glass-deep eclipse-glass--frosted">
             <div class="pause-stage-name" id="pause-stage-name"></div>
             <div class="pause-bar"><div class="bar-fill" id="pause-stage-fill"></div></div>
             <div class="pause-time" id="pause-time"></div>

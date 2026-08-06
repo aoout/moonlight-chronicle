@@ -10,4 +10,6 @@ export const PALETTE = {
   blood:'#e2546a', bloodDark:'#a0284a',
   fire:'#ff8a5c', fireBright:'#ffe9a8', ember:'#ffb84d', hot:'#ff6b6b',
   jade:'#7fd6a4', white:'#ffffff',
+  /* 类型强调色（与 CSS tokens --swift/--heavy/--lord 双轨一致） */
+  swift:'#8fe3d8', heavy:'#ff9d6b', lord:'#ff7a8a',
 };

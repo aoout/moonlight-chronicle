@@ -21,7 +21,7 @@
 }
 .bazaar-label {
   font-size: 11px; letter-spacing: .35em; font-weight: 800;
-  color: rgba(233,201,135,.7); display: flex; align-items: center; gap: 8px;
+  color: rgba(var(--gold-rgb), .7); display: flex; align-items: center; gap: 8px;
   padding-left: 6px; flex: none;
 }
 .bazaar-label .ic { color: var(--gold); }
@@ -60,9 +60,9 @@
   display: flex; align-items: center; justify-content: center;
   font-size: 30px; color: var(--gold);
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, rgba(233,201,135,.2), rgba(233,201,135,.04));
-  border: 1px solid rgba(233,201,135,.4);
-  box-shadow: 0 0 20px rgba(233,201,135,.28), inset 0 0 16px rgba(233,201,135,.12);
+  background: radial-gradient(circle at 35% 30%, rgba(var(--gold-rgb), .2), rgba(var(--gold-rgb), .04));
+  border: 1px solid rgba(var(--gold-rgb), .4);
+  box-shadow: 0 0 20px rgba(var(--gold-rgb), .28), inset 0 0 16px rgba(var(--gold-rgb), .12);
 }
 .panel-meta { flex: 1; min-width: 0; }
 .panel-title {
@@ -71,17 +71,17 @@
 }
 .panel-hpbar {
   height: 8px; border-radius: 4px; overflow: hidden;
-  background: rgba(6,8,20,.85); border: 1px solid rgba(226,84,106,.35);
+  background: rgba(6,8,20,.85); border: 1px solid rgba(var(--blood-rgb), .35);
 }
 .panel-hpbar .hp-fill {
   height: 100%; width: 100%;
   background: linear-gradient(90deg, #e2546a, #ff9d6b);
-  box-shadow: 0 0 12px rgba(226,84,106,.75);
+  box-shadow: 0 0 12px rgba(var(--blood-rgb), .75);
   transition: width .4s ease;
 }
 .panel-hptext {
   margin-top: 5px; font-size: 10px; letter-spacing: .18em;
-  color: rgba(244,236,216,.55); text-align: right;
+  color: rgba(var(--moon-rgb), .55); text-align: right;
 }
 
 /* 精华四值（派生属性） */
@@ -95,12 +95,12 @@
 }
 .ess-ic { font-size: 15px; color: var(--gold); display: flex; }
 .ess b { font-family: var(--font-title); font-size: 16px; color: var(--moon); line-height: 1; }
-.ess i { font-style: normal; font-size: 9px; letter-spacing: .22em; color: rgba(244,236,216,.45); }
+.ess i { font-style: normal; font-size: 9px; letter-spacing: .22em; color: rgba(var(--moon-rgb), .45); }
 
 /* 武器 */
 .panel-sec-title {
   font-size: 10px; letter-spacing: .35em; font-weight: 800;
-  color: rgba(159,214,232,.72); margin-bottom: 7px;
+  color: rgba(var(--ice-rgb), .72); margin-bottom: 7px;
 }
 .pw-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .pw-item {
@@ -112,22 +112,22 @@
   font-size: 11px;
 }
 .pw-ic { font-size: 15px; color: var(--gold); display: flex; }
-.pw-name { color: rgba(244,236,216,.85); letter-spacing: .06em; }
+.pw-name { color: rgba(var(--moon-rgb), .85); letter-spacing: .06em; }
 .pw-lv { color: var(--gold); font-weight: 800; font-size: 10px; }
-.pw-empty { font-size: 11px; color: rgba(244,236,216,.4); letter-spacing: .2em; }
+.pw-empty { font-size: 11px; color: rgba(var(--moon-rgb), .4); letter-spacing: .2em; }
 
 /* 分组属性 */
 .panel-stats { display: flex; flex-direction: column; gap: 10px; }
 .stat-group {
   background: var(--glass-bg-ghost);
   backdrop-filter: blur(var(--glass-blur-ghost));
-  border: 1px solid rgba(159, 214, 232, .1);
+  border: 1px solid rgba(var(--ice-rgb), .1);
   border-radius: 10px; padding: 9px 11px 7px;
 }
 .stat-group-title {
   display: flex; align-items: center; gap: 7px;
   font-size: 10px; font-weight: 800; letter-spacing: .3em;
-  color: rgba(244,236,216,.78); margin-bottom: 5px;
+  color: rgba(var(--moon-rgb), .78); margin-bottom: 5px;
 }
 .sgt-ic { font-size: 13px; color: var(--gold); display: flex; }
 /* 秘宝之效折叠区 */
@@ -136,7 +136,7 @@
 }
 .mech-toggle {
   width: 100%;
-  background: none; border: none; outline: none; padding: 0;
+  background: none; border: none; padding: 0;
   font-family: inherit; text-align: left;
   cursor: pointer; user-select: none;
   transition: color .3s ease;
@@ -145,7 +145,7 @@
 .mech-toggle:hover .sgt-ic { filter: drop-shadow(0 0 6px var(--gold-glow)); }
 .mech-caret {
   margin-left: auto;
-  font-size: 9px; color: rgba(244,236,216,.5);
+  font-size: 9px; color: rgba(var(--moon-rgb), .5);
   transition: transform .3s ease;
 }
 .mech-grid { display: none; }
@@ -158,13 +158,10 @@
 }
 .stat-row.flash { animation: statFlash .8s ease; }
 .sr-ic { font-size: 12px; color: var(--ice); display: flex; flex: none; }
-.sr-name { color: rgba(244,236,216,.65); letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-name { color: rgba(var(--moon-rgb), .65); letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sr-val { margin-left: auto; color: var(--moon); font-weight: 800; font-size: 11.5px; flex: none; }
 .stat-row.flash .sr-val { color: var(--gold); }
-@keyframes statFlash {
-  0% { background: rgba(233,201,135,.3); transform: translateX(-5px); }
-  100% { background: transparent; transform: none; }
-}
+/* statFlash 权威定义见 tokens.css */
 
 /* 窄屏适配 */
 @media (max-width: 1080px) {
@@ -533,13 +530,13 @@
 }
 
 
-.sec-hint { font-size: 9px; letter-spacing: .18em; color: rgba(244,236,216,.35); font-weight: 400; margin-left: 8px; }
+.sec-hint { font-size: 9px; letter-spacing: .18em; color: rgba(var(--moon-rgb), .35); font-weight: 400; margin-left: 8px; }
 .pw-item { cursor: pointer; transition: all .22s cubic-bezier(.22,1,.36,1); }
-.pw-item:hover { border-color: var(--gold); background: rgba(233,201,135,.07); transform: translateY(-1px); }
+.pw-item:hover { border-color: var(--gold); background: rgba(var(--gold-rgb), .07); transform: translateY(-1px); }
 .pw-item.active {
   border-color: var(--gold);
-  background: rgba(233,201,135,.12);
-  box-shadow: 0 0 12px rgba(233,201,135,.22);
+  background: rgba(var(--gold-rgb), .12);
+  box-shadow: 0 0 12px rgba(var(--gold-rgb), .22);
 }
 
 .pw-detail {
@@ -558,38 +555,38 @@
 .pwd-ic { font-size: 24px; color: var(--gold); display: flex; filter: drop-shadow(0 0 9px var(--gold-glow)); }
 .pwd-title { flex: 1; min-width: 0; }
 .pwd-name { font-family: var(--font-title); font-size: 14px; letter-spacing: .14em; color: var(--moon); }
-.pwd-lv { font-size: 10px; letter-spacing: .1em; color: rgba(159,214,232,.78); margin-top: 3px; }
+.pwd-lv { font-size: 10px; letter-spacing: .1em; color: rgba(var(--ice-rgb), .78); margin-top: 3px; }
 .pwd-close {
-  border: none; background: transparent; color: rgba(244,236,216,.45);
+  border: none; background: transparent; color: rgba(var(--moon-rgb), .45);
   font-size: 17px; line-height: 1; cursor: pointer; padding: 4px 6px;
   border-radius: 6px; transition: all .2s;
 }
-.pwd-close:hover { color: var(--gold); background: rgba(233,201,135,.1); }
+.pwd-close:hover { color: var(--gold); background: rgba(var(--gold-rgb), .1); }
 .pwd-formula {
   margin-top: 11px; padding: 8px 11px; border-radius: 8px;
   font-size: 10.5px; letter-spacing: .07em; color: var(--ice);
-  background: rgba(159,214,232,.06); border: 1px solid rgba(159,214,232,.16);
+  background: rgba(var(--ice-rgb), .06); border: 1px solid rgba(var(--ice-rgb), .16);
 }
 .pwd-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 16px; margin-top: 11px; }
 .pwd-stat {
   display: flex; justify-content: space-between; align-items: baseline;
   font-size: 11px; padding: 3px 0;
-  border-bottom: 1px dashed rgba(233,201,135,.12);
+  border-bottom: 1px dashed rgba(var(--gold-rgb), .12);
 }
-.pwd-stat span { color: rgba(244,236,216,.58); letter-spacing: .06em; }
+.pwd-stat span { color: rgba(var(--moon-rgb), .58); letter-spacing: .06em; }
 .pwd-stat b { color: var(--moon); font-weight: 800; }
 .pwd-sell { margin-top: 13px; text-align: center; }
 .sell-btn {
-  cursor: pointer; border: 1px solid rgba(226,84,106,.5); border-radius: 999px;
-  background: rgba(226,84,106,.1); color: #ff9dab;
+  cursor: pointer; border: 1px solid rgba(var(--blood-rgb), .5); border-radius: 999px;
+  background: rgba(var(--blood-rgb), .1); color: #ff9dab;
   font-family: var(--font-body); font-size: 12px; font-weight: 800; letter-spacing: .12em;
   padding: 8px 24px; display: inline-flex; align-items: center; gap: 7px;
   transition: all .25s cubic-bezier(.22,1,.36,1);
 }
-.sell-btn:hover { background: rgba(226,84,106,.22); border-color: #e2546a; transform: translateY(-1px); }
+.sell-btn:hover { background: rgba(var(--blood-rgb), .22); border-color: #e2546a; transform: translateY(-1px); }
 .sell-btn.confirm {
   background: #e2546a; color: #fff; border-color: #e2546a;
-  box-shadow: 0 0 20px rgba(226,84,106,.55);
+  box-shadow: 0 0 20px rgba(var(--blood-rgb), .55);
 }
 
 /* 公式实时预览 */
@@ -597,20 +594,20 @@
 .pwd-calc-row {
   display: flex; align-items: baseline; gap: 8px;
   font-size: 10.5px; padding: 3px 0;
-  border-bottom: 1px dashed rgba(233,201,135,.09);
+  border-bottom: 1px dashed rgba(var(--gold-rgb), .09);
 }
-.pwd-calc-row span { color: rgba(244,236,216,.62); width: 62px; flex: none; letter-spacing: .04em; }
+.pwd-calc-row span { color: rgba(var(--moon-rgb), .62); width: 62px; flex: none; letter-spacing: .04em; }
 .pwd-calc-row i {
   flex: 1; font-style: normal; text-align: right;
-  color: rgba(159,214,232,.72); font-size: 10px;
+  color: rgba(var(--ice-rgb), .72); font-size: 10px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .pwd-calc-row b { color: var(--moon); width: 46px; text-align: right; font-weight: 800; }
 .pwd-calc-total {
   display: flex; justify-content: space-between; align-items: center;
   margin-top: 9px; padding: 8px 13px; border-radius: 8px;
-  background: rgba(233,201,135,.1); border: 1px solid rgba(233,201,135,.3);
-  font-size: 12px; letter-spacing: .14em; color: rgba(244,236,216,.85);
+  background: rgba(var(--gold-rgb), .1); border: 1px solid rgba(var(--gold-rgb), .3);
+  font-size: 12px; letter-spacing: .14em; color: rgba(var(--moon-rgb), .85);
 }
 .pwd-calc-total b {
   font-family: var(--font-title); font-size: 17px; color: var(--gold);
@@ -625,22 +622,22 @@
   padding: 4px 10px 4px 6px; border-radius: 8px;
   background: var(--glass-bg-ghost);
   backdrop-filter: blur(var(--glass-blur-ghost));
-  border: 1px solid rgba(159, 214, 232, .18);
+  border: 1px solid rgba(var(--ice-rgb), .18);
   font-size: 11px;
 }
-.si-ic { font-size: 14px; display: flex; color: var(--ice); filter: drop-shadow(0 0 5px rgba(159,214,232,.5)); }
-.si-name { color: rgba(244,236,216,.82); letter-spacing: .05em; }
-.si-item.rarity-epic { border-color: rgba(180,154,232,.35); }
-.si-item.rarity-epic .si-ic { color: var(--violet); filter: drop-shadow(0 0 5px rgba(180,154,232,.5)); }
-.si-item.rarity-legend { border-color: rgba(233,201,135,.42); }
+.si-ic { font-size: 14px; display: flex; color: var(--ice); filter: drop-shadow(0 0 5px rgba(var(--ice-rgb), .5)); }
+.si-name { color: rgba(var(--moon-rgb), .82); letter-spacing: .05em; }
+.si-item.rarity-epic { border-color: rgba(var(--violet-rgb), .35); }
+.si-item.rarity-epic .si-ic { color: var(--violet); filter: drop-shadow(0 0 5px rgba(var(--violet-rgb), .5)); }
+.si-item.rarity-legend { border-color: rgba(var(--gold-rgb), .42); }
 .si-item.rarity-legend .si-ic { color: var(--gold); filter: drop-shadow(0 0 6px var(--gold-glow)); }
-.si-empty { font-size: 11px; color: rgba(244,236,216,.4); letter-spacing: .2em; }
+.si-empty { font-size: 11px; color: rgba(var(--moon-rgb), .4); letter-spacing: .2em; }
 .si-item { cursor: pointer; transition: all .22s cubic-bezier(.22,1,.36,1); }
-.si-item:hover { border-color: var(--gold); background: rgba(233,201,135,.07); transform: translateY(-1px); }
+.si-item:hover { border-color: var(--gold); background: rgba(var(--gold-rgb), .07); transform: translateY(-1px); }
 .si-item.active {
   border-color: var(--gold);
-  background: rgba(233,201,135,.12);
-  box-shadow: 0 0 12px rgba(233,201,135,.22);
+  background: rgba(var(--gold-rgb), .12);
+  box-shadow: 0 0 12px rgba(var(--gold-rgb), .22);
 }
 
 /* 道具详情 */
@@ -649,7 +646,7 @@
   border-radius: 12px;
   background: var(--glass-bg-frost);
   backdrop-filter: blur(var(--glass-blur-frost));
-  border: 1px solid rgba(159, 214, 232, .25);
+  border: 1px solid rgba(var(--ice-rgb), .25);
   box-shadow:
     var(--glass-edge-inset),
     0 6px 32px rgba(0, 0, 0, .5),
@@ -657,9 +654,9 @@
   animation: cardIn .35s cubic-bezier(.22,1,.36,1) both;
 }
 .sid-head { display: flex; align-items: center; gap: 11px; }
-.sid-ic { font-size: 22px; display: flex; filter: drop-shadow(0 0 8px rgba(159,214,232,.55)); }
+.sid-ic { font-size: 22px; display: flex; filter: drop-shadow(0 0 8px rgba(var(--ice-rgb), .55)); }
 .si-detail.rarity-common .sid-ic { color: var(--ice); }
-.si-detail.rarity-epic .sid-ic { color: var(--violet); filter: drop-shadow(0 0 8px rgba(180,154,232,.5)); }
+.si-detail.rarity-epic .sid-ic { color: var(--violet); filter: drop-shadow(0 0 8px rgba(var(--violet-rgb), .5)); }
 .si-detail.rarity-legend .sid-ic { color: var(--gold); filter: drop-shadow(0 0 9px var(--gold-glow)); }
 .sid-title { flex: 1; min-width: 0; }
 .sid-name { font-family: var(--font-title); font-size: 14px; letter-spacing: .14em; color: var(--moon); }
@@ -667,52 +664,52 @@
   display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: .18em;
   padding: 2px 8px; border-radius: 999px; margin-top: 4px;
 }
-.si-detail.rarity-epic .sid-tag { background: rgba(180,154,232,.15); color: var(--violet); border: 1px solid rgba(180,154,232,.3); }
-.si-detail.rarity-legend .sid-tag { background: rgba(233,201,135,.12); color: var(--gold); border: 1px solid rgba(233,201,135,.3); }
-.si-detail.rarity-common .sid-tag { background: rgba(159,214,232,.1); color: var(--ice); border: 1px solid rgba(159,214,232,.2); }
+.si-detail.rarity-epic .sid-tag { background: rgba(var(--violet-rgb), .15); color: var(--violet); border: 1px solid rgba(var(--violet-rgb), .3); }
+.si-detail.rarity-legend .sid-tag { background: rgba(var(--gold-rgb), .12); color: var(--gold); border: 1px solid rgba(var(--gold-rgb), .3); }
+.si-detail.rarity-common .sid-tag { background: rgba(var(--ice-rgb), .1); color: var(--ice); border: 1px solid rgba(var(--ice-rgb), .2); }
 .sid-close {
-  border: none; background: transparent; color: rgba(244,236,216,.45);
+  border: none; background: transparent; color: rgba(var(--moon-rgb), .45);
   font-size: 17px; line-height: 1; cursor: pointer; padding: 4px 6px;
   border-radius: 6px; transition: all .2s;
 }
-.sid-close:hover { color: var(--gold); background: rgba(233,201,135,.1); }
+.sid-close:hover { color: var(--gold); background: rgba(var(--gold-rgb), .1); }
 .sid-desc {
   margin-top: 11px; padding: 10px 12px; border-radius: 8px;
-  font-size: 11px; line-height: 1.55; letter-spacing: .06em; color: rgba(244,236,216,.78);
-  background: rgba(159,214,232,.05); border: 1px solid rgba(159,214,232,.12);
+  font-size: 11px; line-height: 1.55; letter-spacing: .06em; color: rgba(var(--moon-rgb), .78);
+  background: rgba(var(--ice-rgb), .05); border: 1px solid rgba(var(--ice-rgb), .12);
 }
 .sid-effects { margin-top: 10px; }
 .sid-effect-title {
   font-size: 9px; font-weight: 800; letter-spacing: .3em;
-  color: rgba(159,214,232,.6); margin-bottom: 5px; padding-left: 2px;
+  color: rgba(var(--ice-rgb), .6); margin-bottom: 5px; padding-left: 2px;
 }
 .sid-effect-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 4px 8px; border-radius: 6px;
   font-size: 10.5px; letter-spacing: .04em;
   background: rgba(10,12,30,.5);
-  border-bottom: 1px dashed rgba(233,201,135,.08);
+  border-bottom: 1px dashed rgba(var(--gold-rgb), .08);
 }
 .sid-effect-row:last-child { border-bottom: none; }
-.sid-effect-row .sid-el { color: rgba(244,236,216,.62); }
+.sid-effect-row .sid-el { color: rgba(var(--moon-rgb), .62); }
 .sid-effect-row .sid-er { color: var(--moon); font-weight: 800; }
-.sid-effect-row .sid-arrow { color: rgba(233,201,135,.5); font-size: 10px; margin: 0 4px; }
+.sid-effect-row .sid-arrow { color: rgba(var(--gold-rgb), .5); font-size: 10px; margin: 0 4px; }
 
 /* 战绩记录 */
 .sid-stats { margin-top: 10px; }
 .sid-stat-title {
   font-size: 9px; font-weight: 800; letter-spacing: .3em;
-  color: rgba(159,214,232,.6); margin-bottom: 5px; padding-left: 2px;
+  color: rgba(var(--ice-rgb), .6); margin-bottom: 5px; padding-left: 2px;
 }
 .sid-stat-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 5px 8px; border-radius: 6px;
   font-size: 11px; letter-spacing: .04em;
   background: rgba(10,12,30,.5);
-  border-bottom: 1px dashed rgba(233,201,135,.08);
+  border-bottom: 1px dashed rgba(var(--gold-rgb), .08);
 }
 .sid-stat-row:last-child { border-bottom: none; }
-.sid-stat-label { color: rgba(244,236,216,.58); }
+.sid-stat-label { color: rgba(var(--moon-rgb), .58); }
 .sid-stat-val { color: var(--gold); font-weight: 800; font-size: 12px; }
 
 /* ================= 月蚀侵蚀：商店武器卡片与列表 =================
@@ -743,13 +740,7 @@
   box-shadow: 0 18px 64px rgba(0,0,0,.62), 0 0 36px rgba(140, 60, 110, .55);
 }
 
-/* 侵蚀出现动画：月光的金色被暗蚀自边框渗入吞噬 */
-@keyframes erodeIn {
-  0%   { filter: brightness(1.18) saturate(.68); border-color: rgba(233, 201, 135, .45); }
-  35%  { border-color: rgba(180, 90, 138, .95); filter: brightness(1.04) saturate(1.12); }
-  70%  { filter: brightness(.95); }
-  100% { filter: brightness(1) saturate(1); border-color: rgba(140, 60, 110, .78); }
-}
+/* 侵蚀出现动画 erodeIn 权威定义见 tokens.css（月光的金色被暗蚀自边框渗入吞噬） */
 
 /* 右侧已佩戴武器列表（属性页卡片）侵蚀 */
 .pw-item.eroded {
