@@ -1,0 +1,550 @@
+{
+  "schema": "moonlight-bench-ab/1",
+  "timestamp": "2026-08-06T09:42:10.630Z",
+  "durationMs": 114815,
+  "sequence": [
+    "A",
+    "B",
+    "B",
+    "A",
+    "A",
+    "B"
+  ],
+  "rounds": 3,
+  "variants": {
+    "A": {
+      "label": "原版",
+      "dir": "perf/variants/A"
+    },
+    "B": {
+      "label": "O1+O2+O3",
+      "dir": "perf/variants/B"
+    }
+  },
+  "env": {
+    "node": "v22.22.2",
+    "platform": "win32",
+    "arch": "x64",
+    "cpus": "12th Gen Intel(R) Core(TM) i5-12450H"
+  },
+  "method": {
+    "isolation": "每次运行独立 node 进程",
+    "order": "ABBA 交替，抵消时间漂移",
+    "ci": "分层 bootstrap（先重采样运行，再重采样帧），2000 次"
+  },
+  "scenarios": [
+    {
+      "id": "idle",
+      "label": "空闲",
+      "frames": 400,
+      "a": {
+        "runs": [
+          0.0613,
+          0.0527,
+          0.026
+        ],
+        "median": 0.0527,
+        "p95": 0.1305,
+        "update": 0.0336,
+        "render": 0.0191
+      },
+      "b": {
+        "runs": [
+          0.0248,
+          0.0218,
+          0.0446
+        ],
+        "median": 0.0248,
+        "p95": 0.0567,
+        "update": 0.0147,
+        "render": 0.0101
+      },
+      "pairedDiff": {
+        "values": [
+          0.0365,
+          0.0308,
+          -0.0186
+        ],
+        "median": 0.0308,
+        "mean": 0.0162
+      },
+      "deltaMs": 0.0278,
+      "deltaPct": 52.9411,
+      "p95DeltaPct": 56.5517,
+      "boot": {
+        "diffCi": [
+          -0.0059,
+          0.0393
+        ],
+        "pctCi": [
+          -20.2039,
+          61.0776
+        ],
+        "diffMedian": 0.0162,
+        "pctMedian": 34.9715
+      },
+      "workload": {
+        "opsA": 32,
+        "opsB": 32,
+        "driftPct": 0
+      },
+      "verdict": "inconclusive"
+    },
+    {
+      "id": "mid_fixed",
+      "label": "中期·固定",
+      "frames": 400,
+      "a": {
+        "runs": [
+          0.3272,
+          0.3999,
+          0.2049
+        ],
+        "median": 0.3272,
+        "p95": 0.7157,
+        "update": 0.1893,
+        "render": 0.1379
+      },
+      "b": {
+        "runs": [
+          0.179,
+          0.1687,
+          0.3039
+        ],
+        "median": 0.179,
+        "p95": 0.3669,
+        "update": 0.0848,
+        "render": 0.0941
+      },
+      "pairedDiff": {
+        "values": [
+          0.1482,
+          0.2312,
+          -0.099
+        ],
+        "median": 0.1482,
+        "mean": 0.0934
+      },
+      "deltaMs": 0.1482,
+      "deltaPct": 45.2933,
+      "p95DeltaPct": 48.7355,
+      "boot": {
+        "diffCi": [
+          -0.0193,
+          0.2042
+        ],
+        "pctCi": [
+          -8.1477,
+          53.4470
+        ],
+        "diffMedian": 0.0967,
+        "pctMedian": 30.6601
+      },
+      "workload": {
+        "opsA": 895.5,
+        "opsB": 895.5,
+        "driftPct": 0
+      },
+      "verdict": "inconclusive"
+    },
+    {
+      "id": "heavy_fixed",
+      "label": "高负载·固定",
+      "frames": 400,
+      "a": {
+        "runs": [
+          0.918,
+          0.9242,
+          0.691
+        ],
+        "median": 0.918,
+        "p95": 1.5426,
+        "update": 0.5115,
+        "render": 0.4034
+      },
+      "b": {
+        "runs": [
+          0.6791,
+          0.5682,
+          0.6705
+        ],
+        "median": 0.6705,
+        "p95": 1.3452,
+        "update": 0.3232,
+        "render": 0.3473
+      },
+      "pairedDiff": {
+        "values": [
+          0.2389,
+          0.356,
+          0.0204
+        ],
+        "median": 0.2389,
+        "mean": 0.2051
+      },
+      "deltaMs": 0.2475,
+      "deltaPct": 26.9607,
+      "p95DeltaPct": 12.7965,
+      "boot": {
+        "diffCi": [
+          0.0573,
+          0.3298
+        ],
+        "pctCi": [
+          8.1992,
+          35.3672
+        ],
+        "diffMedian": 0.2067,
+        "pctMedian": 24.4958
+      },
+      "workload": {
+        "opsA": 2825,
+        "opsB": 2825,
+        "driftPct": 0
+      },
+      "verdict": "faster"
+    },
+    {
+      "id": "particle_fest",
+      "label": "粒子狂欢",
+      "frames": 400,
+      "a": {
+        "runs": [
+          0.5732,
+          0.6397,
+          0.4732
+        ],
+        "median": 0.5732,
+        "p95": 0.9407,
+        "update": 0.2737,
+        "render": 0.2995
+      },
+      "b": {
+        "runs": [
+          0.4962,
+          0.4456,
+          0.5626
+        ],
+        "median": 0.4962,
+        "p95": 0.9479,
+        "update": 0.2513,
+        "render": 0.2449
+      },
+      "pairedDiff": {
+        "values": [
+          0.0770,
+          0.1941,
+          -0.0893
+        ],
+        "median": 0.0770,
+        "mean": 0.0605
+      },
+      "deltaMs": 0.0770,
+      "deltaPct": 13.4333,
+      "p95DeltaPct": -0.7653,
+      "boot": {
+        "diffCi": [
+          -0.0341,
+          0.1559
+        ],
+        "pctCi": [
+          -6.8221,
+          24.9260
+        ],
+        "diffMedian": 0.0681,
+        "pctMedian": 11.9290
+      },
+      "workload": {
+        "opsA": 2432,
+        "opsB": 2432,
+        "driftPct": 0
+      },
+      "verdict": "inconclusive"
+    },
+    {
+      "id": "late_80",
+      "label": "后期·80水位",
+      "frames": 500,
+      "a": {
+        "runs": [
+          2.5197,
+          2.7743,
+          2.8449
+        ],
+        "median": 2.7743,
+        "p95": 4.4814,
+        "update": 1.8107,
+        "render": 0.9636
+      },
+      "b": {
+        "runs": [
+          1.8951,
+          1.8929,
+          2.0294
+        ],
+        "median": 1.8951,
+        "p95": 3.2776,
+        "update": 1.1369,
+        "render": 0.7583
+      },
+      "pairedDiff": {
+        "values": [
+          0.6245,
+          0.8814,
+          0.8155
+        ],
+        "median": 0.8155,
+        "mean": 0.7738
+      },
+      "deltaMs": 0.8792,
+      "deltaPct": 31.6908,
+      "p95DeltaPct": 26.8621,
+      "boot": {
+        "diffCi": [
+          0.5755,
+          0.9517
+        ],
+        "pctCi": [
+          22.5047,
+          33.4260
+        ],
+        "diffMedian": 0.7710,
+        "pctMedian": 28.3554
+      },
+      "workload": {
+        "opsA": 4877,
+        "opsB": 4877,
+        "driftPct": 0
+      },
+      "verdict": "faster"
+    },
+    {
+      "id": "late_150",
+      "label": "后期·150水位",
+      "frames": 500,
+      "a": {
+        "runs": [
+          4.4224,
+          4.2569,
+          3.6422
+        ],
+        "median": 4.2569,
+        "p95": 6.3117,
+        "update": 2.8571,
+        "render": 1.3998
+      },
+      "b": {
+        "runs": [
+          2.9017,
+          2.7416,
+          3.1654
+        ],
+        "median": 2.9017,
+        "p95": 4.4766,
+        "update": 1.7928,
+        "render": 1.109
+      },
+      "pairedDiff": {
+        "values": [
+          1.5206,
+          1.5152,
+          0.4767
+        ],
+        "median": 1.5152,
+        "mean": 1.1709
+      },
+      "deltaMs": 1.3552,
+      "deltaPct": 31.8353,
+      "p95DeltaPct": 29.0745,
+      "boot": {
+        "diffCi": [
+          0.7269,
+          1.5327
+        ],
+        "pctCi": [
+          19.7316,
+          35.4256
+        ],
+        "diffMedian": 1.1855,
+        "pctMedian": 28.8032
+      },
+      "workload": {
+        "opsA": 8463,
+        "opsB": 8463,
+        "driftPct": 0
+      },
+      "verdict": "faster"
+    },
+    {
+      "id": "late_250",
+      "label": "后期·250水位",
+      "frames": 400,
+      "a": {
+        "runs": [
+          5.6515,
+          5.2679,
+          5.955
+        ],
+        "median": 5.6515,
+        "p95": 7.6654,
+        "update": 3.8186,
+        "render": 1.8329
+      },
+      "b": {
+        "runs": [
+          3.9067,
+          4.4924,
+          4.0195
+        ],
+        "median": 4.0195,
+        "p95": 5.5566,
+        "update": 2.5116,
+        "render": 1.5079
+      },
+      "pairedDiff": {
+        "values": [
+          1.7448,
+          0.7755,
+          1.9355
+        ],
+        "median": 1.7448,
+        "mean": 1.4852
+      },
+      "deltaMs": 1.6320,
+      "deltaPct": 28.8772,
+      "p95DeltaPct": 27.5106,
+      "boot": {
+        "diffCi": [
+          1.1093,
+          1.8990
+        ],
+        "pctCi": [
+          20.3116,
+          32.4464
+        ],
+        "diffMedian": 1.5114,
+        "pctMedian": 26.7911
+      },
+      "workload": {
+        "opsA": 13164,
+        "opsB": 13164,
+        "driftPct": 0
+      },
+      "verdict": "faster"
+    },
+    {
+      "id": "late_boss",
+      "label": "后期·Boss+群怪",
+      "frames": 450,
+      "a": {
+        "runs": [
+          1.9728,
+          1.9326,
+          1.9361
+        ],
+        "median": 1.9361,
+        "p95": 3.1888,
+        "update": 1.2309,
+        "render": 0.7171
+      },
+      "b": {
+        "runs": [
+          1.4777,
+          1.4556,
+          1.4578
+        ],
+        "median": 1.4578,
+        "p95": 2.4214,
+        "update": 0.8727,
+        "render": 0.5866
+      },
+      "pairedDiff": {
+        "values": [
+          0.4951,
+          0.4770,
+          0.4782
+        ],
+        "median": 0.4782,
+        "mean": 0.4834
+      },
+      "deltaMs": 0.4782,
+      "deltaPct": 24.7043,
+      "p95DeltaPct": 24.0654,
+      "boot": {
+        "diffCi": [
+          0.4337,
+          0.5378
+        ],
+        "pctCi": [
+          22.6355,
+          27.1022
+        ],
+        "diffMedian": 0.4845,
+        "pctMedian": 24.8198
+      },
+      "workload": {
+        "opsA": 4142,
+        "opsB": 4142,
+        "driftPct": 0
+      },
+      "verdict": "faster"
+    },
+    {
+      "id": "drop_flood",
+      "label": "掉落堆积",
+      "frames": 450,
+      "a": {
+        "runs": [
+          2.3727,
+          2.8942,
+          2.3389
+        ],
+        "median": 2.3727,
+        "p95": 3.8352,
+        "update": 1.5312,
+        "render": 0.8416
+      },
+      "b": {
+        "runs": [
+          1.7851,
+          1.8144,
+          1.8532
+        ],
+        "median": 1.8144,
+        "p95": 2.9068,
+        "update": 1.1023,
+        "render": 0.7121
+      },
+      "pairedDiff": {
+        "values": [
+          0.5876,
+          1.0798,
+          0.4857
+        ],
+        "median": 0.5876,
+        "mean": 0.7177
+      },
+      "deltaMs": 0.5583,
+      "deltaPct": 23.5301,
+      "p95DeltaPct": 24.2073,
+      "boot": {
+        "diffCi": [
+          0.5015,
+          1.0671
+        ],
+        "pctCi": [
+          21.4587,
+          36.9850
+        ],
+        "diffMedian": 0.7258,
+        "pctMedian": 28.5032
+      },
+      "workload": {
+        "opsA": 5135,
+        "opsB": 5135,
+        "driftPct": 0
+      },
+      "verdict": "faster"
+    }
+  ]
+}

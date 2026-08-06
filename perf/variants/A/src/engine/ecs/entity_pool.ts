@@ -85,43 +85,23 @@ export class EntityPool<T extends BaseEntityView> {
     for (let i = 0; i < maxSize; i++) this._views[i] = this._createView(i);
   }
 
-  /** 创建单个视图（getter/setter 代理到 TypedArray）
-   *
-   * 关键不变量：`_views[i]._idx === i` 恒成立。
-   * 压缩时移动的是**数据**（把 slot r 的内容拷到 slot w），视图对象本身
-   * 始终绑定自己的槽位，从不改绑。因此槽位偏移 `idx * stride + off`
-   * 是编译期常量，可以直接闭包捕获。
-   *
-   * 这一点很值钱：原实现每次读 `e.x` 都要做
-   * `vw._idx` → `pool._stride` → 乘加 → `pool._data` 四步，
-   * 而属性访问在这个引擎里是最高频的操作（后期每帧数十万次）。
-   * 预计算成单个常量下标后，getter 塌缩成一次数组读取，V8 可以内联。
-   *
-   * `_data` 仍需通过 `pool` 间接引用 —— 扩容时数组会被整体替换，
-   * 捕获数组本身会拿到失效的旧缓冲。
-   */
+  /** 创建单个视图（getter/setter 代理到 TypedArray） */
   private _createView(idx: number): T {
     const pool = this;
-    const view = {} as unknown as T;
-    const base = idx * this._stride;
+    const view = { _idx: idx } as unknown as T;
+    const vw = view as unknown as Record<string, any>;
     for (const key of this._schema) {
-      const slot = base + this._offsets[key];
+      const off = this._offsets[key];
       Object.defineProperty(view, key, {
-        get() { return pool._data[slot]; },
-        set(v: number) { pool._data[slot] = v; },
-        // 不可枚举：让 Object.keys(view) 只返回动态属性。
-        // 压缩时要逐个搬运动态属性，若 schema 字段混在里面，
-        // 每搬一个实体就要白扫 24 个键。
-        enumerable: false, configurable: true,
+        get() { return pool._data[(vw._idx as number) * pool._stride + off]; },
+        set(v: number) { pool._data[(vw._idx as number) * pool._stride + off] = v; },
+        enumerable: true, configurable: true,
       });
     }
-    Object.defineProperty(view, '_idx', {
-      value: idx, writable: false, enumerable: false, configurable: false,
-    });
     Object.defineProperty(view, '_meta', {
-      get() { return pool._meta[idx]; },
-      set(v: Record<string, any>) { pool._meta[idx] = v; },
-      enumerable: false, configurable: true,
+      get() { return pool._meta[vw._idx as number]; },
+      set(v: Record<string, any>) { pool._meta[vw._idx as number] = v; },
+      enumerable: false,
     });
     return view;
   }
@@ -150,11 +130,13 @@ export class EntityPool<T extends BaseEntityView> {
     for (let i = 0; i < this._stride; i++) this._data[base + i] = 0;
     this._meta[idx] = {};
     const view = this._views[idx];
-    // _idx 由 _createView 固定绑定，无需重设。
-    // schema 字段不可枚举，Object.keys 到手的就是上一轮残留的动态属性。
+    view._idx = idx;
     const vw = view as unknown as Record<string, any>;
-    const stale = Object.keys(vw);
-    for (let i = 0; i < stale.length; i++) delete vw[stale[i]];
+    for (const key of Object.keys(vw)) {
+      if (key !== '_idx' && key !== '_meta' && this._offsets[key] === undefined) {
+        delete vw[key];
+      }
+    }
     return view;
   }
 
@@ -195,37 +177,32 @@ export class EntityPool<T extends BaseEntityView> {
   /** 获取视图对象 */
   view(idx: number): T { return this._views[idx]; }
 
-  /** 原地压缩：移除死实体，同步更新外部数组
-   *
-   * 压缩是后期的 p95 尖峰来源之一：一波清场后要搬运上百个实体，
-   * 而搬运成本主要不在数值字段（TypedArray 连续拷贝很便宜），
-   * 而在动态属性的搬家。原实现对每个被移动的实体做两轮
-   * `Object.keys()`，且每轮都要扫过全部 24 个 schema 字段并逐一
-   * 查表排除；再叠加 `delete` 触发的对象形状迁移，V8 会把这些
-   * 视图降级成字典模式，之后所有属性访问一起变慢。
-   *
-   * 现在 schema 字段不可枚举，`Object.keys()` 直接命中动态属性；
-   * 数值字段整段 copyWithin 搬运，不再逐元素循环。
-   */
+  /** 原地压缩：移除死实体，同步更新外部数组 */
   compact(arr: T[], isDeadFn: (e: T) => boolean): void {
     let w = 0;
     const oldCount = this.count;
-    const stride = this._stride;
     for (let r = 0; r < oldCount; r++) {
       const view = this._views[r];
       if (isDeadFn(view)) continue;
       if (w !== r) {
-        const src = r * stride;
-        // copyWithin 走的是底层 memmove，比逐元素赋值快一个量级
-        this._data.copyWithin(w * stride, src, src + stride);
+        const src = r * this._stride;
+        const dst = w * this._stride;
+        for (let i = 0; i < this._stride; i++) this._data[dst + i] = this._data[src + i];
         this._meta[w] = this._meta[r];
-
-        const dstVw = this._views[w] as unknown as Record<string, any>;
+        const dstView = this._views[w];
+        const dstVw = dstView as unknown as Record<string, any>;
+        for (const key of Object.keys(dstVw)) {
+          if (key !== '_idx' && key !== '_meta' && this._offsets[key] === undefined) {
+            delete dstVw[key];
+          }
+        }
         const srcVw = view as unknown as Record<string, any>;
-        const stale = Object.keys(dstVw);
-        for (let i = 0; i < stale.length; i++) delete dstVw[stale[i]];
-        const live = Object.keys(srcVw);
-        for (let i = 0; i < live.length; i++) dstVw[live[i]] = srcVw[live[i]];
+        for (const key of Object.keys(srcVw)) {
+          if (key !== '_idx' && key !== '_meta' && this._offsets[key] === undefined) {
+            dstVw[key] = srcVw[key];
+          }
+        }
+        dstView._idx = w;
       }
       arr[w] = this._views[w];
       w++;

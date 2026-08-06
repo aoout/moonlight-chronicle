@@ -206,8 +206,14 @@ export function bindUI(): void {
     }
   });
   window.addEventListener('keyup', e => { iSt().keys[e.key.toLowerCase()] = false; });
-  // 窗口失焦时清零所有按键，防止 WASD 卡键
-  window.addEventListener('blur', () => { iSt().keys = {}; });
+  // 窗口失焦时清零所有按键，防止 WASD 卡键。
+  // 必须原地清空：iSt() 返回的是状态浅拷贝，给它的顶层属性赋值
+  // 只改到副本上 —— 这个防卡键其实一直没生效。
+  // 其余按键读写走的都是 keys 这个共享子对象，原地清才对得上。
+  window.addEventListener('blur', () => {
+    const keys = iSt().keys;
+    for (const k in keys) delete keys[k];
+  });
   bindCodex();
   bindAchievements();
   bindSettingsUI();

@@ -83,10 +83,10 @@ describe('辉光调校 · 设置状态', () => {
     expect(s.preset).toBe('custom');
   });
 
-  it('四档预设互相独立且覆盖全部 7 项', () => {
+  it('四档预设互相独立且覆盖全部 8 项', () => {
     for (const id of Object.keys(PRESETS) as Array<keyof typeof PRESETS>) {
       const p = PRESETS[id];
-      expect(Object.keys(p).length).toBe(7);
+      expect(Object.keys(p).length).toBe(8);
       expect(typeof p.renderScale).toBe('number');
       expect(typeof p.particleDensity).toBe('number');
       expect(typeof p.glowFx).toBe('boolean');
@@ -94,6 +94,54 @@ describe('辉光调校 · 设置状态', () => {
       expect(typeof p.dmgNumbers).toBe('boolean');
       expect(typeof p.bgDetail).toBe('boolean');
       expect(typeof p.fpsLimit).toBe('number');
+      expect([1, 2, 4]).toContain(p.enemyAnimStride);
     }
+  });
+
+  /* ---------- 蚀影律动：敌影身姿重绘步长 ---------- */
+
+  it('默认档位保持逐帧重绘，不牺牲既有观感', () => {
+    loadSettings();
+    expect(settingsState.state.enemyAnimStride).toBe(1);
+    expect(PRESETS.high.enemyAnimStride).toBe(1);
+    expect(PRESETS.ultra.enemyAnimStride).toBe(1);
+  });
+
+  it('省电档位才拉长重绘步长', () => {
+    expect(PRESETS.medium.enemyAnimStride).toBe(2);
+    expect(PRESETS.low.enemyAnimStride).toBe(4);
+  });
+
+  it('v1 老存档缺字段时按原档位补齐，不会被误判为自定义', () => {
+    // 「幽暗」档的 v1 存档：那时还没有 enemyAnimStride 这一项
+    localStorage.setItem('eclipse_settings_v1', JSON.stringify({
+      preset: 'low', renderScale: 0.5, particleDensity: 0.5,
+      glowFx: false, shake: false, dmgNumbers: false, bgDetail: false, fpsLimit: 30,
+    }));
+    loadSettings();
+    const s = settingsState.state;
+    expect(s.enemyAnimStride).toBe(4);
+    expect(s.preset).toBe('low');
+  });
+
+  it('v1 老存档本就是自定义组合时，新字段取默认值', () => {
+    localStorage.setItem('eclipse_settings_v1', JSON.stringify({
+      preset: 'custom', renderScale: 0.5, particleDensity: 1,
+      glowFx: true, shake: false, dmgNumbers: true, bgDetail: false, fpsLimit: 60,
+    }));
+    loadSettings();
+    expect(settingsState.state.enemyAnimStride).toBe(1);
+    expect(settingsState.state.preset).toBe('custom');
+  });
+
+  it('越界的重绘步长被纠正为逐帧', () => {
+    localStorage.setItem('eclipse_settings_v1', JSON.stringify({
+      preset: 'high', renderScale: 1, particleDensity: 1,
+      glowFx: true, shake: true, dmgNumbers: true, bgDetail: true, fpsLimit: 60,
+      enemyAnimStride: 99,
+    }));
+    loadSettings();
+    expect(settingsState.state.enemyAnimStride).toBe(1);
+    expect(settingsState.state.preset).toBe('high');
   });
 });

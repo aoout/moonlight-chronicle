@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>蚀月远征 · 性能压测报告</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --fg:#1f2430; --muted:#8a8f9a; --line:#e3e6ec; --panel:#fff;
+    --good:#2f7d4f; --warn:#c47f1a; --bad:#c93a3a; --accent:#4a6fd8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:32px 24px 64px;background:var(--bg);color:var(--fg);
+    font:14px/1.6 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  .wrap{max-width:1120px;margin:0 auto}
+  h1{font-size:24px;margin:0 0 4px}
+  h2{font-size:18px;margin:36px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:16px;margin:0}
+  h4{font-size:12px;margin:16px 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  code{background:#eef0f4;padding:1px 6px;border-radius:4px;font-size:11px;color:var(--muted);font-weight:400}
+  .sub{color:var(--muted);font-size:12px;margin:0 0 24px}
+  .muted{color:var(--muted)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:8px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;border-left:3px solid var(--line)}
+  .card.good{border-left-color:var(--good)} .card.warn{border-left-color:var(--warn)} .card.bad{border-left-color:var(--bad)}
+  .card-k{font-size:11px;color:var(--muted);letter-spacing:.5px}
+  .card-v{font-size:22px;font-weight:600;margin:2px 0}
+  .card-s{font-size:11px;color:var(--muted)}
+  .scenario{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:14px}
+  .scenario header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .desc{color:var(--muted);font-size:12px;margin:4px 0 12px}
+  .badge{font-size:12px;padding:3px 10px;border-radius:99px;background:#eef0f4;white-space:nowrap}
+  .badge.good{background:#e6f4ec;color:var(--good)} .badge.warn{background:#fdf3e2;color:var(--warn)} .badge.bad{background:#fbeaea;color:var(--bad)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);
+    padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .meta b{color:var(--fg);font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:4px}
+  @media(max-width:860px){.grid2{grid-template-columns:1fr}}
+  .chart{width:100%;height:auto;display:block}
+  .tbl{width:100%;border-collapse:collapse;font-size:12px}
+  .tbl th{text-align:right;color:var(--muted);font-weight:500;font-size:11px;padding:4px 6px;border-bottom:1px solid var(--line)}
+  .tbl th:first-child{text-align:left}
+  .tbl td{padding:4px 6px;border-bottom:1px solid #f0f2f5}
+  .tbl .num{text-align:right;font-variant-numeric:tabular-nums;font-family:ui-monospace,Consolas,monospace}
+  .tbl .strong{font-weight:600}
+  .tbl.wide th,.tbl.wide td{padding:6px 8px}
+  .tbl tr.good{background:#f4fbf7} .tbl tr.bad{background:#fdf5f5}
+  .ci{font-size:11px;color:var(--muted);margin:6px 0 0}
+  .sysbars{display:flex;flex-direction:column;gap:3px}
+  .sysrow{display:grid;grid-template-columns:112px 1fr 58px 34px;align-items:center;gap:8px;font-size:11px}
+  .sysname{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .systrack{height:9px;background:#eef0f4;border-radius:99px;overflow:hidden}
+  .sysfill{display:block;height:100%;background:linear-gradient(90deg,#6a8fd8,#4a6fd8);border-radius:99px}
+  .sysval{text-align:right;font-family:ui-monospace,Consolas,monospace}
+  .syspct{text-align:right;color:var(--muted)}
+  .hl-good{color:var(--good);font-weight:600} .hl-bad{color:var(--bad);font-weight:600} .hl-warn{color:var(--warn);font-weight:600}
+  .note{background:#fff;border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;padding:12px 16px;font-size:12px;color:var(--muted);margin-top:24px}
+  .note b{color:var(--fg)}
+</style></head><body><div class="wrap">
+
+<h1>蚀月远征 · 性能压测报告</h1>
+<p class="sub">
+  基线 · 优化前 · 2026/8/6 17:00:54 ·
+  12th Gen Intel(R) Core(TM) i5-12450H · Node v22.22.2 ·
+  用时 60.5s ·
+  渲染开启
+</p>
+
+<section class="cards">
+    <div class="card bad">
+      <div class="card-k">最重场景</div>
+      <div class="card-v">后期·250水位</div>
+      <div class="card-s">P95 30.27ms · 250 敌</div>
+    </div>
+    <div class="card bad">
+      <div class="card-k">超预算场景</div>
+      <div class="card-v">4 / 9</div>
+      <div class="card-s">JS 侧单帧 > 16.67ms</div>
+    </div>
+    <div class="card bad">
+      <div class="card-k">画布重分配</div>
+      <div class="card-v">188 次/帧</div>
+      <div class="card-s">全场景合计中位数</div>
+    </div>
+    <div class="card ">
+      <div class="card-k">峰值绘制指令</div>
+      <div class="card-v">13412</div>
+      <div class="card-s">单帧 ctx 调用数</div>
+    </div></section>
+
+
+<h2>场景明细</h2>
+<section class="scenario">
+    <header>
+      <h3>空闲 <code>idle</code></h3>
+      <span class="badge good">健康 · P95 0.35ms</span>
+    </header>
+    <p class="desc">无实体，仅背景与玩家 —— 测渲染底噪</p>
+
+    <div class="meta">
+      <span>敌 <b>0</b></span>
+      <span>弹 <b>0</b></span>
+      <span>粒子 <b>0</b></span>
+      <span>掉落 <b>0</b></span>
+      <span>帧数 <b>400</b></span>
+      <span>模式 <b>fixed</b></span>
+      <span class="">超预算帧 <b>0.0%</b></span>
+      <span class="hl-warn">变异系数 <b>1.26</b></span>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h4>帧时间分布</h4>
+        <svg viewBox="0 0 560 120" class="chart">
+    <rect x="0.0" y="0.0" width="11.7" height="98.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="12.7" y="14.1" width="11.7" height="83.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="25.5" y="46.5" width="11.7" height="51.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="38.2" y="64.7" width="11.7" height="33.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="50.9" y="73.8" width="11.7" height="24.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="63.6" y="81.8" width="11.7" height="16.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="76.4" y="89.9" width="11.7" height="8.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="89.1" y="83.9" width="11.7" height="14.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="101.8" y="84.9" width="11.7" height="13.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="114.5" y="87.9" width="11.7" height="10.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="127.3" y="92.9" width="11.7" height="5.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="140.0" y="95.0" width="11.7" height="3.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="152.7" y="90.9" width="11.7" height="7.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="165.5" y="91.9" width="11.7" height="6.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="178.2" y="94.0" width="11.7" height="4.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="190.9" y="90.9" width="11.7" height="7.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="203.6" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="216.4" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="229.1" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="241.8" y="97.0" width="11.7" height="1.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="254.5" y="97.0" width="11.7" height="1.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="267.3" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="280.0" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="292.7" y="96.0" width="11.7" height="2.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="305.5" y="95.0" width="11.7" height="3.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="318.2" y="96.0" width="11.7" height="2.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="330.9" y="97.0" width="11.7" height="1.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="343.6" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="356.4" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="369.1" y="97.0" width="11.7" height="1.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="381.8" y="97.0" width="11.7" height="1.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="394.5" y="97.0" width="11.7" height="1.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="407.3" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="420.0" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="432.7" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="445.5" y="97.0" width="11.7" height="1.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="458.2" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="470.9" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="483.6" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="496.4" y="97.0" width="11.7" height="1.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="509.1" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="521.8" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="534.5" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="547.3" y="94.0" width="11.7" height="4.0" fill="#6a8fd8" opacity="0.85" rx="1"/>
+    <line x1="29.3" y1="0" x2="29.3" y2="98" stroke="#2f7d4f" stroke-width="1.5" stroke-dasharray="3 2"/><text x="32.3" y="10" font-size="9" fill="#2f7d4f">P50</text>
+    <line x1="202.3" y1="0" x2="202.3" y2="98" stroke="#c47f1a" stroke-width="1.5" stroke-dasharray="3 2"/><text x="205.3" y="10" font-size="9" fill="#c47f1a">P95</text>
+    <line x1="560.0" y1="0" x2="560.0" y2="98" stroke="#b03030" stroke-width="1.5" stroke-dasharray="3 2"/><text x="530.0" y="10" font-size="9" fill="#b03030">P99</text>
+    <line x1="0" y1="98" x2="560" y2="98" stroke="#d8dbe2"/>
+    <text x="0" y="112" font-size="9" fill="#8a8f9a">0.03ms</text>
+    <text x="560" y="112" font-size="9" fill="#8a8f9a" text-anchor="end">0.91ms</text>
+  </svg>
+        <table class="tbl">
+          <tr><th></th><th>总计</th><th>逻辑</th><th>渲染</th></tr>
+          <tr><td>中位</td><td class="num strong">0.07</td><td class="num">0.04</td><td class="num">0.03</td></tr><tr><td>P75</td><td class="num strong">0.15</td><td class="num">0.08</td><td class="num">0.05</td></tr><tr><td>P95</td><td class="num strong">0.35</td><td class="num">0.22</td><td class="num">0.18</td></tr><tr><td>P99</td><td class="num strong">0.82</td><td class="num">0.44</td><td class="num">0.41</td></tr><tr><td>最大</td><td class="num strong">1.58</td><td class="num">0.89</td><td class="num">1.13</td></tr>
+        </table>
+        <p class="ci">中位数 95% CI: [0.07, 0.08] ms</p>
+      </div>
+      <div>
+        <h4>系统耗时 Top</h4>
+        <div class="sysbars">
+    <div class="sysrow">
+      <span class="sysname">PlayerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:100.0%"></span></span>
+      <span class="sysval">0.011ms</span>
+      <span class="syspct">15%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">OrbitSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:23.7%"></span></span>
+      <span class="sysval">0.003ms</span>
+      <span class="syspct">4%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StageTimerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:17.5%"></span></span>
+      <span class="sysval">0.002ms</span>
+      <span class="syspct">3%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpatialSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:15.8%"></span></span>
+      <span class="sysval">0.002ms</span>
+      <span class="syspct">2%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StormSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:14.9%"></span></span>
+      <span class="sysval">0.002ms</span>
+      <span class="syspct">2%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ProjectileSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:14.0%"></span></span>
+      <span class="sysval">0.002ms</span>
+      <span class="syspct">2%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">CompactSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:10.5%"></span></span>
+      <span class="sysval">0.001ms</span>
+      <span class="syspct">2%</span>
+    </div></div>
+        <h4>绘制结构（单帧中位）</h4>
+        <table class="tbl">
+          <tr><td>ctx 调用总数</td><td class="num strong">32</td></tr>
+          <tr><td>实际绘制调用</td><td class="num">6</td></tr>
+          <tr><td class="">离屏画布重分配</td><td class="num strong">0</td></tr>
+          <tr><td class="">shadowBlur 设置</td><td class="num">0</td></tr>
+          <tr><td>渐变对象创建</td><td class="num">0</td></tr>
+        </table>
+      </div>
+    </div>
+  </section><section class="scenario">
+    <header>
+      <h3>中期·固定 <code>mid_fixed</code></h3>
+      <span class="badge good">健康 · P95 1.53ms</span>
+    </header>
+    <p class="desc">30 敌固定负载，用于对比优化的纯增量效果</p>
+
+    <div class="meta">
+      <span>敌 <b>30</b></span>
+      <span>弹 <b>0</b></span>
+      <span>粒子 <b>0</b></span>
+      <span>掉落 <b>0</b></span>
+      <span>帧数 <b>400</b></span>
+      <span>模式 <b>fixed</b></span>
+      <span class="">超预算帧 <b>0.0%</b></span>
+      <span class="hl-warn">变异系数 <b>0.53</b></span>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h4>帧时间分布</h4>
+        <svg viewBox="0 0 560 120" class="chart">
+    <rect x="0.0" y="43.0" width="11.7" height="55.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="12.7" y="64.5" width="11.7" height="33.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="25.5" y="74.1" width="11.7" height="23.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="38.2" y="69.3" width="11.7" height="28.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="50.9" y="55.0" width="11.7" height="43.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="63.6" y="26.3" width="11.7" height="71.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="76.4" y="50.2" width="11.7" height="47.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="89.1" y="14.3" width="11.7" height="83.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="101.8" y="0.0" width="11.7" height="98.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="114.5" y="26.3" width="11.7" height="71.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="127.3" y="40.6" width="11.7" height="57.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="140.0" y="45.4" width="11.7" height="52.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="152.7" y="52.6" width="11.7" height="45.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="165.5" y="69.3" width="11.7" height="28.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="178.2" y="59.8" width="11.7" height="38.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="190.9" y="64.5" width="11.7" height="33.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="203.6" y="83.7" width="11.7" height="14.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="216.4" y="76.5" width="11.7" height="21.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="229.1" y="78.9" width="11.7" height="19.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="241.8" y="88.4" width="11.7" height="9.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="254.5" y="83.7" width="11.7" height="14.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="267.3" y="90.8" width="11.7" height="7.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="280.0" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="292.7" y="93.2" width="11.7" height="4.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="305.5" y="95.6" width="11.7" height="2.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="318.2" y="93.2" width="11.7" height="4.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="330.9" y="93.2" width="11.7" height="4.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="343.6" y="95.6" width="11.7" height="2.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="356.4" y="95.6" width="11.7" height="2.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="369.1" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="381.8" y="90.8" width="11.7" height="7.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="394.5" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="407.3" y="93.2" width="11.7" height="4.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="420.0" y="95.6" width="11.7" height="2.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="432.7" y="95.6" width="11.7" height="2.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="445.5" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="458.2" y="95.6" width="11.7" height="2.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="470.9" y="95.6" width="11.7" height="2.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="483.6" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="496.4" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="509.1" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="521.8" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="534.5" y="93.2" width="11.7" height="4.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="547.3" y="88.4" width="11.7" height="9.6" fill="#6a8fd8" opacity="0.85" rx="1"/>
+    <line x1="113.3" y1="0" x2="113.3" y2="98" stroke="#2f7d4f" stroke-width="1.5" stroke-dasharray="3 2"/><text x="116.3" y="10" font-size="9" fill="#2f7d4f">P50</text>
+    <line x1="320.0" y1="0" x2="320.0" y2="98" stroke="#c47f1a" stroke-width="1.5" stroke-dasharray="3 2"/><text x="323.0" y="10" font-size="9" fill="#c47f1a">P95</text>
+    <line x1="560.0" y1="0" x2="560.0" y2="98" stroke="#b03030" stroke-width="1.5" stroke-dasharray="3 2"/><text x="530.0" y="10" font-size="9" fill="#b03030">P99</text>
+    <line x1="0" y1="98" x2="560" y2="98" stroke="#d8dbe2"/>
+    <text x="0" y="112" font-size="9" fill="#8a8f9a">0.25ms</text>
+    <text x="560" y="112" font-size="9" fill="#8a8f9a" text-anchor="end">2.52ms</text>
+  </svg>
+        <table class="tbl">
+          <tr><th></th><th>总计</th><th>逻辑</th><th>渲染</th></tr>
+          <tr><td>中位</td><td class="num strong">0.70</td><td class="num">0.42</td><td class="num">0.28</td></tr><tr><td>P75</td><td class="num strong">0.92</td><td class="num">0.54</td><td class="num">0.37</td></tr><tr><td>P95</td><td class="num strong">1.53</td><td class="num">0.85</td><td class="num">0.66</td></tr><tr><td>P99</td><td class="num strong">2.45</td><td class="num">1.51</td><td class="num">1.16</td></tr><tr><td>最大</td><td class="num strong">3.35</td><td class="num">2.93</td><td class="num">2.26</td></tr>
+        </table>
+        <p class="ci">中位数 95% CI: [0.68, 0.73] ms</p>
+      </div>
+      <div>
+        <h4>系统耗时 Top</h4>
+        <div class="sysbars">
+    <div class="sysrow">
+      <span class="sysname">EnemySystem</span>
+      <span class="systrack"><span class="sysfill" style="width:100.0%"></span></span>
+      <span class="sysval">0.266ms</span>
+      <span class="syspct">38%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpatialSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:11.7%"></span></span>
+      <span class="sysval">0.031ms</span>
+      <span class="syspct">4%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">PlayerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:11.0%"></span></span>
+      <span class="sysval">0.029ms</span>
+      <span class="syspct">4%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">OrbitSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:3.9%"></span></span>
+      <span class="sysval">0.010ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StageTimerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.7%"></span></span>
+      <span class="sysval">0.005ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ProjectileSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.7%"></span></span>
+      <span class="sysval">0.005ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StormSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.3%"></span></span>
+      <span class="sysval">0.004ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">CompactSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.1%"></span></span>
+      <span class="sysval">0.003ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">DropSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.6%"></span></span>
+      <span class="sysval">0.002ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ParticleSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.6%"></span></span>
+      <span class="sysval">0.002ms</span>
+      <span class="syspct">0%</span>
+    </div></div>
+        <h4>绘制结构（单帧中位）</h4>
+        <table class="tbl">
+          <tr><td>ctx 调用总数</td><td class="num strong">896</td></tr>
+          <tr><td>实际绘制调用</td><td class="num">186</td></tr>
+          <tr><td class="hl-bad">离屏画布重分配</td><td class="num strong">8</td></tr>
+          <tr><td class="">shadowBlur 设置</td><td class="num">8</td></tr>
+          <tr><td>渐变对象创建</td><td class="num">0</td></tr>
+        </table>
+      </div>
+    </div>
+  </section><section class="scenario">
+    <header>
+      <h3>高负载·固定 <code>heavy_fixed</code></h3>
+      <span class="badge good">健康 · P95 4.31ms</span>
+    </header>
+    <p class="desc">80 敌 + 40 弹固定负载，稳定实体数便于回归对比</p>
+
+    <div class="meta">
+      <span>敌 <b>80</b></span>
+      <span>弹 <b>24</b></span>
+      <span>粒子 <b>0</b></span>
+      <span>掉落 <b>0</b></span>
+      <span>帧数 <b>400</b></span>
+      <span>模式 <b>fixed</b></span>
+      <span class="">超预算帧 <b>0.0%</b></span>
+      <span class="hl-warn">变异系数 <b>0.34</b></span>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h4>帧时间分布</h4>
+        <svg viewBox="0 0 560 120" class="chart">
+    <rect x="0.0" y="95.0" width="11.7" height="3.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="12.7" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="25.5" y="80.2" width="11.7" height="17.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="38.2" y="86.1" width="11.7" height="11.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="50.9" y="83.2" width="11.7" height="14.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="63.6" y="65.3" width="11.7" height="32.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="76.4" y="62.4" width="11.7" height="35.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="89.1" y="71.3" width="11.7" height="26.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="101.8" y="71.3" width="11.7" height="26.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="114.5" y="53.5" width="11.7" height="44.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="127.3" y="50.5" width="11.7" height="47.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="140.0" y="35.6" width="11.7" height="62.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="152.7" y="26.7" width="11.7" height="71.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="165.5" y="0.0" width="11.7" height="98.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="178.2" y="14.8" width="11.7" height="83.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="190.9" y="14.8" width="11.7" height="83.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="203.6" y="59.4" width="11.7" height="38.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="216.4" y="41.6" width="11.7" height="56.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="229.1" y="65.3" width="11.7" height="32.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="241.8" y="53.5" width="11.7" height="44.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="254.5" y="56.4" width="11.7" height="41.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="267.3" y="74.2" width="11.7" height="23.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="280.0" y="56.4" width="11.7" height="41.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="292.7" y="71.3" width="11.7" height="26.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="305.5" y="62.4" width="11.7" height="35.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="318.2" y="74.2" width="11.7" height="23.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="330.9" y="95.0" width="11.7" height="3.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="343.6" y="77.2" width="11.7" height="20.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="356.4" y="83.2" width="11.7" height="14.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="369.1" y="77.2" width="11.7" height="20.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="381.8" y="80.2" width="11.7" height="17.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="394.5" y="89.1" width="11.7" height="8.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="407.3" y="92.1" width="11.7" height="5.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="420.0" y="86.1" width="11.7" height="11.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="432.7" y="89.1" width="11.7" height="8.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="445.5" y="92.1" width="11.7" height="5.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="458.2" y="92.1" width="11.7" height="5.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="470.9" y="80.2" width="11.7" height="17.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="483.6" y="92.1" width="11.7" height="5.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="496.4" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="509.1" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="521.8" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="534.5" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="547.3" y="83.2" width="11.7" height="14.8" fill="#6a8fd8" opacity="0.85" rx="1"/>
+    <line x1="193.0" y1="0" x2="193.0" y2="98" stroke="#2f7d4f" stroke-width="1.5" stroke-dasharray="3 2"/><text x="196.0" y="10" font-size="9" fill="#2f7d4f">P50</text>
+    <line x1="438.5" y1="0" x2="438.5" y2="98" stroke="#c47f1a" stroke-width="1.5" stroke-dasharray="3 2"/><text x="441.5" y="10" font-size="9" fill="#c47f1a">P95</text>
+    <line x1="560.0" y1="0" x2="560.0" y2="98" stroke="#b03030" stroke-width="1.5" stroke-dasharray="3 2"/><text x="530.0" y="10" font-size="9" fill="#b03030">P99</text>
+    <line x1="0" y1="98" x2="560" y2="98" stroke="#d8dbe2"/>
+    <text x="0" y="112" font-size="9" fill="#8a8f9a">0.91ms</text>
+    <text x="560" y="112" font-size="9" fill="#8a8f9a" text-anchor="end">5.33ms</text>
+  </svg>
+        <table class="tbl">
+          <tr><th></th><th>总计</th><th>逻辑</th><th>渲染</th></tr>
+          <tr><td>中位</td><td class="num strong">2.43</td><td class="num">1.36</td><td class="num">1.03</td></tr><tr><td>P75</td><td class="num strong">3.05</td><td class="num">1.72</td><td class="num">1.27</td></tr><tr><td>P95</td><td class="num strong">4.31</td><td class="num">2.78</td><td class="num">1.89</td></tr><tr><td>P99</td><td class="num strong">5.31</td><td class="num">3.61</td><td class="num">3.35</td></tr><tr><td>最大</td><td class="num strong">7.76</td><td class="num">4.70</td><td class="num">5.20</td></tr>
+        </table>
+        <p class="ci">中位数 95% CI: [2.36, 2.49] ms</p>
+      </div>
+      <div>
+        <h4>系统耗时 Top</h4>
+        <div class="sysbars">
+    <div class="sysrow">
+      <span class="sysname">EnemySystem</span>
+      <span class="systrack"><span class="sysfill" style="width:100.0%"></span></span>
+      <span class="sysval">0.787ms</span>
+      <span class="syspct">32%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ProjectileSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:22.4%"></span></span>
+      <span class="sysval">0.176ms</span>
+      <span class="syspct">7%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpatialSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:13.1%"></span></span>
+      <span class="sysval">0.103ms</span>
+      <span class="syspct">4%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">PlayerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:6.6%"></span></span>
+      <span class="sysval">0.052ms</span>
+      <span class="syspct">2%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">OrbitSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:2.6%"></span></span>
+      <span class="sysval">0.021ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StageTimerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.9%"></span></span>
+      <span class="sysval">0.007ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StormSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.7%"></span></span>
+      <span class="sysval">0.005ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">DropSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.6%"></span></span>
+      <span class="sysval">0.005ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">CompactSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.5%"></span></span>
+      <span class="sysval">0.004ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ParticleSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.3%"></span></span>
+      <span class="sysval">0.002ms</span>
+      <span class="syspct">0%</span>
+    </div></div>
+        <h4>绘制结构（单帧中位）</h4>
+        <table class="tbl">
+          <tr><td>ctx 调用总数</td><td class="num strong">2847</td></tr>
+          <tr><td>实际绘制调用</td><td class="num">505</td></tr>
+          <tr><td class="hl-bad">离屏画布重分配</td><td class="num strong">20</td></tr>
+          <tr><td class="hl-warn">shadowBlur 设置</td><td class="num">53</td></tr>
+          <tr><td>渐变对象创建</td><td class="num">0</td></tr>
+        </table>
+      </div>
+    </div>
+  </section><section class="scenario">
+    <header>
+      <h3>粒子狂欢 <code>particle_fest</code></h3>
+      <span class="badge good">健康 · P95 2.14ms</span>
+    </header>
+    <p class="desc">200 粒子，隔离测量粒子系统与粒子渲染</p>
+
+    <div class="meta">
+      <span>敌 <b>0</b></span>
+      <span>弹 <b>0</b></span>
+      <span>粒子 <b>200</b></span>
+      <span>掉落 <b>0</b></span>
+      <span>帧数 <b>400</b></span>
+      <span>模式 <b>fixed</b></span>
+      <span class="">超预算帧 <b>0.0%</b></span>
+      <span class="hl-warn">变异系数 <b>0.44</b></span>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h4>帧时间分布</h4>
+        <svg viewBox="0 0 560 120" class="chart">
+    <rect x="0.0" y="19.6" width="11.7" height="78.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="12.7" y="0.0" width="11.7" height="98.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="25.5" y="35.9" width="11.7" height="62.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="38.2" y="58.8" width="11.7" height="39.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="50.9" y="62.1" width="11.7" height="35.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="63.6" y="58.8" width="11.7" height="39.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="76.4" y="62.1" width="11.7" height="35.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="89.1" y="45.7" width="11.7" height="52.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="101.8" y="45.7" width="11.7" height="52.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="114.5" y="52.3" width="11.7" height="45.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="127.3" y="75.1" width="11.7" height="22.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="140.0" y="32.7" width="11.7" height="65.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="152.7" y="42.5" width="11.7" height="55.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="165.5" y="65.3" width="11.7" height="32.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="178.2" y="55.5" width="11.7" height="42.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="190.9" y="35.9" width="11.7" height="62.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="203.6" y="45.7" width="11.7" height="52.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="216.4" y="58.8" width="11.7" height="39.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="229.1" y="49.0" width="11.7" height="49.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="241.8" y="62.1" width="11.7" height="35.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="254.5" y="49.0" width="11.7" height="49.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="267.3" y="84.9" width="11.7" height="13.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="280.0" y="75.1" width="11.7" height="22.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="292.7" y="55.5" width="11.7" height="42.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="305.5" y="75.1" width="11.7" height="22.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="318.2" y="68.6" width="11.7" height="29.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="330.9" y="75.1" width="11.7" height="22.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="343.6" y="91.5" width="11.7" height="6.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="356.4" y="81.7" width="11.7" height="16.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="369.1" y="88.2" width="11.7" height="9.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="381.8" y="94.7" width="11.7" height="3.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="394.5" y="94.7" width="11.7" height="3.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="407.3" y="94.7" width="11.7" height="3.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="420.0" y="84.9" width="11.7" height="13.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="432.7" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="445.5" y="91.5" width="11.7" height="6.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="458.2" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="470.9" y="91.5" width="11.7" height="6.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="483.6" y="91.5" width="11.7" height="6.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="496.4" y="88.2" width="11.7" height="9.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="509.1" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="521.8" y="94.7" width="11.7" height="3.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="534.5" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="547.3" y="78.4" width="11.7" height="19.6" fill="#6a8fd8" opacity="0.85" rx="1"/>
+    <line x1="159.5" y1="0" x2="159.5" y2="98" stroke="#2f7d4f" stroke-width="1.5" stroke-dasharray="3 2"/><text x="162.5" y="10" font-size="9" fill="#2f7d4f">P50</text>
+    <line x1="422.3" y1="0" x2="422.3" y2="98" stroke="#c47f1a" stroke-width="1.5" stroke-dasharray="3 2"/><text x="425.3" y="10" font-size="9" fill="#c47f1a">P95</text>
+    <line x1="560.0" y1="0" x2="560.0" y2="98" stroke="#b03030" stroke-width="1.5" stroke-dasharray="3 2"/><text x="530.0" y="10" font-size="9" fill="#b03030">P99</text>
+    <line x1="0" y1="98" x2="560" y2="98" stroke="#d8dbe2"/>
+    <text x="0" y="112" font-size="9" fill="#8a8f9a">0.49ms</text>
+    <text x="560" y="112" font-size="9" fill="#8a8f9a" text-anchor="end">2.80ms</text>
+  </svg>
+        <table class="tbl">
+          <tr><th></th><th>总计</th><th>逻辑</th><th>渲染</th></tr>
+          <tr><td>中位</td><td class="num strong">1.13</td><td class="num">0.54</td><td class="num">0.57</td></tr><tr><td>P75</td><td class="num strong">1.49</td><td class="num">0.71</td><td class="num">0.77</td></tr><tr><td>P95</td><td class="num strong">2.14</td><td class="num">1.07</td><td class="num">1.17</td></tr><tr><td>P99</td><td class="num strong">2.78</td><td class="num">1.36</td><td class="num">1.76</td></tr><tr><td>最大</td><td class="num strong">3.48</td><td class="num">1.59</td><td class="num">2.75</td></tr>
+        </table>
+        <p class="ci">中位数 95% CI: [1.08, 1.21] ms</p>
+      </div>
+      <div>
+        <h4>系统耗时 Top</h4>
+        <div class="sysbars">
+    <div class="sysrow">
+      <span class="sysname">ParticleSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:100.0%"></span></span>
+      <span class="sysval">0.412ms</span>
+      <span class="syspct">36%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">PlayerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:8.7%"></span></span>
+      <span class="sysval">0.036ms</span>
+      <span class="syspct">3%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StageTimerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.9%"></span></span>
+      <span class="sysval">0.008ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpatialSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.7%"></span></span>
+      <span class="sysval">0.007ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">OrbitSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.7%"></span></span>
+      <span class="sysval">0.007ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">CompactSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.4%"></span></span>
+      <span class="sysval">0.006ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ProjectileSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.0%"></span></span>
+      <span class="sysval">0.004ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StormSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.8%"></span></span>
+      <span class="sysval">0.003ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">DropSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.5%"></span></span>
+      <span class="sysval">0.002ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpawnSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.3%"></span></span>
+      <span class="sysval">0.001ms</span>
+      <span class="syspct">0%</span>
+    </div></div>
+        <h4>绘制结构（单帧中位）</h4>
+        <table class="tbl">
+          <tr><td>ctx 调用总数</td><td class="num strong">2432</td></tr>
+          <tr><td>实际绘制调用</td><td class="num">206</td></tr>
+          <tr><td class="">离屏画布重分配</td><td class="num strong">0</td></tr>
+          <tr><td class="hl-warn">shadowBlur 设置</td><td class="num">200</td></tr>
+          <tr><td>渐变对象创建</td><td class="num">0</td></tr>
+        </table>
+      </div>
+    </div>
+  </section><section class="scenario">
+    <header>
+      <h3>后期·80水位 <code>late_80</code></h3>
+      <span class="badge warn">偏高 · P95 12.75ms</span>
+    </header>
+    <p class="desc">维持 80 敌的持续战斗，满武器、完整掉落与特效链路</p>
+
+    <div class="meta">
+      <span>敌 <b>80</b></span>
+      <span>弹 <b>27</b></span>
+      <span>粒子 <b>200</b></span>
+      <span>掉落 <b>110</b></span>
+      <span>帧数 <b>500</b></span>
+      <span>模式 <b>sustain</b></span>
+      <span class="">超预算帧 <b>0.8%</b></span>
+      <span class="hl-warn">变异系数 <b>0.33</b></span>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h4>帧时间分布</h4>
+        <svg viewBox="0 0 560 120" class="chart">
+    <rect x="0.0" y="95.1" width="11.7" height="2.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="12.7" y="92.2" width="11.7" height="5.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="25.5" y="89.4" width="11.7" height="8.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="38.2" y="83.6" width="11.7" height="14.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="50.9" y="80.7" width="11.7" height="17.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="63.6" y="69.2" width="11.7" height="28.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="76.4" y="83.6" width="11.7" height="14.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="89.1" y="51.9" width="11.7" height="46.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="101.8" y="63.4" width="11.7" height="34.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="114.5" y="66.3" width="11.7" height="31.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="127.3" y="51.9" width="11.7" height="46.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="140.0" y="43.2" width="11.7" height="54.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="152.7" y="69.2" width="11.7" height="28.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="165.5" y="46.1" width="11.7" height="51.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="178.2" y="37.5" width="11.7" height="60.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="190.9" y="28.8" width="11.7" height="69.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="203.6" y="23.1" width="11.7" height="74.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="216.4" y="25.9" width="11.7" height="72.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="229.1" y="20.2" width="11.7" height="77.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="241.8" y="43.2" width="11.7" height="54.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="254.5" y="0.0" width="11.7" height="98.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="267.3" y="43.2" width="11.7" height="54.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="280.0" y="51.9" width="11.7" height="46.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="292.7" y="40.4" width="11.7" height="57.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="305.5" y="51.9" width="11.7" height="46.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="318.2" y="69.2" width="11.7" height="28.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="330.9" y="40.4" width="11.7" height="57.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="343.6" y="57.6" width="11.7" height="40.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="356.4" y="51.9" width="11.7" height="46.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="369.1" y="69.2" width="11.7" height="28.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="381.8" y="77.8" width="11.7" height="20.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="394.5" y="77.8" width="11.7" height="20.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="407.3" y="83.6" width="11.7" height="14.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="420.0" y="95.1" width="11.7" height="2.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="432.7" y="69.2" width="11.7" height="28.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="445.5" y="89.4" width="11.7" height="8.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="458.2" y="92.2" width="11.7" height="5.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="470.9" y="89.4" width="11.7" height="8.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="483.6" y="92.2" width="11.7" height="5.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="496.4" y="92.2" width="11.7" height="5.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="509.1" y="95.1" width="11.7" height="2.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="521.8" y="95.1" width="11.7" height="2.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="534.5" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="547.3" y="83.6" width="11.7" height="14.4" fill="#6a8fd8" opacity="0.85" rx="1"/>
+    <line x1="237.7" y1="0" x2="237.7" y2="98" stroke="#2f7d4f" stroke-width="1.5" stroke-dasharray="3 2"/><text x="240.7" y="10" font-size="9" fill="#2f7d4f">P50</text>
+    <line x1="436.9" y1="0" x2="436.9" y2="98" stroke="#c47f1a" stroke-width="1.5" stroke-dasharray="3 2"/><text x="439.9" y="10" font-size="9" fill="#c47f1a">P95</text>
+    <line x1="560.0" y1="0" x2="560.0" y2="98" stroke="#b03030" stroke-width="1.5" stroke-dasharray="3 2"/><text x="530.0" y="10" font-size="9" fill="#b03030">P99</text>
+    <line x1="0" y1="98" x2="560" y2="98" stroke="#d8dbe2"/>
+    <text x="0" y="112" font-size="9" fill="#8a8f9a">2.14ms</text>
+    <text x="560" y="112" font-size="9" fill="#8a8f9a" text-anchor="end">15.75ms</text>
+  </svg>
+        <table class="tbl">
+          <tr><th></th><th>总计</th><th>逻辑</th><th>渲染</th></tr>
+          <tr><td>中位</td><td class="num strong">7.95</td><td class="num">5.06</td><td class="num">2.54</td></tr><tr><td>P75</td><td class="num strong">9.73</td><td class="num">6.58</td><td class="num">3.28</td></tr><tr><td>P95</td><td class="num strong">12.75</td><td class="num">9.09</td><td class="num">5.07</td></tr><tr><td>P99</td><td class="num strong">15.01</td><td class="num">10.91</td><td class="num">6.92</td></tr><tr><td>最大</td><td class="num strong">18.85</td><td class="num">11.93</td><td class="num">10.61</td></tr>
+        </table>
+        <p class="ci">中位数 95% CI: [7.67, 8.29] ms</p>
+      </div>
+      <div>
+        <h4>系统耗时 Top</h4>
+        <div class="sysbars">
+    <div class="sysrow">
+      <span class="sysname">EnemySystem</span>
+      <span class="systrack"><span class="sysfill" style="width:100.0%"></span></span>
+      <span class="sysval">1.476ms</span>
+      <span class="syspct">19%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ParticleSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:56.4%"></span></span>
+      <span class="sysval">0.832ms</span>
+      <span class="syspct">10%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ProjectileSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:42.0%"></span></span>
+      <span class="sysval">0.620ms</span>
+      <span class="syspct">8%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">DropSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:30.5%"></span></span>
+      <span class="sysval">0.450ms</span>
+      <span class="syspct">6%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">CompactSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:11.0%"></span></span>
+      <span class="sysval">0.163ms</span>
+      <span class="syspct">2%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpatialSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:9.6%"></span></span>
+      <span class="sysval">0.141ms</span>
+      <span class="syspct">2%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">PlayerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:5.3%"></span></span>
+      <span class="sysval">0.078ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StormSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:3.9%"></span></span>
+      <span class="sysval">0.058ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">OrbitSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.6%"></span></span>
+      <span class="sysval">0.024ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpawnSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.5%"></span></span>
+      <span class="sysval">0.022ms</span>
+      <span class="syspct">0%</span>
+    </div></div>
+        <h4>绘制结构（单帧中位）</h4>
+        <table class="tbl">
+          <tr><td>ctx 调用总数</td><td class="num strong">4698</td></tr>
+          <tr><td>实际绘制调用</td><td class="num">902</td></tr>
+          <tr><td class="hl-bad">离屏画布重分配</td><td class="num strong">20</td></tr>
+          <tr><td class="hl-warn">shadowBlur 设置</td><td class="num">81</td></tr>
+          <tr><td>渐变对象创建</td><td class="num">19</td></tr>
+        </table>
+      </div>
+    </div>
+  </section><section class="scenario">
+    <header>
+      <h3>后期·150水位 <code>late_150</code></h3>
+      <span class="badge bad">超预算 · P95 18.59ms</span>
+    </header>
+    <p class="desc">维持 150 敌 —— 20 关满生成率下的现实高压</p>
+
+    <div class="meta">
+      <span>敌 <b>150</b></span>
+      <span>弹 <b>49</b></span>
+      <span>粒子 <b>218</b></span>
+      <span>掉落 <b>163</b></span>
+      <span>帧数 <b>500</b></span>
+      <span>模式 <b>sustain</b></span>
+      <span class="hl-bad">超预算帧 <b>9.6%</b></span>
+      <span class="hl-warn">变异系数 <b>0.33</b></span>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h4>帧时间分布</h4>
+        <svg viewBox="0 0 560 120" class="chart">
+    <rect x="0.0" y="91.2" width="11.7" height="6.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="12.7" y="91.2" width="11.7" height="6.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="25.5" y="87.9" width="11.7" height="10.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="38.2" y="71.0" width="11.7" height="27.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="50.9" y="74.3" width="11.7" height="23.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="63.6" y="64.2" width="11.7" height="33.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="76.4" y="43.9" width="11.7" height="54.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="89.1" y="47.3" width="11.7" height="50.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="101.8" y="43.9" width="11.7" height="54.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="114.5" y="33.8" width="11.7" height="64.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="127.3" y="16.9" width="11.7" height="81.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="140.0" y="37.2" width="11.7" height="60.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="152.7" y="13.5" width="11.7" height="84.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="165.5" y="10.1" width="11.7" height="87.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="178.2" y="30.4" width="11.7" height="67.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="190.9" y="3.4" width="11.7" height="94.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="203.6" y="27.0" width="11.7" height="71.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="216.4" y="20.3" width="11.7" height="77.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="229.1" y="0.0" width="11.7" height="98.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="241.8" y="20.3" width="11.7" height="77.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="254.5" y="27.0" width="11.7" height="71.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="267.3" y="20.3" width="11.7" height="77.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="280.0" y="33.8" width="11.7" height="64.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="292.7" y="40.6" width="11.7" height="57.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="305.5" y="77.7" width="11.7" height="20.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="318.2" y="71.0" width="11.7" height="27.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="330.9" y="60.8" width="11.7" height="37.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="343.6" y="60.8" width="11.7" height="37.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="356.4" y="81.1" width="11.7" height="16.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="369.1" y="71.0" width="11.7" height="27.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="381.8" y="77.7" width="11.7" height="20.3" fill="#e05252" opacity="0.85" rx="1"/><rect x="394.5" y="91.2" width="11.7" height="6.8" fill="#e05252" opacity="0.85" rx="1"/><rect x="407.3" y="74.3" width="11.7" height="23.7" fill="#e05252" opacity="0.85" rx="1"/><rect x="420.0" y="94.6" width="11.7" height="3.4" fill="#e05252" opacity="0.85" rx="1"/><rect x="432.7" y="84.5" width="11.7" height="13.5" fill="#e05252" opacity="0.85" rx="1"/><rect x="445.5" y="91.2" width="11.7" height="6.8" fill="#e05252" opacity="0.85" rx="1"/><rect x="458.2" y="94.6" width="11.7" height="3.4" fill="#e05252" opacity="0.85" rx="1"/><rect x="470.9" y="84.5" width="11.7" height="13.5" fill="#e05252" opacity="0.85" rx="1"/><rect x="483.6" y="91.2" width="11.7" height="6.8" fill="#e05252" opacity="0.85" rx="1"/><rect x="496.4" y="98.0" width="11.7" height="0.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="509.1" y="94.6" width="11.7" height="3.4" fill="#e05252" opacity="0.85" rx="1"/><rect x="521.8" y="98.0" width="11.7" height="0.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="534.5" y="94.6" width="11.7" height="3.4" fill="#e05252" opacity="0.85" rx="1"/><rect x="547.3" y="81.1" width="11.7" height="16.9" fill="#e05252" opacity="0.85" rx="1"/>
+    <line x1="208.0" y1="0" x2="208.0" y2="98" stroke="#2f7d4f" stroke-width="1.5" stroke-dasharray="3 2"/><text x="211.0" y="10" font-size="9" fill="#2f7d4f">P50</text>
+    <line x1="414.9" y1="0" x2="414.9" y2="98" stroke="#c47f1a" stroke-width="1.5" stroke-dasharray="3 2"/><text x="417.9" y="10" font-size="9" fill="#c47f1a">P95</text>
+    <line x1="560.0" y1="0" x2="560.0" y2="98" stroke="#b03030" stroke-width="1.5" stroke-dasharray="3 2"/><text x="530.0" y="10" font-size="9" fill="#b03030">P99</text>
+    <line x1="0" y1="98" x2="560" y2="98" stroke="#d8dbe2"/>
+    <text x="0" y="112" font-size="9" fill="#8a8f9a">4.14ms</text>
+    <text x="560" y="112" font-size="9" fill="#8a8f9a" text-anchor="end">23.64ms</text>
+  </svg>
+        <table class="tbl">
+          <tr><th></th><th>总计</th><th>逻辑</th><th>渲染</th></tr>
+          <tr><td>中位</td><td class="num strong">11.49</td><td class="num">7.59</td><td class="num">3.71</td></tr><tr><td>P75</td><td class="num strong">13.83</td><td class="num">9.36</td><td class="num">4.67</td></tr><tr><td>P95</td><td class="num strong">18.59</td><td class="num">13.05</td><td class="num">6.28</td></tr><tr><td>P99</td><td class="num strong">23.10</td><td class="num">16.94</td><td class="num">8.28</td></tr><tr><td>最大</td><td class="num strong">39.10</td><td class="num">25.10</td><td class="num">33.40</td></tr>
+        </table>
+        <p class="ci">中位数 95% CI: [11.08, 11.91] ms</p>
+      </div>
+      <div>
+        <h4>系统耗时 Top</h4>
+        <div class="sysbars">
+    <div class="sysrow">
+      <span class="sysname">EnemySystem</span>
+      <span class="systrack"><span class="sysfill" style="width:100.0%"></span></span>
+      <span class="sysval">2.693ms</span>
+      <span class="syspct">23%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ProjectileSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:35.1%"></span></span>
+      <span class="sysval">0.946ms</span>
+      <span class="syspct">8%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ParticleSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:32.9%"></span></span>
+      <span class="sysval">0.885ms</span>
+      <span class="syspct">8%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">DropSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:24.7%"></span></span>
+      <span class="sysval">0.665ms</span>
+      <span class="syspct">6%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">CompactSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:21.6%"></span></span>
+      <span class="sysval">0.580ms</span>
+      <span class="syspct">5%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpatialSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:8.9%"></span></span>
+      <span class="sysval">0.239ms</span>
+      <span class="syspct">2%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">PlayerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:2.6%"></span></span>
+      <span class="sysval">0.069ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StormSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.6%"></span></span>
+      <span class="sysval">0.043ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpawnSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.8%"></span></span>
+      <span class="sysval">0.021ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">OrbitSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.7%"></span></span>
+      <span class="sysval">0.019ms</span>
+      <span class="syspct">0%</span>
+    </div></div>
+        <h4>绘制结构（单帧中位）</h4>
+        <table class="tbl">
+          <tr><td>ctx 调用总数</td><td class="num strong">8367</td></tr>
+          <tr><td>实际绘制调用</td><td class="num">1531</td></tr>
+          <tr><td class="hl-bad">离屏画布重分配</td><td class="num strong">38</td></tr>
+          <tr><td class="hl-warn">shadowBlur 设置</td><td class="num">139</td></tr>
+          <tr><td>渐变对象创建</td><td class="num">62</td></tr>
+        </table>
+      </div>
+    </div>
+  </section><section class="scenario">
+    <header>
+      <h3>后期·250水位 <code>late_250</code></h3>
+      <span class="badge bad">超预算 · P95 30.27ms</span>
+    </header>
+    <p class="desc">维持 250 敌的极端压力，用于探测崩溃点与扩展性</p>
+
+    <div class="meta">
+      <span>敌 <b>250</b></span>
+      <span>弹 <b>71</b></span>
+      <span>粒子 <b>254</b></span>
+      <span>掉落 <b>224</b></span>
+      <span>帧数 <b>400</b></span>
+      <span>模式 <b>sustain</b></span>
+      <span class="hl-bad">超预算帧 <b>74.3%</b></span>
+      <span class="">变异系数 <b>0.27</b></span>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h4>帧时间分布</h4>
+        <svg viewBox="0 0 560 120" class="chart">
+    <rect x="0.0" y="93.5" width="11.7" height="4.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="12.7" y="84.6" width="11.7" height="13.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="25.5" y="89.1" width="11.7" height="8.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="38.2" y="89.1" width="11.7" height="8.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="50.9" y="84.6" width="11.7" height="13.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="63.6" y="66.8" width="11.7" height="31.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="76.4" y="71.3" width="11.7" height="26.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="89.1" y="75.7" width="11.7" height="22.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="101.8" y="66.8" width="11.7" height="31.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="114.5" y="57.9" width="11.7" height="40.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="127.3" y="62.4" width="11.7" height="35.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="140.0" y="35.6" width="11.7" height="62.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="152.7" y="49.0" width="11.7" height="49.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="165.5" y="49.0" width="11.7" height="49.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="178.2" y="44.5" width="11.7" height="53.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="190.9" y="49.0" width="11.7" height="49.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="203.6" y="49.0" width="11.7" height="49.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="216.4" y="17.8" width="11.7" height="80.2" fill="#e05252" opacity="0.85" rx="1"/><rect x="229.1" y="22.3" width="11.7" height="75.7" fill="#e05252" opacity="0.85" rx="1"/><rect x="241.8" y="13.4" width="11.7" height="84.6" fill="#e05252" opacity="0.85" rx="1"/><rect x="254.5" y="0.0" width="11.7" height="98.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="267.3" y="13.4" width="11.7" height="84.6" fill="#e05252" opacity="0.85" rx="1"/><rect x="280.0" y="13.4" width="11.7" height="84.6" fill="#e05252" opacity="0.85" rx="1"/><rect x="292.7" y="22.3" width="11.7" height="75.7" fill="#e05252" opacity="0.85" rx="1"/><rect x="305.5" y="22.3" width="11.7" height="75.7" fill="#e05252" opacity="0.85" rx="1"/><rect x="318.2" y="35.6" width="11.7" height="62.4" fill="#e05252" opacity="0.85" rx="1"/><rect x="330.9" y="22.3" width="11.7" height="75.7" fill="#e05252" opacity="0.85" rx="1"/><rect x="343.6" y="53.5" width="11.7" height="44.5" fill="#e05252" opacity="0.85" rx="1"/><rect x="356.4" y="53.5" width="11.7" height="44.5" fill="#e05252" opacity="0.85" rx="1"/><rect x="369.1" y="40.1" width="11.7" height="57.9" fill="#e05252" opacity="0.85" rx="1"/><rect x="381.8" y="62.4" width="11.7" height="35.6" fill="#e05252" opacity="0.85" rx="1"/><rect x="394.5" y="53.5" width="11.7" height="44.5" fill="#e05252" opacity="0.85" rx="1"/><rect x="407.3" y="66.8" width="11.7" height="31.2" fill="#e05252" opacity="0.85" rx="1"/><rect x="420.0" y="84.6" width="11.7" height="13.4" fill="#e05252" opacity="0.85" rx="1"/><rect x="432.7" y="75.7" width="11.7" height="22.3" fill="#e05252" opacity="0.85" rx="1"/><rect x="445.5" y="84.6" width="11.7" height="13.4" fill="#e05252" opacity="0.85" rx="1"/><rect x="458.2" y="71.3" width="11.7" height="26.7" fill="#e05252" opacity="0.85" rx="1"/><rect x="470.9" y="80.2" width="11.7" height="17.8" fill="#e05252" opacity="0.85" rx="1"/><rect x="483.6" y="93.5" width="11.7" height="4.5" fill="#e05252" opacity="0.85" rx="1"/><rect x="496.4" y="80.2" width="11.7" height="17.8" fill="#e05252" opacity="0.85" rx="1"/><rect x="509.1" y="98.0" width="11.7" height="0.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="521.8" y="80.2" width="11.7" height="17.8" fill="#e05252" opacity="0.85" rx="1"/><rect x="534.5" y="84.6" width="11.7" height="13.4" fill="#e05252" opacity="0.85" rx="1"/><rect x="547.3" y="66.8" width="11.7" height="31.2" fill="#e05252" opacity="0.85" rx="1"/>
+    <line x1="267.5" y1="0" x2="267.5" y2="98" stroke="#2f7d4f" stroke-width="1.5" stroke-dasharray="3 2"/><text x="270.5" y="10" font-size="9" fill="#2f7d4f">P50</text>
+    <line x1="482.5" y1="0" x2="482.5" y2="98" stroke="#c47f1a" stroke-width="1.5" stroke-dasharray="3 2"/><text x="485.5" y="10" font-size="9" fill="#c47f1a">P95</text>
+    <line x1="560.0" y1="0" x2="560.0" y2="98" stroke="#b03030" stroke-width="1.5" stroke-dasharray="3 2"/><text x="530.0" y="10" font-size="9" fill="#b03030">P99</text>
+    <line x1="0" y1="98" x2="560" y2="98" stroke="#d8dbe2"/>
+    <text x="0" y="112" font-size="9" fill="#8a8f9a">7.35ms</text>
+    <text x="560" y="112" font-size="9" fill="#8a8f9a" text-anchor="end">33.97ms</text>
+  </svg>
+        <table class="tbl">
+          <tr><th></th><th>总计</th><th>逻辑</th><th>渲染</th></tr>
+          <tr><td>中位</td><td class="num strong">20.04</td><td class="num">13.57</td><td class="num">6.01</td></tr><tr><td>P75</td><td class="num strong">23.65</td><td class="num">16.60</td><td class="num">7.31</td></tr><tr><td>P95</td><td class="num strong">30.27</td><td class="num">21.83</td><td class="num">9.75</td></tr><tr><td>P99</td><td class="num strong">33.93</td><td class="num">26.24</td><td class="num">12.29</td></tr><tr><td>最大</td><td class="num strong">36.44</td><td class="num">30.81</td><td class="num">15.16</td></tr>
+        </table>
+        <p class="ci">中位数 95% CI: [19.48, 20.72] ms</p>
+      </div>
+      <div>
+        <h4>系统耗时 Top</h4>
+        <div class="sysbars">
+    <div class="sysrow">
+      <span class="sysname">EnemySystem</span>
+      <span class="systrack"><span class="sysfill" style="width:100.0%"></span></span>
+      <span class="sysval">5.319ms</span>
+      <span class="syspct">27%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">CompactSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:35.4%"></span></span>
+      <span class="sysval">1.883ms</span>
+      <span class="syspct">9%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ProjectileSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:35.1%"></span></span>
+      <span class="sysval">1.864ms</span>
+      <span class="syspct">9%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ParticleSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:22.4%"></span></span>
+      <span class="sysval">1.192ms</span>
+      <span class="syspct">6%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">DropSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:21.0%"></span></span>
+      <span class="sysval">1.117ms</span>
+      <span class="syspct">6%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpatialSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:9.2%"></span></span>
+      <span class="sysval">0.487ms</span>
+      <span class="syspct">2%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">PlayerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.2%"></span></span>
+      <span class="sysval">0.064ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StormSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.8%"></span></span>
+      <span class="sysval">0.044ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpawnSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.4%"></span></span>
+      <span class="sysval">0.023ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StageTimerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.3%"></span></span>
+      <span class="sysval">0.018ms</span>
+      <span class="syspct">0%</span>
+    </div></div>
+        <h4>绘制结构（单帧中位）</h4>
+        <table class="tbl">
+          <tr><td>ctx 调用总数</td><td class="num strong">13412</td></tr>
+          <tr><td>实际绘制调用</td><td class="num">2410</td></tr>
+          <tr><td class="hl-bad">离屏画布重分配</td><td class="num strong">62</td></tr>
+          <tr><td class="hl-warn">shadowBlur 设置</td><td class="num">217</td></tr>
+          <tr><td>渐变对象创建</td><td class="num">140</td></tr>
+        </table>
+      </div>
+    </div>
+  </section><section class="scenario">
+    <header>
+      <h3>后期·Boss+群怪 <code>late_boss</code></h3>
+      <span class="badge warn">偏高 · P95 12.68ms</span>
+    </header>
+    <p class="desc">Boss 技能全开 + 维持 60 小怪，最复杂的混合负载</p>
+
+    <div class="meta">
+      <span>敌 <b>62</b></span>
+      <span>弹 <b>25</b></span>
+      <span>粒子 <b>199</b></span>
+      <span>掉落 <b>82</b></span>
+      <span>帧数 <b>450</b></span>
+      <span>模式 <b>sustain</b></span>
+      <span class="hl-bad">超预算帧 <b>1.3%</b></span>
+      <span class="hl-warn">变异系数 <b>0.40</b></span>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h4>帧时间分布</h4>
+        <svg viewBox="0 0 560 120" class="chart">
+    <rect x="0.0" y="62.7" width="11.7" height="35.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="12.7" y="62.7" width="11.7" height="35.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="25.5" y="82.3" width="11.7" height="15.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="38.2" y="51.0" width="11.7" height="47.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="50.9" y="58.8" width="11.7" height="39.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="63.6" y="39.2" width="11.7" height="58.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="76.4" y="35.3" width="11.7" height="62.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="89.1" y="47.0" width="11.7" height="51.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="101.8" y="15.7" width="11.7" height="82.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="114.5" y="19.6" width="11.7" height="78.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="127.3" y="0.0" width="11.7" height="98.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="140.0" y="31.4" width="11.7" height="66.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="152.7" y="7.8" width="11.7" height="90.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="165.5" y="27.4" width="11.7" height="70.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="178.2" y="19.6" width="11.7" height="78.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="190.9" y="15.7" width="11.7" height="82.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="203.6" y="23.5" width="11.7" height="74.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="216.4" y="23.5" width="11.7" height="74.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="229.1" y="35.3" width="11.7" height="62.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="241.8" y="27.4" width="11.7" height="70.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="254.5" y="35.3" width="11.7" height="62.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="267.3" y="39.2" width="11.7" height="58.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="280.0" y="51.0" width="11.7" height="47.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="292.7" y="47.0" width="11.7" height="51.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="305.5" y="51.0" width="11.7" height="47.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="318.2" y="58.8" width="11.7" height="39.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="330.9" y="86.2" width="11.7" height="11.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="343.6" y="86.2" width="11.7" height="11.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="356.4" y="70.6" width="11.7" height="27.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="369.1" y="66.6" width="11.7" height="31.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="381.8" y="82.3" width="11.7" height="15.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="394.5" y="90.2" width="11.7" height="7.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="407.3" y="90.2" width="11.7" height="7.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="420.0" y="74.5" width="11.7" height="23.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="432.7" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="445.5" y="86.2" width="11.7" height="11.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="458.2" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="470.9" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="483.6" y="94.1" width="11.7" height="3.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="496.4" y="90.2" width="11.7" height="7.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="509.1" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="521.8" y="98.0" width="11.7" height="0.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="534.5" y="98.0" width="11.7" height="0.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="547.3" y="74.5" width="11.7" height="23.5" fill="#e05252" opacity="0.85" rx="1"/>
+    <line x1="187.3" y1="0" x2="187.3" y2="98" stroke="#2f7d4f" stroke-width="1.5" stroke-dasharray="3 2"/><text x="190.3" y="10" font-size="9" fill="#2f7d4f">P50</text>
+    <line x1="393.9" y1="0" x2="393.9" y2="98" stroke="#c47f1a" stroke-width="1.5" stroke-dasharray="3 2"/><text x="396.9" y="10" font-size="9" fill="#c47f1a">P95</text>
+    <line x1="560.0" y1="0" x2="560.0" y2="98" stroke="#b03030" stroke-width="1.5" stroke-dasharray="3 2"/><text x="530.0" y="10" font-size="9" fill="#b03030">P99</text>
+    <line x1="0" y1="98" x2="560" y2="98" stroke="#d8dbe2"/>
+    <text x="0" y="112" font-size="9" fill="#8a8f9a">2.15ms</text>
+    <text x="560" y="112" font-size="9" fill="#8a8f9a" text-anchor="end">17.54ms</text>
+  </svg>
+        <table class="tbl">
+          <tr><th></th><th>总计</th><th>逻辑</th><th>渲染</th></tr>
+          <tr><td>中位</td><td class="num strong">7.12</td><td class="num">4.28</td><td class="num">2.45</td></tr><tr><td>P75</td><td class="num strong">9.27</td><td class="num">6.11</td><td class="num">3.26</td></tr><tr><td>P95</td><td class="num strong">12.68</td><td class="num">9.20</td><td class="num">4.97</td></tr><tr><td>P99</td><td class="num strong">15.87</td><td class="num">11.35</td><td class="num">6.21</td></tr><tr><td>最大</td><td class="num strong">19.30</td><td class="num">15.23</td><td class="num">8.25</td></tr>
+        </table>
+        <p class="ci">中位数 95% CI: [6.73, 7.51] ms</p>
+      </div>
+      <div>
+        <h4>系统耗时 Top</h4>
+        <div class="sysbars">
+    <div class="sysrow">
+      <span class="sysname">EnemySystem</span>
+      <span class="systrack"><span class="sysfill" style="width:100.0%"></span></span>
+      <span class="sysval">1.177ms</span>
+      <span class="syspct">17%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ParticleSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:71.8%"></span></span>
+      <span class="sysval">0.845ms</span>
+      <span class="syspct">12%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ProjectileSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:46.1%"></span></span>
+      <span class="sysval">0.543ms</span>
+      <span class="syspct">8%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">DropSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:30.5%"></span></span>
+      <span class="sysval">0.359ms</span>
+      <span class="syspct">5%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpatialSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:9.7%"></span></span>
+      <span class="sysval">0.114ms</span>
+      <span class="syspct">2%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">CompactSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:8.9%"></span></span>
+      <span class="sysval">0.105ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">PlayerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:5.2%"></span></span>
+      <span class="sysval">0.062ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StormSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:3.8%"></span></span>
+      <span class="sysval">0.045ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpawnSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:2.0%"></span></span>
+      <span class="sysval">0.023ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StageTimerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.3%"></span></span>
+      <span class="sysval">0.015ms</span>
+      <span class="syspct">0%</span>
+    </div></div>
+        <h4>绘制结构（单帧中位）</h4>
+        <table class="tbl">
+          <tr><td>ctx 调用总数</td><td class="num strong">4194</td></tr>
+          <tr><td>实际绘制调用</td><td class="num">785</td></tr>
+          <tr><td class="hl-bad">离屏画布重分配</td><td class="num strong">15</td></tr>
+          <tr><td class="hl-warn">shadowBlur 设置</td><td class="num">82</td></tr>
+          <tr><td>渐变对象创建</td><td class="num">32</td></tr>
+        </table>
+      </div>
+    </div>
+  </section><section class="scenario">
+    <header>
+      <h3>掉落堆积 <code>drop_flood</code></h3>
+      <span class="badge warn">偏高 · P95 16.21ms</span>
+    </header>
+    <p class="desc">玩家静止不拾取，掉落物持续累积 —— 复现长时间挂机的退化</p>
+
+    <div class="meta">
+      <span>敌 <b>101</b></span>
+      <span>弹 <b>23</b></span>
+      <span>粒子 <b>201</b></span>
+      <span>掉落 <b>130</b></span>
+      <span>帧数 <b>450</b></span>
+      <span>模式 <b>sustain</b></span>
+      <span class="hl-bad">超预算帧 <b>4.4%</b></span>
+      <span class="hl-warn">变异系数 <b>0.46</b></span>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h4>帧时间分布</h4>
+        <svg viewBox="0 0 560 120" class="chart">
+    <rect x="0.0" y="86.1" width="11.7" height="11.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="12.7" y="77.2" width="11.7" height="20.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="25.5" y="80.2" width="11.7" height="17.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="38.2" y="65.3" width="11.7" height="32.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="50.9" y="50.5" width="11.7" height="47.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="63.6" y="20.8" width="11.7" height="77.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="76.4" y="35.6" width="11.7" height="62.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="89.1" y="14.8" width="11.7" height="83.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="101.8" y="0.0" width="11.7" height="98.0" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="114.5" y="47.5" width="11.7" height="50.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="127.3" y="8.9" width="11.7" height="89.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="140.0" y="8.9" width="11.7" height="89.1" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="152.7" y="26.7" width="11.7" height="71.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="165.5" y="23.8" width="11.7" height="74.2" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="178.2" y="29.7" width="11.7" height="68.3" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="190.9" y="35.6" width="11.7" height="62.4" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="203.6" y="50.5" width="11.7" height="47.5" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="216.4" y="59.4" width="11.7" height="38.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="229.1" y="65.3" width="11.7" height="32.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="241.8" y="68.3" width="11.7" height="29.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="254.5" y="74.2" width="11.7" height="23.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="267.3" y="62.4" width="11.7" height="35.6" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="280.0" y="74.2" width="11.7" height="23.8" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="292.7" y="86.1" width="11.7" height="11.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="305.5" y="68.3" width="11.7" height="29.7" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="318.2" y="86.1" width="11.7" height="11.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="330.9" y="92.1" width="11.7" height="5.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="343.6" y="86.1" width="11.7" height="11.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="356.4" y="89.1" width="11.7" height="8.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="369.1" y="89.1" width="11.7" height="8.9" fill="#6a8fd8" opacity="0.85" rx="1"/><rect x="381.8" y="98.0" width="11.7" height="0.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="394.5" y="95.0" width="11.7" height="3.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="407.3" y="92.1" width="11.7" height="5.9" fill="#e05252" opacity="0.85" rx="1"/><rect x="420.0" y="92.1" width="11.7" height="5.9" fill="#e05252" opacity="0.85" rx="1"/><rect x="432.7" y="98.0" width="11.7" height="0.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="445.5" y="98.0" width="11.7" height="0.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="458.2" y="98.0" width="11.7" height="0.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="470.9" y="92.1" width="11.7" height="5.9" fill="#e05252" opacity="0.85" rx="1"/><rect x="483.6" y="89.1" width="11.7" height="8.9" fill="#e05252" opacity="0.85" rx="1"/><rect x="496.4" y="98.0" width="11.7" height="0.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="509.1" y="98.0" width="11.7" height="0.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="521.8" y="95.0" width="11.7" height="3.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="534.5" y="95.0" width="11.7" height="3.0" fill="#e05252" opacity="0.85" rx="1"/><rect x="547.3" y="74.2" width="11.7" height="23.8" fill="#e05252" opacity="0.85" rx="1"/>
+    <line x1="151.2" y1="0" x2="151.2" y2="98" stroke="#2f7d4f" stroke-width="1.5" stroke-dasharray="3 2"/><text x="154.2" y="10" font-size="9" fill="#2f7d4f">P50</text>
+    <line x1="372.0" y1="0" x2="372.0" y2="98" stroke="#c47f1a" stroke-width="1.5" stroke-dasharray="3 2"/><text x="375.0" y="10" font-size="9" fill="#c47f1a">P95</text>
+    <line x1="560.0" y1="0" x2="560.0" y2="98" stroke="#b03030" stroke-width="1.5" stroke-dasharray="3 2"/><text x="530.0" y="10" font-size="9" fill="#b03030">P99</text>
+    <line x1="0" y1="98" x2="560" y2="98" stroke="#d8dbe2"/>
+    <text x="0" y="112" font-size="9" fill="#8a8f9a">2.78ms</text>
+    <text x="560" y="112" font-size="9" fill="#8a8f9a" text-anchor="end">23.48ms</text>
+  </svg>
+        <table class="tbl">
+          <tr><th></th><th>总计</th><th>逻辑</th><th>渲染</th></tr>
+          <tr><td>中位</td><td class="num strong">8.34</td><td class="num">5.27</td><td class="num">2.64</td></tr><tr><td>P75</td><td class="num strong">10.76</td><td class="num">7.13</td><td class="num">3.52</td></tr><tr><td>P95</td><td class="num strong">16.21</td><td class="num">11.90</td><td class="num">5.50</td></tr><tr><td>P99</td><td class="num strong">23.47</td><td class="num">17.91</td><td class="num">9.12</td></tr><tr><td>最大</td><td class="num strong">40.69</td><td class="num">23.00</td><td class="num">35.76</td></tr>
+        </table>
+        <p class="ci">中位数 95% CI: [8.04, 8.70] ms</p>
+      </div>
+      <div>
+        <h4>系统耗时 Top</h4>
+        <div class="sysbars">
+    <div class="sysrow">
+      <span class="sysname">EnemySystem</span>
+      <span class="systrack"><span class="sysfill" style="width:100.0%"></span></span>
+      <span class="sysval">1.821ms</span>
+      <span class="syspct">22%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ParticleSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:47.7%"></span></span>
+      <span class="sysval">0.868ms</span>
+      <span class="syspct">10%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">DropSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:33.0%"></span></span>
+      <span class="sysval">0.602ms</span>
+      <span class="syspct">7%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">ProjectileSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:24.0%"></span></span>
+      <span class="sysval">0.438ms</span>
+      <span class="syspct">5%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpatialSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:9.6%"></span></span>
+      <span class="sysval">0.175ms</span>
+      <span class="syspct">2%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">CompactSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:6.3%"></span></span>
+      <span class="sysval">0.115ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">PlayerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:3.6%"></span></span>
+      <span class="sysval">0.065ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StormSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:2.4%"></span></span>
+      <span class="sysval">0.044ms</span>
+      <span class="syspct">1%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">SpawnSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:1.1%"></span></span>
+      <span class="sysval">0.020ms</span>
+      <span class="syspct">0%</span>
+    </div>
+    <div class="sysrow">
+      <span class="sysname">StageTimerSystem</span>
+      <span class="systrack"><span class="sysfill" style="width:0.8%"></span></span>
+      <span class="sysval">0.015ms</span>
+      <span class="syspct">0%</span>
+    </div></div>
+        <h4>绘制结构（单帧中位）</h4>
+        <table class="tbl">
+          <tr><td>ctx 调用总数</td><td class="num strong">5049</td></tr>
+          <tr><td>实际绘制调用</td><td class="num">986</td></tr>
+          <tr><td class="hl-bad">离屏画布重分配</td><td class="num strong">25</td></tr>
+          <tr><td class="hl-warn">shadowBlur 设置</td><td class="num">78</td></tr>
+          <tr><td>渐变对象创建</td><td class="num">14</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+<div class="note">
+  <b>测量边界</b>：本报告在 Node 中以计数型 Canvas 替身运行完整的 update + render 管线。
+  能精确测量 JS 侧逻辑耗时、渲染指令构造耗时、绘制调用结构、离屏画布重分配次数；
+  <b>不包含</b> GPU 光栅化、图层合成与真实 VSync 节奏。
+  因此这里的数字是<b>可回归的相对量</b>，用于守住性能不倒退；
+  端到端的真实帧率仍以浏览器内基准（游戏内 Bench 面板）为准。两者互补。
+  <br><br>
+  <b>怎么读</b>：优先看 P95 而非均值 —— 玩家感知到的卡顿来自长尾。
+  变异系数 &gt; 0.3 说明本次测量环境噪声偏大，结论需打折。
+  「离屏画布重分配」若长期 &gt; 0，说明缓存在被反复重建，这是纯粹的浪费。
+</div>
+
+</div></body></html>

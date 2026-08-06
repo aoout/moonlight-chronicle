@@ -1,4 +1,128 @@
-<!DOCTYPE html>
+#!/usr/bin/env node
+/* =========================================================
+   蚀月远征 · 性能优化最终报告生成器
+   ---------------------------------------------------------
+   从 A/B 对拍产物（ab-o123.json / ab-o4.json）与定向实测
+   数据生成一份自包含 HTML：方法学修正 + 逐项收益 + 设置项。
+   ========================================================= */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+));
+const f2 = (n) => (n ?? 0).toFixed(2);
+
+function load(rel) {
+  return JSON.parse(fs.readFileSync(path.resolve(ROOT, rel), 'utf8'));
+}
+
+/* ---------- 数据源 ---------- */
+const o123 = load('perf/ab-o123.json');
+const o4 = load('perf/ab-o4.json');
+
+/* ---------- O1-O3 每场景一行 ---------- */
+function o123Rows() {
+  return o123.scenarios.map((s) => {
+    const ci = s.boot ? s.boot.pctCi.map((v) => v.toFixed(1)).join(' ~ ') : '—';
+    return {
+      id: s.id, label: s.label,
+      a: s.a.median, b: s.b.median,
+      deltaPct: s.deltaPct, p95A: s.a.p95, p95B: s.b.p95,
+      p95DeltaPct: s.p95DeltaPct,
+      ci, verdict: s.verdict,
+    };
+  });
+}
+
+/* ---------- O4 每场景一行（含 draw ops） ---------- */
+function o4Rows() {
+  return o4.scenarios.map((s) => ({
+    id: s.id, label: s.label,
+    a: s.a.median, b: s.b.median,
+    deltaPct: s.deltaPct,
+    ci: s.boot ? s.boot.pctCi.map((v) => v.toFixed(1)).join(' ~ ') : '—',
+    opsA: s.workload.opsA, opsB: s.workload.opsB,
+    entDrift: s.workload.entDriftPct,
+    verdict: s.verdict,
+  }));
+}
+
+const VERDICT = {
+  faster: ['✔', '#7fd6a4', '改善'],
+  slower: ['✘', '#e2546a', '退化'],
+  inconclusive: ['≈', '#f6d987', '无显著差异'],
+  invalid: ['!', '#e2546a', '无效'],
+  unknown: ['?', '#9aa7b8', '数据不足'],
+};
+
+/* ---------- SVG 水平条：降幅 ---------- */
+function deltaBar(label, pct, ci, color = '#7fd6a4') {
+  const w = Math.min(120, Math.max(6, Math.abs(pct)));
+  return `<div class="bar-row">
+    <div class="bar-lbl">${esc(label)}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${pct >= 0 ? color : '#e2546a'}"></div></div>
+    <div class="bar-val">${pct >= 0 ? '−' : '+'}${Math.abs(pct).toFixed(1)}%</div>
+    <div class="bar-ci">95% [${esc(ci)}]</div>
+  </div>`;
+}
+
+/* ---------- O1-O3 表格 ---------- */
+function o123Table() {
+  const rows = o123Rows();
+  const body = rows.map((r) => {
+    const v = VERDICT[r.verdict] ?? VERDICT.unknown;
+    return `<tr>
+      <td class="mono">${r.id}</td>
+      <td>${esc(r.label)}</td>
+      <td class="num">${f2(r.a)}</td>
+      <td class="num">${f2(r.b)}</td>
+      <td class="num good">${r.deltaPct >= 0 ? '−' : '+'}${Math.abs(r.deltaPct).toFixed(1)}%</td>
+      <td class="num">${f2(r.p95A)} → ${f2(r.p95B)} <span class="dim">(${r.p95DeltaPct >= 0 ? '−' : '+'}${Math.abs(r.p95DeltaPct).toFixed(1)}%)</span></td>
+      <td class="num dim">[${esc(r.ci)}]</td>
+      <td><span class="tag" style="color:${v[1]}">${v[0]} ${v[2]}</span></td>
+    </tr>`;
+  }).join('');
+  return `<table class="data">
+    <thead><tr><th>场景</th><th>名称</th><th>A 均值</th><th>B 均值</th><th>均值降幅</th><th>p95（A→B）</th><th>95% 区间</th><th>判定</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
+}
+
+/* ---------- O4 表格 ---------- */
+function o4Table() {
+  const rows = o4Rows();
+  const body = rows.map((r) => {
+    const v = VERDICT[r.verdict] ?? VERDICT.unknown;
+    const opsPct = r.opsA > 0 ? ((r.opsA - r.opsB) / r.opsA) * 100 : 0;
+    return `<tr>
+      <td class="mono">${r.id}</td>
+      <td>${esc(r.label)}</td>
+      <td class="num">${f2(r.a)}</td>
+      <td class="num">${f2(r.b)}</td>
+      <td class="num">${r.deltaPct >= 0 ? '−' : '+'}${Math.abs(r.deltaPct).toFixed(1)}%</td>
+      <td class="num good">${Math.round(r.opsA)} → ${Math.round(r.opsB)} <span class="dim">(−${opsPct.toFixed(1)}%)</span></td>
+      <td class="num dim">${r.entDrift.toFixed(2)}%</td>
+      <td><span class="tag" style="color:${v[1]}">${v[0]} ${v[2]}</span></td>
+    </tr>`;
+  }).join('');
+  return `<table class="data">
+    <thead><tr><th>场景</th><th>名称</th><th>A 均值</th><th>B 均值</th><th>均值降幅</th><th>draw ops（A→B）</th><th>实体漂移</th><th>判定</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
+}
+
+/* ---------- 汇总卡片 ---------- */
+const o123Faster = o123.scenarios.filter((s) => s.verdict === 'faster');
+const o123Pct = o123Faster.map((s) => s.deltaPct);
+const o123Avg = o123Pct.reduce((a, b) => a + b, 0) / o123Pct.length;
+const late250 = o123.scenarios.find((s) => s.id === 'late_250');
+const late250p95 = o123.scenarios.find((s) => s.id === 'late_150');
+
+const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -61,9 +185,9 @@
 <section>
   <h2>一、结论摘要</h2>
   <div class="cards">
-    <div class="card good"><div class="k">O1+O2+O3 · 高负载场景均值降幅</div><div class="v">27.9<small>% （6 场景显著）</small></div></div>
-    <div class="card good"><div class="k">后期·250水位 均值</div><div class="v">5.65 → 4.02<small> ms</small></div></div>
-    <div class="card warn"><div class="k">后期·150水位 p95</div><div class="v">6.31 → 4.48<small> ms</small></div></div>
+    <div class="card good"><div class="k">O1+O2+O3 · 高负载场景均值降幅</div><div class="v">${o123Avg.toFixed(1)}<small>% （6 场景显著）</small></div></div>
+    <div class="card good"><div class="k">后期·250水位 均值</div><div class="v">${f2(late250.a.median)} → ${f2(late250.b.median)}<small> ms</small></div></div>
+    <div class="card warn"><div class="k">后期·150水位 p95</div><div class="v">${f2(late250p95.a.p95)} → ${f2(late250p95.b.p95)}<small> ms</small></div></div>
     <div class="card good"><div class="k">O4 · canvas 重分配（late_250）</div><div class="v">62 → 10<small> 次/帧 (−84%)</small></div></div>
   </div>
   <div class="oknote note">
@@ -87,139 +211,10 @@
 <section>
   <h2>三、O1 + O2 + O3 · 纯架构优化</h2>
   <p class="muted">V8 CPU Profiler 定位三大热点（合计约 CPU 的 24%）：<code>EntityPool</code> 视图 getter 运行时乘法、<code>Store.state</code> 每帧全量浅拷贝、<code>EntityPool.compact</code> 每帧 Object.keys+delete 清理。三项均为纯架构开销，<b>零体验 / 零美术代价</b>。</p>
-  <table class="data">
-    <thead><tr><th>场景</th><th>名称</th><th>A 均值</th><th>B 均值</th><th>均值降幅</th><th>p95（A→B）</th><th>95% 区间</th><th>判定</th></tr></thead>
-    <tbody><tr>
-      <td class="mono">idle</td>
-      <td>空闲</td>
-      <td class="num">0.05</td>
-      <td class="num">0.02</td>
-      <td class="num good">−52.9%</td>
-      <td class="num">0.13 → 0.06 <span class="dim">(−56.6%)</span></td>
-      <td class="num dim">[-20.2 ~ 61.1]</td>
-      <td><span class="tag" style="color:#f6d987">≈ 无显著差异</span></td>
-    </tr><tr>
-      <td class="mono">mid_fixed</td>
-      <td>中期·固定</td>
-      <td class="num">0.33</td>
-      <td class="num">0.18</td>
-      <td class="num good">−45.3%</td>
-      <td class="num">0.72 → 0.37 <span class="dim">(−48.7%)</span></td>
-      <td class="num dim">[-8.1 ~ 53.4]</td>
-      <td><span class="tag" style="color:#f6d987">≈ 无显著差异</span></td>
-    </tr><tr>
-      <td class="mono">heavy_fixed</td>
-      <td>高负载·固定</td>
-      <td class="num">0.92</td>
-      <td class="num">0.67</td>
-      <td class="num good">−27.0%</td>
-      <td class="num">1.54 → 1.35 <span class="dim">(−12.8%)</span></td>
-      <td class="num dim">[8.2 ~ 35.4]</td>
-      <td><span class="tag" style="color:#7fd6a4">✔ 改善</span></td>
-    </tr><tr>
-      <td class="mono">particle_fest</td>
-      <td>粒子狂欢</td>
-      <td class="num">0.57</td>
-      <td class="num">0.50</td>
-      <td class="num good">−13.4%</td>
-      <td class="num">0.94 → 0.95 <span class="dim">(+0.8%)</span></td>
-      <td class="num dim">[-6.8 ~ 24.9]</td>
-      <td><span class="tag" style="color:#f6d987">≈ 无显著差异</span></td>
-    </tr><tr>
-      <td class="mono">late_80</td>
-      <td>后期·80水位</td>
-      <td class="num">2.77</td>
-      <td class="num">1.90</td>
-      <td class="num good">−31.7%</td>
-      <td class="num">4.48 → 3.28 <span class="dim">(−26.9%)</span></td>
-      <td class="num dim">[22.5 ~ 33.4]</td>
-      <td><span class="tag" style="color:#7fd6a4">✔ 改善</span></td>
-    </tr><tr>
-      <td class="mono">late_150</td>
-      <td>后期·150水位</td>
-      <td class="num">4.26</td>
-      <td class="num">2.90</td>
-      <td class="num good">−31.8%</td>
-      <td class="num">6.31 → 4.48 <span class="dim">(−29.1%)</span></td>
-      <td class="num dim">[19.7 ~ 35.4]</td>
-      <td><span class="tag" style="color:#7fd6a4">✔ 改善</span></td>
-    </tr><tr>
-      <td class="mono">late_250</td>
-      <td>后期·250水位</td>
-      <td class="num">5.65</td>
-      <td class="num">4.02</td>
-      <td class="num good">−28.9%</td>
-      <td class="num">7.67 → 5.56 <span class="dim">(−27.5%)</span></td>
-      <td class="num dim">[20.3 ~ 32.4]</td>
-      <td><span class="tag" style="color:#7fd6a4">✔ 改善</span></td>
-    </tr><tr>
-      <td class="mono">late_boss</td>
-      <td>后期·Boss+群怪</td>
-      <td class="num">1.94</td>
-      <td class="num">1.46</td>
-      <td class="num good">−24.7%</td>
-      <td class="num">3.19 → 2.42 <span class="dim">(−24.1%)</span></td>
-      <td class="num dim">[22.6 ~ 27.1]</td>
-      <td><span class="tag" style="color:#7fd6a4">✔ 改善</span></td>
-    </tr><tr>
-      <td class="mono">drop_flood</td>
-      <td>掉落堆积</td>
-      <td class="num">2.37</td>
-      <td class="num">1.81</td>
-      <td class="num good">−23.5%</td>
-      <td class="num">3.84 → 2.91 <span class="dim">(−24.2%)</span></td>
-      <td class="num dim">[21.5 ~ 37.0]</td>
-      <td><span class="tag" style="color:#7fd6a4">✔ 改善</span></td>
-    </tr></tbody>
-  </table>
+  ${o123Table()}
   <h3>降幅分布（正 = 改善）</h3>
   <div class="bars">
-    <div class="bar-row">
-    <div class="bar-lbl">空闲</div>
-    <div class="bar-track"><div class="bar-fill" style="width:52.9411%;background:#7fd6a4"></div></div>
-    <div class="bar-val">−52.9%</div>
-    <div class="bar-ci">95% [-20.2 ~ 61.1]</div>
-  </div><div class="bar-row">
-    <div class="bar-lbl">中期·固定</div>
-    <div class="bar-track"><div class="bar-fill" style="width:45.2933%;background:#7fd6a4"></div></div>
-    <div class="bar-val">−45.3%</div>
-    <div class="bar-ci">95% [-8.1 ~ 53.4]</div>
-  </div><div class="bar-row">
-    <div class="bar-lbl">高负载·固定</div>
-    <div class="bar-track"><div class="bar-fill" style="width:26.9607%;background:#7fd6a4"></div></div>
-    <div class="bar-val">−27.0%</div>
-    <div class="bar-ci">95% [8.2 ~ 35.4]</div>
-  </div><div class="bar-row">
-    <div class="bar-lbl">粒子狂欢</div>
-    <div class="bar-track"><div class="bar-fill" style="width:13.4333%;background:#7fd6a4"></div></div>
-    <div class="bar-val">−13.4%</div>
-    <div class="bar-ci">95% [-6.8 ~ 24.9]</div>
-  </div><div class="bar-row">
-    <div class="bar-lbl">后期·80水位</div>
-    <div class="bar-track"><div class="bar-fill" style="width:31.6908%;background:#7fd6a4"></div></div>
-    <div class="bar-val">−31.7%</div>
-    <div class="bar-ci">95% [22.5 ~ 33.4]</div>
-  </div><div class="bar-row">
-    <div class="bar-lbl">后期·150水位</div>
-    <div class="bar-track"><div class="bar-fill" style="width:31.8353%;background:#7fd6a4"></div></div>
-    <div class="bar-val">−31.8%</div>
-    <div class="bar-ci">95% [19.7 ~ 35.4]</div>
-  </div><div class="bar-row">
-    <div class="bar-lbl">后期·250水位</div>
-    <div class="bar-track"><div class="bar-fill" style="width:28.8772%;background:#7fd6a4"></div></div>
-    <div class="bar-val">−28.9%</div>
-    <div class="bar-ci">95% [20.3 ~ 32.4]</div>
-  </div><div class="bar-row">
-    <div class="bar-lbl">后期·Boss+群怪</div>
-    <div class="bar-track"><div class="bar-fill" style="width:24.7043%;background:#7fd6a4"></div></div>
-    <div class="bar-val">−24.7%</div>
-    <div class="bar-ci">95% [22.6 ~ 27.1]</div>
-  </div><div class="bar-row">
-    <div class="bar-lbl">掉落堆积</div>
-    <div class="bar-track"><div class="bar-fill" style="width:23.5301%;background:#7fd6a4"></div></div>
-    <div class="bar-val">−23.5%</div>
-    <div class="bar-ci">95% [21.5 ~ 37.0]</div>
-  </div>
+    ${o123Rows().map((r) => deltaBar(r.label, r.deltaPct, r.ci)).join('')}
   </div>
   <div class="note">轻负载场景（idle / mid_fixed / particle_fest）判定为「无显著差异」是因为绝对值太小（&lt;1ms），噪声占比高，并非无效；方向与重负载场景一致。</div>
 </section>
@@ -227,46 +222,7 @@
 <section>
   <h2>四、O4 · 敌人离屏缓存按键去重</h2>
   <p class="muted">病灶：缓存键按「类型+颜色+尺寸」聚合共享，刷新判定却按敌人下标交错 —— 后期同键敌人几十上百只时，同一张画布每帧被反复 refresh 十几次，每次伴随 canvas 尺寸重设（显存重分配）。修复：<code>_lastRefresh</code> 按键记帧，同帧去重 + 帧间节流。</p>
-  <table class="data">
-    <thead><tr><th>场景</th><th>名称</th><th>A 均值</th><th>B 均值</th><th>均值降幅</th><th>draw ops（A→B）</th><th>实体漂移</th><th>判定</th></tr></thead>
-    <tbody><tr>
-      <td class="mono">heavy_fixed</td>
-      <td>高负载·固定</td>
-      <td class="num">0.97</td>
-      <td class="num">0.94</td>
-      <td class="num">−3.7%</td>
-      <td class="num good">2825 → 1862 <span class="dim">(−34.1%)</span></td>
-      <td class="num dim">0.00%</td>
-      <td><span class="tag" style="color:#f6d987">≈ 无显著差异</span></td>
-    </tr><tr>
-      <td class="mono">late_80</td>
-      <td>后期·80水位</td>
-      <td class="num">3.29</td>
-      <td class="num">3.53</td>
-      <td class="num">+7.2%</td>
-      <td class="num good">4980 → 4181 <span class="dim">(−16.0%)</span></td>
-      <td class="num dim">0.00%</td>
-      <td><span class="tag" style="color:#f6d987">≈ 无显著差异</span></td>
-    </tr><tr>
-      <td class="mono">late_150</td>
-      <td>后期·150水位</td>
-      <td class="num">3.93</td>
-      <td class="num">3.69</td>
-      <td class="num">−6.1%</td>
-      <td class="num good">8419 → 6564 <span class="dim">(−22.0%)</span></td>
-      <td class="num dim">0.00%</td>
-      <td><span class="tag" style="color:#f6d987">≈ 无显著差异</span></td>
-    </tr><tr>
-      <td class="mono">late_250</td>
-      <td>后期·250水位</td>
-      <td class="num">5.36</td>
-      <td class="num">5.29</td>
-      <td class="num">−1.3%</td>
-      <td class="num good">13070 → 9421 <span class="dim">(−27.9%)</span></td>
-      <td class="num dim">0.00%</td>
-      <td><span class="tag" style="color:#f6d987">≈ 无显著差异</span></td>
-    </tr></tbody>
-  </table>
+  ${o4Table()}
   <div class="oknote note">
     <strong>为何 total 差异不显著但仍是有效优化：</strong>headless 的 fallback canvas 里 <code>canvas.width = w</code> 只是属性赋值，
     重分配的 GPU 代价为零，所以 <b>total 测不出</b>。但 draw ops（−16%–34%）与 canvas 重分配（62→10 次/帧，−84%）
@@ -310,6 +266,10 @@
 </section>
 
 <footer>
-  生成于 2026/8/6 17:59:25 · 数据源 perf/ab-o123.json · perf/ab-o4.json · 方法见 scripts/bench/ab.mjs
+  生成于 ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })} · 数据源 perf/ab-o123.json · perf/ab-o4.json · 方法见 scripts/bench/ab.mjs
 </footer>
-</article></body></html>
+</article></body></html>`;
+
+const out = path.resolve(ROOT, 'docs/benchmarks/benchmark-optimization-report.html');
+fs.writeFileSync(out, html);
+console.log(`› 最终报告已生成 ${path.relative(ROOT, out)} (${(html.length / 1024).toFixed(1)} KB)`);

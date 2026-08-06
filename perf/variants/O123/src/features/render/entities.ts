@@ -8,31 +8,9 @@ import { drawEnemyBody } from './layers/enemies.js';
 import { drawBossBody } from './layers/bosses.js';
 import type { RenderContext } from './context.js';
 import { shapeCache } from './shape_cache.js';
-import { settingsState } from '../../state/settings.js';
 
-/** 敌人身体离屏缓存刷新计数器（逐帧递增，作为重绘节流的时间基准） */
+/** 敌人身体离屏缓存刷新计数器（每4帧刷新一次，以支持身体动画） */
 let _enemyCacheFrame = 0;
-
-/**
- * 缓存键 → 上次重绘所在的帧号。
- *
- * 一张离屏画布由「同类型 + 同颜色 + 同尺寸」的所有敌人共享，
- * 所以一帧之内重绘一次就够了。原先的判定按敌人下标 (i + frame) % 4 做交错，
- * 可键却是按类型聚合的 —— 后期两百多只敌人里，同一个键每帧会被反复重绘十几次，
- * 每次都伴随一次 canvas 尺寸重设（等同重新分配显存），全是白干。
- *
- * 改用「按键记帧」后，这张表同时管住了两件事：
- *   · 同一帧内重复重绘（diff = 0，直接跳过）
- *   · 跨帧的重绘节流（diff < stride 时跳过）
- * 而且各键的重绘相位由它们首次出现的时机自然错开，不会扎堆成帧尖峰。
- */
-const _lastRefresh = new Map<string, number>();
-
-/** 离屏缓存被整体清空时同步复位，避免残留帧号让新画布错过首次重绘 */
-export function resetEnemyCacheClock(): void {
-  _lastRefresh.clear();
-  _enemyCacheFrame = 0;
-}
 
 export function drawEnemies(rc: RenderContext): void {
   const ctx = rc.ctx;
@@ -48,8 +26,6 @@ export function drawEnemies(rc: RenderContext): void {
 
   // 每帧递增一次缓存刷新计数器
   _enemyCacheFrame++;
-  // 蚀影律动：玩家可在设置里选择身姿重绘的步长（1 逐帧 / 2 / 4）
-  const animStride = settingsState.state.enemyAnimStride || 1;
 
   for (let i = 0; i < count; i++) {
     const base = i * stride;
@@ -96,10 +72,8 @@ export function drawEnemies(rc: RenderContext): void {
       if (e.boss) drawBossBody(bctx, e, s, 0, 0, t, rc.time);
       else drawEnemyBody(bctx, e, s, 0, 0, t, 0, rc.time);
     };
-    // 按缓存键节流：同一张离屏画布每 animStride 帧至多重绘一次
-    const last = _lastRefresh.get(cacheKey);
-    const shouldRefresh = last === undefined || _enemyCacheFrame - last >= animStride;
-    if (shouldRefresh) _lastRefresh.set(cacheKey, _enemyCacheFrame);
+    // 交错刷新：每帧只刷新 count/4 的敌人，避免集中刷新导致的帧率峰值
+    const shouldRefresh = (i + _enemyCacheFrame) % 4 === 0;
     const cacheCanvas = shouldRefresh
       ? shapeCache.refresh(cacheKey, cacheSize, cacheSize, drawBody)
       : shapeCache.get(cacheKey, cacheSize, cacheSize, drawBody);

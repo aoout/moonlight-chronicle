@@ -35,30 +35,15 @@ export class Store<T extends Record<string, any>> {
   /** 构造时的初始快照，供 reset 使用；不对外暴露 */
   private readonly _initial: T;
   private _listeners: Map<string, Set<Listener>> = new Map();
-  /** 浅拷贝缓存，任一写入即失效 */
-  private _snapshot: T | null = null;
 
   constructor(initialState: T) {
     this._state = cloneData(initialState);
     this._initial = cloneData(initialState);
   }
 
-  /** 读取整个状态快照（返回浅拷贝，防止外部直接修改绕过通知）
-   *
-   * 为什么要缓存：全项目有 268 处 `pSt()` / `rSt()` 这类访问器调用，
-   * 且大量位于逐实体循环内部 —— 单是 `enemyTick` 每只敌人就要调 6 次。
-   * 后期 250 敌时，仅此一处每帧就产生上千个短命对象，
-   * 实测堆增长约 30 KB/帧（≈2 MB/s），GC 被迫频繁介入，
-   * 表现为帧时间长尾抖动。
-   *
-   * 缓存不改变对外语义：返回的仍是与 `_state` 分离的浅拷贝，
-   * 外部改它依旧影响不到 store（这一点原本就是设计意图，
-   * `run.test.ts` 里也明确写了「直接写快照是无效写入」）。
-   * 唯一的差别是同一批读取共享对象标识 —— 而依赖标识差异的写法
-   * 本来就是 bug。
-   */
+  /** 读取整个状态快照（返回浅拷贝，防止外部直接修改绕过通知） */
   get state(): T {
-    return (this._snapshot ??= { ...this._state });
+    return { ...this._state };
   }
 
   /** 读取单个属性 */
@@ -71,8 +56,6 @@ export class Store<T extends Record<string, any>> {
     const old = this._state[key];
     if (old !== value) {
       this._state[key] = value;
-      // 必须在通知前失效：监听器回调里读 .state 要能拿到新值
-      this._snapshot = null;
       this._notify(key as string, value, old);
     }
   }
@@ -83,7 +66,6 @@ export class Store<T extends Record<string, any>> {
       const old = (this._state as any)[key];
       if (old !== value) {
         (this._state as any)[key] = value;
-        this._snapshot = null;
         this._notify(key, value, old);
       }
     }
@@ -107,7 +89,6 @@ export class Store<T extends Record<string, any>> {
   reset(overrides?: Partial<T>): void {
     this._state = cloneData(this._initial);
     if (overrides) Object.assign(this._state, cloneData(overrides));
-    this._snapshot = null;
   }
 
   /** 显式移除全部订阅（销毁 / 热重载场景） */

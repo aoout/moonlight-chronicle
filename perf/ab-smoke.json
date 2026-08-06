@@ -1,0 +1,84 @@
+{
+  "schema": "moonlight-bench-ab/1",
+  "timestamp": "2026-08-06T09:39:32.531Z",
+  "durationMs": 14172,
+  "sequence": [
+    "A",
+    "B"
+  ],
+  "rounds": 1,
+  "variants": {
+    "A": {
+      "label": "原版",
+      "dir": "perf/variants/A"
+    },
+    "B": {
+      "label": "O1+O2+O3",
+      "dir": "perf/variants/B"
+    }
+  },
+  "env": {
+    "node": "v22.22.2",
+    "platform": "win32",
+    "arch": "x64",
+    "cpus": "12th Gen Intel(R) Core(TM) i5-12450H"
+  },
+  "method": {
+    "isolation": "每次运行独立 node 进程",
+    "order": "ABBA 交替，抵消时间漂移",
+    "ci": "分层 bootstrap（先重采样运行，再重采样帧），2000 次"
+  },
+  "scenarios": [
+    {
+      "id": "late_250",
+      "label": "后期·250水位",
+      "frames": 400,
+      "a": {
+        "runs": [
+          8.3227
+        ],
+        "median": 8.3227,
+        "p95": 13.4523,
+        "update": 5.8636,
+        "render": 2.4591
+      },
+      "b": {
+        "runs": [
+          6.5936
+        ],
+        "median": 6.5936,
+        "p95": 9.5818,
+        "update": 4.1838,
+        "render": 2.4098
+      },
+      "pairedDiff": {
+        "values": [
+          1.7290
+        ],
+        "median": 1.7290,
+        "mean": 1.7290
+      },
+      "deltaMs": 1.7290,
+      "deltaPct": 20.7757,
+      "p95DeltaPct": 28.7720,
+      "boot": {
+        "diffCi": [
+          1.4339,
+          2.0950
+        ],
+        "pctCi": [
+          17.6815,
+          24.4597
+        ],
+        "diffMedian": 1.7638,
+        "pctMedian": 21.1730
+      },
+      "workload": {
+        "opsA": 13106.5,
+        "opsB": 13106.5,
+        "driftPct": 0
+      },
+      "verdict": "faster"
+    }
+  ]
+}

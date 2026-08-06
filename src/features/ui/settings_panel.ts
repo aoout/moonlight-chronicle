@@ -88,7 +88,7 @@ export function bindSettingsUI(): void {
 }
 
 /* ---------- 设置键白名单（防御未知 data-key 写入状态） ---------- */
-const SETTING_KEYS = ['renderScale', 'particleDensity', 'fpsLimit', 'glowFx', 'shake', 'dmgNumbers', 'bgDetail'];
+const SETTING_KEYS = ['renderScale', 'particleDensity', 'fpsLimit', 'glowFx', 'shake', 'dmgNumbers', 'bgDetail', 'enemyAnimStride'];
 function isSettingKey(key: string): boolean {
   return SETTING_KEYS.includes(key);
 }

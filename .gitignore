@@ -9,3 +9,7 @@ dist/
 .workbuddy/
 .vitest-result.json
 .vitest-stdout.log
+
+# 压测临时产物（不提交）
+perf/.abruns/
+*.cpuprofile

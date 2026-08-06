@@ -1,0 +1,277 @@
+{
+  "schema": "moonlight-bench-ab/1",
+  "timestamp": "2026-08-06T09:55:17.024Z",
+  "durationMs": 93243,
+  "sequence": [
+    "A",
+    "B",
+    "B",
+    "A",
+    "A",
+    "B"
+  ],
+  "rounds": 3,
+  "variants": {
+    "A": {
+      "label": "修复前",
+      "dir": "perf/variants/O123"
+    },
+    "B": {
+      "label": "O4 去重",
+      "dir": "perf/variants/O1234"
+    }
+  },
+  "env": {
+    "node": "v22.22.2",
+    "platform": "win32",
+    "arch": "x64",
+    "cpus": "12th Gen Intel(R) Core(TM) i5-12450H"
+  },
+  "method": {
+    "isolation": "每次运行独立 node 进程",
+    "order": "ABBA 交替，抵消时间漂移",
+    "ci": "分层 bootstrap（先重采样运行，再重采样帧），2000 次"
+  },
+  "scenarios": [
+    {
+      "id": "heavy_fixed",
+      "label": "高负载·固定",
+      "frames": 400,
+      "a": {
+        "runs": [
+          0.9725,
+          1.1748,
+          0.627
+        ],
+        "median": 0.9725,
+        "p95": 1.9476,
+        "update": 0.4822,
+        "render": 0.4903
+      },
+      "b": {
+        "runs": [
+          1.117,
+          0.5526,
+          0.937
+        ],
+        "median": 0.937,
+        "p95": 2.3416,
+        "update": 0.5032,
+        "render": 0.4338
+      },
+      "pairedDiff": {
+        "values": [
+          -0.1444,
+          0.6222,
+          -0.3100
+        ],
+        "median": -0.1444,
+        "mean": 0.0559
+      },
+      "deltaMs": 0.0354,
+      "deltaPct": 3.6503,
+      "p95DeltaPct": -20.2300,
+      "boot": {
+        "diffCi": [
+          -0.3026,
+          0.4444
+        ],
+        "pctCi": [
+          -41.1408,
+          40.4331
+        ],
+        "diffMedian": 0.0630,
+        "pctMedian": 6.8078
+      },
+      "workload": {
+        "entA": 103,
+        "entB": 103,
+        "entDriftPct": 0,
+        "opsA": 2825,
+        "opsB": 1862,
+        "opsDriftPct": 34.0884
+      },
+      "verdict": "inconclusive"
+    },
+    {
+      "id": "late_80",
+      "label": "后期·80水位",
+      "frames": 500,
+      "a": {
+        "runs": [
+          3.2897,
+          3.796,
+          2.629
+        ],
+        "median": 3.2897,
+        "p95": 5.2389,
+        "update": 1.9742,
+        "render": 1.3155
+      },
+      "b": {
+        "runs": [
+          3.5271,
+          2.7539,
+          4.1178
+        ],
+        "median": 3.5271,
+        "p95": 5.7099,
+        "update": 2.1477,
+        "render": 1.3794
+      },
+      "pairedDiff": {
+        "values": [
+          -0.2374,
+          1.0421,
+          -1.4888
+        ],
+        "median": -0.2374,
+        "mean": -0.2280
+      },
+      "deltaMs": -0.2374,
+      "deltaPct": -7.2164,
+      "p95DeltaPct": -8.9904,
+      "boot": {
+        "diffCi": [
+          -1.0424,
+          0.6194
+        ],
+        "pctCi": [
+          -36.5205,
+          17.2547
+        ],
+        "diffMedian": -0.2003,
+        "pctMedian": -6.1928
+      },
+      "workload": {
+        "entA": 438,
+        "entB": 438,
+        "entDriftPct": 0,
+        "opsA": 4980,
+        "opsB": 4181,
+        "opsDriftPct": 16.0441
+      },
+      "verdict": "inconclusive"
+    },
+    {
+      "id": "late_150",
+      "label": "后期·150水位",
+      "frames": 500,
+      "a": {
+        "runs": [
+          3.9285,
+          4.2443,
+          3.4836
+        ],
+        "median": 3.9285,
+        "p95": 6.3834,
+        "update": 2.4356,
+        "render": 1.493
+      },
+      "b": {
+        "runs": [
+          4.0417,
+          3.6887,
+          3.5896
+        ],
+        "median": 3.6887,
+        "p95": 5.4577,
+        "update": 2.3494,
+        "render": 1.3394
+      },
+      "pairedDiff": {
+        "values": [
+          -0.1131,
+          0.5556,
+          -0.1059
+        ],
+        "median": -0.1059,
+        "mean": 0.1121
+      },
+      "deltaMs": 0.2398,
+      "deltaPct": 6.1041,
+      "p95DeltaPct": 14.5016,
+      "boot": {
+        "diffCi": [
+          -0.3096,
+          0.4967
+        ],
+        "pctCi": [
+          -8.8004,
+          11.8785
+        ],
+        "diffMedian": 0.0943,
+        "pctMedian": 2.4403
+      },
+      "workload": {
+        "entA": 609,
+        "entB": 609,
+        "entDriftPct": 0,
+        "opsA": 8419,
+        "opsB": 6564,
+        "opsDriftPct": 22.0334
+      },
+      "verdict": "inconclusive"
+    },
+    {
+      "id": "late_250",
+      "label": "后期·250水位",
+      "frames": 400,
+      "a": {
+        "runs": [
+          5.3344,
+          5.3612,
+          5.4511
+        ],
+        "median": 5.3612,
+        "p95": 7.5777,
+        "update": 3.3717,
+        "render": 2.0055
+      },
+      "b": {
+        "runs": [
+          4.8165,
+          5.3621,
+          5.2893
+        ],
+        "median": 5.2893,
+        "p95": 7.4325,
+        "update": 3.5156,
+        "render": 1.7737
+      },
+      "pairedDiff": {
+        "values": [
+          0.5179,
+          -0.0008,
+          0.1618
+        ],
+        "median": 0.1618,
+        "mean": 0.2262
+      },
+      "deltaMs": 0.0719,
+      "deltaPct": 1.3411,
+      "p95DeltaPct": 1.9161,
+      "boot": {
+        "diffCi": [
+          -0.0328,
+          0.5885
+        ],
+        "pctCi": [
+          -0.6192,
+          10.7523
+        ],
+        "diffMedian": 0.2483,
+        "pctMedian": 4.5925
+      },
+      "workload": {
+        "entA": 790,
+        "entB": 790,
+        "entDriftPct": 0,
+        "opsA": 13069.5,
+        "opsB": 9420.5,
+        "opsDriftPct": 27.9199
+      },
+      "verdict": "inconclusive"
+    }
+  ]
+}
