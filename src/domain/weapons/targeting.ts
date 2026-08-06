@@ -25,6 +25,7 @@ export const TARGETING: Record<string, (p: Player, cfg: WeaponFireConfig) => Tar
 
   /** 密集区域（陨石/范围攻击） */
   denseArea(p, cfg) {
+    if (!p) return null;
     let best = null, bestScore = 0;
     const r = 160;
     const candidates = neighborEnemies(p.x, p.y, cfg.range || 500);
@@ -39,8 +40,12 @@ export const TARGETING: Record<string, (p: Player, cfg: WeaponFireConfig) => Tar
       }
       if (score > bestScore) { bestScore = score; best = e; }
     }
-    if (bestScore < 1 || !best) return null;
-    return { target: best, x: best.x, y: best.y };
+    // 密集区优先；找不到足够密集的怪群时回退到最近敌人，
+    // 保证 AOE 武器在稀疏场也有目标可打（修复前 bestScore<1 直接哑火）
+    if (best) return { target: best, x: best.x, y: best.y };
+    const t = nearestInGrid(p.x, p.y, cfg.range || 500);
+    if (!t) return null;
+    return { target: t, x: t.x, y: t.y };
   },
 
   /** 随机方向 */
