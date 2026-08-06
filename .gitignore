@@ -3,3 +3,9 @@ dist/
 *.tmp.reasonix/
 .reasonix/
 *.tmp
+
+# 工具与助手产物
+.trae-html-share-packages/
+.workbuddy/
+.vitest-result.json
+.vitest-stdout.log

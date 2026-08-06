@@ -3,17 +3,18 @@
    诅咒 / 道具光环 / 时停 / 移动 / 回血 / 武器开火
    效果更新已委托给 domain/effects.ts 注册表
    ========================================================= */
-import { System } from '../core/system.js';
+import { System } from '../engine/core/system.js';
 import { playerState } from '../state/player.js';
 import { inputState } from '../state/input.js';
 import { renderState } from '../state/render.js';
-import { gameState } from '../state/game.js';
-import { RNG, rand, clamp } from '../utils.js';
-import { PALETTE } from '../data/palette.js';
-import { CONFIG } from '../data/index.js';
-import { addFx } from '../render/effects/fx.js';
+import { gameState } from '../state/flow.js';
+import { RNG, rand, clamp } from '../engine/util/utils.js';
+import { PALETTE } from '../assets/palette.js';
+import { CONFIG } from '../config/index.js';
+import { addFx } from '../platform/fx/fx.js';
 import { updateEffects } from '../domain/effects.js';
-import { weaponFire } from '../weapons/index.js';
+import { weaponFire } from '../domain/weapons/index.js';
+import { isFixedLoad } from '../engine/env.js';
 
 import { pSt, iSt, rSt, gmSt } from '../state/accessors.js';
 
@@ -110,6 +111,7 @@ export class PlayerSystem extends System {
   private _updateWeapons(dt: number): void {
     const p = pSt().player;
     if (!p) return;
+    if (isFixedLoad()) return;
 
     const wcd = pSt().weaponCd;
     const wcdFull = pSt().weaponCdFull;

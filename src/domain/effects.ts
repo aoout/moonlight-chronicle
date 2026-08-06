@@ -4,15 +4,15 @@
    替代 PlayerSystem._updateCursesAndAuras 的条件分支
    ========================================================= */
 import type { Player } from '../types/core.d.ts';
-import { EventBus } from '../core/event_bus.js';
+import { EventBus } from '../engine/core/event_bus.js';
 import { entityState } from '../state/entities.js';
-import { gameState } from '../state/game.js';
-import { world } from '../ecs/World.js';
-import { nearestEnemy } from '../weapons/index.js';
-import { achEarnedTotal } from '../systems/AchievementSystem.js';
-import { rand, dist, pick, RNG } from '../utils.js';
+import { gameState } from '../state/flow.js';
+import { world } from '../engine/ecs/World.js';
+import { nearestEnemy } from './weapons/index.js';
+import { achievements } from './ports/achievements.js';
+import { rand, dist, pick, RNG } from '../engine/util/utils.js';
 import { damageEnemy } from './combat.js';
-import { MOON_NAMES, currentMoonPhase } from '../data/moon_phase.js';
+import { MOON_NAMES, currentMoonPhase } from '../config/moon_phase.js';
 
 import { gmSt } from '../state/accessors.js';
 
@@ -140,7 +140,7 @@ const REGISTRY: Record<string, EffectStrategy> = {
       const alive = entityState.state.enemies.filter(e => !e.dead);
       if (alive.length > 0) {
         const t = pick(alive);
-        const ach = achEarnedTotal();
+        const ach = achievements().earnedTotal();
         world.add('projectiles', {
           judge: 1, x: t.x + rand(-35, 35), y: t.y + rand(-35, 35),
           t: 0, delay: 0.5, dmg: p.effAtk * 2 * (1 + ach * 0.08), aoe: 110,

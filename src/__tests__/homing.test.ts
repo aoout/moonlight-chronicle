@@ -5,7 +5,7 @@ vi.hoisted(() => {
   (globalThis as any).requestAnimationFrame = (cb: any) => 0;
 });
 
-import { MOVEMENT } from '../weapons/movement.js';
+import { MOVEMENT } from '../domain/weapons/movement.js';
 
 describe('追踪弹平滑转向', () => {
   it('turnRate 限制转向：急转时弹跟不上', () => {

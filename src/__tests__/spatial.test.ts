@@ -14,8 +14,8 @@ vi.mock('../state/entities.js', () => ({
 }));
 
 // 导入被测试模块
-import { buildSpatialGrid, queryRadius, nearestInGrid } from '../systems/SpatialSystem.js';
-import { world } from '../ecs/World.js';
+import { buildSpatialGrid, queryRadius, nearestInGrid } from '../engine/spatial/SpatialSystem.js';
+import { world } from '../engine/ecs/World.js';
 
 describe('Spatial Grid', () => {
   beforeEach(() => {

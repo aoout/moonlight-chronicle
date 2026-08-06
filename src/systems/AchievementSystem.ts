@@ -2,9 +2,10 @@
    蚀月远征 · 蚀月功勋：成就系统
    订阅战斗/成长事件 + 关键点钩子，累计与单局统计，达成即解锁。
    ========================================================= */
-import { ACHIEVEMENTS, type AchievementDef } from '../data/achievements.js';
-import { loadAch, saveAch } from '../persistence/achievements.js';
-import { EventBus } from '../core/event_bus.js';
+import { ACHIEVEMENTS, type AchievementDef } from '../config/achievements.js';
+import { loadAch, saveAch } from '../infra/persistence/achievements.js';
+import { EventBus } from '../engine/core/event_bus.js';
+import { setAchievementSink } from '../domain/ports/achievements.js';
 
 /* ---------- 单局会话统计（每局重置） ---------- */
 const session: Record<string, number> = {};
@@ -108,6 +109,7 @@ export function initAchievements(): void {
   EventBus.on('player:died', () => { _died = true; achSessionEnd(); });
   EventBus.on('player:levelup', (d: any) => achOnLevel(d.level || 0));
   EventBus.on('stage:start', () => { achOnStageStart(); tryUnlock(); });
+  EventBus.on('stage:cleared', () => achOnStageCleared());
   EventBus.on('game:runEnd', (d: any) => {
     if (d && d.win) {
       _winStage = d.stage || 0;
@@ -244,3 +246,13 @@ export function achOtherEarned(): number {
   for (const b of ACHIEVEMENTS) if (b.id !== 'a_all' && earned[b.id]) n++;
   return n;
 }
+
+/* ---------- 向领域层注册实现（依赖倒置：domain 只认端口） ---------- */
+setAchievementSink({
+  onDamage: achOnDamage,
+  onHurt: achOnHurt,
+  onDodge: achOnDodge,
+  onShieldAbsorb: achOnShieldAbsorb,
+  onWeapon: achOnWeapon,
+  earnedTotal: achEarnedTotal,
+});

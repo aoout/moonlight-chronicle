@@ -9,7 +9,7 @@ vi.mock('../persistence/codex.js', () => ({
 
 import { purchaseWeapon, upgradeWeaponCmd, purchaseItem } from '../commands/shop.js';
 import { createPlayer, addWeapon } from '../domain/player.js';
-import { SHOP_ITEMS } from '../data/index.js';
+import { SHOP_ITEMS } from '../config/index.js';
 import { playerState } from '../state/player.js';
 import { statsState } from '../state/stats.js';
 

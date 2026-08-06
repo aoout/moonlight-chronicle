@@ -2,13 +2,14 @@
    蚀月远征 · ECS System：敌人更新 + 压缩
    包含 enemyTick 函数（从 enemies.js 迁移）
    ========================================================= */
-import { System } from '../core/system.js';
-import { angTo, dist, clamp } from '../utils.js';
+import { System } from '../engine/core/system.js';
+import { angTo, dist, clamp } from '../engine/util/utils.js';
 import { killEnemy, hurtPlayer } from '../domain/combat.js';
-import { bossTick } from '../enemies/boss_skills.js';
-import { ENEMY_SKILLS } from '../enemies/skills.js';
-import { ENEMY_MOVES } from '../enemies/behaviors/index.js';
-import { world } from '../ecs/World.js';
+import { bossTick } from '../domain/enemies/boss_skills.js';
+import { ENEMY_SKILLS } from '../domain/enemies/skills.js';
+import { ENEMY_MOVES } from '../domain/enemies/behaviors/index.js';
+import { world } from '../engine/ecs/World.js';
+import { isFixedLoad } from '../engine/env.js';
 import type { EnemyInstance } from '../types/core.d.ts';
 
 import { gSt, rSt, pSt, gmSt } from '../state/accessors.js';
@@ -25,6 +26,15 @@ function enemyTick(e: EnemyInstance, dt: number): void {
   if (e.flash > 0) e.flash -= dt;
   if (e.slow > 0) e.slow -= dt;
   if (e.stun > 0) { e.stun -= dt; return; }
+
+  // 固定负载基准：只保留稳定的基础移动，禁用技能/伤害/击杀衍生物，避免实体数漂移
+  if (isFixedLoad()) {
+    ENEMY_MOVES._default(e, dt, p, slowF);
+    e.x = clamp(e.x, -40, rSt().width + 40);
+    e.y = clamp(e.y, -40, rSt().height + 40);
+    return;
+  }
+
   if (e.bleed > 0) {
     e.bleed -= dt;
     e.hp -= 1 + gs.stage * 0.2;
@@ -61,7 +71,11 @@ export class EnemySystem extends System {
   name = 'EnemySystem';
 
   update(dt: number): void {
-    for (const e of world.query('enemies')) enemyTick(e, dt);
-    world.compact('enemies', e => !!e.dead);
+    let dirty = false;
+    for (const e of world.query('enemies')) {
+      enemyTick(e, dt);
+      if (e.dead) dirty = true;
+    }
+    if (dirty) world.markCompactDirty('enemies');
   }
 }

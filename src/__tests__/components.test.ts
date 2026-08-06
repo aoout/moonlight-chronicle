@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   Position, Health, Renderable, Velocity, Combat, Timer, Status,
   Enemy, Projectile,
-} from '../ecs/entity_factories.js';
+} from '../engine/ecs/entity_factories.js';
 
 describe('Component factories', () => {
   it('Position should create position component', () => {

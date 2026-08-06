@@ -1,18 +1,20 @@
 /* =========================================================
    蚀月远征 · ECS Systems 统一导出
    ========================================================= */
-import { SystemManager } from '../core/system_manager.js';
+import { SystemManager } from '../engine/core/system_manager.js';
 import { PlayerSystem } from './PlayerSystem.js';
 import { SpawnSystem } from './SpawnSystem.js';
-import { SpatialSystem } from './SpatialSystem.js';
+import { SpatialSystem } from '../engine/spatial/SpatialSystem.js';
 import { ProjectileSystem } from './ProjectileSystem.js';
 import { DropSystem } from './DropSystem.js';
 import { EnemySystem } from './EnemySystem.js';
 import { OrbitSystem } from './OrbitSystem.js';
 import { StormSystem } from './StormSystem.js';
 import { ParticleSystem } from './ParticleSystem.js';
+import { CompactSystem } from './CompactSystem.js';
 import { StageTimerSystem } from './StageTimerSystem.js';
 import { entityState } from '../state/entities.js';
+import { CONFIG } from '../config/index.js';
 
 let _sysMan: SystemManager | null = null;
 
@@ -36,7 +38,7 @@ export function getSysMan(): SystemManager {
  *     以避免每帧渲染 ≥2 次（SystemManager.update 内调用 + gameLoop 内独立调用）
  */
 export function createSystemManager(): SystemManager {
-  const sm = new SystemManager();
+  const sm = new SystemManager(CONFIG);
 
   // 注册系统类（SystemManager 自动注入依赖）
   sm.add(PlayerSystem);       // 0: 玩家诅咒/光环/时停/移动/回血/武器
@@ -48,7 +50,8 @@ export function createSystemManager(): SystemManager {
   sm.add(OrbitSystem);        // 7: 环舞之刃+月影残像
   sm.add(StormSystem);        // 8: 风暴之眼（双核环绕弹幕）
   sm.add(ParticleSystem);     // 9: 粒子更新+压缩
-  sm.add(StageTimerSystem);   // 10: 关卡计时
+  sm.add(CompactSystem);      // 10: 批量压缩（projectiles/drops/enemies/particles）
+  sm.add(StageTimerSystem);   // 11: 关卡计时
 
   return sm;
 }

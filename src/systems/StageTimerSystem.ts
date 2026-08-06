@@ -1,10 +1,10 @@
 /* =========================================================
    蚀月远征 · ECS System：关卡计时
    ========================================================= */
-import { System } from '../core/system.js';
-import { STATE, sm } from '../core/states.js';
+import { System } from '../engine/core/system.js';
+import { STATE, sm } from '../engine/core/states.js';
 import { stageState } from '../state/stage.js';
-import { CONFIG } from '../data/index.js';
+import { CONFIG } from '../config/index.js';
 
 export class StageTimerSystem extends System {
   name = 'StageTimerSystem';

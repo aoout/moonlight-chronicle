@@ -133,7 +133,8 @@ export interface WeaponDef {
   formulaDmg?: string;
   /** 侵蚀加成系数：伤害额外 +月蚀深度×(x + y×L)（加法） */
   erosion?: { x: number; y: number };
-  dmg: (p: Player, lv: number) => number;
+  /** 伤害公式求值；depth = 月蚀深度，由调用方（domain 层）注入，配置层不读 state */
+  dmg: (p: Player, lv: number, depth?: number) => number;
   cd?: (p?: Player) => number;
   pierce?: number;
   range?: number;
@@ -346,7 +347,6 @@ export interface ShopItemDef {
   desc: string;
   max?: number;
   tag?: string;
-  apply: (p: Player) => void;
 }
 
 /* ---------- 祝福 ---------- */

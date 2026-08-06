@@ -7,7 +7,7 @@ import { playerState } from './player.js';
 import { statsState } from './stats.js';
 import { stageState } from './stage.js';
 import { renderState } from './render.js';
-import { gameState } from './game.js';
+import { gameState } from './flow.js';
 import { inputState } from './input.js';
 import { entityState } from './entities.js';
 

@@ -14,8 +14,8 @@ vi.mock('../domain/combat.js', () => ({
   damageEnemy: vi.fn(),
 }));
 
-import { orbitTick } from '../weapons/orbit.js';
-import { stormTick } from '../weapons/storm.js';
+import { orbitTick } from '../domain/weapons/orbit.js';
+import { stormTick } from '../domain/weapons/storm.js';
 import { playerState } from '../state/player.js';
 import { stageState } from '../state/stage.js';
 

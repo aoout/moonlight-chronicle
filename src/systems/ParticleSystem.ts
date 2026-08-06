@@ -1,8 +1,8 @@
 /* =========================================================
    蚀月远征 · ECS System：粒子更新 + 压缩
    ========================================================= */
-import { System } from '../core/system.js';
-import { world } from '../ecs/World.js';
+import { System } from '../engine/core/system.js';
+import { world } from '../engine/ecs/World.js';
 import type { Particle } from '../types/core.d.ts';
 
 export class ParticleSystem extends System {
@@ -16,6 +16,5 @@ export class ParticleSystem extends System {
         pa.vx *= 0.92; pa.vy *= 0.92;
       }
     }
-    world.compact('particles', pa => (pa.t || 0) >= (pa.max || 0.7));
   }
 }

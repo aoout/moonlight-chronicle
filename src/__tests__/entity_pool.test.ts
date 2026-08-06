@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EntityPool, E_SCHEMA } from '../ecs/entity_pool.js';
+import { EntityPool, E_SCHEMA } from '../engine/ecs/entity_pool.js';
 import type { EnemyInstance } from '../types/core.d.ts';
 
 describe('EntityPool', () => {

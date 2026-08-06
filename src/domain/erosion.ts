@@ -5,8 +5,8 @@
    侵蚀加成系数 (x, y) 按武器攻击方式独立配置（见 weapons.json
    的 erosion 字段），避免不同攻击方式强度失衡。
    ========================================================= */
-import { RNG } from '../utils.js';
-import { WEAPONS } from '../data/index.js';
+import { RNG } from '../engine/util/utils.js';
+import { WEAPONS } from '../config/index.js';
 import { stageState } from '../state/stage.js';
 import type { Player, WeaponInstance } from '../types/core.d.ts';
 
@@ -33,5 +33,7 @@ export function erosionBonus(w: WeaponInstance): number {
 export function weaponDmg(w: WeaponInstance, p: Player): number {
   const def = WEAPONS[w.id];
   if (!def) return 0;
-  return def.dmg(p, w.lv) + erosionBonus(w);
+  // 月蚀深度由 domain 层从 state 读取后注入公式，配置层保持无状态
+  const depth = stageState.state.depth || 0;
+  return def.dmg(p, w.lv, depth) + erosionBonus(w);
 }

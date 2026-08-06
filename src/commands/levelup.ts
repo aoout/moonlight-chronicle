@@ -2,7 +2,7 @@
    蚀月远征 · 命令模式：升级祝福操作
    封装祝福施加 + 队列递减 + 属性重算
    ========================================================= */
-import { STATE, sm } from '../core/states.js';
+import { STATE, sm } from '../engine/core/states.js';
 import { statsState } from '../state/stats.js';
 import { playerState } from '../state/player.js';
 import { computeDerived } from '../domain/player.js';

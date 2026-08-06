@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Store } from '../core/store.js';
+import { Store } from '../engine/core/store.js';
 
 interface TestSlice {
   count: number;

@@ -2,7 +2,7 @@
    蚀月远征 · 状态切片：输入
    按键状态 + 手柄状态
    ========================================================= */
-import { Store } from '../core/store.js';
+import { Store } from '../engine/core/store.js';
 
 export interface GamepadSlice {
   /** 是否有手柄接入 */

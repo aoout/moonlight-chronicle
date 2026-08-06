@@ -2,7 +2,7 @@
    蚀月远征 · 状态切片：实体列表
    所有游戏实体集合
    ========================================================= */
-import { Store } from '../core/store.js';
+import { Store } from '../engine/core/store.js';
 import type {
   EnemyInstance, Projectile, Drop, Particle, Phantom,
 } from '../types/core.d.ts';
