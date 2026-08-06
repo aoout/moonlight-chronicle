@@ -4,8 +4,15 @@ export default defineConfig({
   test: {
     include: ['src/__tests__/**/*.test.ts'],
     environment: 'node',
-    // Windows 下默认 forks 池的子进程 stdio 会被吞掉导致假死，统一用 threads
+    // 本环境沙箱会拦截 vite 依赖优化缓存的 rm（genie-safe-delete），导致 vitest
+    // 起不来；关掉 dep optimization 即可在沙箱内正常启动 worker。
     pool: 'threads',
+    deps: {
+      optimizer: {
+        web: { enabled: false },
+        ssr: { enabled: false },
+      },
+    },
 
     // 顺序有语义，不能交换：
     //   install.ts —— 零业务依赖，抢在 utils.ts 捕获 Math.random 之前接管全局
