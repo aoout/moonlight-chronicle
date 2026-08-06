@@ -47,6 +47,16 @@ describe('lore 数据完整性', () => {
     const offenders = all.filter(f => /因为.{0,12}所以/.test(f.text));
     expect(offenders.map(f => f.src)).toEqual([]);
   });
+
+  it('不替读者指出悬念（无引导性句式）', () => {
+    // 铁律 7：作者跳出来提示「这里有谜」会戳破悬念，读者反而不好奇。
+    // 残缺要自然呈现；问号只属于故事内角色的困惑，不属于档案整理者。
+    const all = [...Object.values(LORE.weapons).flat(), ...Object.values(LORE.items).flat()];
+    const offenders = all.filter(f =>
+      /没人知道|无人知晓|不详|是谁写|谁说得对|想的是谁|旁注：谁/.test(f.text),
+    );
+    expect(offenders.map(f => f.src)).toEqual([]);
+  });
 });
 
 describe('lore 合并进运行时配置', () => {
