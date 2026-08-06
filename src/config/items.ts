@@ -6,7 +6,8 @@
 import { ICONS } from '../assets/icons.js';
 import { validateEntries, validateAndWarn } from './validate.js';
 import itemsData from './items.json';
-import type { ShopItemDef } from '../types/core.d.ts';
+import loreData from './lore.json';
+import type { ShopItemDef, LoreFragment } from '../types/core.d.ts';
 
 export const SHOP_ITEMS: ShopItemDef[] = [];
 
@@ -29,5 +30,8 @@ for (const data of Object.values(itemsData)) {
   if (typeof item.icon === 'string') {
     item.icon = ICON_MAP[item.icon] || item.icon;
   }
+  // 合并碎片化文案（lore.json 按道具 id 关联；缺省则无）
+  const lore = (loreData as any)?.items?.[data.id] as LoreFragment[] | undefined;
+  if (lore && lore.length) item.lore = lore;
   SHOP_ITEMS.push(item as ShopItemDef);
 }

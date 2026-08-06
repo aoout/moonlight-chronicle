@@ -6,8 +6,9 @@ import { ICONS } from '../assets/icons.js';
 import { compileFormula } from './parser.js';
 import { validateEntries, validateAndWarn } from './validate.js';
 import weaponsData from './weapons.json';
+import loreData from './lore.json';
 import upgradeCost from './upgrade_cost.json';
-import type { WeaponDef, Player } from '../types/core.d.ts';
+import type { WeaponDef, Player, LoreFragment } from '../types/core.d.ts';
 
 const WEAPONS: Record<string, WeaponDef> = {};
 
@@ -32,6 +33,9 @@ validateAndWarn(validateEntries(weaponsData, {
 
 for (const [key, data] of Object.entries(weaponsData)) {
   const def: Record<string, any> = { ...data };
+  // 合并碎片化文案（lore.json 按武器 id 关联；缺省则无）
+  const lore = (loreData as any)?.weapons?.[key] as LoreFragment[] | undefined;
+  if (lore && lore.length) def.lore = lore;
   // 解析图标字符串
   if (typeof def.icon === 'string') {
     def.icon = ICON_MAP[def.icon] || def.icon;

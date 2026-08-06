@@ -1,6 +1,7 @@
 /* =========================================================
    蚀之图鉴：所见蚀物、兵刃与秘宝的月光记录
    （敌人/Boss 遇过解锁，武器/道具购得解锁）
+   已解锁卡片可点击查看详情——月背档案与 lore 碎片
    ========================================================= */
 import { $, el, html } from './hud_utils.js';
 import { iconSVG } from '../../assets/icons.js';
@@ -10,7 +11,7 @@ import { codexUnlocked } from '../../infra/persistence/codex.js';
 import { isDevMode } from '../../engine/env.js';
 import { weaponRangeText } from './shop/index.js';
 import { ENEMY_SHAPES, BOSS_SHAPES } from '../render/index.js';
-import type { WeaponDef, ShopItemDef } from '../../types/core.d.ts';
+import type { WeaponDef, ShopItemDef, LoreFragment } from '../../types/core.d.ts';
 
 function _enemyCanvas(id: string, def: any, isBoss: boolean): HTMLCanvasElement {
   const SZ = 60;
@@ -60,8 +61,11 @@ const CODEX_TABS = [
 ];
 
 let _codexTab = 'enemies';
+/** 详情面板当前条目（用于返回时还原） */
+let _cdEntry: { id: string; meta: string } | null = null;
 
 function openCodex(): void {
+  closeCodexDetail();
   renderCodex(_codexTab);
   $('codex').classList.remove('hidden');
 }
@@ -70,8 +74,126 @@ function closeCodex(): void {
   $('codex').classList.add('hidden');
 }
 
+/* ---------- 属性/公式片段（卡片与详情共用） ---------- */
+function _weaponStatsHtml(wdef: WeaponDef): string {
+  const stats: string[] = [];
+  if (wdef.cd !== undefined) {
+    const cdVal = typeof wdef.cd === 'function' ? wdef.cd() : wdef.cd;
+    stats.push('<span>冷却 ' + cdVal + 's</span>');
+  }
+  const rng = weaponRangeText(wdef);
+  if (rng) stats.push('<span>' + rng + '</span>');
+  if (wdef.pierce !== undefined) {
+    const p = wdef.pierce;
+    if (p === -1) stats.push('<span>穿透 ∞</span>');
+    else if (p > 0) stats.push('<span>穿透 ' + p + '</span>');
+  }
+  if (wdef.aoe !== undefined) stats.push('<span>范围 ' + wdef.aoe + '</span>');
+  if (wdef.slow !== undefined) stats.push('<span>减速 ' + Math.round(wdef.slow * 100) + '%</span>');
+  if (wdef.homing) stats.push('<span>追踪</span>');
+  return stats.join('');
+}
+
+/* ---------- lore 碎片 ---------- */
+function _loreHtml(lore: LoreFragment[] | undefined): string {
+  if (!lore || !lore.length) return '';
+  const frags = lore.map(f => html`
+    <div class="cd-frag">
+      <div class="cd-frag-src">${f.src}</div>
+      <div class="cd-frag-text">${f.text}</div>
+    </div>
+  `).join('');
+  return `<div class="cd-lore"><div class="cd-lore-title">✦ 月背档案</div>${frags}</div>`;
+}
+
+/* ---------- 详情面板 ---------- */
+function showCodexDetail(id: string, meta: string): void {
+  const box = $('codex-detail');
+  if (!box) return;
+  _cdEntry = { id, meta };
+  const head = $('cd-head');
+  const body = $('cd-body');
+  if (!head || !body) return;
+
+  let headHtml = '';
+  let bodyHtml = '';
+
+  if (meta === 'weapon') {
+    const d = WEAPONS[id] as WeaponDef;
+    headHtml = html`
+      <span class="cd-ic" style="color:${d.color};filter:drop-shadow(0 0 9px ${d.color}66)">${d.icon}</span>
+      <div class="cd-title">
+        <div class="cd-name">${d.name}</div>
+        <div class="cd-tag epic">${d.tag || '兵刃'}</div>
+      </div>
+    `;
+    bodyHtml = html`
+      <div class="cd-stats">${_weaponStatsHtml(d)}</div>
+      <div class="cd-formula">${d.formula || ''}</div>
+      <div class="cd-desc">${d.desc}</div>
+      ${_loreHtml(d.lore)}
+    `;
+  } else if (meta === 'item') {
+    const d = (SHOP_ITEMS.find(it => it.id === id)) as ShopItemDef;
+    const rar = d.rarity === 'legend' ? '神恩' : d.rarity === 'epic' ? '非凡' : '寻常';
+    const rarCls = d.rarity === 'legend' ? 'legend' : d.rarity === 'epic' ? 'epic' : 'common';
+    headHtml = html`
+      <span class="cd-ic">${d.icon}</span>
+      <div class="cd-title">
+        <div class="cd-name">${d.name}</div>
+        <div class="cd-tag ${rarCls}">${rar}</div>
+      </div>
+    `;
+    bodyHtml = html`
+      <div class="cd-stats"><span>${d.price} ${iconSVG('coin')}</span></div>
+      <div class="cd-desc">${d.desc}</div>
+      ${_loreHtml(d.lore)}
+    `;
+  } else if (meta === 'enemy' || meta === 'boss') {
+    const d = (meta === 'boss' ? BOSSES : ENEMIES)[id] as any;
+    const tier = meta === 'boss' ? '领主' : (d.r > 0.45 ? '重装' : d.spd > 80 ? '迅捷' : '寻常');
+    const tierCls = meta === 'boss' ? 'lord' : d.r > 0.45 ? 'heavy' : d.spd > 80 ? 'swift' : 'common';
+    const abilities = (d.abilities || []).map((a: string) => `<span class="codex-ability">${a}</span>`).join('');
+    headHtml = html`
+      <span class="cd-ic"></span>
+      <div class="cd-title">
+        <div class="cd-name">${d.name}</div>
+        <div class="cd-tag ${tierCls}">${tier}</div>
+      </div>
+    `;
+    bodyHtml = html`
+      <div class="cd-stats">
+        <span>命 ${d.hp}</span><span>速 ${d.spd}</span><span>伤 ${d.dmg}</span>
+      </div>
+      ${abilities ? `<div class="codex-abilities">${abilities}</div>` : ''}
+      <div class="cd-desc">${d.desc}</div>
+      <div class="cd-lore">
+        <div class="cd-lore-title">✦ 月背档案</div>
+        <div class="cd-frag">
+          <div class="cd-frag-src">蚀之图鉴 · 佚页</div>
+          <div class="cd-frag-text">关于它的记载，在月背的档案里再找不出第二页。月亮记得的事，不会都写下来。</div>
+        </div>
+      </div>
+    `;
+    const ic = head.querySelector('.cd-ic');
+    if (ic) ic.appendChild(_enemyCanvas(id, d, meta === 'boss'));
+  }
+
+  head.innerHTML = headHtml;
+  body.innerHTML = bodyHtml;
+  box.classList.remove('hidden');
+}
+
+function closeCodexDetail(): void {
+  const box = $('codex-detail');
+  if (!box) return;
+  box.classList.add('hidden');
+  _cdEntry = null;
+}
+
 export function renderCodex(tab: string): void {
   _codexTab = tab;
+  closeCodexDetail();
   const grid = $('codex-grid');
   grid.innerHTML = '';
   // 激活 tab
@@ -129,21 +251,6 @@ export function renderCodex(tab: string): void {
       if (ic) ic.appendChild(_enemyCanvas(id, edef, meta === 'boss'));
     } else if (meta === 'weapon') {
       const wdef = d as WeaponDef;
-      const stats: string[] = [];
-      if (wdef.cd !== undefined) {
-        const cdVal = typeof wdef.cd === 'function' ? wdef.cd() : wdef.cd;
-        stats.push('<span>冷却 ' + cdVal + 's</span>');
-      }
-      const rng = weaponRangeText(wdef);
-      if (rng) stats.push('<span>' + rng + '</span>');
-      if (wdef.pierce !== undefined) {
-        const p = wdef.pierce;
-        if (p === -1) stats.push('<span>穿透 ∞</span>');
-        else if (p > 0) stats.push('<span>穿透 ' + p + '</span>');
-      }
-      if (wdef.aoe !== undefined) stats.push('<span>范围 ' + wdef.aoe + '</span>');
-      if (wdef.slow !== undefined) stats.push('<span>减速 ' + Math.round(wdef.slow * 100) + '%</span>');
-      if (wdef.homing) stats.push('<span>追踪</span>');
       card.innerHTML = html`
         <div class="codex-ic">${wdef.icon}</div>
         <div class="codex-name">${wdef.name}</div>
@@ -151,7 +258,7 @@ export function renderCodex(tab: string): void {
         <div class="codex-desc"><span class="desc-inner">${wdef.desc}</span></div>
         <div class="codex-formula">${wdef.formula || ''}</div>
         <div class="codex-stat">
-          ${stats.join('')}
+          ${_weaponStatsHtml(wdef)}
         </div>
       `;
     } else {
@@ -166,6 +273,11 @@ export function renderCodex(tab: string): void {
         <div class="codex-stat"><span>${idef.price} ${iconSVG('coin')}</span></div>
       `;
     }
+    // 已解锁卡片：点击翻阅详情
+    if (isUn) {
+      card.style.cursor = 'pointer';
+      card.onclick = () => { AudioEngine.playSfx('click'); showCodexDetail(id, meta); };
+    }
     grid.appendChild(card);
   });
 }
@@ -178,4 +290,6 @@ export function bindCodex(): void {
     const target = b as HTMLElement;
     target.onclick = () => { AudioEngine.playSfx('click'); if (target.dataset.tab) renderCodex(target.dataset.tab); };
   });
+  const cdClose = $('btn-codex-detail-close');
+  if (cdClose) cdClose.onclick = () => { AudioEngine.playSfx('close'); closeCodexDetail(); };
 }

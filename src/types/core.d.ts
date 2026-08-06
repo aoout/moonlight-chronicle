@@ -2,6 +2,15 @@
    蚀月远征 · 核心类型定义
    ========================================================= */
 
+/* ---------- 图鉴碎片化文案（lore） ---------- */
+/** 一段来源不明的碎片记录；来源与正文共同构成世界观叙事 */
+export interface LoreFragment {
+  /** 出处标签：书名/手记/碑文/口述等（虚构） */
+  src: string;
+  /** 碎片正文：克制、留白、不点破因果 */
+  text: string;
+}
+
 /* ---------- 玩家运行时效果（道具/祝福/诅咒触发的状态） ---------- */
 export interface ItemStats {
   /** 总伤害（获得以来） */
@@ -129,6 +138,8 @@ export interface WeaponDef {
   icon: string;
   tag: string;
   desc: string;
+  /** 碎片化背景文案（图鉴详情展示） */
+  lore?: LoreFragment[];
   formula: string;
   formulaDmg?: string;
   /** 侵蚀加成系数：伤害额外 +月蚀深度×(x + y×L)（加法） */
@@ -345,6 +356,8 @@ export interface ShopItemDef {
   rarity: string;
   price: number;
   desc: string;
+  /** 碎片化背景文案（图鉴详情展示） */
+  lore?: LoreFragment[];
   max?: number;
   tag?: string;
 }
