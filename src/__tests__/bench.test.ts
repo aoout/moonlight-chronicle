@@ -4,9 +4,9 @@
    注意：本文件仅测试纯函数，不依赖浏览器 API
    ========================================================= */
 import { describe, it, expect } from 'vitest';
-import { computeStats } from '../debug/bench/stats.js';
-import { compareReports, generateReportText, generateComparisonText } from '../debug/bench/reporter.js';
-import type { BenchReport, BenchResult, FrameSample } from '../debug/bench/types.js';
+import { computeStats } from '../infra/debug/bench/stats.js';
+import { compareReports, generateReportText, generateReportHTML, generateComparisonText } from '../infra/debug/bench/reporter.js';
+import type { BenchReport, BenchResult, FrameSample } from '../infra/debug/bench/types.js';
 
 /* ========== computeStats ========== */
 
@@ -194,6 +194,7 @@ describe('generateReportText', () => {
       label: '测试',
       results: [{
         name: '空闲',
+        mode: 'fixed',
         duration: 5,
         frameCount: 60,
         total: computeStats([16, 17, 16]),
@@ -206,7 +207,11 @@ describe('generateReportText', () => {
       env: { userAgent: 'test', canvasSize: '800x600', devicePixelRatio: 1, settings: 'ultra' },
     };
     const text = generateReportText(report);
+    const html = generateReportHTML(report);
     expect(text).toContain('[空闲]');
+    expect(text).toContain('固定负载');
+    expect(html).toContain('<th>模式</th>');
+    expect(html).toContain('<td>固定负载</td>');
     expect(text).toContain('60');
     expect(text).toContain('16.00ms');
   });

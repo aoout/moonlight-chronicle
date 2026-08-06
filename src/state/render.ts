@@ -2,7 +2,7 @@
    蚀月远征 · 状态切片：渲染
    震屏、闪烁、画布尺寸和上下文
    ========================================================= */
-import { Store } from '../core/store.js';
+import { Store } from '../engine/core/store.js';
 import { settingsState } from './settings.js';
 
 export interface RenderState {

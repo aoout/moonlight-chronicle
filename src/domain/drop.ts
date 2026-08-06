@@ -4,9 +4,9 @@
    从 DropSystem 静态方法迁出
    ========================================================= */
 import { playerState } from '../state/player.js';
-import { dist, angTo } from '../utils.js';
-import { CONFIG } from '../data/index.js';
-import { EventBus } from '../core/event_bus.js';
+import { dist, angTo } from '../engine/util/utils.js';
+import { CONFIG } from '../config/index.js';
+import { EventBus } from '../engine/core/event_bus.js';
 import { healPlayer, hurtPlayer } from './combat.js';
 import { gainXp, addGold } from './player.js';
 import type { Drop, EnemyInstance } from '../types/core.d.ts';

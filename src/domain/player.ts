@@ -3,17 +3,17 @@
    派生属性 / 创建 / 武器管理 / 金币 / 经验
    从 PlayerSystem 静态方法迁出
    ========================================================= */
-import { achOnWeapon } from '../systems/AchievementSystem.js';
-import { STATE, sm } from '../core/states.js';
+import { achievements } from './ports/achievements.js';
+import { STATE, sm } from '../engine/core/states.js';
 import { playerState } from '../state/player.js';
 import { statsState } from '../state/stats.js';
 import { renderState } from '../state/render.js';
 import { stageState } from '../state/stage.js';
-import { gameState } from '../state/game.js';
-import { EventBus } from '../core/event_bus.js';
-import { RNG } from '../utils.js';
-import { CONFIG, BASE_STATS } from '../data/index.js';
-import { codexAdd } from '../persistence/codex.js';
+import { gameState } from '../state/flow.js';
+import { EventBus } from '../engine/core/event_bus.js';
+import { RNG } from '../engine/util/utils.js';
+import { CONFIG, BASE_STATS } from '../config/index.js';
+import { codexAdd } from '../infra/persistence/codex.js';
 import type { Player } from '../types/core.d.ts';
 
 import { pSt, sSt, rSt, gSt } from '../state/accessors.js';
@@ -54,7 +54,7 @@ export function addWeapon(id: string, opts?: { eroded?: boolean }): boolean {
   if (p.weapons.length >= CONFIG.MAX_WEAPONS) return false;
   if (p.weapons.find(w => w.id === id)) return false;
   p.weapons.push({ id, lv: 1, ...(opts?.eroded ? { eroded: true } : {}) });
-  achOnWeapon();
+  achievements().onWeapon();
   pSt().weaponCd[id] = 0;
   codexAdd('weapons', id);
   return true;

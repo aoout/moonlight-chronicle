@@ -12,7 +12,7 @@ vi.hoisted(() => {
   };
 });
 
-import { ACHIEVEMENTS } from '../data/achievements.js';
+import { ACHIEVEMENTS } from '../config/achievements.js';
 import {
   achSessionStart, achSessionEnd, achOnKill, achOnDamage, achOnHurt, achOnDodge,
   achIsEarned, achProgressOf, achOnWeapon, achOnItemBuy, achTotal, achOtherEarned,

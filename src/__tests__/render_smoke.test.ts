@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { drawEnemyBody, ENEMY_SHAPES } from '../render/layers/enemies.js';
-import { drawBossBody, BOSS_SHAPES } from '../render/layers/bosses.js';
-import { drawProjectiles } from '../render/effects/projectiles.js';
+import { drawEnemyBody, ENEMY_SHAPES } from '../features/render/layers/enemies.js';
+import { drawBossBody, BOSS_SHAPES } from '../features/render/layers/bosses.js';
+import { drawProjectiles } from '../features/render/effects/projectiles.js';
 
 vi.hoisted(() => {
   (globalThis as any).window = globalThis;

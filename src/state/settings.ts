@@ -2,7 +2,7 @@
    蚀月远征 · 状态切片：辉光调校（性能设置）
    画质预设与细项设置，持久化于月痕（localStorage）
    ========================================================= */
-import { Store } from '../core/store.js';
+import { Store } from '../engine/core/store.js';
 
 export type PresetId = 'low' | 'medium' | 'high' | 'ultra' | 'custom';
 

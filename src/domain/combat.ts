@@ -3,24 +3,23 @@
    伤害计算 / 击杀 / 受伤 / 治疗 / 近战打击 / 掉落生成 / 爆炸
    从 CombatSystem 静态方法与独立函数迁出
    ========================================================= */
-import { STATE, sm } from '../core/states.js';
+import { STATE, sm } from '../engine/core/states.js';
 import { statsState } from '../state/stats.js';
 import { stageState } from '../state/stage.js';
 import { entityState } from '../state/entities.js';
 import { playerState } from '../state/player.js';
 import { renderState } from '../state/render.js';
-import { gameState } from '../state/game.js';
-import { EventBus } from '../core/event_bus.js';
-import { RNG, dist, rand } from '../utils.js';
-import { ENEMIES, BOSSES, CONFIG } from '../data/index.js';
-import { queryRadius } from '../systems/SpatialSystem.js';
-import { persistUnlocked } from '../persistence/save.js';
-import { world } from '../ecs/World.js';
-import { endStage, playerDeath } from '../core/states.js';
-import { achOnDamage, achOnHurt, achOnDodge, achOnShieldAbsorb } from '../systems/AchievementSystem.js';
+import { gameState } from '../state/flow.js';
+import { EventBus } from '../engine/core/event_bus.js';
+import { RNG, dist, rand } from '../engine/util/utils.js';
+import { ENEMIES, BOSSES, CONFIG } from '../config/index.js';
+import { queryRadius } from '../engine/spatial/SpatialSystem.js';
+import { world } from '../engine/ecs/World.js';
+import { endStage, playerDeath } from '../engine/core/states.js';
+import { achievements } from './ports/achievements.js';
 import { shakeScreen } from '../state/render.js';
 import { spawnEnemy } from './spawn.js';
-import { Position, Velocity } from '../ecs/entity_factories.js';
+import { Position, Velocity } from '../engine/ecs/entity_factories.js';
 import type { EnemyInstance, Player } from '../types/core.d.ts';
 
 import { sSt, gSt, eSt, pSt, rSt, gmSt } from '../state/accessors.js';
@@ -97,7 +96,7 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
     p.effects.moonLastDmgT = p.effects.moonT || 0;
   }
   e.flash = 0.12;
-  achOnDamage(dmg, isCrit);
+  achievements().onDamage(dmg, isCrit);
   EventBus.emit('combat:hit', { target: e, damage: dmg, crit: isCrit, srcType, srcW });
   const rs = { ...sSt().runStats };
   rs.totalDmg += dmg;
@@ -169,7 +168,8 @@ export function killEnemy(e: EnemyInstance, srcType?: string): void {
       if (gs.stage === CONFIG.FINAL_STAGE) {
         rs.win = true;
         sm.transition(STATE.WIN);
-        if (gs.depth === gs.unlocked && gs.unlocked < 9) { stageState.set('unlocked', gs.unlocked + 1); persistUnlocked(); EventBus.emit('audio:sfx', { name: 'unlock' }); }
+        // 领域层只负责推进状态并广播；落盘由 infra/persistence 订阅处理
+        if (gs.depth === gs.unlocked && gs.unlocked < 9) { stageState.set('unlocked', gs.unlocked + 1); EventBus.emit('progress:unlocked', { depth: gs.unlocked + 1 }); EventBus.emit('audio:sfx', { name: 'unlock' }); }
       }
       else endStage(true);
     }
@@ -189,7 +189,7 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
     return;
   }
   if (RNG() < p.dodge) {
-    achOnDodge();
+    achievements().onDodge();
     EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 30, text: '闪避', color: '#9fd6e8' });
     if (p.effects.cloak) { p.invuln = Math.max(p.invuln, 0.8); p.effects.cloakTimer = 0.8; }
     return;
@@ -198,7 +198,7 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
   if ((p.effects.shield ?? 0) > 0) {
     const abs = Math.min(p.effects.shield ?? 0, dmg);
     p.effects.shield = (p.effects.shield ?? 0) - abs;
-    achOnShieldAbsorb(abs);
+    achievements().onShieldAbsorb(abs);
     dmg -= abs;
     if (dmg <= 0) { EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 26, text: '护盾', color: '#9fd6e8' }); return; }
   }
@@ -226,7 +226,7 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
     EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 26, text: '月影壁垒', color: '#9fd6e8' });
   }
   p.invuln = 0.45;
-  achOnHurt();
+  achievements().onHurt();
   EventBus.emit('audio:sfx', { name: 'hurt' });
   // 攻击者攻击动作特效（近战接触伤害：撕咬/撞击/重拳等）
   const atkType = e && 'type' in e ? (e as any).type : '';

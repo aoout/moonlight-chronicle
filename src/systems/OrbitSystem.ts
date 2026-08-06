@@ -1,12 +1,12 @@
 /* =========================================================
    蚀月远征 · ECS System：环舞之刃 + 月影残像
    ========================================================= */
-import { System } from '../core/system.js';
-import { orbitTick } from '../weapons/index.js';
-import { world } from '../ecs/World.js';
-import { rand, dist, angTo } from '../utils.js';
-import { nearestEnemy } from '../weapons/helpers.js';
-import { spawnGlow } from '../render/effects/fx.js';
+import { System } from '../engine/core/system.js';
+import { orbitTick } from '../domain/weapons/index.js';
+import { world } from '../engine/ecs/World.js';
+import { rand, dist, angTo } from '../engine/util/utils.js';
+import { nearestEnemy } from '../domain/weapons/helpers.js';
+import { spawnGlow } from '../platform/fx/fx.js';
 import type { Phantom } from '../types/core.d.ts';
 
 import { pSt } from '../state/accessors.js';
@@ -20,9 +20,14 @@ export class OrbitSystem extends System {
     const p = pSt().player;
     if (!p) return;
     const phantoms = world.query('phantoms');
+    let dirty = false;
     for (const ph of phantoms) {
       ph.t += dt;
       ph.fireT -= dt;
+      if (ph.t >= ph.max) {
+        dirty = true;
+        continue;
+      }
       if (dist(ph, p) > 96) {
         const a = angTo(ph, p);
         ph.x += Math.cos(a) * 92 * dt;
@@ -40,6 +45,6 @@ export class OrbitSystem extends System {
         spawnGlow(ph.x + Math.cos(a) * 14, ph.y + Math.sin(a) * 14, 6, '#dbe8ff', 0.22);
       }
     }
-    world.compact('phantoms', ph => ph.t >= ph.max);
+    if (dirty) world.markCompactDirty('phantoms');
   }
 }

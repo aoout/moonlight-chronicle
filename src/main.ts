@@ -2,20 +2,21 @@
    蚀月远征 · 入口
    ========================================================= */
 import { renderState, resizeCanvas } from './state/render.js';
-import { fillIconSpans } from './ui/icons.js';
-import { bindUI } from './ui/scheduler.js';
-import { gameLoop } from './game.js';
-import { initStateHooks } from './core/state_hooks.js';
-import { bindDebugKeys } from './debug/panel.js';
-import { initRenderEventBridge } from './render/event_bridge.js';
-import { initUIEventBridge } from './ui/event_bridge.js';
-import { initHudReactive } from './ui/hud_reactive.js';
-import { initGamepad } from './input/gamepad.js';
-import { initHint } from './ui/gamepad_hint.js';
-import { initTouch, showJoystick, hideJoystick } from './input/touch.js';
-import { initOrientation } from './input/orientation.js';
-import { STATE, sm } from './core/states.js';
-import { EventBus } from './core/event_bus.js';
+import { fillIconSpans } from './features/ui/icon_spans.js';
+import { bindUI } from './features/ui/scheduler.js';
+import { gameLoop } from './app/game.js';
+import { initStateHooks } from './app/state_hooks.js';
+import { bindDebugKeys } from './infra/debug/panel.js';
+import { initRenderEventBridge } from './features/render/event_bridge.js';
+import { initUIEventBridge } from './features/ui/event_bridge.js';
+import { initPersistenceBridge } from './infra/persistence/event_bridge.js';
+import { initHudReactive } from './features/ui/hud_reactive.js';
+import { initGamepad } from './features/input/gamepad.js';
+import { initHint } from './features/ui/gamepad_hint.js';
+import { initTouch, showJoystick, hideJoystick } from './features/input/touch.js';
+import { initOrientation } from './features/input/orientation.js';
+import { STATE, sm } from './engine/core/states.js';
+import { EventBus } from './engine/core/event_bus.js';
 import './state/settings.js';   // 模块加载即恢复辉光调校，供首帧 resize 使用
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -47,6 +48,7 @@ bindUI();
 initStateHooks();
 initRenderEventBridge();
 initUIEventBridge();
+initPersistenceBridge();
 initHudReactive();
 bindDebugKeys();
 fillIconSpans();

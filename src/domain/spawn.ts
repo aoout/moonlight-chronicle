@@ -3,12 +3,12 @@
    从 SpawnSystem 静态方法迁出，供 System 与外部模块直接调用
    ========================================================= */
 import { stageState } from '../state/stage.js';
-import { RNG, rand } from '../utils.js';
-import { ENEMIES, BOSSES, enemyScale, levelEnemyScale } from '../data/index.js';
-import { world } from '../ecs/World.js';
-import { PROJECTILE_POOL } from '../ecs/entity_pool.js';
-import { codexAdd } from '../persistence/codex.js';
-import { Position, Health, Renderable, Combat, Timer, Status, Enemy, Velocity } from '../ecs/entity_factories.js';
+import { RNG, rand } from '../engine/util/utils.js';
+import { ENEMIES, BOSSES, enemyScale, levelEnemyScale } from '../config/index.js';
+import { world } from '../engine/ecs/World.js';
+import { PROJECTILE_POOL } from '../engine/ecs/entity_pool.js';
+import { codexAdd } from '../infra/persistence/codex.js';
+import { Position, Health, Renderable, Combat, Timer, Status, Enemy, Velocity } from '../engine/ecs/entity_factories.js';
 import type { EnemyInstance } from '../types/core.d.ts';
 
 import { gSt, rSt, pSt, eSt } from '../state/accessors.js';

@@ -2,8 +2,8 @@
    蚀月远征 · 状态切片：统计
    击杀数、金币、经验、等级、战斗统计
    ========================================================= */
-import { Store } from '../core/store.js';
-import { CONFIG } from '../data/index.js';
+import { Store } from '../engine/core/store.js';
+import { CONFIG } from '../config/stages.js';
 
 interface RunStats {
   totalDmg: number;

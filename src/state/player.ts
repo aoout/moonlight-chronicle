@@ -2,7 +2,7 @@
    蚀月远征 · 状态切片：玩家
    玩家状态、武器冷却
    ========================================================= */
-import { Store } from '../core/store.js';
+import { Store } from '../engine/core/store.js';
 import type { Player } from '../types/core.d.ts';
 
 export interface PlayerStateSlice {

@@ -6,12 +6,15 @@
   "scripts": {
     "dev": "vite",
     "dev:god": "vite --mode god",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run verify && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test": "vitest run",
-    "lint": "eslint 'js/**/*.ts'",
-    "format": "prettier --write 'js/**/*.ts' 'css/**/*.css'"
+    "arch": "node scripts/check-arch.mjs",
+    "arch:cycles": "madge --extensions ts --circular src/",
+    "verify": "npm run typecheck && npm run arch && npm run test",
+    "lint": "eslint 'src/**/*.ts'",
+    "format": "prettier --write 'src/**/*.ts' 'css/**/*.css'"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",

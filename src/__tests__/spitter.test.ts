@@ -5,11 +5,11 @@ vi.hoisted(() => {
   (globalThis as any).requestAnimationFrame = (cb: any) => 0;
 });
 
-import { spitterMove } from '../enemies/behaviors/spitter.js';
+import { spitterMove } from '../domain/enemies/behaviors/spitter.js';
 import { entityState } from '../state/entities.js';
 import { stageState } from '../state/stage.js';
 import { renderState } from '../state/render.js';
-import { drawProjectiles } from '../render/effects/projectiles.js';
+import { drawProjectiles } from '../features/render/effects/projectiles.js';
 
 describe('蚀涎魔喷吐', () => {
   it('射程内发射毒弹且进入渲染数组（可见）', () => {

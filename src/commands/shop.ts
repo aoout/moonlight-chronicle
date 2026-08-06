@@ -7,8 +7,9 @@ import { achOnItemBuy } from '../systems/AchievementSystem.js';
 import { statsState } from '../state/stats.js';
 import { playerState } from '../state/player.js';
 import { addWeapon, upgradeWeapon, removeWeapon, computeDerived } from '../domain/player.js';
-import { codexAdd } from '../persistence/codex.js';
-import { isDevMode } from '../debug/dev_mode.js';
+import { applyItemEffect } from '../domain/item_effects.js';
+import { codexAdd } from '../infra/persistence/codex.js';
+import { isDevMode } from '../engine/env.js';
 
 interface Result {
   ok: boolean;
@@ -51,7 +52,7 @@ export function purchaseItem(item: any, price: number): Result {
   const god = isDevMode(); // god 模式：无限金币
   if (!god && s.gold < price) return { ok: false, reason: '金币不足' };
   if (!god) statsState.set('gold', s.gold - price);
-  item.apply(p);
+  applyItemEffect(item.id, p);
   codexAdd('items', item.id);
   const prev = p.effects.boughtItems?.[item.id] ?? 0;
   const cnt = prev + 1;
