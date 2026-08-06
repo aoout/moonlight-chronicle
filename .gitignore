@@ -13,3 +13,6 @@ dist/
 # 压测临时产物（不提交）
 perf/.abruns/
 *.cpuprofile
+
+# 覆盖率报告
+coverage/
