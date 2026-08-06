@@ -12,7 +12,6 @@ import { sellWeapon as sellWeaponCmd, weaponSellPrice } from '../../../commands/
 import { weaponFormulaText, weaponFormulaBreakdown, weaponProjInfo } from './formulas.js';
 import { EventBus } from '../../../engine/core/event_bus.js';
 import { weaponDmg } from '../../../domain/erosion.js';
-import type { Player, WeaponDef } from '../../../types/core.d.ts';
 
 const pSt = () => playerState.state;
 const sSt = () => statsState.state;
@@ -83,7 +82,7 @@ export function showWeaponDetail(id: string): void {
       ${weaponFormulaBreakdown(def, p, w.lv, w).map(s => html`
         <div class="pwd-calc-row"><span>${s.label}</span><i>${s.expr}</i><b>${Math.round(s.value * 10) / 10}</b></div>
       `).join('')}
-      ${def.id === 'tideAnchor' ? tidePoolDamageHtml(w, p, def) : html`<div class="pwd-calc-total">最终伤害 <b>${Math.round(weaponDmg(w, p))}</b></div>`}
+      <div class="pwd-calc-total">最终伤害 <b>${Math.round(weaponDmg(w, p))}</b></div>
     </div>
     <div class="pwd-stats">
       ${rows.map(r => html`<div class="pwd-stat"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}
@@ -101,19 +100,6 @@ export function showWeaponDetail(id: string): void {
     Array.from($('shop-weapons').children).forEach(li => { const target = li as HTMLElement; target.classList.remove('active'); });
   };
   $('pwd-sell').onclick = () => sellWeapon(id);
-}
-
-/* 蚀潮之锚：水域机制的伤害口径展示（基准/落点/水域三段，中心吃满） */
-function tidePoolDamageHtml(w: any, p: Player, def: any): string {
-  const proj = (def.fire?.projectile as any) || {};
-  const base = weaponDmg(w, p);
-  const impact = base * (proj.impactMul ?? 0.6);
-  const poolHits = Math.max(1, Math.round((proj.poolDur ?? 2.4) / (proj.poolTick ?? 0.6)));
-  const poolTotal = base * (proj.poolDmgMul ?? 0.14) * poolHits;
-  return html`
-    <div class="pwd-calc-total">基准伤害 <b>${Math.round(base)}</b></div>
-    <div class="pwd-calc-total" style="font-size:12px;color:var(--dim)">落点冲击 <b>${Math.round(impact)}</b> · 水域 ${poolHits} 跳 <b>${Math.round(poolTotal)}</b>（中心吃满 ≈ ${Math.round(impact + poolTotal)}）</div>
-  `;
 }
 
 function sellWeapon(id: string): void {
