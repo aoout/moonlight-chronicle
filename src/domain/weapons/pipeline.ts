@@ -13,6 +13,7 @@ import { PROJECTILE_TYPES, resolveProjectileType } from './projectile_types.js';
 import { addFx, spawnBurst, spawnSpark, spawnGlow, spawnRing, spawnStar, spawnShard, spawnStreak } from '../../platform/fx/fx.js';
 import { shakeScreen } from '../../state/render.js';
 import { queryRadius } from '../../engine/spatial/SpatialSystem.js';
+import { world } from '../../engine/ecs/World.js';
 import { damageEnemy } from '../combat.js';
 import { AudioEngine } from '../../platform/audio/engine.js';
 import type { Player, Projectile } from '../../types/core.d.ts';
@@ -113,6 +114,11 @@ export function executeProjPipeline(pr: Projectile, dt: number, p: Player): void
     tickAoeDelay(pr, dt, p, JUDGE_BURST);
     return;
   }
+  // 蚀潮水域：持续减速 + 周期性潮压冲击
+  if (pr.tidePool) {
+    tickTidePool(pr, dt, p);
+    return;
+  }
 
   // 缓存投射物类型函数引用（首次运行时初始化，消除每帧类型解析开销）
   const meta = pr._meta!;
@@ -199,6 +205,16 @@ interface AoeBurstCfg {
   delay: number;                 // 触发延迟（秒）
   aoe: number;                   // 爆炸范围
   srcType: string;               // 伤害来源类型
+  /** 落点冲击倍率（相对公式伤害；陨石/审判默认 1） */
+  impactMul?: number;
+  /** 蚀潮水域：爆炸后生成水域的参数（仅 tide 配置） */
+  pool?: {
+    dur: number;                 // 水域持续时间（秒）
+    tick: number;                // 潮压冲击间隔（秒）
+    slow: number;                // 域内减速强度
+    dmgMul: number;              // 单次潮压伤害倍率（相对公式伤害）
+    r: number;                   // 水域半径
+  };
   /** 坠落/蓄力粒子（undefined 则无） */
   fall?: {
     xJitter: number;             // x 随机偏移幅度
@@ -242,6 +258,8 @@ const FALL_PARTICLE_CHANCE = 0.6; // 每帧生成坠落粒子的概率
 /* 蚀潮（青白水潮 · 水系） */
 const TIDE_BURST: AoeBurstCfg = {
   delay: 0.5, aoe: 130, srcType: 'tide',
+  impactMul: 0.6,
+  pool: { dur: 2.4, tick: 0.6, slow: 0.35, dmgMul: 0.14, r: 110 },
   fall: { xJitter: 0, yJitter: 0, vx: 40, vyBase: 30, vyRange: 60, life: 0.4, sizeLo: 2, sizeHi: 4, c1: PALETTE.iceLight, c2: PALETTE.tide },
   bubbles: { xSpread: 140, ySpread: 20, vx: 30, vy: 130, vyMin: 40, life: 0.8, size: 2, sizeRand: 3, c1: PALETTE.iceLight, c2: PALETTE.swift },
   fx: {
@@ -311,10 +329,70 @@ function tickAoeDelay(pr: Projectile, dt: number, p: Player, cfg: AoeBurstCfg): 
     }
     shakeScreen(9);
     const aoe = pr.aoe || cfg.aoe;
+    const impactMul = cfg.impactMul ?? 1;
     for (const e of queryRadius(pr.x, pr.y, aoe)) {
       if (e.dead) continue;
-      damageEnemy(e, pr.dmg * (AOE_CENTER_DMG - dist(e, pr) / aoe), RNG() < p.effCrit, cfg.srcType, pr.wId);
+      damageEnemy(e, pr.dmg * (AOE_CENTER_DMG - dist(e, pr) / aoe) * impactMul, RNG() < p.effCrit, cfg.srcType, pr.wId);
+    }
+
+    // 蚀潮：爆炸后留下蚀潮水域（周期性潮压 + 持续减速）
+    if (pr.tide && cfg.pool) {
+      world.add('projectiles', {
+        x: pr.x, y: pr.y, vx: 0, vy: 0,
+        r: 0, dmg: pr.dmg, pierce: Infinity, color: pr.color || PALETTE.tide,
+        hit: new Set(), wId: pr.wId,
+        tidePool: 1, aoe: cfg.pool.r, poolDur: cfg.pool.dur, poolTick: cfg.pool.tick,
+        poolSlow: cfg.pool.slow, poolDmgMul: cfg.pool.dmgMul, poolT: 0, poolPulse: 0,
+        life: cfg.pool.dur, speed: 0, range: 0,
+      });
     }
     pr.dead = 1;
   }
+}
+
+/* =========================================================
+   蚀潮水域：落点爆炸后遗留的潮汐区域
+   域内敌人持续减速（每帧刷新 slow，出域自然恢复），
+   每 poolTick 秒触发一次潮压冲击（伤害 = 公式伤害 × poolDmgMul）
+   ========================================================= */
+function tickTidePool(pr: Projectile, dt: number, p: Player): void {
+  pr.poolT = (pr.poolT || 0) + dt;
+  const r = pr.aoe || 110;
+  const dur = pr.poolDur || 2.4;
+  const tick = pr.poolTick || 0.6;
+  const slow = pr.poolSlow || 0.35;
+  const dmgMul = pr.poolDmgMul || 0.14;
+  const pulseN = Math.floor(pr.poolT / tick);
+
+  // 周期潮压：每个 tick 窗口触发一次（poolPulse 记录已触发次数）
+  if (pulseN > (pr.poolPulse || 0)) {
+    pr.poolPulse = pulseN;
+    // 潮压环视觉（涟漪扩散）
+    spawnRing(pr.x, pr.y, PALETTE.tide, 0.45, r * 0.9, 3);
+    spawnRing(pr.x, pr.y, PALETTE.iceLight, 0.6, r * 0.55, 1.8);
+    AudioEngine.playSfx('w_tideAnchor');
+    // 域内敌人受潮压伤害
+    for (const e of queryRadius(pr.x, pr.y, r)) {
+      if (e.dead) continue;
+      damageEnemy(e, pr.dmg * dmgMul, RNG() < p.effCrit, 'tide', pr.wId);
+      spawnSpark(e.x, e.y, PALETTE.iceLight, 2, 100);
+    }
+  }
+
+  // 持续减速：每帧刷新 slow（EnemySystem 每秒 -1 衰减，出域后自然恢复）
+  for (const e of queryRadius(pr.x, pr.y, r)) {
+    if (e.dead) continue;
+    e.slow = Math.max(e.slow || 0, slow);
+  }
+
+  // 水域持续期间轻度水光浮动
+  if (RNG() < 0.3) {
+    addFx({
+      x: pr.x + (RNG() - 0.5) * r * 1.2, y: pr.y + (RNG() - 0.5) * r * 1.2,
+      vx: (RNG() - 0.5) * 12, vy: -RNG() * 18 - 6,
+      life: 0.5, max: 0.5, size: 1.6 + RNG() * 1.6, color: RNG() < 0.5 ? PALETTE.iceLight : PALETTE.swift,
+    });
+  }
+
+  if (pr.poolT >= dur) pr.dead = 1;
 }

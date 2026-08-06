@@ -193,6 +193,16 @@ export interface ProjectileConfig {
   chainRange?: number;
   dur?: number;
   width?: number;
+  /** 蚀潮水域：落点冲击倍率（相对公式伤害） */
+  impactMul?: number;
+  /** 蚀潮水域：水域持续时间（秒） */
+  poolDur?: number;
+  /** 蚀潮水域：潮压冲击间隔（秒） */
+  poolTick?: number;
+  /** 蚀潮水域：域内减速强度 */
+  poolSlow?: number;
+  /** 蚀潮水域：单次潮压伤害倍率（相对公式伤害） */
+  poolDmgMul?: number;
 }
 
 /* ---------- 敌人 ---------- */
@@ -297,6 +307,14 @@ export interface Projectile {
   chainRange?: number;
   size?: number;
   max?: number;
+  /* 蚀潮水域（tidePool）：水域本体字段 */
+  tidePool?: number;
+  poolDur?: number;
+  poolTick?: number;
+  poolSlow?: number;
+  poolDmgMul?: number;
+  poolT?: number;
+  poolPulse?: number;
   /* 追踪弹（homing）参数：速度上限 / 转向率 / 锁定时限 */
   speedMax?: number;
   turnRate?: number;

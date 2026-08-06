@@ -393,6 +393,55 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.globalAlpha = 1;
   },
 
+  /* 蚀潮水域：落点遗留的潮汐区域（水面 + 旋转潮纹 + 上浮气泡 + 潮压涟漪） */
+  tidePool(ctx, pr) {
+    const R = pr.aoe || 110;
+    const tt = pr.poolT || 0;
+    const dur = pr.poolDur || 2.4;
+    const fade = Math.max(0, 1 - tt / dur);            // 水域临散时淡出
+    const tick = pr.poolTick || 0.6;
+    const phase = (tt % tick) / tick;                  // 潮压脉冲相位 0→1
+    // 1. 水面（半透明青色，随 fade 淡出）
+    ctx.globalAlpha = 0.16 + 0.1 * fade;
+    ctx.fillStyle = '#2c5d68';
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+    // 2. 旋转潮纹（双层虚线，反方向回转如漩涡）
+    ctx.save();
+    ctx.setLineDash([10, 8]);
+    ctx.lineDashOffset = -tt * 40;
+    ctx.strokeStyle = 'rgba(159,214,232,0.55)'; ctx.lineWidth = 1.8;
+    ctx.shadowColor = PALETTE.tide; ctx.shadowBlur = 10;
+    ctx.globalAlpha = fade;
+    ctx.beginPath(); ctx.arc(0, 0, R * 0.88, 0, TAU); ctx.stroke();
+    ctx.setLineDash([5, 10]);
+    ctx.lineDashOffset = tt * 26;
+    ctx.strokeStyle = 'rgba(223,247,242,0.4)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(0, 0, R * 0.62, 0, TAU); ctx.stroke();
+    ctx.restore();
+    // 3. 潮压涟漪（每次冲击向外扩散的亮环）
+    ctx.globalAlpha = fade * (1 - phase) * 0.85;
+    ctx.strokeStyle = PALETTE.iceLight; ctx.lineWidth = 2.4;
+    ctx.shadowColor = PALETTE.iceLight; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(0, 0, R * (0.25 + phase * 0.75), 0, TAU); ctx.stroke();
+    ctx.globalAlpha = fade * (1 - phase) * 0.5;
+    ctx.beginPath(); ctx.arc(0, 0, R * (0.1 + phase * 0.9), 0, TAU); ctx.stroke();
+    ctx.shadowBlur = 0;
+    // 4. 上浮气泡（沿径向漂浮）
+    ctx.globalAlpha = fade * 0.7;
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * TAU + tt * 0.4;
+      const rr = R * (0.15 + ((i * 41) % 55) / 70);
+      const by = -Math.abs(Math.sin(tt * 1.6 + i * 1.7)) * R * 0.28;
+      dot(ctx, Math.cos(a) * rr, Math.sin(a) * rr + by, 1.2 + (i % 3) * 0.7, PALETTE.iceWhite, 4);
+    }
+    // 5. 中心潮眼（缓慢呼吸）
+    const br = R * 0.12 * (1 + Math.sin(tt * 3) * 0.25);
+    ctx.globalAlpha = fade * 0.5;
+    ctx.fillStyle = '#dff7f2';
+    ctx.beginPath(); ctx.arc(0, 0, br, 0, TAU); ctx.fill();
+    ctx.globalAlpha = 1;
+  },
+
   /* 线性弹：尾迹（渐变双层）+ 弹头 */
   linear(ctx, pr) {
     const ang = pr.homing && pr.target
@@ -612,6 +661,7 @@ export function drawProjectiles(rc: RenderContext): void {
     ctx.translate(pr.x, pr.y);
     if (pr.meteor) PROJ_RENDER.meteor(ctx, pr);
     else if (pr.tide) PROJ_RENDER.tide(ctx, pr);
+    else if (pr.tidePool) PROJ_RENDER.tidePool(ctx, pr);
     else if (pr.judge) PROJ_RENDER.judge(ctx, pr);
     else if (pr.acid) PROJ_RENDER.acid(ctx, pr);
     else if (pr.ground) PROJ_RENDER.ground(ctx, pr);

@@ -59,6 +59,10 @@ export function showWeaponDetail(id: string): void {
   if (def.fire && (def.fire as any).chain) rows.push(['连锁', (def.fire as any).chain + ' 次']);
   if (def.slow) rows.push(['减速', (def.slow * 100).toFixed(0) + '%']);
   if (def.homing) rows.push(['追踪', '是']);
+  // 蚀潮水域：落点爆裂后遗留的潮汐区域
+  const tideProj = (def.fire?.projectile as any) || {};
+  if (tideProj.poolDur) rows.push(['水域', tideProj.poolDur + 's · 潮压' + tideProj.poolTick + 's']);
+  if (tideProj.poolSlow) rows.push(['水域减速', Math.round(tideProj.poolSlow * 100) + '%']);
   const price = weaponSellPrice(w.lv);
   // 侵蚀武器：公式行内联合并月蚀倍率（与商店卡片一致）
   const eroFrag = w.eroded && def.erosion

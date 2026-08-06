@@ -3,6 +3,12 @@
    ========================================================= */
 import type { WeaponDef, Player, WeaponInstance } from '../../../types/core.d.ts';
 import { erosionBonus } from '../../../domain/erosion.js';
+import { stageState } from '../../../state/stage.js';
+
+/** 月蚀深度：潮锚深度倍率的取值来源（stageState，非 Player） */
+function stageDepth(): number {
+  return stageState.state.depth || 0;
+}
 
 type FormulaEntry = [string, string, (p: Player, lv: number) => any, (string | ((p: Player, lv: number) => any))?];
 
@@ -19,6 +25,7 @@ const WEAPON_FORMULAS: Record<string, FormulaEntry[]> = {
   storm:      [['攻击力','param',p=>p.effAtk||0], ['倍率','param',(p,lv)=>1.0+0.18*lv,'(1.0+0.18×L)'], ['单发伤害','part',(p,lv)=>(p.effAtk||0)*(1.0+0.18*lv)], ['移速','param',p=>p.speed||0], ['攻速','param',p=>p.atkSpd||1], ['移速·攻速·0.05','part',(p,lv)=>(p.speed||0)*(p.atkSpd||1)*0.05], ['每核弹幕数','param',(p,lv)=>1+Math.floor(lv/3)], ['双核·总输出','part',(p,lv)=>((p.effAtk||0)*(1.0+0.18*lv)+(p.speed||0)*(p.atkSpd||1)*0.05)*(1+Math.floor(lv/3))*2]],
   nova:       [['攻击力','param',p=>p.effAtk||0], ['倍率','param',(p,lv)=>1.5+0.35*lv,'(1.5+0.35×L)'], ['攻击·倍率','part',(p,lv)=>(p.effAtk||0)*(1.5+0.35*lv)], ['移速','param',p=>p.speed||0], ['移速·0.1','part',(p,lv)=>(p.speed||0)*0.1]],
   phantom:    [['攻击力','param',p=>p.effAtk||0], ['分身数','param',(p,lv)=>2+Math.floor(lv/2)], ['单分身·攻击×(0.5+0.12L)','param',(p,lv)=>(p.effAtk||0)*(0.5+0.12*lv)], ['总输出(单×分身数)','part',(p,lv)=>(p.effAtk||0)*(0.5+0.12*lv)*(2+Math.floor(lv/2))]],
+  tideAnchor: [['攻击力','param',p=>p.effAtk||0], ['倍率','param',(p,lv)=>0.75+0.13*lv,'(0.75+0.13×L)'], ['攻击·倍率','part',(p,lv)=>(p.effAtk||0)*(0.75+0.13*lv)], ['生命上限','param',p=>p.maxHp||0], ['生命倍率','param',(p,lv)=>0.12+0.015*lv,'(12%+1.5%×L)'], ['生命·倍率','part',(p,lv)=>(p.maxHp||0)*(0.12+0.015*lv)], ['月蚀深度','param',()=>stageDepth(),'深度'], ['深度倍率','param',(p,lv)=>1+stageDepth()*0.12,'(1+深度×12%)'], ['深度·倍率','part',(p,lv)=>((p.effAtk||0)*(0.75+0.13*lv)+(p.maxHp||0)*(0.12+0.015*lv))*(stageDepth()*0.12)]],
 };
 
 export function weaponFormulaText(def: WeaponDef): string {
