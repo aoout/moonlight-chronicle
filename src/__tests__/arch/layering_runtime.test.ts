@@ -32,15 +32,15 @@ beforeAll(() => {
 
 // eager:false → 拿到一组 loader，逐个 await，失败时能精确定位到文件
 const CORE_MODULES = import.meta.glob([
-  '../engine/**/*.ts',
-  '../assets/**/*.ts',
-  '../config/**/*.ts',
-  '../state/**/*.ts',
-  '../platform/**/*.ts',
-  '../infra/persistence/**/*.ts',
-  '../domain/**/*.ts',
-  '../systems/**/*.ts',
-  '../commands/**/*.ts',
+  '../../engine/**/*.ts',
+  '../../assets/**/*.ts',
+  '../../config/**/*.ts',
+  '../../state/**/*.ts',
+  '../../platform/**/*.ts',
+  '../../infra/persistence/**/*.ts',
+  '../../domain/**/*.ts',
+  '../../systems/**/*.ts',
+  '../../commands/**/*.ts',
 ], { eager: false });
 
 describe('核心层（0–9）运行时无 DOM 依赖', () => {
@@ -68,9 +68,9 @@ describe('核心层（0–9）运行时无 DOM 依赖', () => {
   });
 
   it('成就端口在 systems 层加载后完成注册（非 NOOP 静默降级）', async () => {
-    const { achievements } = await import('../domain/ports/achievements.js');
+    const { achievements } = await import('../../domain/ports/achievements.js');
     // 加载 systems 层实现，其模块顶层会调用 setAchievementSink
-    await import('../systems/AchievementSystem.js');
+    await import('../../systems/AchievementSystem.js');
 
     const sink = achievements();
     expect(typeof sink.onDamage).toBe('function');
@@ -79,7 +79,7 @@ describe('核心层（0–9）运行时无 DOM 依赖', () => {
   });
 
   it('fixed-load 探针默认关闭，注册后可被 bench 接管', async () => {
-    const { isFixedLoad, setFixedLoadProbe } = await import('../engine/env.js');
+    const { isFixedLoad, setFixedLoadProbe } = await import('../../engine/env.js');
 
     setFixedLoadProbe(null);
     expect(isFixedLoad()).toBe(false); // 未注册时安全默认值

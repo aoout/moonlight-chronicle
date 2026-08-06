@@ -4,9 +4,9 @@
    注意：本文件仅测试纯函数，不依赖浏览器 API
    ========================================================= */
 import { describe, it, expect } from 'vitest';
-import { computeStats } from '../infra/debug/bench/stats.js';
-import { compareReports, generateReportText, generateReportHTML, generateComparisonText } from '../infra/debug/bench/reporter.js';
-import type { BenchReport, BenchResult, FrameSample } from '../infra/debug/bench/types.js';
+import { computeStats } from '../../infra/debug/bench/stats.js';
+import { compareReports, generateReportText, generateReportHTML, generateComparisonText } from '../../infra/debug/bench/reporter.js';
+import type { BenchReport, BenchResult, FrameSample } from '../../infra/debug/bench/types.js';
 
 /* ========== computeStats ========== */
 

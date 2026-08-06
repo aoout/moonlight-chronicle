@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   settingsState, PRESETS, applyPreset, setSetting, matchPreset,
   loadSettings, persistSettings,
-} from '../state/settings.js';
+} from '../../state/settings.js';
 
 /* Node 测试环境无 localStorage，注入最小实现 */
 const memStore = new Map<string, string>();
