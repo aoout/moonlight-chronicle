@@ -2,6 +2,7 @@
    蚀月远征 · 数据层：关卡配置 / 诅咒 / 关卡函数
    本模块负责关卡静态数据；曲线公式从 JSON 加载并预编译
    ========================================================= */
+import { PALETTE } from '../assets/palette.js';
 import { ICONS } from '../assets/icons.js';
 import { compileFormula } from './parser.js';
 import stageCurves from './stage_curves.json';
@@ -17,7 +18,7 @@ export const CONFIG: Config = {
 
 export const LEVELS: LevelDef[] = [
   { name:'初潮',   tag:'新月之蚀', color:'#f4e3c0', desc:'蚀月初醒，潮汐尚浅。守月人的第一场远征。' },
-  { name:'弦月',   tag:'蚀牙初现', color:'#e9c987', desc:'月光被蚀去一角，蚀潮开始低语。' },
+  { name:'弦月',   tag:'蚀牙初现', color:PALETTE.gold, desc:'月光被蚀去一角，蚀潮开始低语。' },
   { name:'上弦',   tag:'月晕渐暗', color:'#e0b26a', desc:'蚀影爬上月面，夜风带着锈味。' },
   { name:'盈凸',   tag:'蚀影侵月', color:'#d99a55', desc:'月海泛起暗红，潮噬之物躁动。' },
   { name:'满月',   tag:'潮汐狂涌', color:'#d07a4a', desc:'满月之夜，蚀潮倾泻而下。' },

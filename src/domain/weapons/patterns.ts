@@ -2,7 +2,8 @@
    蚀月远征 · 武器：发射模式模块
    可组合的弹幕发射模式，供武器管线使用
    ========================================================= */
-import { RNG, rand } from '../../engine/util/utils.js';
+import { PALETTE } from '../../assets/palette.js';
+import { RNG, rand, TAU } from '../../engine/util/utils.js';
 import { world } from '../../engine/ecs/World.js';
 import { Position, Velocity, Combat, Timer, Renderable, Projectile } from '../../engine/ecs/entity_factories.js';
 import { compileFormula } from '../../config/parser.js';
@@ -68,7 +69,7 @@ export const PATTERNS: Record<string, (p: Player, target: TargetingResult, cfg: 
       : p.facing * 0.2;
     const list = [];
     for (let i = 0; i < n; i++) {
-      const a = (i / n) * 6.28 + aimOffset;
+      const a = (i / n) * TAU + aimOffset;
       list.push(createProjectile(p, target, cfg, a, baseDmg, wId, i, n));
     }
     return list;
@@ -83,7 +84,7 @@ export const PATTERNS: Record<string, (p: Player, target: TargetingResult, cfg: 
     const initFireT = def?.initFireT || 0.5;
     const list = [];
     for (let i = 0; i < n; i++) {
-      const a = (i / n) * 6.28 + RNG();
+      const a = (i / n) * TAU + RNG();
       const ph = world.add('phantoms', {
         ...Position(p.x + Math.cos(a) * posOffset, p.y + Math.sin(a) * posOffset),
         ...Combat(baseDmg / n),
@@ -121,7 +122,7 @@ function createProjectile(p: Player, target: TargetingResult, cfg: WeaponFireCon
   const range = projCfg.range || 300;
   const pierceVal = projCfg.pierce === -1 ? Infinity : (projCfg.pierce || 0);
   const pierce = pierceVal + (p.pierce || 0);
-  const color = projCfg.color || '#fff';
+  const color = projCfg.color || PALETTE.white;
   const r = projCfg.radius || 6;
 
   // 从注册表获取投射物类型配置

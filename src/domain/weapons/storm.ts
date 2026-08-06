@@ -1,7 +1,8 @@
 /* =========================================================
    蚀月远征 · 武器：风暴之眼（双核环绕+弹幕射击）
    ========================================================= */
-import { RNG, rand } from '../../engine/util/utils.js';
+import { PALETTE } from '../../assets/palette.js';
+import { RNG, rand, TAU, HALF_PI } from '../../engine/util/utils.js';
 import { WEAPONS } from '../../config/index.js';
 import { world } from '../../engine/ecs/World.js';
 import { addFx, spawnGlow } from '../../platform/fx/fx.js';
@@ -25,7 +26,7 @@ export function stormTick(dt: number): void {
     const range = def.range || projSpeed * 1.3;
     const projLife = range / projSpeed;
     const projR = def.projRadius || 5;
-    const color = def.color || '#8fe3d8';
+    const color = def.color || PALETTE.swift;
     const projPerShot = (def.proj || 1) + Math.floor(stormW.lv / 2) + Math.floor((p.projCount || 0) / 2);
     const dmgPerProj = weaponDmg(stormW, p);
 
@@ -33,7 +34,7 @@ export function stormTick(dt: number): void {
     p.effects.stormFireT = p.effects.stormFireT || {};
 
     for (let i = 0; i < CORES; i++) {
-      const a = (i / CORES) * 6.28 + gSt().time * angularSpd;
+      const a = (i / CORES) * TAU + gSt().time * angularSpd;
       const ox = p.x + Math.cos(a) * orbitR;
       const oy = p.y + Math.sin(a) * orbitR;
 
@@ -46,7 +47,7 @@ export function stormTick(dt: number): void {
       if (p.effects.stormFireT[fk] <= 0) {
         p.effects.stormFireT[fk] = tick;
         // 朝切线方向（前进方向）发射
-        const fireA = a + 1.57;
+        const fireA = a + HALF_PI;
 
         for (let j = 0; j < projPerShot; j++) {
           const spread = (j - (projPerShot - 1) / 2) * (def.spread || 0.16);

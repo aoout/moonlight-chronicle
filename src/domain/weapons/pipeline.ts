@@ -2,8 +2,8 @@
    蚀月远征 · 武器：可组合行为管线执行器
    将武器定义中的 fire/projectile 配置翻译为实际行为
    ========================================================= */
-import { RNG, dist } from '../../engine/util/utils.js';
 import { PALETTE } from '../../assets/palette.js';
+import { RNG, dist } from '../../engine/util/utils.js';
 import { TARGETING } from './targeting.js';
 import { PATTERNS } from './patterns.js';
 import { MOVEMENT } from './movement.js';
@@ -81,8 +81,8 @@ function spawnFireEffects(p: Player, def: WeaponDef, wId: string): void {
   if (wId === 'arc') spawnGlow(mx, my, 13, PALETTE.violet, 0.3);
   if (wId === 'tideAnchor') {
     // 蚀潮之锚开火：玩家身前涌起潮环与飞溅水光
-    spawnRing(p.x, p.y, '#5fb8a8', 0.4, 46, 3);
-    spawnSpark(p.x, p.y, '#cfeff8', 5, 170);
+    spawnRing(p.x, p.y, PALETTE.tide, 0.4, 46, 3);
+    spawnSpark(p.x, p.y, PALETTE.iceLight, 5, 170);
     spawnGlow(p.x, p.y, 16, '#2c5d68', 0.35);
   }
 }
@@ -100,17 +100,17 @@ function spawnFireEffects(p: Player, def: WeaponDef, wId: string): void {
 export function executeProjPipeline(pr: Projectile, dt: number, p: Player): void {
   pr.hit = pr.hit || new Set();
 
-  // 特殊投射物：陨石 / 蚀潮（独立处理，因逻辑复杂）
+  // 特殊投射物：陨石 / 蚀潮 / 辉光审判（共用延迟 AOE 执行体）
   if (pr.meteor) {
-    tickMeteor(pr, dt, p);
+    tickAoeDelay(pr, dt, p, METEOR_BURST);
     return;
   }
   if (pr.tide) {
-    tickTide(pr, dt, p);
+    tickAoeDelay(pr, dt, p, TIDE_BURST);
     return;
   }
   if (pr.judge) {
-    tickJudge(pr, dt, p);
+    tickAoeDelay(pr, dt, p, JUDGE_BURST);
     return;
   }
 
@@ -191,89 +191,129 @@ function spawnTrailFx(pr: Projectile, dt: number, moveType: string): void {
 }
 
 /* =========================================================
-   3. 特殊投射物处理（陨石 / 蚀潮 — 逻辑复杂，单独处理）
+   3. 特殊投射物处理（陨石 / 蚀潮 / 辉光审判 — 共用延迟 AOE 执行体）
    ========================================================= */
-function tickTide(pr: Projectile, dt: number, p: Player): void {
-  pr.t = (pr.t || 0) + dt;
-  // 坠落水花（青白潮滴，下坠翻涌）
-  if (RNG() < 0.6) {
-    addFx({ x: pr.x, y: pr.y, vx: (RNG() - 0.5) * 40, vy: RNG() * 60 + 30, life: 0.4, max: 0.4, size: RNG() < 0.5 ? 2 : 4, color: RNG() < 0.5 ? '#cfeff8' : '#5fb8a8' });
-  }
-  if (pr.t >= (pr.delay || 0.5)) {
-    // 潮压喷涌：水花 + 水刃 + 白水光 + 双水环 + 潮芒 + 深潮辉光
-    spawnBurst(pr.x, pr.y, PALETTE.iceLight, 20);
-    spawnShard(pr.x, pr.y, PALETTE.ice, 8, 260);
-    spawnSpark(pr.x, pr.y, '#ffffff', 10, 280);
-    spawnRing(pr.x, pr.y, '#5fb8a8', 0.5, 130, 4.5);
-    spawnRing(pr.x, pr.y, '#cfeff8', 0.7, 215, 2);
-    spawnStar(pr.x, pr.y, '#8fe3d8', 24);
-    spawnGlow(pr.x, pr.y, 30, '#2c5d68', 0.5);
-    // 升腾水泡（潮压把水泡顶向高空）
-    for (let i = 0; i < 6; i++) {
-      addFx({
-        x: pr.x + (RNG() - 0.5) * 140, y: pr.y + (RNG() - 0.5) * 20,
-        vx: (RNG() - 0.5) * 30, vy: -RNG() * 130 - 40,
-        life: 0.8, max: 0.8, size: 2 + RNG() * 3,
-        color: RNG() < 0.5 ? '#cfeff8' : '#8fe3d8',
-      });
-    }
-    shakeScreen(9);
-    for (const e of queryRadius(pr.x, pr.y, pr.aoe || 130)) {
-      if (e.dead) continue;
-      damageEnemy(e, pr.dmg * (1.4 - dist(e, pr) / (pr.aoe || 130)), RNG() < p.effCrit, 'tide', pr.wId);
-    }
-    pr.dead = 1;
-  }
+
+/** 延迟 AOE 爆炸特效配置（蚀潮 / 陨石 / 辉光审判共用执行体 tickAoeDelay） */
+interface AoeBurstCfg {
+  delay: number;                 // 触发延迟（秒）
+  aoe: number;                   // 爆炸范围
+  srcType: string;               // 伤害来源类型
+  /** 坠落/蓄力粒子（undefined 则无） */
+  fall?: {
+    xJitter: number;             // x 随机偏移幅度
+    yJitter: number;             // y 随机偏移幅度
+    vx: number;                  // vx 随机幅度
+    vyBase: number;              // vy = vyBase + RNG() * vyRange
+    vyRange: number;
+    life: number;
+    sizeLo: number;              // size: RNG() < 0.5 ? sizeLo : sizeHi
+    sizeHi: number;
+    c1: string;                  // color: RNG() < 0.5 ? c1 : c2
+    c2: string;
+  };
+  /** 升腾粒子（undefined 则无，蚀潮独有） */
+  bubbles?: {
+    xSpread: number;
+    ySpread: number;
+    vx: number;
+    vy: number;                  // vy = -RNG() * vy - vyMin
+    vyMin: number;
+    life: number;
+    size: number;                // size = size + RNG() * sizeRand
+    sizeRand: number;
+    c1: string;
+    c2: string;
+  };
+  fx: {
+    burst: { c: string; n: number };
+    shard: { c: string; n: number; sp: number };
+    spark: { c: string; n: number; sp: number };
+    ring: { c: string; life: number; r: number; w: number };
+    ring2: { c: string; life: number; r: number; w: number };
+    star: { c: string; size: number };
+    glow: { c: string; size: number; life: number };
+  };
 }
+
+const AOE_CENTER_DMG = 1.4;      // 爆炸中心伤害倍率（随距离线性衰减至 0）
+const FALL_PARTICLE_CHANCE = 0.6; // 每帧生成坠落粒子的概率
+
+/* 蚀潮（青白水潮 · 水系） */
+const TIDE_BURST: AoeBurstCfg = {
+  delay: 0.5, aoe: 130, srcType: 'tide',
+  fall: { xJitter: 0, yJitter: 0, vx: 40, vyBase: 30, vyRange: 60, life: 0.4, sizeLo: 2, sizeHi: 4, c1: PALETTE.iceLight, c2: PALETTE.tide },
+  bubbles: { xSpread: 140, ySpread: 20, vx: 30, vy: 130, vyMin: 40, life: 0.8, size: 2, sizeRand: 3, c1: PALETTE.iceLight, c2: PALETTE.swift },
+  fx: {
+    burst: { c: PALETTE.iceLight, n: 20 }, shard: { c: PALETTE.ice, n: 8, sp: 260 },
+    spark: { c: PALETTE.white, n: 10, sp: 280 }, ring: { c: PALETTE.tide, life: 0.5, r: 130, w: 4.5 },
+    ring2: { c: PALETTE.iceLight, life: 0.7, r: 215, w: 2 }, star: { c: PALETTE.swift, size: 24 },
+    glow: { c: '#2c5d68', size: 30, life: 0.5 },
+  },
+};
 
 /* 陨石（焚天陨星 · 火系） */
-function tickMeteor(pr: Projectile, dt: number, p: Player): void {
-  pr.t = (pr.t || 0) + dt;
-  if (RNG() < 0.6) {
-    addFx({ x: pr.x, y: pr.y, vx: (RNG() - 0.5) * 40, vy: (RNG() * 60 + 30), life: 0.4, max: 0.4, size: RNG() < 0.5 ? 2 : 4, color: RNG() < 0.5 ? PALETTE.fire : PALETTE.ember });
-  }
-  if (pr.t >= (pr.delay || 0.55)) {
-    spawnBurst(pr.x, pr.y, PALETTE.hot, 22);
-    spawnShard(pr.x, pr.y, PALETTE.fire, 8, 260);
-    spawnSpark(pr.x, pr.y, PALETTE.goldBright, 10, 280);
-    spawnRing(pr.x, pr.y, PALETTE.fire, 0.5, 130, 4.5);
-    spawnRing(pr.x, pr.y, PALETTE.ember, 0.7, 215, 2);
-    spawnStar(pr.x, pr.y, PALETTE.goldBright, 24);
-    spawnGlow(pr.x, pr.y, 30, PALETTE.hot, 0.5);
-    shakeScreen(9);
-    for (const e of queryRadius(pr.x, pr.y, pr.aoe || 130)) {
-      if (e.dead) continue;
-      damageEnemy(e, pr.dmg * (1.4 - dist(e, pr) / (pr.aoe || 130)), RNG() < p.effCrit, 'meteor', pr.wId);
-    }
-    pr.dead = 1;
-  }
-}
+const METEOR_BURST: AoeBurstCfg = {
+  delay: 0.55, aoe: 130, srcType: 'meteor',
+  fall: { xJitter: 0, yJitter: 0, vx: 40, vyBase: 30, vyRange: 60, life: 0.4, sizeLo: 2, sizeHi: 4, c1: PALETTE.fire, c2: PALETTE.ember },
+  fx: {
+    burst: { c: PALETTE.hot, n: 22 }, shard: { c: PALETTE.fire, n: 8, sp: 260 },
+    spark: { c: PALETTE.goldBright, n: 10, sp: 280 }, ring: { c: PALETTE.fire, life: 0.5, r: 130, w: 4.5 },
+    ring2: { c: PALETTE.ember, life: 0.7, r: 215, w: 2 }, star: { c: PALETTE.goldBright, size: 24 },
+    glow: { c: PALETTE.hot, size: 30, life: 0.5 },
+  },
+};
 
 /* 辉光审判：裁决辉光（金辉圣光 · 光系） */
-function tickJudge(pr: Projectile, dt: number, p: Player): void {
+const JUDGE_BURST: AoeBurstCfg = {
+  delay: 0.5, aoe: 110, srcType: 'judge',
+  fall: { xJitter: 40, yJitter: 20, vx: 30, vyBase: -30, vyRange: -70, life: 0.45, sizeLo: 2, sizeHi: 3.5, c1: PALETTE.goldBright, c2: PALETTE.goldPale },
+  fx: {
+    burst: { c: PALETTE.goldPale, n: 18 }, shard: { c: PALETTE.gold, n: 8, sp: 240 },
+    spark: { c: PALETTE.goldBright, n: 12, sp: 300 }, ring: { c: PALETTE.goldBright, life: 0.5, r: 120, w: 4.5 },
+    ring2: { c: PALETTE.goldPale, life: 0.7, r: 200, w: 2 }, star: { c: PALETTE.goldBright, size: 26 },
+    glow: { c: PALETTE.goldBright, size: 34, life: 0.55 },
+  },
+};
+
+/** 延迟 AOE 爆炸执行体：坠落粒子 → 爆发 FX → 范围伤害（蚀潮 / 陨石 / 辉光审判共用） */
+function tickAoeDelay(pr: Projectile, dt: number, p: Player, cfg: AoeBurstCfg): void {
   pr.t = (pr.t || 0) + dt;
-  // 蓄力金辉光尘（上升光尘，神圣下坠前奏）
-  if (RNG() < 0.6) {
+  const f = cfg.fall;
+  if (f && RNG() < FALL_PARTICLE_CHANCE) {
     addFx({
-      x: pr.x + (RNG() - 0.5) * 40, y: pr.y + (RNG() - 0.5) * 20,
-      vx: (RNG() - 0.5) * 30, vy: -RNG() * 70 - 30,
-      life: 0.45, max: 0.45, size: RNG() < 0.5 ? 2 : 3.5,
-      color: RNG() < 0.5 ? PALETTE.goldBright : PALETTE.goldPale,
+      x: pr.x + (RNG() - 0.5) * f.xJitter, y: pr.y + (RNG() - 0.5) * f.yJitter,
+      vx: (RNG() - 0.5) * f.vx, vy: f.vyBase + RNG() * f.vyRange,
+      life: f.life, max: f.life, size: RNG() < 0.5 ? f.sizeLo : f.sizeHi,
+      color: RNG() < 0.5 ? f.c1 : f.c2,
     });
   }
-  if (pr.t >= (pr.delay || 0.5)) {
-    // 圣辉爆裂：金辉光雾 + 光刃 + 圣芒 + 双金环 + 辉星 + 白炽光晕
-    spawnBurst(pr.x, pr.y, PALETTE.goldPale, 18);
-    spawnShard(pr.x, pr.y, PALETTE.gold, 8, 240);
-    spawnSpark(pr.x, pr.y, PALETTE.goldBright, 12, 300);
-    spawnRing(pr.x, pr.y, PALETTE.goldBright, 0.5, 120, 4.5);
-    spawnRing(pr.x, pr.y, PALETTE.goldPale, 0.7, 200, 2);
-    spawnStar(pr.x, pr.y, PALETTE.goldBright, 26);
-    spawnGlow(pr.x, pr.y, 34, PALETTE.goldBright, 0.55);
+  if (pr.t >= (pr.delay || cfg.delay)) {
+    const fx = cfg.fx;
+    spawnBurst(pr.x, pr.y, fx.burst.c, fx.burst.n);
+    spawnShard(pr.x, pr.y, fx.shard.c, fx.shard.n, fx.shard.sp);
+    spawnSpark(pr.x, pr.y, fx.spark.c, fx.spark.n, fx.spark.sp);
+    spawnRing(pr.x, pr.y, fx.ring.c, fx.ring.life, fx.ring.r, fx.ring.w);
+    spawnRing(pr.x, pr.y, fx.ring2.c, fx.ring2.life, fx.ring2.r, fx.ring2.w);
+    spawnStar(pr.x, pr.y, fx.star.c, fx.star.size);
+    spawnGlow(pr.x, pr.y, fx.glow.size, fx.glow.c, fx.glow.life);
+    const b = cfg.bubbles;
+    if (b) {
+      // 升腾粒子（蚀潮：潮压把水泡顶向高空）
+      for (let i = 0; i < 6; i++) {
+        addFx({
+          x: pr.x + (RNG() - 0.5) * b.xSpread, y: pr.y + (RNG() - 0.5) * b.ySpread,
+          vx: (RNG() - 0.5) * b.vx, vy: -RNG() * b.vy - b.vyMin,
+          life: b.life, max: b.life, size: b.size + RNG() * b.sizeRand,
+          color: RNG() < 0.5 ? b.c1 : b.c2,
+        });
+      }
+    }
     shakeScreen(9);
-    for (const e of queryRadius(pr.x, pr.y, pr.aoe || 110)) {
+    const aoe = pr.aoe || cfg.aoe;
+    for (const e of queryRadius(pr.x, pr.y, aoe)) {
       if (e.dead) continue;
-      damageEnemy(e, pr.dmg * (1.4 - dist(e, pr) / (pr.aoe || 110)), RNG() < p.effCrit, 'judge', pr.wId);
+      damageEnemy(e, pr.dmg * (AOE_CENTER_DMG - dist(e, pr) / aoe), RNG() < p.effCrit, cfg.srcType, pr.wId);
     }
     pr.dead = 1;
   }

@@ -280,6 +280,7 @@
     "icon": "frozenHourglass",
     "rarity": "legend",
     "price": 86,
+    "interval": 12,
     "desc": "每 <span class=\"stat-up\">12 秒</span> 令全场敌人停滞 <span class=\"stat-up\">1 秒</span>。"
   },
   "vamp": {
@@ -411,7 +412,8 @@
     "icon": "starfall",
     "rarity": "legend",
     "price": 90,
-    "desc": "每 <span class=\"stat-up\">12 秒</span> 自动朝最近敌人坠落一颗陨星。"
+    "interval": 9,
+    "desc": "每 <span class=\"stat-up\">9 秒</span> 自动朝最近敌人坠落一颗陨星。"
   },
   "tideRegen": {
     "id": "tideRegen",

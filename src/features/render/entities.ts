@@ -2,7 +2,7 @@
    蚀月远征 · 渲染层：敌人 / Boss / 玩家 / 残像
    ========================================================= */
 import { PALETTE } from '../../assets/palette.js';
-import { clamp } from '../../engine/util/utils.js';
+import { clamp, TAU } from '../../engine/util/utils.js';
 import { ENEMY_POOL } from '../../engine/ecs/entity_pool.js';
 import { drawEnemyBody } from './layers/enemies.js';
 import { drawBossBody } from './layers/bosses.js';
@@ -78,21 +78,21 @@ export function drawEnemies(rc: RenderContext): void {
     // Boss 呼吸光环
     if (e.boss) {
       ctx.globalAlpha = 0.5;
-      ctx.strokeStyle = e.color || '#fff';
+      ctx.strokeStyle = e.color || PALETTE.white;
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(0, 0, s + 10 + Math.sin(rc.time * 3) * 4, 0, 6.28); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, s + 10 + Math.sin(rc.time * 3) * 4, 0, TAU); ctx.stroke();
       ctx.globalAlpha = 1;
     }
     // 脚下阴影（俯视投影）
     ctx.fillStyle = 'rgba(0,0,0,.3)';
-    ctx.beginPath(); ctx.ellipse(0, s * 0.92, s * 1.15, s * 0.42, 0, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, s * 0.92, s * 1.15, s * 0.42, 0, 0, TAU); ctx.fill();
     // 身体造型（使用离屏缓存，每4帧刷新以支持动画；缓存为基准朝向，外层做旋转）
     ctx.save();
-    const cacheKey = 'enemy_' + (e.type || 'default') + '_' + (e.color || '#888') + '_' + Math.round(s);
+    const cacheKey = 'enemy_' + (e.type || 'default') + '_' + (e.color || PALETTE.gray) + '_' + Math.round(s);
     const cacheSize = Math.ceil(s * 4) + 40;
     const drawBody = (bctx: CanvasRenderingContext2D) => {
       bctx.translate(cacheSize / 2, cacheSize / 2);
-      bctx.shadowColor = e.color || '#fff'; bctx.shadowBlur = e.boss ? 18 : 8;
+      bctx.shadowColor = e.color || PALETTE.white; bctx.shadowBlur = e.boss ? 18 : 8;
       if (e.boss) drawBossBody(bctx, e, s, 0, 0, t, rc.time);
       else drawEnemyBody(bctx, e, s, 0, 0, t, 0, rc.time);
     };
@@ -109,20 +109,20 @@ export function drawEnemies(rc: RenderContext): void {
     // 受击白闪（不缓存，实时绘制）
     if (flash > 0) {
       ctx.save();
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = PALETTE.white;
       ctx.globalAlpha = Math.min(1, flash * 5);
-      ctx.beginPath(); ctx.arc(0, 0, s + 1, 0, 6.28); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 0, s + 1, 0, TAU); ctx.fill();
       ctx.restore();
     }
     // 减速结霜（霜华之环命中反馈）
     if (slow > 0) {
       ctx.globalAlpha = Math.min(0.55, slow);
       ctx.fillStyle = '#bfe9f6';
-      ctx.beginPath(); ctx.arc(0, 0, s + 1, 0, 6.28); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 0, s + 1, 0, TAU); ctx.fill();
       ctx.globalAlpha = 0.8;
       for (let i = 0; i < 5; i++) {
         const a = i * 1.256 + rc.time * 0.6;
-        ctx.beginPath(); ctx.arc(Math.cos(a) * s * 0.62, Math.sin(a) * s * 0.62, 1.2, 0, 6.28); ctx.fill();
+        ctx.beginPath(); ctx.arc(Math.cos(a) * s * 0.62, Math.sin(a) * s * 0.62, 1.2, 0, TAU); ctx.fill();
       }
       ctx.globalAlpha = 1;
     }
@@ -131,7 +131,7 @@ export function drawEnemies(rc: RenderContext): void {
       ctx.globalAlpha = 0.35 + 0.4 * Math.sin(rc.time * 14);
       ctx.strokeStyle = '#ff5c5c';
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(0, 0, s + 5 + Math.sin(rc.time * 14) * 2, 0, 6.28); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, s + 5 + Math.sin(rc.time * 14) * 2, 0, TAU); ctx.stroke();
       ctx.globalAlpha = 1;
     }
     // Boss 低血狂暴（红环）
@@ -139,7 +139,7 @@ export function drawEnemies(rc: RenderContext): void {
       ctx.globalAlpha = 0.3 + 0.3 * Math.sin(rc.time * 10);
       ctx.strokeStyle = PALETTE.blood;
       ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.arc(0, 0, s + 14 + Math.sin(rc.time * 10) * 3, 0, 6.28); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, s + 14 + Math.sin(rc.time * 10) * 3, 0, TAU); ctx.stroke();
       ctx.globalAlpha = 1;
     }
     // 血条
@@ -162,15 +162,15 @@ export function drawPhantoms(rc: RenderContext): void {
     ctx.save();
     ctx.translate(ph.x, ph.y);
     ctx.globalAlpha = 0.5 + 0.18 * Math.sin(rc.time * 4 + ph.t * 6);
-    ctx.fillStyle = '#dbe8ff';
+    ctx.fillStyle = PALETTE.icePale;
     // 光晕层（径向渐变替代 shadowBlur）
     const glowG = ctx.createRadialGradient(0, 0, 0, 0, 0, 18);
-    glowG.addColorStop(0, '#dbe8ff');
+    glowG.addColorStop(0, PALETTE.icePale);
     glowG.addColorStop(1, 'transparent');
     ctx.fillStyle = glowG;
-    ctx.beginPath(); ctx.arc(0, 0, 18, 0, 6.28); ctx.fill();
-    ctx.fillStyle = '#dbe8ff';
-    ctx.beginPath(); ctx.arc(0, 0, 12, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, 18, 0, TAU); ctx.fill();
+    ctx.fillStyle = PALETTE.icePale;
+    ctx.beginPath(); ctx.arc(0, 0, 12, 0, TAU); ctx.fill();
     // 月牙蚀刻（轮廓）
     ctx.strokeStyle = 'rgba(22,16,44,.55)'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(0, 0, 10, 0.4, 5.88); ctx.stroke();
@@ -196,35 +196,35 @@ export function drawPlayer(rc: RenderContext): void {
     glowG.addColorStop(0, PALETTE.gold);
     glowG.addColorStop(1, 'transparent');
     bctx.fillStyle = glowG;
-    bctx.beginPath(); bctx.arc(cx, cy, p.r + 10, 0, 6.28); bctx.fill();
+    bctx.beginPath(); bctx.arc(cx, cy, p.r + 10, 0, TAU); bctx.fill();
     bctx.fillStyle = g;
-    bctx.beginPath(); bctx.arc(cx, cy, p.r, 0, 6.28); bctx.fill();
+    bctx.beginPath(); bctx.arc(cx, cy, p.r, 0, TAU); bctx.fill();
     // 月牙蚀刻（缺口朝默认方向）
     bctx.shadowBlur = 0;
     bctx.strokeStyle = 'rgba(20,16,6,.55)';
     bctx.lineWidth = 2;
     bctx.beginPath();
-    bctx.arc(cx, cy, p.r - 2.5, 0.35, 6.28 - 0.35);
+    bctx.arc(cx, cy, p.r - 2.5, 0.35, TAU - 0.35);
     bctx.stroke();
     bctx.beginPath();
-    bctx.arc(cx + p.r * 0.38, cy, p.r * 0.72, 0.35, 6.28 - 0.35, true);
+    bctx.arc(cx + p.r * 0.38, cy, p.r * 0.72, 0.35, TAU - 0.35, true);
     bctx.stroke();
     // 月海暗斑
     bctx.fillStyle = 'rgba(180,150,90,.22)';
     [[0.25, 0.2, 0.14], [0.1, 0.55, 0.1], [-0.2, 0.35, 0.12]].forEach(([dx, dy, r]) => {
-      bctx.beginPath(); bctx.arc(cx + dx * p.r, cy + dy * p.r, r * p.r, 0, 6.28); bctx.fill();
+      bctx.beginPath(); bctx.arc(cx + dx * p.r, cy + dy * p.r, r * p.r, 0, TAU); bctx.fill();
     });
     // 朝向眼（光点）
     bctx.fillStyle = '#241a08';
-    bctx.beginPath(); bctx.arc(cx + p.r * 0.5, cy, 2.4, 0, 6.28); bctx.fill();
+    bctx.beginPath(); bctx.arc(cx + p.r * 0.5, cy, 2.4, 0, TAU); bctx.fill();
     bctx.fillStyle = 'rgba(255,255,255,.9)';
-    bctx.beginPath(); bctx.arc(cx + p.r * 0.5 + 0.8, cy - 0.8, 0.9, 0, 6.28); bctx.fill();
+    bctx.beginPath(); bctx.arc(cx + p.r * 0.5 + 0.8, cy - 0.8, 0.9, 0, TAU); bctx.fill();
   });
   // 脚下阴影（俯视投影）
   ctx.save();
   ctx.translate(p.x, p.y);
   ctx.fillStyle = 'rgba(0,0,0,.32)';
-  ctx.beginPath(); ctx.ellipse(0, p.r * 0.95, p.r * 1.2, p.r * 0.5, 0, 0, 6.28); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, p.r * 0.95, p.r * 1.2, p.r * 0.5, 0, 0, TAU); ctx.fill();
   ctx.restore();
   // 玩家身体（使用离屏缓存，旋转朝向）
   ctx.save();
@@ -238,7 +238,7 @@ export function drawPlayer(rc: RenderContext): void {
     ctx.globalAlpha = Math.min(1, p.invuln) * 0.6;
     ctx.strokeStyle = PALETTE.ice;
     ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(0, 0, p.r + 5 + Math.sin(rc.time * 8) * 2, 0, 6.28); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, p.r + 5 + Math.sin(rc.time * 8) * 2, 0, TAU); ctx.stroke();
     ctx.restore();
   }
   // 受击红闪
@@ -247,7 +247,7 @@ export function drawPlayer(rc: RenderContext): void {
     ctx.translate(p.x, p.y);
     ctx.globalAlpha = Math.min(1, rc.hitFlash * 3) * 0.5;
     ctx.fillStyle = PALETTE.blood;
-    ctx.beginPath(); ctx.arc(0, 0, p.r, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, p.r, 0, TAU); ctx.fill();
     ctx.restore();
   }
 }

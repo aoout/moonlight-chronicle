@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 商店：打开集市与卡牌渲染
    ========================================================= */
+import { EVENTS } from '../../../engine/core/events.js';
 import { playerState } from '../../../state/player.js';
 import { stageState } from '../../../state/stage.js';
 import { statsState } from '../../../state/stats.js';
@@ -148,5 +149,5 @@ export function openShop(): void {
   $('shop-gold').textContent = String(Math.floor(sSt().gold));
   renderShopPanel(p);
   $('shop').classList.remove('hidden');
-  EventBus.emit('shop:open', { stage: gSt().stage, gold: sSt().gold });
+  EventBus.emit(EVENTS.SHOP_OPEN, { stage: gSt().stage, gold: sSt().gold });
 }

@@ -2,9 +2,9 @@
    蚀月远征 · HUD 核心：血条 / 武器栏液面与冷却
    工具函数已拆分至 hud_utils.ts
    ========================================================= */
+import { PALETTE } from '../../assets/palette.js';
 import { $, el, html } from './hud_utils.js';
 import { pSt, sSt, gSt } from '../../state/accessors.js';
-import { PALETTE } from '../../assets/palette.js';
 import { clamp } from '../../engine/util/utils.js';
 import { CONFIG, WEAPONS } from '../../config/index.js';
 import { iconSVG } from '../../assets/icons.js';
@@ -122,7 +122,7 @@ function renderWeaponBar(): void {
   }
   // 秘宝槽：道具伤害占比（无道具伤害时隐藏）
   const itemSlot = el('div', 'wslot item-slot');
-  itemSlot.style.setProperty('--wcolor', '#b49ae8');
+  itemSlot.style.setProperty('--wcolor', PALETTE.violet);
   itemSlot.style.setProperty('--fill-txt', '#eaf6ff');
   itemSlot.innerHTML = html`
   <div class="wliquid"><svg class="w-wave" viewBox="0 0 40 6" preserveAspectRatio="none"><path d="M0 3 Q5 0 10 3 T20 3 T30 3 T40 3 V6 H0 Z"/></svg></div>

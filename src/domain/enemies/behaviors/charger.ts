@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 敌人行为：裂口魔（蓄力冲刺）
    ========================================================= */
+import { PALETTE } from '../../../assets/palette.js';
 import { RNG, angTo } from '../../../engine/util/utils.js';
 import { world } from '../../../engine/ecs/World.js';
 import { spawnSpark, spawnGlow } from '../../../platform/fx/fx.js';
@@ -17,9 +18,9 @@ export function chargerMove(e: EnemyInstance, dt: number, p: Player, slowF: numb
     // 蓄力：独角聚怒，火星自角尖迸溅
     if (RNG() < 0.5) {
       const a = angTo(e, p);
-      spawnSpark(e.x + Math.cos(a) * 26, e.y + Math.sin(a) * 26, '#ff8a5c', 1, 70);
+      spawnSpark(e.x + Math.cos(a) * 26, e.y + Math.sin(a) * 26, PALETTE.fire, 1, 70);
     }
-    spawnGlow(e.x, e.y, 10, '#e2546a', 0.12);
+    spawnGlow(e.x, e.y, 10, PALETTE.blood, 0.12);
   } else {
     const a = angTo(e, p);
     const sp = e.spd + (e.dash ?? 0);
@@ -29,7 +30,7 @@ export function chargerMove(e: EnemyInstance, dt: number, p: Player, slowF: numb
     if (RNG() < 0.28) {
       world.add('projectiles', {
         ground: true, erode: true, x: e.x, y: e.y, t: 0, delay: 0.7,
-        r: 44, dmg: e.dmg * 0.9, color: '#ff7a7a',
+        r: 44, dmg: e.dmg * 0.9, color: PALETTE.coral,
       });
     }
   }

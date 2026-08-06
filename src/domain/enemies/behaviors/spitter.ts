@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 敌人行为：蚀涎魔（保持距离远程喷吐蚀涎）
    ========================================================= */
+import { PALETTE } from '../../../assets/palette.js';
 import { angTo, dist, clamp } from '../../../engine/util/utils.js';
 import { spawnEnemyProjectile } from '../../spawn.js';
 import { spawnGlow, spawnBurst, spawnSpark } from '../../../platform/fx/fx.js';
@@ -28,9 +29,9 @@ export function spitterMove(e: EnemyInstance, dt: number, p: Player, slowF: numb
       y: p.y + (p.vy || 0) * lead,
     });
     // 喷吐瞬间：毒囊收缩 + 毒液迸射（朝目标一线绿光）
-    spawnGlow(e.x + Math.cos(pa) * 20, e.y + Math.sin(pa) * 20, 12, '#b6ffd8', 0.25);
-    spawnBurst(e.x, e.y, '#b6ffd8', 6);
-    spawnSpark(e.x + Math.cos(pa) * 16, e.y + Math.sin(pa) * 16, '#7fd6a4', 4, 130);
+    spawnGlow(e.x + Math.cos(pa) * 20, e.y + Math.sin(pa) * 20, 12, PALETTE.mint, 0.25);
+    spawnBurst(e.x, e.y, PALETTE.mint, 6);
+    spawnSpark(e.x + Math.cos(pa) * 16, e.y + Math.sin(pa) * 16, PALETTE.jade, 4, 130);
     spawnEnemyProjectile(e, pa);
   }
   e.vx = Math.cos(a) * e.spd;

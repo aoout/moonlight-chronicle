@@ -4,6 +4,7 @@
    放在 commands 层而非 app 层：这些是「意图」，
    由 UI、状态机钩子共同调用；app 只保留主循环这一组装根。
    ========================================================= */
+import { EVENTS } from '../engine/core/events.js';
 import { STATE, sm } from '../engine/core/states.js';
 import { EventBus } from '../engine/core/event_bus.js';
 import { pick } from '../engine/util/utils.js';
@@ -56,7 +57,7 @@ export function startStage(n: number): void {
     spawnBoss(type);
     for (let i = 0; i < 4; i++) spawnEnemy(pick(['grub', 'rat']), { hpMul: 0.6 });
   }
-  EventBus.emit('stage:start', { stage: n, name: gSt().stageName, boss: gSt().boss !== null });
+  EventBus.emit(EVENTS.STAGE_START, { stage: n, name: gSt().stageName, boss: gSt().boss !== null });
 }
 
 /* ---------- 开始一局 ---------- */
@@ -100,7 +101,7 @@ export function startRun(): void {
   } else {
     startStage(1);
   }
-  EventBus.emit('game:runStart', { depth: gSt().depth, curse: gSt().curse });
+  EventBus.emit(EVENTS.GAME_RUN_START, { depth: gSt().depth, curse: gSt().curse });
 }
 
 /* ---------- 从月光烙记续局 ----------

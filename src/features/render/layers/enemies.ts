@@ -175,8 +175,8 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
       ctx.beginPath(); ctx.moveTo(-s * 0.28, wob + s * 0.25 + i * s * 0.18);
       ctx.quadraticCurveTo(0, wob + s * 0.42 + i * s * 0.18, s * 0.28, wob + s * 0.25 + i * s * 0.18); ctx.stroke();
     }
-    enemyEye(ctx, s * 0.14, wob - s * 0.2, s * 0.1, '#3d1216');
-    enemyEye(ctx, -s * 0.2, wob - s * 0.15, s * 0.08, '#3d1216');
+    enemyEye(ctx, s * 0.14, wob - s * 0.2, s * 0.1, PALETTE.maroon);
+    enemyEye(ctx, -s * 0.2, wob - s * 0.15, s * 0.08, PALETTE.maroon);
     ctx.restore();
   },
 
@@ -197,12 +197,12 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     ctx.fillStyle = '#2c1a18';
     ctx.beginPath(); ctx.ellipse(s * 0.42, wob - s * 0.12, s * 0.55, s * 0.5, 0, 0, TAU); ctx.fill();
     // 双弯角（恶魔羊角）
-    ctx.strokeStyle = '#f4e9d0'; ctx.lineWidth = s * 0.18; ctx.lineCap = 'round';
+    ctx.strokeStyle = PALETTE.bone; ctx.lineWidth = s * 0.18; ctx.lineCap = 'round';
     for (const side of [-1, 1]) {
       ctx.beginPath(); ctx.moveTo(side * s * 0.3, wob - s * 0.55);
       ctx.quadraticCurveTo(side * s * 0.75, wob - s * 1.35, side * s * 0.2, wob - s * 1.55); ctx.stroke();
       // 角尖
-      ctx.fillStyle = '#f4e9d0';
+      ctx.fillStyle = PALETTE.bone;
       ctx.beginPath(); ctx.arc(side * s * 0.2, wob - s * 1.55, s * 0.09, 0, TAU); ctx.fill();
     }
     // 鼻息（冲锋时喷出）
@@ -216,8 +216,8 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
       ctx.globalAlpha = 1;
     }
     // 怒目
-    enemyEye(ctx, s * 0.28, wob - s * 0.38, s * 0.13, '#2a0c0c');
-    enemyEye(ctx, s * 0.62, wob - s * 0.3, s * 0.11, '#2a0c0c');
+    enemyEye(ctx, s * 0.28, wob - s * 0.38, s * 0.13, PALETTE.darkCrimson);
+    enemyEye(ctx, s * 0.62, wob - s * 0.3, s * 0.11, PALETTE.darkCrimson);
     // 尾
     ctx.strokeStyle = c; ctx.lineWidth = s * 0.16; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(-s * 0.85, wob + s * 0.2);
@@ -236,7 +236,7 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     // 囊内毒光（随蓄力增强）
     const glow = 0.18 + (charging ? 0.3 : 0) + 0.1 * Math.sin(time * 4);
     ctx.globalAlpha = glow;
-    ctx.fillStyle = '#b6ffd8';
+    ctx.fillStyle = PALETTE.mint;
     ctx.beginPath(); ctx.ellipse(0, wob, s * 0.5 * breath, s * 0.42 * breath, 0, 0, TAU); ctx.fill();
     ctx.globalAlpha = 1;
     // 体表蚀斑
@@ -258,11 +258,11 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     ctx.closePath(); ctx.fill();
     // 喙口毒涎（蓄力时膨胀发光）
     const g2 = charging ? 1 : 0.6;
-    ctx.fillStyle = '#eafff4';
+    ctx.fillStyle = PALETTE.mistyGreen;
     ctx.globalAlpha = g2;
     ctx.beginPath(); ctx.ellipse(s * beakLen, s * 0.05, s * 0.22, s * 0.12, 0, 0, TAU); ctx.fill();
     ctx.globalAlpha = 0.35 + 0.5 * Math.sin(time * 6);
-    ctx.fillStyle = '#b6ffd8';
+    ctx.fillStyle = PALETTE.mint;
     ctx.beginPath(); ctx.arc(s * beakLen, s * 0.05, s * 0.16 + (charging ? 0.08 : 0), 0, TAU); ctx.fill();
     ctx.globalAlpha = 1;
     ctx.restore();
@@ -359,8 +359,8 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     ctx.fillStyle = '#e8dcc0';
     ctx.beginPath(); ctx.moveTo(0, wob - gs * 0.9); ctx.lineTo(gs * 0.1, wob - gs * 1.75); ctx.lineTo(-gs * 0.1, wob - gs * 0.9); ctx.closePath(); ctx.fill();
     // 单眼（巨瞳）
-    ctx.fillStyle = '#ffd54a';
-    ctx.shadowColor = '#ffd54a'; ctx.shadowBlur = 8;
+    ctx.fillStyle = PALETTE.goldVivid;
+    ctx.shadowColor = PALETTE.goldVivid; ctx.shadowBlur = 8;
     ctx.beginPath(); ctx.arc(0, wob - gs * 0.35, gs * 0.16, 0, TAU); ctx.fill();
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#1a1208';
@@ -385,10 +385,10 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     }
     // 内部火光（核心，随自爆增强脉动）
     const fireP = 0.5 + hpR * 0.4 + Math.sin(time * 7) * (0.08 + hpR * 0.1);
-    ctx.fillStyle = '#ffd54a';
-    ctx.shadowColor = '#ff7a3c'; ctx.shadowBlur = 14;
+    ctx.fillStyle = PALETTE.goldVivid;
+    ctx.shadowColor = PALETTE.tangerine; ctx.shadowBlur = 14;
     ctx.beginPath(); ctx.arc(0, wob, bs * fireP, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#fff2cc';
+    ctx.fillStyle = PALETTE.cream;
     ctx.shadowBlur = 10;
     ctx.beginPath(); ctx.arc(0, wob, bs * fireP * 0.5, 0, TAU); ctx.fill();
     ctx.shadowBlur = 0;
@@ -396,17 +396,17 @@ export const ENEMY_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any
     ctx.strokeStyle = c; ctx.lineWidth = 1.6;
     ctx.beginPath(); ctx.moveTo(0, -bs); ctx.quadraticCurveTo(bs * 0.34, -bs * 1.4, bs * 0.12, -bs * 1.75); ctx.stroke();
     const spark = 1 + Math.sin(time * 14) * 0.4;
-    ctx.fillStyle = '#fff2cc';
-    ctx.shadowColor = '#ffb84d'; ctx.shadowBlur = 8;
+    ctx.fillStyle = PALETTE.cream;
+    ctx.shadowColor = PALETTE.ember; ctx.shadowBlur = 8;
     ctx.beginPath(); ctx.arc(bs * 0.12, -bs * 1.75, bs * 0.13 * spark, 0, TAU); ctx.fill();
     ctx.shadowBlur = 0;
-    enemyEye(ctx, bs * 0.2, wob - bs * 0.15, bs * 0.1, '#3d1216');
+    enemyEye(ctx, bs * 0.2, wob - bs * 0.15, bs * 0.1, PALETTE.maroon);
   },
 };
 
 /* 辅助：颜色明暗 */
 function shade(hex: string, amt: number): string {
-  const c = String(hex || '#888').replace('#', '');
+  const c = String(hex || PALETTE.gray).replace('#', '');
   if (c.length < 6) return hex;
   const r = Math.max(0, Math.min(255, parseInt(c.substr(0, 2), 16) + amt));
   const g = Math.max(0, Math.min(255, parseInt(c.substr(2, 2), 16) + amt));
@@ -419,7 +419,7 @@ export function drawEnemyBody(ctx: CanvasRenderingContext2D, e: any, s: number, 
   const fn: any = ENEMY_SHAPES[e.type || ''] || ENEMY_SHAPES._default;
   fn(ctx, e, s, wob, fa, t, time || 0);
   if (flash != null && flash > 0) {
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = PALETTE.white;
     ctx.globalAlpha = Math.min(1, flash * 5);
     ctx.beginPath(); ctx.arc(0, wob, s + 1, 0, TAU); ctx.fill();
     ctx.globalAlpha = 1;

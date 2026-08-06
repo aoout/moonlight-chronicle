@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 武器：连锁闪电
    ========================================================= */
+import { PALETTE } from '../../assets/palette.js';
 import { dist, RNG } from '../../engine/util/utils.js';
 import { damageEnemy } from '../combat.js';
 import { nearestEnemy } from './helpers.js';
@@ -16,7 +17,7 @@ export function chainLightning(src: Player | EnemyInstance, target: EnemyInstanc
   let d = dmg;
   while (remaining > 0 && cur) {
     damageEnemy(cur, d, RNG() < p.effCrit, 'arc', wId);
-    spawnSpark(cur.x, cur.y, '#ffffff', 2, 150);
+    spawnSpark(cur.x, cur.y, PALETTE.white, 2, 150);
     spawnSpark(cur.x, cur.y, color, 3, 130);
     if (RNG() < 0.3) spawnStar(cur.x, cur.y, color, 6);
     // 跳转电弧：冲击微环 + 光晕

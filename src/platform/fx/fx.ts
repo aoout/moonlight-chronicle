@@ -1,7 +1,9 @@
 /* =========================================================
    蚀月远征 · 特效层：粒子生成（爆点 / 火花 / 冲击环 / 星爆）
    ========================================================= */
-import { RNG, rand } from '../../engine/util/utils.js';
+import { PALETTE } from '../../assets/palette.js';
+import { EVENTS } from '../../engine/core/events.js';
+import { RNG, rand, TAU } from '../../engine/util/utils.js';
 import { world } from '../../engine/ecs/World.js';
 import { EventBus } from '../../engine/core/event_bus.js';
 import { settingsState } from '../../state/settings.js';
@@ -52,7 +54,7 @@ export function addFx(pa: any): void {
 export function spawnBurst(x: number, y: number, color: string, n: number): void {
   const budget = densityBudget(n);
   for (let i = 0; i < budget; i++) {
-    const a = RNG() * 6.28, sp = rand(30, 130);
+    const a = RNG() * TAU, sp = rand(30, 130);
     addFx({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.3, 0.7), max: 0.7, size: rand(1.5, 3.5), color });
   }
 }
@@ -64,7 +66,7 @@ export function spawnRing(x: number, y: number, color: string, max?: number, r1?
 export function spawnSpark(x: number, y: number, color: string, n: number, sp: number): void {
   const budget = densityBudget(n);
   for (let i = 0; i < budget; i++) {
-    const a = RNG() * 6.28, s = rand(sp * 0.4, sp);
+    const a = RNG() * TAU, s = rand(sp * 0.4, sp);
     addFx({ spark: true, x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, max: rand(0.2, 0.4), size: rand(1, 2), color });
   }
 }
@@ -76,9 +78,9 @@ export function spawnStar(x: number, y: number, color: string, size?: number): v
 export function spawnShard(x: number, y: number, color: string, n: number, sp: number): void {
   const budget = densityBudget(n);
   for (let i = 0; i < budget; i++) {
-    const a = RNG() * 6.28, s = rand(sp * 0.35, sp);
+    const a = RNG() * TAU, s = rand(sp * 0.35, sp);
     addFx({ shard: true, x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
-      rot: RNG() * 6.28, vr: rand(-9, 9), size: rand(2, 4.5), max: rand(0.35, 0.6), color });
+      rot: RNG() * TAU, vr: rand(-9, 9), size: rand(2, 4.5), max: rand(0.35, 0.6), color });
   }
 }
 /* 流光（沿方向的长条，渐隐） */
@@ -92,13 +94,13 @@ export function spawnGlow(x: number, y: number, size?: number, color?: string, m
 /* 通用命中特效：爆点 + 白火花 + 冲击环 */
 export function spawnImpact(x: number, y: number, color: string, power?: number): void {
   spawnBurst(x, y, color, 4 + (power || 0));
-  spawnSpark(x, y, '#ffffff', 2 + (power || 0), 150);
+  spawnSpark(x, y, PALETTE.white, 2 + (power || 0), 150);
   spawnRing(x, y, color, 0.32, 20 + (power || 0) * 5, 2.2);
 }
 export function spawnHitFx(x: number, y: number, dmg: number, crit: boolean): void {
   if (Math.random() < 0.5) return;
   // 伤害数字是 DOM 层职责，经事件桥转交 UI，canvas 层不直接触碰 DOM
-  EventBus.emit('ui:dmgNumber', {
+  EventBus.emit(EVENTS.UI_DMG_NUMBER, {
     x: x + rand(-6, 6),
     y: y + rand(-8, 2),
     n: Math.round(dmg),

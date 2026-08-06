@@ -2,8 +2,9 @@
    蚀月远征 · 领域模块：敌人生成
    从 SpawnSystem 静态方法迁出，供 System 与外部模块直接调用
    ========================================================= */
+import { PALETTE } from '../assets/palette.js';
 import { stageState } from '../state/stage.js';
-import { RNG, rand } from '../engine/util/utils.js';
+import { RNG, rand, TAU } from '../engine/util/utils.js';
 import { ENEMIES, BOSSES, enemyScale, levelEnemyScale } from '../config/index.js';
 import { world } from '../engine/ecs/World.js';
 import { PROJECTILE_POOL } from '../engine/ecs/entity_pool.js';
@@ -36,7 +37,7 @@ export function spawnEnemy(type: string, opts?: { hpMul?: number }): EnemyInstan
     ...Health(hp),
     ...Renderable(def.color, def.size),
     ...Combat(dmg),
-    ...Timer(RNG() * 6.28, 0),
+    ...Timer(RNG() * TAU, 0),
     ...Status(0, 0, 0, 0),
     ...Enemy(type, false),
     ...Velocity(0, 0),
@@ -91,7 +92,7 @@ export function spawnEnemyProjectile(e: EnemyInstance, ang: number): void {
     enemy: true, spit: true, hit: new Set(),
     x: e.x, y: e.y,
     vx: Math.cos(ang) * projSpd, vy: Math.sin(ang) * projSpd,
-    r: 6, color: '#7fd6a4',
+    r: 6, color: PALETTE.jade,
     dmg: projDmg * enemyScale(gs.stage).dmg,
     life: 4,
   }));

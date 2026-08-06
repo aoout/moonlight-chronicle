@@ -8,15 +8,18 @@ import { playerState } from '../state/player.js';
 import { inputState } from '../state/input.js';
 import { renderState } from '../state/render.js';
 import { gameState } from '../state/flow.js';
-import { RNG, rand, clamp } from '../engine/util/utils.js';
+import { RNG, rand, clamp, tickCooldown } from '../engine/util/utils.js';
 import { PALETTE } from '../assets/palette.js';
-import { CONFIG } from '../config/index.js';
+import { CONFIG, SHOP_ITEMS } from '../config/index.js';
 import { addFx } from '../platform/fx/fx.js';
 import { updateEffects } from '../domain/effects.js';
 import { weaponFire } from '../domain/weapons/index.js';
 import { isFixedLoad } from '../engine/env.js';
 
 import { pSt, iSt, rSt, gmSt } from '../state/accessors.js';
+
+/** 时停触发间隔（秒）——以 items.json 的 interval 字段为单一事实来源，防止实现与图鉴文本脱节 */
+const TIMESTOP_INTERVAL = SHOP_ITEMS.find(i => i.id === 'timeStop')?.interval ?? 12;
 
 export class PlayerSystem extends System {
   name = 'PlayerSystem';
@@ -40,10 +43,10 @@ export class PlayerSystem extends System {
     gameState.set('_timeScale', 1);
     if (p.timeStop > 0) {
       // 首次进入时停时初始化计时器（初始值为 0），防止 0 - dt 立即触发特效
-      if (rSt().timestopTimer === 0) renderState.set('timestopTimer', 12);
-      renderState.set('timestopTimer', rSt().timestopTimer - dt);
-      if (rSt().timestopTimer <= 0) {
-        renderState.set('timestopTimer', 12);
+      if (rSt().timestopTimer === 0) renderState.set('timestopTimer', TIMESTOP_INTERVAL);
+      const { t, fired } = tickCooldown(rSt().timestopTimer, TIMESTOP_INTERVAL, dt);
+      renderState.set('timestopTimer', t);
+      if (fired) {
         addFx({ timestop: true, t: 0, max: 1.0 });
         p.effects.tsActive = 1.0;
       }

@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 渲染层：粒子绘制（离屏缓存优化）
    ========================================================= */
+import { TAU, HALF_PI } from '../../../engine/util/utils.js';
 import { PALETTE } from '../../../assets/palette.js';
 import type { RenderContext } from '../context.js';
 import { shapeCache } from '../shape_cache.js';
@@ -9,8 +10,8 @@ import { PARTICLE_POOL } from '../../../engine/ecs/entity_pool.js';
 
 /* 预渲染简单圆形粒子（含阴影） */
 function drawCircleParticle(ctx: CanvasRenderingContext2D): void {
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath(); ctx.arc(8, 8, 8, 0, 6.28); ctx.fill();
+  ctx.fillStyle = PALETTE.white;
+  ctx.beginPath(); ctx.arc(8, 8, 8, 0, TAU); ctx.fill();
 }
 
 const PARTICLE_CIRCLE_SIZE = 16;
@@ -21,7 +22,7 @@ function drawStarShape(ctx: CanvasRenderingContext2D, s: number, color: string):
   ctx.shadowColor = color; ctx.shadowBlur = 14;
   ctx.beginPath();
   for (let i = 0; i < 8; i++) {
-    const a = i * 1.5708, r = i % 2 === 0 ? s : s * 0.35;
+    const a = i * HALF_PI, r = i % 2 === 0 ? s : s * 0.35;
     if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
     else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
   }
@@ -64,7 +65,7 @@ export function drawParticles(rc: RenderContext): void {
     const t = data[base + off.t] || 0, max = data[base + off.max] || 0.7;
     const life = 1 - t / max;
     ctx.globalAlpha = life;
-    ctx.fillStyle = views[i].color || '#fff';
+    ctx.fillStyle = views[i].color || PALETTE.white;
     const s = data[base + off.size] || 3;
     ctx.drawImage(circleCache, data[base + off.x] - s, data[base + off.y] - s, s * 2, s * 2);
   }
@@ -82,7 +83,7 @@ export function drawParticles(rc: RenderContext): void {
     if (!glowFx && (data[base + off.star] || data[base + off.shard] || data[base + off.streak] || data[base + off.glow])) continue;
     const t = data[base + off.t] || 0, max = data[base + off.max] || 0.7;
     const life = 1 - t / max;
-    const color = views[i].color || '#fff';
+    const color = views[i].color || PALETTE.white;
     const x = data[base + off.x], y = data[base + off.y];
     ctx.save();
     if (data[base + off.chain]) {
@@ -98,7 +99,7 @@ export function drawParticles(rc: RenderContext): void {
       ctx.globalAlpha = life * 0.9;
       ctx.strokeStyle = color; ctx.lineWidth = Math.max(0.5, (data[base + off.lw] || 3) * (1 - k));
       ctx.shadowColor = color; ctx.shadowBlur = 14;
-      ctx.beginPath(); ctx.arc(x, y, (data[base + off.r0] || 4) + ((data[base + off.r1] || 60) - (data[base + off.r0] || 4)) * k, 0, 6.28); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x, y, (data[base + off.r0] || 4) + ((data[base + off.r1] || 60) - (data[base + off.r0] || 4)) * k, 0, TAU); ctx.stroke();
     } else if (data[base + off.spark]) {
       ctx.globalAlpha = life;
       ctx.strokeStyle = color; ctx.lineWidth = data[base + off.size] || 1.6;
@@ -147,9 +148,9 @@ export function drawParticles(rc: RenderContext): void {
       g.addColorStop(0, color);
       g.addColorStop(1, 'transparent');
       ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(x, y, r + 9, 0, 6.28); ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, r + 9, 0, TAU); ctx.fill();
       ctx.fillStyle = color;
-      ctx.beginPath(); ctx.arc(x, y, r, 0, 6.28); ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
     } else if (data[base + off.timestop]) {
       ctx.globalAlpha = life * 0.25;
       ctx.fillStyle = PALETTE.ice;
@@ -157,7 +158,7 @@ export function drawParticles(rc: RenderContext): void {
     } else if (data[base + off.echo]) {
       ctx.globalAlpha = life;
       ctx.strokeStyle = PALETTE.gold; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(x, y, Math.max(2, 14 + (0.7 - t) * 30), 0, 6.28); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x, y, Math.max(2, 14 + (0.7 - t) * 30), 0, TAU); ctx.stroke();
     }
     ctx.restore();
   }

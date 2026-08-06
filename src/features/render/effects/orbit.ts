@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 渲染层：环绕武器绘制（月华之环，离屏缓存）
    ========================================================= */
+import { HALF_PI } from '../../../engine/util/utils.js';
 import { PALETTE } from '../../../assets/palette.js';
 import type { RenderContext } from '../context.js';
 import { shapeCache } from '../shape_cache.js';
@@ -24,7 +25,7 @@ function drawOrbitBlade(ctx: CanvasRenderingContext2D): void {
   ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.1;
   ctx.beginPath(); ctx.arc(cx, cy, 7.2, -1.2, 1.2); ctx.stroke();
   // 刃尖光点（前后两端）
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = PALETTE.white;
   ctx.beginPath(); ctx.arc(cx + 6.2, cy, 1.1, 0, TAU); ctx.fill();
   ctx.beginPath(); ctx.arc(cx - 6.2, cy, 0.9, 0, TAU); ctx.fill();
 }
@@ -46,7 +47,7 @@ export function drawOrbitWeapons(rc: RenderContext): void {
     ctx.globalAlpha = 1;
     // 月牙（使用缓存，旋转朝向）
     ctx.save();
-    ctx.rotate(o.a + 1.57);
+    ctx.rotate(o.a + HALF_PI);
     ctx.drawImage(orbitCache, -ORBIT_CACHE_SIZE / 2, -ORBIT_CACHE_SIZE / 2);
     ctx.restore();
     // 微光尾迹

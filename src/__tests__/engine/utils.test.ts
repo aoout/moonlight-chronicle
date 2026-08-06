@@ -7,7 +7,7 @@
    ========================================================= */
 import { describe, it, expect, afterEach } from 'vitest';
 import {
-  RNG, dist, distSq, clamp, rand, pick, angTo,
+  RNG, dist, distSq, clamp, rand, pick, angTo, TAU, HALF_PI, tickCooldown,
 } from '../../engine/util/utils.js';
 import { queueRandom, pendingRandomCount, seedRng } from '../_harness/random.js';
 
@@ -86,5 +86,49 @@ describe('angTo', () => {
     // 左方 → ±PI
     const a = angTo({ x: 0, y: 0 }, { x: -1, y: 0 });
     expect(Math.abs(Math.abs(a) - Math.PI)).toBeLessThan(1e-9);
+  });
+});
+
+describe('TAU / HALF_PI', () => {
+  it('TAU 等于 2π（统一 6.28 类字面量）', () => {
+    expect(TAU).toBeCloseTo(Math.PI * 2, 12);
+    expect(TAU).toBeCloseTo(6.2831853, 6);
+  });
+
+  it('HALF_PI 等于 π/2（统一 1.57 类字面量）', () => {
+    expect(HALF_PI).toBeCloseTo(Math.PI / 2, 12);
+    expect(HALF_PI).toBeCloseTo(1.5707963, 6);
+  });
+});
+
+describe('tickCooldown', () => {
+  it('未到点：递减并返回 fired=false', () => {
+    const r = tickCooldown(5, 10, 2);
+    expect(r.t).toBeCloseTo(3, 9);
+    expect(r.fired).toBe(false);
+  });
+
+  it('首次调用（undefined）从 interval 起算', () => {
+    const r = tickCooldown(undefined, 10, 2);
+    expect(r.t).toBeCloseTo(8, 9);
+    expect(r.fired).toBe(false);
+  });
+
+  it('到点：重置为 interval 并返回 fired=true', () => {
+    const r = tickCooldown(1.5, 10, 2);
+    expect(r.t).toBe(10);
+    expect(r.fired).toBe(true);
+  });
+
+  it('连续调用形成周期性触发', () => {
+    // 模拟 10 帧：interval=5, dt=1，第 5 帧与第 10 帧触发
+    const fires: number[] = [];
+    let t: number | undefined;
+    for (let i = 1; i <= 10; i++) {
+      const r = tickCooldown(t, 5, 1);
+      t = r.t;
+      if (r.fired) fires.push(i);
+    }
+    expect(fires).toEqual([5, 10]);
   });
 });

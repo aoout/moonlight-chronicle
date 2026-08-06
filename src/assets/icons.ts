@@ -5,7 +5,7 @@
    尺寸跟随 font-size（width/height = 1em），颜色继承文字色。
    ========================================================= */
 
-import { clamp } from '../engine/util/utils.js';
+import { clamp, TAU } from '../engine/util/utils.js';
 
 const IC = {
   // 基础 SVG 包裹（所有图标共用此结构）
@@ -217,7 +217,7 @@ export function iconSVG(name: string, cls?: string): string {
 /* 月相图标：蚀月深度（0=满盈 → 9=终蚀），暗蚀影从右上角顺时针扩大 */
 export function moonPhaseSVG(phase: number): string {
   const k = clamp(phase / 9, 0, 1);
-  const start = 0.6 * 6.28;
+  const start = 0.6 * TAU;
   const sweep = Math.max(0.12, k * 5.0);
   const cx = 12, cy = 12, r = 9;
   const px = (a: number) => cx + Math.cos(a) * r, py = (a: number) => cy + Math.sin(a) * r;

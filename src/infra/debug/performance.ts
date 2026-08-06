@@ -2,6 +2,7 @@
    蚀月远征 · 调试：性能监控器
    FPS 计数器、各系统耗时统计、draw call 计数
    ========================================================= */
+import { PALETTE } from '../../assets/palette.js';
 import { setFrameProfiler } from '../../engine/core/profiler_port.js';
 
 /** FPS 计数器 */
@@ -34,7 +35,7 @@ export class FPSCounter {
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.fillRect(4, 4, 80, 20);
-    ctx.fillStyle = this._fps >= 50 ? '#7fd6a4' : this._fps >= 30 ? '#f6e3b8' : '#e2546a';
+    ctx.fillStyle = this._fps >= 50 ? PALETTE.jade : this._fps >= 30 ? PALETTE.goldPale : PALETTE.blood;
     ctx.font = '12px monospace';
     ctx.textBaseline = 'top';
     ctx.fillText('FPS: ' + this._fps, 10, 8);
@@ -106,7 +107,7 @@ export class SystemProfiler {
     ctx.textBaseline = 'top';
     names.forEach((name, i) => {
       const avg = this.avg(name);
-      ctx.fillStyle = avg > 5 ? '#e2546a' : avg > 2 ? '#f6e3b8' : '#7fd6a4';
+      ctx.fillStyle = avg > 5 ? PALETTE.blood : avg > 2 ? PALETTE.goldPale : PALETTE.jade;
       ctx.fillText(name + ': ' + avg.toFixed(1) + 'ms', 10, 32 + i * 16);
     });
     ctx.restore();

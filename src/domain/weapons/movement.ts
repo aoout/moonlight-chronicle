@@ -2,7 +2,8 @@
    蚀月远征 · 武器：投射物运动模块
    可组合的投射物运动行为，供 PROJ_TICK 使用
    ========================================================= */
-import { RNG, dist, angTo } from '../../engine/util/utils.js';
+import { PALETTE } from '../../assets/palette.js';
+import { RNG, dist, angTo, TAU } from '../../engine/util/utils.js';
 import { rSt, pSt } from '../../state/accessors.js';
 import { spawnBurst, spawnShard, spawnSpark, spawnRing, spawnGlow } from '../../platform/fx/fx.js';
 import { damageEnemy } from '../combat.js';
@@ -43,8 +44,8 @@ export const MOVEMENT: Record<string, (pr: Projectile, dt: number, p: Player) =>
       const cur = Math.atan2(pr.vy || 0, pr.vx || 0);
       // 平滑转向：受 turnRate 限制（rad/s），急转弯可甩开
       let diff = want - cur;
-      while (diff > Math.PI) diff -= 6.2832;
-      while (diff < -Math.PI) diff += 6.2832;
+      while (diff > Math.PI) diff -= TAU;
+      while (diff < -Math.PI) diff += TAU;
       const maxTurn = (pr.turnRate ?? 999) * dt;
       const na = cur + Math.max(-maxTurn, Math.min(maxTurn, diff));
       pr.vx = Math.cos(na) * pr.speed;
@@ -134,12 +135,12 @@ export const MOVEMENT: Record<string, (pr: Projectile, dt: number, p: Player) =>
 function explodeGround(pr: Projectile): void {
   const x = pr.x, y = pr.y, r = pr.r || 60;
   // 蚀焰喷发：火柱碎片 + 双冲击环 + 白炽火花 + 光晕
-  spawnBurst(x, y, pr.color || '#ff7a7a', 14);
-  spawnShard(x, y, '#ff9d6b', 6, 220);
-  spawnSpark(x, y, '#ffd9a8', 9, 210);
-  spawnRing(x, y, pr.color || '#ff7a7a', 0.36, r * 1.35, 3);
-  spawnRing(x, y, '#fff2cc', 0.22, r * 0.85, 1.8);
-  spawnGlow(x, y, 20, pr.color || '#ff7a7a', 0.35);
+  spawnBurst(x, y, pr.color || PALETTE.coral, 14);
+  spawnShard(x, y, PALETTE.heavy, 6, 220);
+  spawnSpark(x, y, PALETTE.peach, 9, 210);
+  spawnRing(x, y, pr.color || PALETTE.coral, 0.36, r * 1.35, 3);
+  spawnRing(x, y, PALETTE.cream, 0.22, r * 0.85, 1.8);
+  spawnGlow(x, y, 20, pr.color || PALETTE.coral, 0.35);
   // 范围内伤害
   const p = pSt().player;
   for (const e of (queryRadius(x, y, r) as EnemyInstance[])) {

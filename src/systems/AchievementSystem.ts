@@ -2,6 +2,7 @@
    蚀月远征 · 蚀月功勋：成就系统
    订阅战斗/成长事件 + 关键点钩子，累计与单局统计，达成即解锁。
    ========================================================= */
+import { EVENTS } from '../engine/core/events.js';
 import { ACHIEVEMENTS, type AchievementDef } from '../config/achievements.js';
 import { loadAch, saveAch } from '../infra/persistence/achievements.js';
 import { EventBus } from '../engine/core/event_bus.js';
@@ -104,13 +105,13 @@ export function achOnTimestop(): void { inc('timestop', 1); }
 
 /* ---------- 事件订阅 ---------- */
 export function initAchievements(): void {
-  EventBus.on('enemy:killed', (d: any) => achOnKill(d.type || '', '', !!d.boss));
-  EventBus.on('boss:killed', (d: any) => achOnKill(d.type || '', '', true));
-  EventBus.on('player:died', () => { _died = true; achSessionEnd(); });
-  EventBus.on('player:levelup', (d: any) => achOnLevel(d.level || 0));
-  EventBus.on('stage:start', () => { achOnStageStart(); tryUnlock(); });
-  EventBus.on('stage:cleared', () => achOnStageCleared());
-  EventBus.on('game:runEnd', (d: any) => {
+  EventBus.on(EVENTS.ENEMY_KILLED, (d: any) => achOnKill(d.type || '', '', !!d.boss));
+  EventBus.on(EVENTS.BOSS_KILLED, (d: any) => achOnKill(d.type || '', '', true));
+  EventBus.on(EVENTS.PLAYER_DIED, () => { _died = true; achSessionEnd(); });
+  EventBus.on(EVENTS.PLAYER_LEVELUP, (d: any) => achOnLevel(d.level || 0));
+  EventBus.on(EVENTS.STAGE_START, () => { achOnStageStart(); tryUnlock(); });
+  EventBus.on(EVENTS.STAGE_CLEARED, () => achOnStageCleared());
+  EventBus.on(EVENTS.GAME_RUN_END, (d: any) => {
     if (d && d.win) {
       _winStage = d.stage || 0;
       session['winStage'] = d.stage || 0;
@@ -194,7 +195,7 @@ function tryUnlock(): void {
     if (testOf(a) >= a.target) {
       earned[a.id] = true;
       persist();
-      EventBus.emit('achievement:unlocked', { id: a.id, name: a.name });
+      EventBus.emit(EVENTS.ACHIEVEMENT_UNLOCKED, { id: a.id, name: a.name });
     }
   }
 }

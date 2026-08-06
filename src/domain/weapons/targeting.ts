@@ -2,6 +2,7 @@
    蚀月远征 · 武器：瞄准策略模块
    可组合的瞄准行为，供武器管线使用
    ========================================================= */
+import { TAU } from '../../engine/util/utils.js';
 import { nearestInGrid, neighborEnemies, queryRadius } from '../../engine/spatial/SpatialSystem.js';
 import type { Player } from '../../types/core.d.ts';
 import type { WeaponFireConfig } from '../../types/core.d.ts';
@@ -44,7 +45,7 @@ export const TARGETING: Record<string, (p: Player, cfg: WeaponFireConfig) => Tar
 
   /** 随机方向 */
   random(p, cfg) {
-    const a = Math.random() * 6.28;
+    const a = Math.random() * TAU;
     const r = cfg.range || 300;
     return { target: null, x: p.x + Math.cos(a) * r, y: p.y + Math.sin(a) * r };
   },

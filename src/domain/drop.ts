@@ -3,6 +3,8 @@
    掉落物追踪 / 拾取 / 爆炸
    从 DropSystem 静态方法迁出
    ========================================================= */
+import { PALETTE } from '../assets/palette.js';
+import { EVENTS } from '../engine/core/events.js';
 import { playerState } from '../state/player.js';
 import { dist, angTo } from '../engine/util/utils.js';
 import { CONFIG } from '../config/index.js';
@@ -35,23 +37,23 @@ export function dropTick(d: Drop, dt: number): void {
 export function collectDrop(d: Drop): void {
   if (d.take) return;
   d.take = 1;
-  EventBus.emit('audio:sfx', { name: 'pickup' });
+  EventBus.emit(EVENTS.AUDIO_SFX, { name: 'pickup' });
   const p = pSt().player;
   if (p && d.kind === 'gold' && p.effects.coinHeal) healPlayer(p.effects.coinHeal * d.amount);
   if (d.kind === 'xp') gainXp(d.amount);
   else addGold(d.amount);
-  EventBus.emit('visual:burst', { x: d.x, y: d.y, color: d.kind === 'xp' ? '#9fd6e8' : '#e9c987', count: 6 });
+  EventBus.emit(EVENTS.VISUAL_BURST, { x: d.x, y: d.y, color: d.kind === 'xp' ? PALETTE.ice : PALETTE.gold, count: 6 });
 }
 
 /** 自爆 */
 export function explodeEnemy(e: EnemyInstance, hurtPlayerToo: boolean): void {
   // 自爆：火球光爆 + 冲击环 + 碎片 + 白炽火花 + 烟尘
-  EventBus.emit('visual:ring', { x: e.x, y: e.y, color: '#ffb84d', life: 0.42, radius: 70, width: 3.5 });
-  EventBus.emit('visual:ring', { x: e.x, y: e.y, color: '#fff2cc', life: 0.28, radius: 42, width: 2 });
-  EventBus.emit('visual:glow', { x: e.x, y: e.y, color: '#ff7a3c', size: 22, life: 0.4 });
-  EventBus.emit('visual:burst', { x: e.x, y: e.y, color: '#ffd9a8', count: 18 });
-  EventBus.emit('visual:shard', { x: e.x, y: e.y, color: '#ff9d6b', count: 7, speed: 230 });
-  EventBus.emit('visual:spark', { x: e.x, y: e.y, color: '#fff5d6', count: 9, speed: 220 });
+  EventBus.emit(EVENTS.VISUAL_RING, { x: e.x, y: e.y, color: PALETTE.ember, life: 0.42, radius: 70, width: 3.5 });
+  EventBus.emit(EVENTS.VISUAL_RING, { x: e.x, y: e.y, color: PALETTE.cream, life: 0.28, radius: 42, width: 2 });
+  EventBus.emit(EVENTS.VISUAL_GLOW, { x: e.x, y: e.y, color: PALETTE.tangerine, size: 22, life: 0.4 });
+  EventBus.emit(EVENTS.VISUAL_BURST, { x: e.x, y: e.y, color: PALETTE.peach, count: 18 });
+  EventBus.emit(EVENTS.VISUAL_SHARD, { x: e.x, y: e.y, color: PALETTE.heavy, count: 7, speed: 230 });
+  EventBus.emit(EVENTS.VISUAL_SPARK, { x: e.x, y: e.y, color: PALETTE.warmWhite, count: 9, speed: 220 });
   const p = pSt().player;
   if (hurtPlayerToo && p && dist(e, p) < 90) hurtPlayer(e, e.dmg);
 }

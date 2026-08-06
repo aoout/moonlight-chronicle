@@ -3,6 +3,7 @@
    派生属性 / 创建 / 武器管理 / 金币 / 经验
    从 PlayerSystem 静态方法迁出
    ========================================================= */
+import { EVENTS } from '../engine/core/events.js';
 import { achievements } from './ports/achievements.js';
 import { STATE, sm } from '../engine/core/states.js';
 import { playerState } from '../state/player.js';
@@ -18,15 +19,21 @@ import type { Player } from '../types/core.d.ts';
 
 import { pSt, sSt, rSt, gSt } from '../state/accessors.js';
 
+/* ===== 玩家机制参数（魔法数字具名化） ===== */
+const CRIT_CAP = 0.9;              // 暴击率上限
+const CRIT_ATKSPD_BONUS = 0.3;     // 暴击率 → 攻速加成系数
+const PLAYER_RADIUS = 16;          // 玩家碰撞半径
+const MIN_GOLD_RATE = 0.1;         // 金币倍率下限（防负收益）
+
 /** 派生属性：转模系统在这里生效 */
 export function computeDerived(p: Player): Player {
   p.effAtk   = p.atk + p.armor * p.armorToAtk + p.maxHp * p.hpToAtk
              + p.critRate * p.critToAtk + p.level * p.scaleLevel
              + (stageState.state.stage - 1) * p.scaleStage;
-  p.effCrit  = Math.min(0.9, p.critRate + p.speed * p.speedToCrit / 100);
+  p.effCrit  = Math.min(CRIT_CAP, p.critRate + p.speed * p.speedToCrit / 100);
   p.effSpeed = p.speed + p.atk * p.atkToSpd;
   p.effGold  = p.goldGain + (p.luck - 1) * p.luckToGold;
-  p.effAtkSpd = p.atkSpd * (1 + p.critRate * 0.3);
+  p.effAtkSpd = p.atkSpd * (1 + p.critRate * CRIT_ATKSPD_BONUS);
   return p;
 }
 
@@ -35,7 +42,7 @@ export function createPlayer(): Player {
   return {
     ...BASE_STATS,
     x: rSt().width / 2, y: rSt().height / 2,
-    r: 16, facing: 0, invuln: 0, level: 1,
+    r: PLAYER_RADIUS, facing: 0, invuln: 0, level: 1,
     weapons: [],
     animT: RNG() * 10,
     effects: {},
@@ -85,7 +92,7 @@ export function addGold(n: number): void {
   const p = pSt().player;
   if (!p) return;
   const st = sSt();
-  statsState.set('gold', st.gold + Math.round(n * Math.max(0.1, p.effGold)));
+  statsState.set('gold', st.gold + Math.round(n * Math.max(MIN_GOLD_RATE, p.effGold)));
 }
 
 /** 获得经验 */
@@ -102,5 +109,5 @@ export function gainXp(n: number): void {
     statsState.set('level', p.level);
     statsState.set('levelQueue', statsState.get('levelQueue') + 1);
   }
-  if (statsState.get('levelQueue') > 0) { gameState.set('_resumeState', sm.current); sm.transition(STATE.LEVELUP); EventBus.emit('player:levelup', { level: p.level, queue: statsState.get('levelQueue') }); }
+  if (statsState.get('levelQueue') > 0) { gameState.set('_resumeState', sm.current); sm.transition(STATE.LEVELUP); EventBus.emit(EVENTS.PLAYER_LEVELUP, { level: p.level, queue: statsState.get('levelQueue') }); }
 }

@@ -2,8 +2,8 @@
    蚀月远征 · 武器层：开火 / 投射物 / 调度 / 统一导出
    采用可组合行为管线
    ========================================================= */
-import { RNG, rand, dist, angTo } from '../../engine/util/utils.js';
 import { PALETTE } from '../../assets/palette.js';
+import { RNG, rand, dist, angTo } from '../../engine/util/utils.js';
 import { WEAPONS } from '../../config/index.js';
 import { world } from '../../engine/ecs/World.js';
 import { neighborEnemies, queryRadius } from '../../engine/spatial/SpatialSystem.js';
@@ -21,7 +21,6 @@ import type { WeaponInstance, Projectile } from '../../types/core.d.ts';
 /* ---------- 重新导出公共 API ---------- */
 export { nearestEnemy } from './helpers.js';
 export { orbitTick } from './orbit.js';
-export { phantomTick } from './phantom.js';
 export { stormTick } from './storm.js';
 export { setProjCount } from './pipeline.js';
 
@@ -49,9 +48,9 @@ export function weaponFire(w: WeaponInstance): number {
         for (let i = -1; i <= 1; i += 2) {
           const ang = a + i * 0.5;
           world.add('projectiles', { x: p.x, y: p.y, vx: Math.cos(ang) * 330, vy: Math.sin(ang) * 330,
-            r: 5, dmg: p.effAtk * 0.6, pierce: p.pierce, color: '#ffe9a8', hit: new Set(), wId: 'duo', life: 2 });
+            r: 5, dmg: p.effAtk * 0.6, pierce: p.pierce, color: PALETTE.fireBright, hit: new Set(), wId: 'duo', life: 2 });
         }
-        spawnGlow(p.x + Math.cos(a) * 20, p.y + Math.sin(a) * 20, 8, '#ffe9a8', 0.25);
+        spawnGlow(p.x + Math.cos(a) * 20, p.y + Math.sin(a) * 20, 8, PALETTE.fireBright, 0.25);
       }
     }
     // 连锁闪电（道具触发：雷纹刻印 → 伤害计入道具占比）

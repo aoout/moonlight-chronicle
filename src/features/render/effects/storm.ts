@@ -1,6 +1,8 @@
 /* =========================================================
    蚀月远征 · 渲染层：风暴之眼核心绘制（离屏缓存）
    ========================================================= */
+import { TAU } from '../../../engine/util/utils.js';
+import { PALETTE } from '../../../assets/palette.js';
 import type { RenderContext } from '../context.js';
 import { shapeCache } from '../shape_cache.js';
 
@@ -27,20 +29,20 @@ function drawStormCore(ctx: CanvasRenderingContext2D): void {
   // 内核渐变球
   ctx.shadowBlur = 12;
   const grad = ctx.createRadialGradient(cx - 2, cy - 2, 0.5, cx, cy, 7);
-  grad.addColorStop(0, '#ffffff');
-  grad.addColorStop(0.25, '#8fe3d8');
+  grad.addColorStop(0, PALETTE.white);
+  grad.addColorStop(0.25, PALETTE.swift);
   grad.addColorStop(0.55, 'rgba(143,227,216,0.5)');
   grad.addColorStop(0.85, 'rgba(143,227,216,0.12)');
   grad.addColorStop(1, 'rgba(143,227,216,0)');
   ctx.fillStyle = grad;
   ctx.beginPath();
-  ctx.arc(cx, cy, 7, 0, 6.28);
+  ctx.arc(cx, cy, 7, 0, TAU);
   ctx.fill();
   // 中心亮核
   ctx.shadowBlur = 0;
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
   ctx.beginPath();
-  ctx.arc(cx, cy, 2.2, 0, 6.28);
+  ctx.arc(cx, cy, 2.2, 0, TAU);
   ctx.fill();
 }
 

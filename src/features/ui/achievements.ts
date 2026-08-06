@@ -2,6 +2,7 @@
    蚀月远征 · 蚀月功勋：成就面板
    守月人的荣耀刻痕，按稀有度陈列于月光之下
    ========================================================= */
+import { EVENTS } from '../../engine/core/events.js';
 import { ACHIEVEMENTS, ACH_RARITY_ORDER, type AchievementDef } from '../../config/achievements.js';
 import { achProgressOf, achIsEarned, achEarnedTotal, achTotal } from '../../systems/AchievementSystem.js';
 import { iconSVG } from '../../assets/icons.js';
@@ -68,7 +69,7 @@ export function bindAchievements(): void {
   $('btn-achievements').onclick = () => { AudioEngine.playSfx('open'); openAchievements(); };
   $('btn-achievements-close').onclick = () => { AudioEngine.playSfx('close'); $('achievements').classList.add('hidden'); };
   // 功勋达成提示
-  EventBus.on('achievement:unlocked', (d: any) => {
+  EventBus.on(EVENTS.ACHIEVEMENT_UNLOCKED, (d: any) => {
     toast('功勋达成 · ' + d.name);
     AudioEngine.playSfx('unlock');
   });

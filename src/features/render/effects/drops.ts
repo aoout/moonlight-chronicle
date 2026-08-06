@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 渲染层：掉落物绘制（离屏缓存）
    ========================================================= */
+import { TAU, HALF_PI } from '../../../engine/util/utils.js';
 import { PALETTE } from '../../../assets/palette.js';
 import type { RenderContext } from '../context.js';
 import { shapeCache } from '../shape_cache.js';
@@ -11,7 +12,7 @@ function drawGoldShape(ctx: CanvasRenderingContext2D): void {
   ctx.shadowColor = PALETTE.gold; ctx.shadowBlur = 10;
   ctx.beginPath();
   for (let i = 0; i < 5; i++) {
-    const a = (i / 5) * 6.28 - 1.57;
+    const a = (i / 5) * TAU - HALF_PI;
     const r = 5.5;
     if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
     else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
@@ -19,7 +20,7 @@ function drawGoldShape(ctx: CanvasRenderingContext2D): void {
   ctx.closePath(); ctx.fill();
   ctx.shadowBlur = 0;
   ctx.fillStyle = '#fdf6dd';
-  ctx.beginPath(); ctx.arc(0, 0, 2.2, 0, 6.28); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 0, 2.2, 0, TAU); ctx.fill();
 }
 
 function drawXpShape(ctx: CanvasRenderingContext2D): void {

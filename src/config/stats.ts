@@ -1,29 +1,30 @@
 /* =========================================================
    蚀月远征 · 数据层：属性定义 & 基础属性
    ========================================================= */
+import { PALETTE } from '../assets/palette.js';
 import { ICONS } from '../assets/icons.js';
 import type { StatDef } from '../types/data.d.ts';
 
 export const STATS: Record<string, StatDef> = {
-  maxHp:{name:'生命上限',icon:ICONS.heart,color:'#e2546a',fmt:v=>Math.round(v)},
-  armor:{name:'护甲',icon:ICONS.shield,color:'#9fd6e8',fmt:v=>v.toFixed(1)},
-  speed:{name:'移速',icon:ICONS.arrow,color:'#e9c987',fmt:v=>Math.round(v)},
-  atk:{name:'攻击力',icon:ICONS.sword,color:'#ff9d6b',fmt:v=>Math.round(v)},
-  atkSpd:{name:'攻速',icon:ICONS.bolt,color:'#b49ae8',fmt:v=>(v*100).toFixed(0)+'%'},
-  critRate:{name:'暴击率',icon:ICONS.diamond,color:'#ffb84d',fmt:v=>(v*100).toFixed(0)+'%'},
-  critDmg:{name:'暴击伤害',icon:ICONS.star,color:'#ffb84d',fmt:v=>(v*100).toFixed(0)+'%'},
-  lifesteal:{name:'吸血',icon:ICONS.plus,color:'#e2546a',fmt:v=>(v*100).toFixed(0)+'%'},
-  regen:{name:'生命恢复',icon:ICONS.plus,color:'#7fd6a4',fmt:v=>v.toFixed(1)+'/s'},
-  projCount:{name:'投射物',icon:ICONS.dots,color:'#9fd6e8',fmt:v=>'+'+v},
-  area:{name:'范围',icon:ICONS.magnet,color:'#b49ae8',fmt:v=>(v*100).toFixed(0)+'%'},
-  duration:{name:'持续时间',icon:ICONS.hourglass,color:'#b49ae8',fmt:v=>(v*100).toFixed(0)+'%'},
-  luck:{name:'幸运',icon:ICONS.gem,color:'#7fd6a4',fmt:v=>(v*100).toFixed(0)+'%'},
-  xpGain:{name:'经验获取',icon:ICONS.spark,color:'#9fd6e8',fmt:v=>(v*100).toFixed(0)+'%'},
-  goldGain:{name:'金币获取',icon:ICONS.diamond,color:'#e9c987',fmt:v=>(v*100).toFixed(0)+'%'},
-  dodge:{name:'闪避',icon:ICONS.cloud,color:'#9fd6e8',fmt:v=>(v*100).toFixed(0)+'%'},
-  cdr:{name:'冷却缩减',icon:ICONS.hourglass,color:'#b49ae8',fmt:v=>(v*100).toFixed(0)+'%'},
-  magnet:{name:'拾取范围',icon:ICONS.magnet,color:'#7fd6a4',fmt:v=>Math.round(v)},
-  thorns:{name:'荆棘反伤',icon:ICONS.flame,color:'#7fd6a4',fmt:v=>(v*100).toFixed(0)+'%'},
+  maxHp:{name:'生命上限',icon:ICONS.heart,color:PALETTE.blood,fmt:v=>Math.round(v)},
+  armor:{name:'护甲',icon:ICONS.shield,color:PALETTE.ice,fmt:v=>v.toFixed(1)},
+  speed:{name:'移速',icon:ICONS.arrow,color:PALETTE.gold,fmt:v=>Math.round(v)},
+  atk:{name:'攻击力',icon:ICONS.sword,color:PALETTE.heavy,fmt:v=>Math.round(v)},
+  atkSpd:{name:'攻速',icon:ICONS.bolt,color:PALETTE.violet,fmt:v=>(v*100).toFixed(0)+'%'},
+  critRate:{name:'暴击率',icon:ICONS.diamond,color:PALETTE.ember,fmt:v=>(v*100).toFixed(0)+'%'},
+  critDmg:{name:'暴击伤害',icon:ICONS.star,color:PALETTE.ember,fmt:v=>(v*100).toFixed(0)+'%'},
+  lifesteal:{name:'吸血',icon:ICONS.plus,color:PALETTE.blood,fmt:v=>(v*100).toFixed(0)+'%'},
+  regen:{name:'生命恢复',icon:ICONS.plus,color:PALETTE.jade,fmt:v=>v.toFixed(1)+'/s'},
+  projCount:{name:'投射物',icon:ICONS.dots,color:PALETTE.ice,fmt:v=>'+'+v},
+  area:{name:'范围',icon:ICONS.magnet,color:PALETTE.violet,fmt:v=>(v*100).toFixed(0)+'%'},
+  duration:{name:'持续时间',icon:ICONS.hourglass,color:PALETTE.violet,fmt:v=>(v*100).toFixed(0)+'%'},
+  luck:{name:'幸运',icon:ICONS.gem,color:PALETTE.jade,fmt:v=>(v*100).toFixed(0)+'%'},
+  xpGain:{name:'经验获取',icon:ICONS.spark,color:PALETTE.ice,fmt:v=>(v*100).toFixed(0)+'%'},
+  goldGain:{name:'金币获取',icon:ICONS.diamond,color:PALETTE.gold,fmt:v=>(v*100).toFixed(0)+'%'},
+  dodge:{name:'闪避',icon:ICONS.cloud,color:PALETTE.ice,fmt:v=>(v*100).toFixed(0)+'%'},
+  cdr:{name:'冷却缩减',icon:ICONS.hourglass,color:PALETTE.violet,fmt:v=>(v*100).toFixed(0)+'%'},
+  magnet:{name:'拾取范围',icon:ICONS.magnet,color:PALETTE.jade,fmt:v=>Math.round(v)},
+  thorns:{name:'荆棘反伤',icon:ICONS.flame,color:PALETTE.jade,fmt:v=>(v*100).toFixed(0)+'%'},
 };
 
 export const STAT_ORDER: string[] = ['maxHp','armor','speed','atk','atkSpd','critRate','critDmg','lifesteal','regen','projCount','area','duration','luck','xpGain','goldGain','dodge','cdr','magnet','thorns'];

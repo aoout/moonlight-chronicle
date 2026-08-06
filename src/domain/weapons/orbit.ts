@@ -1,7 +1,7 @@
 /* =========================================================
    蚀月远征 · 武器：环舞之刃（环绕武器实体）
    ========================================================= */
-import { RNG, dist, angTo, rand } from '../../engine/util/utils.js';
+import { RNG, dist, angTo, rand, TAU } from '../../engine/util/utils.js';
 import { PALETTE } from '../../assets/palette.js';
 import { WEAPONS } from '../../config/index.js';
 import { neighborEnemies } from '../../engine/spatial/SpatialSystem.js';
@@ -24,7 +24,7 @@ export function orbitTick(dt: number): void {
     const orbitR = (def.radius || 120) * p.area;
     p.effects.orbits = [];
     for (let i = 0; i < n; i++) {
-      const a = (i / n) * 6.28 + gSt().time * angularSpd;
+      const a = (i / n) * TAU + gSt().time * angularSpd;
       const ox = p.x + Math.cos(a) * orbitR;
       const oy = p.y + Math.sin(a) * orbitR;
       p.effects.orbits.push({ x: ox, y: oy, a });

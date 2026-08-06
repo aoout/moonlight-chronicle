@@ -14,7 +14,7 @@ function chargeOf(e: any): number {
 }
 function clamp(v: number, a: number, b: number): number { return v < a ? a : v > b ? b : v; }
 function shade(hex: string, amt: number): string {
-  const c = String(hex || '#888').replace('#', '');
+  const c = String(hex || PALETTE.gray).replace('#', '');
   if (c.length < 6) return hex;
   return 'rgb(' +
     clamp(parseInt(c.substr(0, 2), 16) + amt, 0, 255) + ',' +
@@ -67,7 +67,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     eye(ctx, s * 0.42, wob - s * 0.3, s * 0.16);
     if (ch > 0) {
       ctx.globalAlpha = ch * 0.5;
-      ctx.fillStyle = '#ff8a8a';
+      ctx.fillStyle = PALETTE.coralBright;
       ctx.beginPath(); ctx.arc(0, wob, s * 1.5, 0, TAU); ctx.fill();
       ctx.globalAlpha = 1;
     }
@@ -164,7 +164,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     ctx.fillStyle = shade(c, 22);
     ctx.beginPath(); ctx.arc(0, wob - s * 0.45, s * 0.45, Math.PI, 0); ctx.closePath(); ctx.fill();
     // 王冠（三层尖）
-    ctx.fillStyle = '#ffe9a8';
+    ctx.fillStyle = PALETTE.fireBright;
     ctx.shadowColor = PALETTE.gold; ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.moveTo(-s * 0.42, wob - s * 0.72);
@@ -182,9 +182,9 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(-s * 0.1, wob - s * 0.05); ctx.lineTo(s * 0.1, wob - s * 0.05); ctx.stroke();
     // 权杖（身侧）
-    ctx.strokeStyle = '#ffe9a8'; ctx.lineWidth = s * 0.07; ctx.lineCap = 'round';
+    ctx.strokeStyle = PALETTE.fireBright; ctx.lineWidth = s * 0.07; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(s * 0.8, wob + s * 0.5); ctx.lineTo(s * 1.25, wob - s * 1.1); ctx.stroke();
-    ctx.fillStyle = '#ffe9a8';
+    ctx.fillStyle = PALETTE.fireBright;
     ctx.beginPath(); ctx.arc(s * 1.25, wob - s * 1.1, s * 0.1, 0, TAU); ctx.fill();
   },
 
@@ -217,12 +217,12 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     ctx.beginPath(); ctx.arc(s * 0.2, wob - s * 0.36, s * 0.1 + ch * 0.04, 0, TAU); ctx.fill();
     ctx.shadowBlur = 0;
     // 月牙冠（头顶弯月）
-    ctx.strokeStyle = '#ffe9a8'; ctx.lineWidth = s * 0.09; ctx.lineCap = 'round';
+    ctx.strokeStyle = PALETTE.fireBright; ctx.lineWidth = s * 0.09; ctx.lineCap = 'round';
     ctx.shadowColor = PALETTE.gold; ctx.shadowBlur = 8;
     ctx.beginPath(); ctx.arc(0, wob - s * 0.75, s * 0.3, Math.PI * 0.2, Math.PI * 0.8); ctx.stroke();
     ctx.shadowBlur = 0;
     // 法杖（悬浮光球，蓄力膨胀）
-    ctx.fillStyle = '#b49ae8'; ctx.shadowColor = '#b49ae8'; ctx.shadowBlur = 12;
+    ctx.fillStyle = PALETTE.violet; ctx.shadowColor = PALETTE.violet; ctx.shadowBlur = 12;
     ctx.beginPath(); ctx.arc(-s * 0.95, wob + s * 0.3, s * 0.12 + ch * s * 0.1, 0, TAU); ctx.fill();
     ctx.shadowBlur = 0;
   },
@@ -296,13 +296,13 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     ctx.beginPath(); ctx.ellipse(s * 0.55, wob, s * 0.5, s * 0.4, -0.1, 0, TAU); ctx.fill();
     // 火喉（口部蓄力：越接近释放越亮越大）
     const fireP = 0.3 + ch * 0.5 + Math.sin(time * 8) * (0.05 + ch * 0.1);
-    ctx.fillStyle = '#ffb84d'; ctx.shadowColor = '#ff7a3c'; ctx.shadowBlur = 16;
+    ctx.fillStyle = PALETTE.ember; ctx.shadowColor = PALETTE.tangerine; ctx.shadowBlur = 16;
     ctx.beginPath(); ctx.ellipse(s * 1.0, wob + s * 0.05, s * 0.3 * fireP * 2.4, s * 0.22 * fireP * 2.4, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#fff2cc'; ctx.shadowBlur = 8;
+    ctx.fillStyle = PALETTE.cream; ctx.shadowBlur = 8;
     ctx.beginPath(); ctx.ellipse(s * 0.92, wob + s * 0.05, s * 0.16 * fireP * 2.4, s * 0.1 * fireP * 2.4, 0, 0, TAU); ctx.fill();
     ctx.shadowBlur = 0;
     // 龙角
-    ctx.fillStyle = '#f4e9d0';
+    ctx.fillStyle = PALETTE.bone;
     ctx.beginPath(); ctx.moveTo(-s * 0.4, wob - s * 0.62); ctx.lineTo(-s * 0.7, wob - s * 1.2); ctx.lineTo(-s * 0.2, wob - s * 0.8); ctx.closePath(); ctx.fill();
     ctx.beginPath(); ctx.moveTo(s * 0.1, wob - s * 0.66); ctx.lineTo(-s * 0.05, wob - s * 1.28); ctx.lineTo(s * 0.35, wob - s * 0.85); ctx.closePath(); ctx.fill();
     // 长尾
@@ -310,8 +310,8 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     ctx.beginPath(); ctx.moveTo(-s * 0.7, wob + s * 0.3);
     ctx.quadraticCurveTo(-s * 1.8, wob + s * 1.0, -s * 2.2 + Math.sin(time * 3) * 4, wob + s * 0.4); ctx.stroke();
     // 眼
-    eye(ctx, -s * 0.35, wob - s * 0.3, s * 0.13, '#2a0c0c');
-    eye(ctx, s * 0.35, wob - s * 0.3, s * 0.13, '#2a0c0c');
+    eye(ctx, -s * 0.35, wob - s * 0.3, s * 0.13, PALETTE.darkCrimson);
+    eye(ctx, s * 0.35, wob - s * 0.3, s * 0.13, PALETTE.darkCrimson);
   },
 
   /* 蚀月枭：羽翼扑扇 + 尖喙 + 电光羽毛（落雷蓄力） */
@@ -343,12 +343,12 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
       ctx.quadraticCurveTo(0, wob + s * 0.28 + i * s * 0.2, s * 0.35, wob + s * 0.1 + i * s * 0.2); ctx.stroke();
     }
     // 尖喙
-    ctx.fillStyle = '#f4e9d0';
+    ctx.fillStyle = PALETTE.bone;
     ctx.beginPath(); ctx.moveTo(0, wob - s * 0.45); ctx.lineTo(s * 0.14, wob - s * 0.85); ctx.lineTo(-s * 0.14, wob - s * 0.45); ctx.closePath(); ctx.fill();
     // 电光羽毛（蓄力时羽毛尖端放电）
     if (ch > 0) {
       ctx.globalAlpha = ch;
-      ctx.strokeStyle = '#a8d8ff'; ctx.lineWidth = 1.2;
+      ctx.strokeStyle = PALETTE.sky; ctx.lineWidth = 1.2;
       for (const side of [-1, 1]) {
         ctx.beginPath(); ctx.moveTo(side * s * 0.7, wob - s * 0.4);
         ctx.lineTo(side * s * (1.1 + ch * 0.3), wob - s * (0.6 + Math.random() * 0.3)); ctx.stroke();
@@ -356,7 +356,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
       ctx.globalAlpha = 1;
     }
     // 眼（金瞳）
-    ctx.fillStyle = '#ffd54a'; ctx.shadowColor = '#ffd54a'; ctx.shadowBlur = 6;
+    ctx.fillStyle = PALETTE.goldVivid; ctx.shadowColor = PALETTE.goldVivid; ctx.shadowBlur = 6;
     ctx.beginPath(); ctx.arc(-s * 0.28, wob - s * 0.35, s * 0.13, 0, TAU); ctx.fill();
     ctx.beginPath(); ctx.arc(s * 0.28, wob - s * 0.35, s * 0.13, 0, TAU); ctx.fill();
     ctx.shadowBlur = 0;
@@ -401,7 +401,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     ctx.beginPath(); ctx.arc(0, wob, s * 0.26 * mouth, 0, TAU); ctx.stroke();
     ctx.globalAlpha = 1;
     // 尖牙环（口器内）
-    ctx.fillStyle = '#f4e9d0';
+    ctx.fillStyle = PALETTE.bone;
     for (let i = 0; i < 6; i++) {
       const a = i / 6 * TAU;
       ctx.beginPath(); ctx.moveTo(Math.cos(a) * s * 0.4 * mouth, wob + Math.sin(a) * s * 0.4 * mouth);
@@ -416,7 +416,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     const ch = chargeOf(e);
     const pulse = 1 + 0.05 * Math.sin(time * 3) + ch * 0.08;
     // 外蚀环（转动，随蓄力加速）
-    ctx.strokeStyle = '#ffb84d'; ctx.lineWidth = s * 0.1;
+    ctx.strokeStyle = PALETTE.ember; ctx.lineWidth = s * 0.1;
     ctx.globalAlpha = 0.7;
     ctx.setLineDash([s * 0.5, s * 0.35]);
     ctx.lineDashOffset = -time * (30 + ch * 60);
@@ -426,14 +426,14 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     // 蚀环上的眼（3 颗，随环转动）
     for (let i = 0; i < 3; i++) {
       const a = time * (0.6 + ch * 0.8) + i / 3 * TAU;
-      ctx.fillStyle = '#ffd54a'; ctx.shadowColor = '#ffd54a'; ctx.shadowBlur = 8;
+      ctx.fillStyle = PALETTE.goldVivid; ctx.shadowColor = PALETTE.goldVivid; ctx.shadowBlur = 8;
       ctx.beginPath(); ctx.arc(Math.cos(a) * s * 1.35, wob + Math.sin(a) * s * 1.35, s * 0.11, 0, TAU); ctx.fill();
       ctx.shadowBlur = 0;
     }
     // 月轮核心（渐变：外金内炽白）
     const g = ctx.createRadialGradient(-s * 0.25, wob - s * 0.25, s * 0.1, 0, wob, s * pulse);
     g.addColorStop(0, '#fffbe8');
-    g.addColorStop(0.5, '#ffe9a8');
+    g.addColorStop(0.5, PALETTE.fireBright);
     g.addColorStop(1, PALETTE.gold);
     ctx.fillStyle = g;
     ctx.shadowColor = PALETTE.gold; ctx.shadowBlur = 26;
@@ -448,7 +448,7 @@ export const BOSS_SHAPES: Record<string, (ctx: CanvasRenderingContext2D, e: any,
     const eR = s * 0.16 + ch * s * 0.08;
     ctx.fillStyle = '#1a0c1c';
     ctx.beginPath(); ctx.arc(0, wob, eR, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#ffd54a'; ctx.shadowColor = '#ffd54a'; ctx.shadowBlur = 10 + ch * 8;
+    ctx.fillStyle = PALETTE.goldVivid; ctx.shadowColor = PALETTE.goldVivid; ctx.shadowBlur = 10 + ch * 8;
     ctx.beginPath(); ctx.arc(0, wob, eR * 0.45, 0, TAU); ctx.fill();
     ctx.shadowBlur = 0;
   },

@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 渲染层：背景（离屏缓存 + 微尘缓存）
    ========================================================= */
+import { TAU } from '../../engine/util/utils.js';
 import type { RenderContext } from './context.js';
 import { shapeCache } from './shape_cache.js';
 import { settingsState } from '../../state/settings.js';
@@ -51,7 +52,7 @@ function initBackgroundCache(rc: RenderContext): void {
     hg.addColorStop(0, 'rgba(8,10,22,.20)');
     hg.addColorStop(1, 'rgba(8,10,22,0)');
     bc.fillStyle = hg;
-    bc.beginPath(); bc.arc(hx, hy, hr, 0, 6.28); bc.fill();
+    bc.beginPath(); bc.arc(hx, hy, hr, 0, TAU); bc.fill();
   }
 
   // 环形山（立体凹陷：左上亮边 + 右下暗边 + 内凹）
@@ -61,13 +62,13 @@ function initBackgroundCache(rc: RenderContext): void {
     const cx = ((i * 61.7 + 9) % 100) / 100 * rc.width;
     const cy = ((i * 43.3 + 55) % 100) / 100 * rc.height;
     const cr = 8 + (i * 7.3 % 26);
-    bc.beginPath(); bc.arc(cx, cy, cr, 0, 6.28);
+    bc.beginPath(); bc.arc(cx, cy, cr, 0, TAU);
     bc.fillStyle = 'rgba(0,0,0,.14)'; bc.fill();
-    bc.beginPath(); bc.arc(cx - cr * 0.15, cy - cr * 0.15, cr, 0, 6.28);
+    bc.beginPath(); bc.arc(cx - cr * 0.15, cy - cr * 0.15, cr, 0, TAU);
     bc.strokeStyle = 'rgba(255,255,255,.10)'; bc.lineWidth = 1.2; bc.stroke();
-    bc.beginPath(); bc.arc(cx + cr * 0.12, cy + cr * 0.12, cr, 0, 6.28);
+    bc.beginPath(); bc.arc(cx + cr * 0.12, cy + cr * 0.12, cr, 0, TAU);
     bc.strokeStyle = 'rgba(0,0,0,.26)'; bc.lineWidth = 1.2; bc.stroke();
-    bc.beginPath(); bc.arc(cx, cy, cr * 0.5, 0, 6.28);
+    bc.beginPath(); bc.arc(cx, cy, cr * 0.5, 0, TAU);
     bc.fillStyle = 'rgba(0,0,0,.06)'; bc.fill();
   }
 

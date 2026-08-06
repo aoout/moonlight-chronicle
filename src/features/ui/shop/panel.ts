@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 商店：守月人铭牌面板
    ========================================================= */
+import { EVENTS } from '../../../engine/core/events.js';
 import { clamp } from '../../../engine/util/utils.js';
 import { SHOP_ITEMS, WEAPONS, STATS } from '../../../config/index.js';
 import { $, el, html } from '../hud_utils.js';
@@ -10,7 +11,7 @@ import { showItemDetail } from './item_detail.js';
 import { EventBus } from '../../../engine/core/event_bus.js';
 
 /* 局部刷新入口：由详情页等同级模块通过事件触发，避免反向 import 形成环 */
-EventBus.on('shop:panelRefresh', (d: any) => {
+EventBus.on(EVENTS.SHOP_PANEL_REFRESH, (d: any) => {
   if (d?.player) renderShopPanel(d.player);
 });
 

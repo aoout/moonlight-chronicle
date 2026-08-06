@@ -3,6 +3,7 @@
    蚀月远征 · 渲染层：投射物绘制（精细化弹头与攻击特效）
    每把武器拥有专属弹头形状、尾迹与光效
    ========================================================= */
+import { HALF_PI } from '../../../engine/util/utils.js';
 import { PALETTE } from '../../../assets/palette.js';
 import type { RenderContext } from '../context.js';
 import { shapeCache } from '../shape_cache.js';
@@ -39,7 +40,7 @@ const PROJ_LINEAR_HEADS: Record<string, (ctx: CanvasRenderingContext2D, pr: any)
     ctx.beginPath(); ctx.moveTo(pr.r * 2.1, 0); ctx.lineTo(-pr.r * 0.55, -pr.r * 0.9); ctx.lineTo(-pr.r * 0.1, 0); ctx.lineTo(-pr.r * 0.55, pr.r * 0.9); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = pr.r * 0.34; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(pr.r * 1.1, 0); ctx.lineTo(-pr.r * 1.5, 0); ctx.stroke();
-    dot(ctx, -pr.r * 1.7, 0, pr.r * 0.22, '#ffffff', 6);   // 尾羽光点
+    dot(ctx, -pr.r * 1.7, 0, pr.r * 0.22, PALETTE.white, 6);   // 尾羽光点
   },
 
   /* 潮涌之枪：长杆 + 枪尖 + 尾羽 + 水光 */
@@ -70,18 +71,18 @@ const PROJ_LINEAR_HEADS: Record<string, (ctx: CanvasRenderingContext2D, pr: any)
     ctx.fillStyle = pr.color;
     ctx.beginPath();
     for (let i = 0; i < 4; i++) {
-      const a = i * 1.5708, rr = i % 2 === 0 ? pr.r * 1.9 : pr.r * 0.72;
+      const a = i * HALF_PI, rr = i % 2 === 0 ? pr.r * 1.9 : pr.r * 0.72;
       if (i === 0) ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
       else ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
     }
     ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = PALETTE.white;
     ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.5, 0, TAU); ctx.fill();
     ctx.restore();
     // 外围光芒（十字光线）
     ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1;
     for (let i = 0; i < 4; i++) {
-      const a = i * 1.5708;
+      const a = i * HALF_PI;
       ctx.beginPath(); ctx.moveTo(Math.cos(a) * pr.r * 1.4, Math.sin(a) * pr.r * 1.4);
       ctx.lineTo(Math.cos(a) * pr.r * 2.4, Math.sin(a) * pr.r * 2.4); ctx.stroke();
     }
@@ -123,7 +124,7 @@ const PROJ_LINEAR_HEADS: Record<string, (ctx: CanvasRenderingContext2D, pr: any)
     // 尖端电弧分叉
     ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = pr.r * 0.22;
     ctx.beginPath(); ctx.moveTo(pr.r * 2.3, pr.r * 0.55); ctx.lineTo(pr.r * 2.9, pr.r * 0.05); ctx.stroke();
-    dot(ctx, pr.r * 3.1, 0, pr.r * 0.3, '#ffffff', 10);
+    dot(ctx, pr.r * 3.1, 0, pr.r * 0.3, PALETTE.white, 10);
   },
 
   /* 风暴之眼：风弹（旋转双环 + 亮核 + 光晕 + 风刃） */
@@ -141,11 +142,11 @@ const PROJ_LINEAR_HEADS: Record<string, (ctx: CanvasRenderingContext2D, pr: any)
     // 亮白核心（径向渐变光晕）
     const coreR = pr.r * 0.32;
     const coreG = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR + 7);
-    coreG.addColorStop(0, '#ffffff');
+    coreG.addColorStop(0, PALETTE.white);
     coreG.addColorStop(1, 'transparent');
     ctx.fillStyle = coreG;
     ctx.beginPath(); ctx.arc(0, 0, coreR + 7, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = PALETTE.white;
     ctx.beginPath(); ctx.arc(0, 0, coreR, 0, TAU); ctx.fill();
     ctx.fillStyle = 'rgba(143,227,216,0.3)';
     ctx.beginPath(); ctx.arc(0, 0, pr.r * 1.25, 0, TAU); ctx.fill();
@@ -208,7 +209,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     // 火星（随机游走亮点）
     for (let i = 0; i < 3; i++) {
       const a = pr.t * 5 + i * 2.1;
-      dot(ctx, Math.cos(a) * (14 + pr.t * 34), Math.sin(a) * (14 + pr.t * 34), 1.6, '#ffd9a8', 4);
+      dot(ctx, Math.cos(a) * (14 + pr.t * 34), Math.sin(a) * (14 + pr.t * 34), 1.6, PALETTE.peach, 4);
     }
   },
 
@@ -220,8 +221,8 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.save();
     ctx.setLineDash([11, 8]);
     ctx.lineDashOffset = -pr.t * 55;
-    ctx.strokeStyle = '#5fb8a8'; ctx.lineWidth = 2.4;
-    ctx.shadowColor = '#5fb8a8'; ctx.shadowBlur = 20;
+    ctx.strokeStyle = PALETTE.tide; ctx.lineWidth = 2.4;
+    ctx.shadowColor = PALETTE.tide; ctx.shadowBlur = 20;
     ctx.beginPath(); ctx.arc(0, 0, 10 + pr.t * 30, 0, TAU); ctx.stroke();
     ctx.restore();
     ctx.setLineDash([]);
@@ -230,16 +231,16 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.beginPath(); ctx.arc(0, 0, 8 + pr.t * 26, 0, TAU); ctx.fill();
     // 3. 潮涌波纹（白色小弧，旋转如潮汐）
     ctx.globalAlpha = 0.55;
-    ctx.strokeStyle = '#cfeff8'; ctx.lineWidth = 1.3;
+    ctx.strokeStyle = PALETTE.iceLight; ctx.lineWidth = 1.3;
     ctx.beginPath(); ctx.arc(0, 0, 6 + pr.t * 20, pr.t * 3, pr.t * 3 + 1.5); ctx.stroke();
     ctx.beginPath(); ctx.arc(0, 0, 6 + pr.t * 20, pr.t * 3 + 3.14, pr.t * 3 + 4.6); ctx.stroke();
     // 4. 水泡上浮（青白气泡）
     ctx.globalAlpha = 0.8;
     for (let i = 0; i < 4; i++) {
-      const a = pr.t * 4 + i * 1.57;
+      const a = pr.t * 4 + i * HALF_PI;
       const rr = 13 + pr.t * 32;
       const by = -Math.abs(Math.sin(pr.t * 3.2 + i * 1.3)) * 7;
-      dot(ctx, Math.cos(a) * rr, Math.sin(a) * rr + by, 1.6, '#eafcff', 4);
+      dot(ctx, Math.cos(a) * rr, Math.sin(a) * rr + by, 1.6, PALETTE.iceWhite, 4);
     }
     // 5. 中心潮核
     ctx.globalAlpha = 1;
@@ -280,14 +281,14 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     // 4. 上升光尘（金色光点随蓄力升起）
     ctx.globalAlpha = 0.85;
     for (let i = 0; i < 4; i++) {
-      const a = pr.t * 4 + i * 1.57;
+      const a = pr.t * 4 + i * HALF_PI;
       const rr = 13 + pr.t * 30;
       const by = -Math.abs(Math.sin(pr.t * 3.4 + i * 1.2)) * 8;
       dot(ctx, Math.cos(a) * rr, Math.sin(a) * rr + by, 1.7, PALETTE.goldPale, 5);
     }
     // 5. 中心辉核
     ctx.globalAlpha = 1;
-    dot(ctx, 0, 0, 2.6, '#ffffff', 10);
+    dot(ctx, 0, 0, 2.6, PALETTE.white, 10);
     ctx.shadowBlur = 0;
   },
 
@@ -308,13 +309,13 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.shadowColor = pr.color; ctx.shadowBlur = 20;
     ctx.beginPath(); ctx.moveTo(pr.x, pr.y); ctx.lineTo(pr.x + dx * pr.range, pr.y + dy * pr.range); ctx.stroke();
     // 白炽芯
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3.2;
+    ctx.strokeStyle = PALETTE.white; ctx.lineWidth = 3.2;
     ctx.stroke();
     // 光柱内的流转粒子
     ctx.globalAlpha = a * 0.7;
     for (let i = 0; i < 3; i++) {
       const u = ((pr.t * 0.9 + i * 0.33) % 1);
-      dot(ctx, pr.x + dx * pr.range * u, pr.y + dy * pr.range * u, 2, '#ffffff', 6);
+      dot(ctx, pr.x + dx * pr.range * u, pr.y + dy * pr.range * u, 2, PALETTE.white, 6);
     }
   },
 
@@ -353,8 +354,8 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
       ctx.beginPath(); ctx.arc(Math.cos(a) * pr.r * 0.55, Math.sin(a) * pr.r * 0.55, pr.r * 0.5, 0, TAU); ctx.fill();
     }
     ctx.globalAlpha = 0.3 + k * 0.25;
-    ctx.strokeStyle = '#a8e88a'; ctx.lineWidth = 2;
-    ctx.shadowColor = '#7fce5a'; ctx.shadowBlur = 12;
+    ctx.strokeStyle = PALETTE.paleGreen; ctx.lineWidth = 2;
+    ctx.shadowColor = PALETTE.green; ctx.shadowBlur = 12;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
     // 毒泡（上浮）
     for (let i = 0; i < 5; i++) {
@@ -366,7 +367,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     }
     // 腐蚀波纹
     ctx.globalAlpha = 0.35;
-    ctx.strokeStyle = '#a8e88a'; ctx.lineWidth = 1.2;
+    ctx.strokeStyle = PALETTE.paleGreen; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.7, pr.t * 2, pr.t * 2 + 1.6); ctx.stroke();
     ctx.globalAlpha = 1;
     ctx.shadowBlur = 0;
@@ -380,7 +381,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.strokeStyle = pr.color; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
     // 内层冰纹
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.2; ctx.globalAlpha = fade * 0.6;
+    ctx.strokeStyle = PALETTE.white; ctx.lineWidth = 1.2; ctx.globalAlpha = fade * 0.6;
     ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.85, 0, TAU); ctx.stroke();
     // 冰晶颗粒（沿环随机分布，随扩散漂移）
     ctx.globalAlpha = fade;
@@ -415,7 +416,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
       const head = PROJ_LINEAR_HEADS[wId] || PROJ_LINEAR_HEADS._default;
       head(ctx, pr);
     } else {
-      const cacheKey = 'proj_head_' + wId + '_' + (pr.color || '#fff') + '_' + Math.round(pr.r * 10);
+      const cacheKey = 'proj_head_' + wId + '_' + (pr.color || PALETTE.white) + '_' + Math.round(pr.r * 10);
       const cacheSize = Math.ceil(pr.r * 4) + 20;
       const cached = shapeCache.get(cacheKey, cacheSize, cacheSize, (bctx) => {
         bctx.translate(cacheSize / 2, cacheSize / 2);
@@ -448,7 +449,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
       ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
       ctx.fillStyle = 'rgba(159,214,232,.35)';
       ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.72, 0, TAU); ctx.fill();
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = PALETTE.white;
       ctx.beginPath(); ctx.arc(-pr.r * 0.2, -pr.r * 0.2, pr.r * 0.28, 0, TAU); ctx.fill();
       ctx.strokeStyle = 'rgba(159,214,232,.5)'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(-pr.r, 0); ctx.lineTo(-pr.r * 2.4, 0); ctx.stroke();
@@ -460,9 +461,9 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
       ctx.shadowColor = pr.color; ctx.shadowBlur = 14;
       ctx.fillStyle = pr.color;
       ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
-      ctx.fillStyle = '#ffe9a8';
+      ctx.fillStyle = PALETTE.fireBright;
       ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.55, 0, TAU); ctx.fill();
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = PALETTE.white;
       ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.28, 0, TAU); ctx.fill();
       ctx.fillStyle = 'rgba(255,157,107,.6)';
       ctx.beginPath(); ctx.moveTo(-pr.r * 0.7, -pr.r * 0.5); ctx.lineTo(-pr.r * 2.2, 0); ctx.lineTo(-pr.r * 0.7, pr.r * 0.5); ctx.closePath(); ctx.fill();
@@ -475,12 +476,12 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
       ctx.fillStyle = pr.color;
       ctx.beginPath();
       for (let i = 0; i < 4; i++) {
-        const a = i * 1.5708, rr = i % 2 === 0 ? pr.r * 1.6 : pr.r * 0.6;
+        const a = i * HALF_PI, rr = i % 2 === 0 ? pr.r * 1.6 : pr.r * 0.6;
         if (i === 0) ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
         else ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
       }
       ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = PALETTE.white;
       ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.4, 0, TAU); ctx.fill();
       ctx.restore();
       return;
@@ -501,10 +502,10 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     // 蚀涎魔毒弹：亮绿毒涎（光晕 + 毒液滴 + 拉丝拖尾）
     if (pr.spit) {
       ctx.save(); ctx.rotate(ang);
-      ctx.shadowColor = '#7fd6a4'; ctx.shadowBlur = 12;
+      ctx.shadowColor = PALETTE.jade; ctx.shadowBlur = 12;
       ctx.fillStyle = pr.color;
       ctx.beginPath(); ctx.ellipse(0, 0, pr.r * 1.2, pr.r * 0.85, 0, 0, TAU); ctx.fill();
-      ctx.fillStyle = '#eafff4';
+      ctx.fillStyle = PALETTE.mistyGreen;
       ctx.beginPath(); ctx.arc(-pr.r * 0.25, -pr.r * 0.22, pr.r * 0.36, 0, TAU); ctx.fill();
       ctx.fillStyle = 'rgba(127,214,164,.6)';
       ctx.beginPath(); ctx.moveTo(-pr.r * 0.9, 0); ctx.lineTo(-pr.r * 2.6, pr.r * 0.14); ctx.lineTo(-pr.r * 0.9, pr.r * 0.44); ctx.closePath(); ctx.fill();
@@ -516,7 +517,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.fillStyle = pr.color;
     ctx.shadowColor = pr.color; ctx.shadowBlur = 8;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#ff8a8a';
+    ctx.fillStyle = PALETTE.coralBright;
     ctx.beginPath(); ctx.arc(-pr.r * 0.2, -pr.r * 0.2, pr.r * 0.35, 0, TAU); ctx.fill();
     ctx.fillStyle = pr.color;
     ctx.beginPath(); ctx.moveTo(-pr.r, -pr.r * 0.5); ctx.lineTo(-pr.r * 2.2, 0); ctx.lineTo(-pr.r, pr.r * 0.5); ctx.closePath(); ctx.fill();
@@ -542,7 +543,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.shadowColor = pr.color; ctx.shadowBlur = 10;
     ctx.fillStyle = pr.color;
     ctx.beginPath(); ctx.ellipse(0, 0, pr.r * 1.15, pr.r * 0.8, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#eafff4';
+    ctx.fillStyle = PALETTE.mistyGreen;
     ctx.beginPath(); ctx.arc(-pr.r * 0.25, -pr.r * 0.22, pr.r * 0.34, 0, TAU); ctx.fill();
     ctx.fillStyle = 'rgba(127,214,164,.55)';
     ctx.beginPath(); ctx.moveTo(-pr.r * 0.9, 0); ctx.lineTo(-pr.r * 2.3, pr.r * 0.12); ctx.lineTo(-pr.r * 0.9, pr.r * 0.4); ctx.closePath(); ctx.fill();
@@ -560,7 +561,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
       // 蚀雷落点：紫色电纹圈 + 雷云闪光
       ctx.globalAlpha = 0.3 + 0.7 * k;
       ctx.strokeStyle = pr.color; ctx.lineWidth = 2;
-      ctx.shadowColor = '#a8d8ff'; ctx.shadowBlur = 14;
+      ctx.shadowColor = PALETTE.sky; ctx.shadowBlur = 14;
       ctx.setLineDash([8, 6]);
       ctx.lineDashOffset = -pr.t * 40;
       ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
@@ -595,7 +596,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.beginPath(); ctx.moveTo(0, 0);
     ctx.lineTo(Math.cos(pr.dir) * pr.range, Math.sin(pr.dir) * pr.range);
     ctx.stroke();
-    ctx.strokeStyle = '#ffe9a8'; ctx.lineWidth = pr.width * 0.5;
+    ctx.strokeStyle = PALETTE.fireBright; ctx.lineWidth = pr.width * 0.5;
     ctx.beginPath(); ctx.moveTo(Math.cos(pr.dir) * pr.range * 0.2, Math.sin(pr.dir) * pr.range * 0.2);
     ctx.lineTo(Math.cos(pr.dir) * pr.range, Math.sin(pr.dir) * pr.range);
     ctx.stroke();
@@ -638,7 +639,7 @@ function drawErodeMark(ctx: CanvasRenderingContext2D, pr: any, k: number): void 
   ctx.fillStyle = 'rgba(18,4,4,' + (0.3 + k * 0.35).toFixed(2) + ')';
   ctx.beginPath(); ctx.arc(0, 0, R * 0.55, 0, TAU); ctx.fill();
   // 2. 不规则蚀火裂纹（锯齿状，随时间扩张、抖动）
-  const edge = k > 0.72 ? '#ffd9a8' : pr.color;
+  const edge = k > 0.72 ? PALETTE.peach : pr.color;
   ctx.strokeStyle = edge;
   ctx.lineWidth = 1.6 + k * 1.4;
   ctx.shadowColor = pr.color;

@@ -3,6 +3,8 @@
    集中管理所有玩家运行时效果（道具/祝福/诅咒）的更新逻辑
    替代 PlayerSystem._updateCursesAndAuras 的条件分支
    ========================================================= */
+import { PALETTE } from '../assets/palette.js';
+import { EVENTS } from '../engine/core/events.js';
 import type { Player } from '../types/core.d.ts';
 import { EventBus } from '../engine/core/event_bus.js';
 import { entityState } from '../state/entities.js';
@@ -10,58 +12,47 @@ import { gameState } from '../state/flow.js';
 import { world } from '../engine/ecs/World.js';
 import { nearestEnemy } from './weapons/index.js';
 import { achievements } from './ports/achievements.js';
-import { rand, dist, pick, RNG } from '../engine/util/utils.js';
+import { rand, dist, pick, RNG, tickCooldown } from '../engine/util/utils.js';
 import { damageEnemy } from './combat.js';
-import { MOON_NAMES, currentMoonPhase } from '../config/moon_phase.js';
+import { MOON_NAMES, MOON_EFFECTS, currentMoonPhase } from '../config/moon_phase.js';
+import { SHOP_ITEMS } from '../config/index.js';
 
 import { gmSt } from '../state/accessors.js';
 
-/** 你的月亮：各月相的属性增量（add=加法增量，mul=乘法倍率）。用增量逆运算还原，避免覆盖月相期间新购入的道具加成 */
+/** 你的月亮：按数据表 MOON_EFFECTS 应用月相加成。记录增量以便还原，避免覆盖月相期间新购入的道具加成 */
 export function applyMoonEffects(p: Player, ph: number): void {
+  const spec = MOON_EFFECTS[ph];
+  if (!spec) return;
   const b: Record<string, number> = {};
-  switch (ph) {
-    case 0: /* 新月：闪避 +25% */
-      b.dodge = 0.25; p.dodge += b.dodge; break;
-    case 1: /* 娥眉：攻击 +15%，经验获取 +15% */
-      b.atk = 1.15; b.xpGain = 1.15; p.atk *= b.atk; p.xpGain *= b.xpGain; break;
-    case 2: /* 上弦：暴击率 +12%，攻速 +12% */
-      b.critRate = 0.12; b.atkSpd = 0.12; p.critRate += b.critRate; p.atkSpd += b.atkSpd; break;
-    case 3: /* 盈凸：攻击 +10%，范围 +10%，投射物 +1 */
-      b.atk = 1.10; b.area = 0.10; b.projCount = 1; p.atk *= b.atk; p.area += b.area; p.projCount += b.projCount; break;
-    case 4: /* 满月：攻击 +25%，暴伤 +25% */
-      b.atk = 1.25; b.critDmg = 0.25; p.atk *= b.atk; p.critDmg += b.critDmg; break;
-    case 5: { /* 亏凸·回澜之护：生命上限 +15%（含等额回复），伤害转化护盾 */
-      b.maxHp = Math.round(p.maxHp * 0.15);
-      p.maxHp += b.maxHp;
-      p.hp = Math.min(p.maxHp, p.hp + b.maxHp);
-      p.effects.moonWane = 1;
-      break; }
-    case 6: /* 下弦·月影壁垒：冷却缩减 +15%，受击生成护盾 */
-      b.cdr = 0.15; p.cdr += b.cdr;
-      p.effects.moonWax = 1;
-      break;
-    case 7: /* 残月·将熄之勇：暴伤 +25%，击杀计数 → 必爆 */
-      b.critDmg = 0.25; p.critDmg += b.critDmg;
-      p.effects.moonKill = 1;
-      break;
+  const target = p as unknown as Record<string, number>;
+  for (const [k, v] of Object.entries(spec.add || {})) { target[k] += v; b[k] = v; }
+  for (const [k, v] of Object.entries(spec.mul || {})) { target[k] *= v; b[k] = v; }
+  if (spec.maxHpMul) {
+    const bonus = Math.round(p.maxHp * spec.maxHpMul);
+    b.maxHp = bonus;
+    p.maxHp += bonus;
+    p.hp = Math.min(p.maxHp, p.hp + bonus);
   }
+  if (spec.flag === 'moonWane') p.effects.moonWane = 1;
+  if (spec.flag === 'moonWax') p.effects.moonWax = 1;
+  if (spec.flag === 'moonKill') p.effects.moonKill = 1;
   p.effects.moonPrev = b;
   p.effects.moonFullT = 8;
   p.effects.moonCloakT = 0;
 }
 
 function revertMoonEffects(p: Player): void {
+  const spec = MOON_EFFECTS[p.effects.moonPhase ?? -1];
   const b = p.effects.moonPrev || {};
-  if (b.dodge !== undefined) p.dodge -= b.dodge;
-  if (b.atk !== undefined) p.atk /= b.atk;
-  if (b.xpGain !== undefined) p.xpGain /= b.xpGain;
-  if (b.critRate !== undefined) p.critRate -= b.critRate;
-  if (b.atkSpd !== undefined) p.atkSpd -= b.atkSpd;
-  if (b.area !== undefined) p.area -= b.area;
-  if (b.projCount !== undefined) p.projCount -= b.projCount;
-  if (b.critDmg !== undefined) p.critDmg -= b.critDmg;
+  const target = p as unknown as Record<string, number>;
+  if (spec) {
+    for (const k of Object.keys(spec.add || {})) if (b[k] !== undefined) target[k] -= b[k];
+    for (const k of Object.keys(spec.mul || {})) if (b[k] !== undefined) target[k] /= b[k];
+  } else {
+    /* 兜底：未知相位（旧存档）按加法还原 */
+    for (const [k, v] of Object.entries(b)) target[k] -= v;
+  }
   if (b.maxHp !== undefined) { p.maxHp -= b.maxHp; p.hp = Math.min(p.maxHp, p.hp); }
-  if (b.cdr !== undefined) p.cdr -= b.cdr;
   p.effects.moonWane = 0;
   p.effects.moonWax = 0;
   p.effects.moonKill = 0;
@@ -79,6 +70,9 @@ export interface EffectStrategy {
 /** 效果处理器签名（旧，用于迁移过渡） */
 type EffectHandler = (p: Player, dt: number) => void;
 
+/** 群星陨落触发间隔（秒）——以 items.json 的 interval 字段为单一事实来源，防止实现与图鉴文本脱节 */
+const STARFALL_INTERVAL = SHOP_ITEMS.find(i => i.id === 'starfall')?.interval ?? 9;
+
 /** 效果注册表：效果名 → 策略对象 */
 const REGISTRY: Record<string, EffectStrategy> = {
   /* ===== 诅咒计时 ===== */
@@ -94,7 +88,7 @@ const REGISTRY: Record<string, EffectStrategy> = {
       if (p.effects.shieldTimer <= 0) {
         p.effects.shield = p.effects.shieldMax;
         p.effects.shieldTimer = 5;
-        EventBus.emit('visual:ring', { x: p.x, y: p.y, color: '#9fd6e8', life: 0.4, radius: 40, width: 2 });
+        EventBus.emit(EVENTS.VISUAL_RING, { x: p.x, y: p.y, color: PALETTE.ice, life: 0.4, radius: 40, width: 2 });
       }
     }
   }},
@@ -109,24 +103,24 @@ const REGISTRY: Record<string, EffectStrategy> = {
   /* ===== 回响减速 ===== */
   echoSlow: { name: '回响减速', desc: '周期性触发全场减速', update(p, dt) {
     if (gmSt()._echoSlowT > 0) gameState.set('_echoSlowT', gmSt()._echoSlowT - dt);
-    p.effects.echoTimer = (p.effects.echoTimer === undefined ? 20 : p.effects.echoTimer) - dt;
-    if (p.effects.echoTimer <= 0) {
-      p.effects.echoTimer = 20;
+    const { t, fired } = tickCooldown(p.effects.echoTimer, 20, dt);
+    p.effects.echoTimer = t;
+    if (fired) {
       gameState.set('_echoSlowT', 1);
-      EventBus.emit('visual:ring', { x: p.x, y: p.y, color: '#9fd6e8', life: 0.5, radius: 420, width: 2 });
+      EventBus.emit(EVENTS.VISUAL_RING, { x: p.x, y: p.y, color: PALETTE.ice, life: 0.5, radius: 420, width: 2 });
     }
   }},
 
   /* ===== 陨星 ===== */
   starfall: { name: '陨星', desc: '周期性召唤陨石', update(p, dt) {
-    p.effects.starTimer = (p.effects.starTimer || 9) - dt;
-    if (p.effects.starTimer <= 0) {
-      p.effects.starTimer = 9;
-      const t = nearestEnemy(p.x, p.y, 600);
-      if (t) {
+    const { t, fired } = tickCooldown(p.effects.starTimer, STARFALL_INTERVAL, dt);
+    p.effects.starTimer = t;
+    if (fired) {
+      const tgt = nearestEnemy(p.x, p.y, 600);
+      if (tgt) {
         world.add('projectiles', {
-          meteor: true, x: t.x + rand(-40, 40), y: t.y + rand(-40, 40),
-          t: 0, delay: 0.45, dmg: p.effAtk, aoe: 90, color: '#ffe9a8', r: 12, wId: 'starfall',
+          meteor: true, x: tgt.x + rand(-40, 40), y: tgt.y + rand(-40, 40),
+          t: 0, delay: 0.45, dmg: p.effAtk, aoe: 90, color: PALETTE.fireBright, r: 12, wId: 'starfall',
         });
       }
     }
@@ -134,17 +128,17 @@ const REGISTRY: Record<string, EffectStrategy> = {
 
   /* ===== 辉光审判 ===== */
   achJudge: { name: '辉光审判', desc: '每6秒对随机敌人降下裁决辉光，随成就数量增伤', update(p, dt) {
-    p.effects.achJudgeTimer = (p.effects.achJudgeTimer || 6) - dt;
-    if (p.effects.achJudgeTimer <= 0) {
-      p.effects.achJudgeTimer = 6;
+    const { t, fired } = tickCooldown(p.effects.achJudgeTimer, 6, dt);
+    p.effects.achJudgeTimer = t;
+    if (fired) {
       const alive = entityState.state.enemies.filter(e => !e.dead);
       if (alive.length > 0) {
-        const t = pick(alive);
+        const tgt = pick(alive);
         const ach = achievements().earnedTotal();
         world.add('projectiles', {
-          judge: 1, x: t.x + rand(-35, 35), y: t.y + rand(-35, 35),
+          judge: 1, x: tgt.x + rand(-35, 35), y: tgt.y + rand(-35, 35),
           t: 0, delay: 0.5, dmg: p.effAtk * 2 * (1 + ach * 0.08), aoe: 110,
-          color: '#ffd98a', r: 12, wId: 'achJudge',
+          color: PALETTE.goldBright, r: 12, wId: 'achJudge',
         });
       }
     }
@@ -181,8 +175,8 @@ const REGISTRY: Record<string, EffectStrategy> = {
       if ((p.effects.moonPhase ?? -1) >= 0) revertMoonEffects(p);
       applyMoonEffects(p, ph);
       p.effects.moonPhase = ph;
-      EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 52, text: '你的月亮 · ' + MOON_NAMES[ph], color: '#e9c987' });
-      EventBus.emit('visual:ring', { x: p.x, y: p.y, color: '#e9c987', life: 0.6, radius: 76, width: 2 });
+      EventBus.emit(EVENTS.UI_SPAWN_TEXT, { x: p.x, y: p.y - 52, text: '你的月亮 · ' + MOON_NAMES[ph], color: PALETTE.gold });
+      EventBus.emit(EVENTS.VISUAL_RING, { x: p.x, y: p.y, color: PALETTE.gold, life: 0.6, radius: 76, width: 2 });
     }
     p.effects.moonT = (p.effects.moonT || 0) + dt;
     /* 新月·隐匿：每 10 秒隐匿 0.6 秒（不可被瞄准/命中）
@@ -202,19 +196,19 @@ const REGISTRY: Record<string, EffectStrategy> = {
     }
     /* 满月·月华辉光：每 8 秒对最近 5 个敌人造成 200% 攻击伤害 */
     if (ph === 4) {
-      p.effects.moonFullT = (p.effects.moonFullT || 8) - dt;
-      if (p.effects.moonFullT <= 0) {
-        p.effects.moonFullT = 8;
+      const { t, fired } = tickCooldown(p.effects.moonFullT, 8, dt);
+      p.effects.moonFullT = t;
+      if (fired) {
         const alive = entityState.state.enemies.filter(e => !e.dead);
         alive.sort((a, b) => dist(p, a) - dist(p, b));
         const targets = alive.slice(0, 5);
         for (const e of targets) {
           damageEnemy(e, p.effAtk * 2, RNG() < p.effCrit, 'moon', 'yourMoon');
-          EventBus.emit('visual:burst', { x: e.x, y: e.y, color: '#e9c987', count: 8 });
-          EventBus.emit('visual:ring', { x: e.x, y: e.y, color: '#fff5d6', life: 0.3, radius: 40, width: 1.6 });
+          EventBus.emit(EVENTS.VISUAL_BURST, { x: e.x, y: e.y, color: PALETTE.gold, count: 8 });
+          EventBus.emit(EVENTS.VISUAL_RING, { x: e.x, y: e.y, color: PALETTE.warmWhite, life: 0.3, radius: 40, width: 1.6 });
         }
         if (targets.length > 0) {
-          EventBus.emit('ui:spawnText', { x: p.x, y: p.y - 40, text: '月华辉光', color: '#e9c987' });
+          EventBus.emit(EVENTS.UI_SPAWN_TEXT, { x: p.x, y: p.y - 40, text: '月华辉光', color: PALETTE.gold });
         }
       }
     }
@@ -237,8 +231,9 @@ const REGISTRY: Record<string, EffectStrategy> = {
  */
 export function getActiveEffectStrategies(p: Player): EffectStrategy[] {
   const strategies: EffectStrategy[] = [];
+  const effects = p.effects as unknown as Record<string, unknown>;
   for (const key of Object.keys(REGISTRY)) {
-    if ((p.effects as any)[key] !== undefined && (p.effects as any)[key] !== 0) {
+    if (effects[key] !== undefined && effects[key] !== 0) {
       strategies.push(REGISTRY[key]);
     }
   }

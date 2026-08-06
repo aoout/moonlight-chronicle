@@ -2,6 +2,7 @@
    蚀月远征 · 基准测试：入口与 UI 集成
    提供 F5 运行 / F6 切换 UI 的快捷键绑定
    ========================================================= */
+import { PALETTE } from '../../../assets/palette.js';
 import { benchRunner } from './runner.js';
 import { ALL_SCENARIOS } from './scenarios.js';
 import {
@@ -157,23 +158,23 @@ export function drawBenchUI(ctx: any): void {
   ctx.fillText('基准测试', x + 8, y + 6);
 
   if (state.running) {
-    ctx.fillStyle = '#7fd6a4';
+    ctx.fillStyle = PALETTE.jade;
     ctx.fillText('场景: ' + state.scenario, x + 8, y + 24);
     // 进度条
     const barW = 196;
     const barH = 8;
     ctx.fillStyle = '#1a1e3a';
     ctx.fillRect(x + 8, y + 42, barW, barH);
-    ctx.fillStyle = '#7fd6a4';
+    ctx.fillStyle = PALETTE.jade;
     ctx.fillRect(x + 8, y + 42, barW * Math.min(1, state.progress), barH);
-    ctx.fillStyle = '#8890a8';
+    ctx.fillStyle = PALETTE.slateDark;
     ctx.font = '10px monospace';
     ctx.fillText(Math.round(state.progress * 100) + '%', x + barW - 30, y + 54);
   } else {
-    ctx.fillStyle = _statusText === '完成' ? '#7fd6a4' : '#8890a8';
+    ctx.fillStyle = _statusText === '完成' ? PALETTE.jade : PALETTE.slateDark;
     ctx.fillText('状态: ' + _statusText, x + 8, y + 24);
     if (_lastReport) {
-      ctx.fillStyle = '#8890a8';
+      ctx.fillStyle = PALETTE.slateDark;
       ctx.font = '10px monospace';
       ctx.fillText('报告数: ' + _reports.length + ' | F5 运行 | F6 切换', x + 8, y + 42);
     }

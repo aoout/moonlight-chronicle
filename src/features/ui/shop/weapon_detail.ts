@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 商店：武器详情与出售
    ========================================================= */
+import { EVENTS } from '../../../engine/core/events.js';
 import { playerState } from '../../../state/player.js';
 import { statsState } from '../../../state/stats.js';
 import { WEAPONS } from '../../../config/index.js';
@@ -128,7 +129,7 @@ function sellWeapon(id: string): void {
   // 局部刷新：重建武器列表 / 属性面板 / 金币，不重新随机商店卡牌
   //（openShop() 会重摇武器与道具池，出售不应触发）
   const cur = pSt().player;
-  if (cur) EventBus.emit('shop:panelRefresh', { player: cur });
+  if (cur) EventBus.emit(EVENTS.SHOP_PANEL_REFRESH, { player: cur });
   const gold = $('shop-gold');
   if (gold) gold.textContent = String(Math.floor(sSt().gold));
 }

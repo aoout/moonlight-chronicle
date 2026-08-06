@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 小怪专属技能（特性化进攻）
    ========================================================= */
+import { PALETTE } from '../../assets/palette.js';
 import { RNG, angTo, dist } from '../../engine/util/utils.js';
 import { PROJECTILE_POOL } from '../../engine/ecs/entity_pool.js';
 import { spawnBurst } from '../../platform/fx/fx.js';
@@ -19,7 +20,7 @@ export const ENEMY_SKILLS: Record<string, (e: any, dt: number, p: any) => boolea
         const a = angTo(e, p);
         for (let i = -1; i <= 1; i++) {
           const ang = a + i * 0.3;
-          const _prj = { acid: true, x: e.x, y: e.y, vx: Math.cos(ang) * 230, vy: Math.sin(ang) * 230, r: 6, dmg: e.dmg * 0.9, color: '#7fce5a', hit: new Set(), enemy: true, life: 1.8, wId: 'enemy' };
+          const _prj = { acid: true, x: e.x, y: e.y, vx: Math.cos(ang) * 230, vy: Math.sin(ang) * 230, r: 6, dmg: e.dmg * 0.9, color: PALETTE.green, hit: new Set(), enemy: true, life: 1.8, wId: 'enemy' };
           eSt().projectiles.push(PROJECTILE_POOL.addWith(_prj));
         }
         return true;
@@ -94,12 +95,12 @@ export const ENEMY_SKILLS: Record<string, (e: any, dt: number, p: any) => boolea
     e.skillT = (e.skillT || 0) - dt;
     if (e.skillT <= 0 && dist(e, p) > 60 && dist(e, p) < 300) {
       e.skillT = 3.8;
-      spawnBurst(e.x, e.y, '#7c6d9e', 12);
+      spawnBurst(e.x, e.y, PALETTE.violetDark, 12);
       const side = RNG() < 0.5 ? 1 : -1;
       const a = angTo(e, p) + side * 1.2;
       e.x = p.x + Math.cos(a) * 70;
       e.y = p.y + Math.sin(a) * 70;
-      spawnBurst(e.x, e.y, '#7c6d9e', 12);
+      spawnBurst(e.x, e.y, PALETTE.violetDark, 12);
       if (dist(e, p) < 78) {
         hurtPlayer(e, e.dmg * 1.2);
         e.bleed = 3;

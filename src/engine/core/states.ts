@@ -2,6 +2,7 @@
    蚀月远征 · 状态常量与状态机实例
    独立于 state.ts，避免状态切片导入时的循环依赖
    ========================================================= */
+import { EVENTS } from '../../engine/core/events.js';
 import { StateMachine } from './state_machine.js';
 import { EventBus } from './event_bus.js';
 
@@ -34,7 +35,7 @@ export const sm = new StateMachine({
 
 /** 关卡结算（进入商店）。以事件广播通关，订阅方（成就等）自行响应 */
 export function endStage(_early?: boolean): void {
-  EventBus.emit('stage:cleared', {});
+  EventBus.emit(EVENTS.STAGE_CLEARED, {});
   sm.transition(STATE.SHOP);
 }
 

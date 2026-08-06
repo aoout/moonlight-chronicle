@@ -3,6 +3,7 @@
    将 gameLoop 中的 UI 轮询逻辑移至状态机钩子，
    消除 game.ts ↔ scheduler.ts 循环依赖
    ========================================================= */
+import { EVENTS } from '../engine/core/events.js';
 import { STATE, sm } from '../engine/core/states.js';
 import { gameState } from '../state/flow.js';
 import { stageState } from '../state/stage.js';
@@ -46,7 +47,7 @@ export function initStateHooks(): void {
   // ----- 从 PLAYING 进入 OVER 时打开结算并进入 RESULT 态 -----
   sm.onTransition(STATE.PLAYING, STATE.OVER, () => {
     const gs = stageState.state;
-    EventBus.emit('game:runEnd', {
+    EventBus.emit(EVENTS.GAME_RUN_END, {
       win: false,
       stage: gs.stage,
       kills: statsState.state.kills,
@@ -59,7 +60,7 @@ export function initStateHooks(): void {
   // ----- 从 PLAYING 进入 WIN 时打开结算并进入 RESULT 态 -----
   sm.onTransition(STATE.PLAYING, STATE.WIN, () => {
     const gs = stageState.state;
-    EventBus.emit('game:runEnd', {
+    EventBus.emit(EVENTS.GAME_RUN_END, {
       win: true,
       stage: gs.stage,
       kills: statsState.state.kills,

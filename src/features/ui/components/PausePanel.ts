@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 暂停面板
    ========================================================= */
+import { EVENTS } from '../../../engine/core/events.js';
 import { Component } from '../component.js';
 import { STATE, sm } from '../../../engine/core/states.js';
 import { playerState } from '../../../state/player.js';
@@ -28,11 +29,11 @@ export class PausePanel extends Component<{}> {
       this._renderContent();
       $('pause').classList.remove('hidden');
       AudioEngine.playSfx('open');
-      EventBus.emit('pause:open', {});
+      EventBus.emit(EVENTS.PAUSE_OPEN, {});
     } else {
       $('pause').classList.add('hidden');
       AudioEngine.playSfx('close');
-      EventBus.emit('pause:close', {});
+      EventBus.emit(EVENTS.PAUSE_CLOSE, {});
     }
   }
 

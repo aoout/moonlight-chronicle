@@ -46,6 +46,31 @@ const MOON_EFFECT_DESCS: Record<number, string> = {
   7: '暴伤 +25%，击杀计数 → 必爆',
 };
 
+/**
+ * 月相效果数值表（单一事实来源，与 MOON_EFFECT_DESCS 一一对应）
+ * - add：加法属性增量（apply 时 +=，revert 时 -=）
+ * - mul：乘法属性倍率（apply 时 *=，revert 时 /=）
+ * - maxHpMul：生命上限加成比例（额外处理：含等额回复）
+ * - flag：触发的机制标记
+ */
+export interface MoonEffectSpec {
+  add?: Record<string, number>;
+  mul?: Record<string, number>;
+  maxHpMul?: number;
+  flag?: 'moonWane' | 'moonWax' | 'moonKill';
+}
+
+export const MOON_EFFECTS: MoonEffectSpec[] = [
+  /* 0 新月 */ { add: { dodge: 0.25 } },
+  /* 1 娥眉 */ { mul: { atk: 1.15 }, add: { xpGain: 0.15 } },
+  /* 2 上弦 */ { add: { critRate: 0.12, atkSpd: 0.12 } },
+  /* 3 盈凸 */ { mul: { atk: 1.1 }, add: { area: 0.1, projCount: 1 } },
+  /* 4 满月 */ { mul: { atk: 1.25 }, add: { critDmg: 0.25 } },
+  /* 5 亏凸 */ { maxHpMul: 0.15, flag: 'moonWane' },
+  /* 6 下弦 */ { add: { cdr: 0.15 }, flag: 'moonWax' },
+  /* 7 残月 */ { add: { critDmg: 0.25 }, flag: 'moonKill' },
+];
+
 /** 获取当前月相的效果描述，用于商店和详情页展示 */
 export function currentMoonPhaseDesc(): string {
   const ph = currentMoonPhase();

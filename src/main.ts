@@ -1,6 +1,7 @@
 /* =========================================================
    蚀月远征 · 入口
    ========================================================= */
+import { EVENTS } from './engine/core/events.js';
 import { renderState, resizeCanvas } from './state/render.js';
 import { fillIconSpans } from './features/ui/icon_spans.js';
 import { bindUI } from './features/ui/scheduler.js';
@@ -67,8 +68,8 @@ sm.onEnter(STATE.PLAYING, () => showJoystick());
 });
 
 // 暂停时隐藏摇杆，恢复时显示
-EventBus.on('pause:open', () => hideJoystick());
-EventBus.on('pause:close', () => {
+EventBus.on(EVENTS.PAUSE_OPEN, () => hideJoystick());
+EventBus.on(EVENTS.PAUSE_CLOSE, () => {
   if (sm.is(STATE.PLAYING)) showJoystick();
 });
 

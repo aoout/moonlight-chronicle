@@ -3,6 +3,8 @@
    （敌人/Boss 遇过解锁，武器/道具购得解锁）
    已解锁卡片可点击查看详情——月背档案与 lore 碎片
    ========================================================= */
+import { TAU } from '../../engine/util/utils.js';
+import { PALETTE } from '../../assets/palette.js';
 import { $, el, html } from './hud_utils.js';
 import { iconSVG } from '../../assets/icons.js';
 import { ENEMIES, BOSSES, WEAPONS, SHOP_ITEMS } from '../../config/index.js';
@@ -33,11 +35,11 @@ function _enemyCanvas(id: string, def: any, isBoss: boolean): HTMLCanvasElement 
   // 脚下阴影（俯视投影）
   ctx.fillStyle = 'rgba(0,0,0,.25)';
   ctx.beginPath();
-  ctx.ellipse(0, s * 0.85, s * 1.1, s * 0.38, 0, 0, 6.28);
+  ctx.ellipse(0, s * 0.85, s * 1.1, s * 0.38, 0, 0, TAU);
   ctx.fill();
 
   // 身体发光
-  ctx.shadowColor = def.color || '#fff';
+  ctx.shadowColor = def.color || PALETTE.white;
   ctx.shadowBlur = isBoss ? 14 : 8;
 
   if (isBoss) {

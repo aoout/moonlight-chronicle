@@ -2,6 +2,7 @@
    蚀月远征 · 界面调度器
    负责 UI 事件绑定和组件调度
    ========================================================= */
+import { EVENTS } from '../../engine/core/events.js';
 import { STATE, sm } from '../../engine/core/states.js';
 import { gameState } from '../../state/flow.js';
 import { stageState } from '../../state/stage.js';
@@ -165,7 +166,7 @@ export function bindUI(): void {
   const goNext = () => {
     closeOverlay('shop');
     gameState.set('shopOpen', false);
-    EventBus.emit('shop:close', { stage: gSt().stage + 1 });
+    EventBus.emit(EVENTS.SHOP_CLOSE, { stage: gSt().stage + 1 });
     stageState.set('stage', gSt().stage + 1);
     startStage(gSt().stage);
     sm.transition(STATE.PLAYING);
