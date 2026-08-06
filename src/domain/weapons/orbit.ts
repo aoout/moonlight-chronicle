@@ -12,7 +12,20 @@ import { addFx, spawnSpark, spawnGlow, spawnShard } from '../../platform/fx/fx.j
 
 import { pSt, gSt } from '../../state/accessors.js';
 
-export function orbitTick(dt: number): void {
+/**
+ * 环舞之刃单次命中伤害系数。
+ *
+ * 修复前：damageEnemy(weaponDmg × dt × 8) —— 伤害直接乘帧时间 dt，
+ * 导致帧率相关 bug：60fps 单次命中 = weaponDmg × 8/60 ≈ 0.133×weaponDmg，
+ * 144fps 仅 ≈ 0.056×weaponDmg，高刷屏玩家伤害缩水一半以上。
+ *
+ * 修复后：命中节流窗口（0.25s，按游戏时间结算）不变，单次伤害固定为
+ * weaponDmg × (8/60)，任意帧率下每秒总伤害一致（≈0.53×weaponDmg/s，
+ * 与修复前 60fps 基准行为持平，不改平衡）。
+ */
+const ORBIT_HIT_DMG = 8 / 60;
+
+export function orbitTick(): void {
   const p = pSt().player;
   if (!p) return;
   const orbitW = p.weapons.find(w => w.id === 'orbit');
@@ -36,7 +49,7 @@ export function orbitTick(dt: number): void {
         if (dist({ x: ox, y: oy }, e) < 20 + e.size * 0.6) {
           if (e._orbitT === undefined || e._orbitT < gSt().time - 0.25) {
             e._orbitT = gSt().time;
-            damageEnemy(e, weaponDmg(orbitW, p) * dt * 8, RNG() < p.effCrit, 'orbit', 'orbit');
+            damageEnemy(e, weaponDmg(orbitW, p) * ORBIT_HIT_DMG, RNG() < p.effCrit, 'orbit', 'orbit');
             AudioEngine.playSfx('hit');
             spawnSpark(e.x, e.y, PALETTE.gold, 3, 130);
             spawnGlow(e.x, e.y, 10, PALETTE.gold, 0.3);

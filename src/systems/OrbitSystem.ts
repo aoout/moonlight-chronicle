@@ -16,7 +16,7 @@ export class OrbitSystem extends System {
   name = 'OrbitSystem';
 
   update(dt: number): void {
-    orbitTick(dt);
+    orbitTick();
 
     const p = pSt().player;
     if (!p) return;
