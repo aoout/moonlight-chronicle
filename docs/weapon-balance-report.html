@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蚀月远征 · 武器平衡性审计报告</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #131a24;
+    --card: #182130;
+    --card2: #1e2938;
+    --line: #2b3a4d;
+    --text: #e6edf3;
+    --dim: #8b98a8;
+    --gold: #e9c987;
+    --gold-deep: #c9a45f;
+    --red: #ff6b6b;
+    --green: #6ee7a0;
+    --blue: #7fd6e4;
+    --purple: #b49ae8;
+    --orange: #ff9d6b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.65;
+    padding: 0 0 80px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ===== Header ===== */
+  header {
+    background: radial-gradient(ellipse at 30% -20%, #24314a 0%, var(--bg) 60%);
+    border-bottom: 1px solid var(--line);
+    padding: 56px 0 40px;
+    margin-bottom: 36px;
+  }
+  .kicker { color: var(--gold); letter-spacing: 4px; font-size: 12px; text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-size: 34px; font-weight: 700; letter-spacing: 1px; }
+  h1 span { color: var(--gold); }
+  .sub { color: var(--dim); margin-top: 10px; font-size: 15px; }
+  .meta { margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .meta span {
+    font-size: 12px; color: var(--dim); border: 1px solid var(--line);
+    border-radius: 20px; padding: 4px 12px; background: var(--bg2);
+  }
+
+  /* ===== Section ===== */
+  h2 {
+    font-size: 20px; margin: 48px 0 16px; padding-left: 12px;
+    border-left: 3px solid var(--gold); letter-spacing: 1px;
+  }
+  h2 .en { font-size: 11px; color: var(--dim); letter-spacing: 2px; margin-left: 8px; font-weight: 400; }
+
+  /* ===== Executive summary ===== */
+  .verdict {
+    background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 24px 28px;
+  }
+  .verdict h3 { color: var(--gold); font-size: 16px; margin-bottom: 10px; }
+  .verdict p { font-size: 14px; color: var(--text); margin-bottom: 8px; }
+  .verdict p:last-child { margin-bottom: 0; }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; margin: 0 2px; }
+
+  /* ===== Table ===== */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 860px; }
+  th {
+    background: var(--bg2); color: var(--dim); font-weight: 600;
+    padding: 10px 12px; text-align: left; white-space: nowrap;
+    border-bottom: 1px solid var(--line); font-size: 12px;
+  }
+  td { padding: 9px 12px; border-bottom: 1px solid #202c3d; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(233,201,135,0.04); }
+  .w-name { font-weight: 600; }
+  .w-name small { display: block; color: var(--dim); font-weight: 400; font-size: 11px; }
+  .num { font-variant-numeric: tabular-nums; text-align: right; }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+  .tier { text-align: center; font-weight: 700; font-size: 14px; }
+  .tier-S { color: var(--gold); }
+  .tier-A { color: var(--green); }
+  .tier-B { color: var(--blue); }
+  .tier-C { color: var(--orange); }
+
+  /* ===== Score bars ===== */
+  .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .score-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px;
+  }
+  .score-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .score-head b { font-size: 14px; }
+  .score-head em { font-style: normal; font-size: 13px; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+  .bar { height: 8px; background: #0e1520; border-radius: 4px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--gold-deep), var(--gold)); }
+  .bar i.bad { background: linear-gradient(90deg, #8a4a4a, var(--red)); }
+  .bar i.mid { background: linear-gradient(90deg, #b8860b, var(--orange)); }
+
+  /* ===== Radar-ish five dims ===== */
+  .dims { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .dim { font-size: 11px; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; }
+  .dim b { color: var(--text); }
+
+  /* ===== Weapon cards ===== */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .card-top {
+    padding: 14px 16px; border-bottom: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .card-top .wname { font-size: 16px; font-weight: 700; }
+  .card-top .wtag { font-size: 11px; color: var(--dim); margin-top: 2px; }
+  .card-body { padding: 14px 16px; flex: 1; }
+  .formula {
+    background: #0e1520; border: 1px solid var(--line); border-radius: 6px;
+    padding: 8px 10px; font-size: 12px; color: var(--gold); margin-bottom: 12px;
+    font-family: "SF Mono", Consolas, monospace; line-height: 1.5; word-break: break-all;
+  }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 12.5px; margin-bottom: 10px; }
+  .stats div { display: flex; justify-content: space-between; }
+  .stats dt { color: var(--dim); }
+  .stats dd { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .verdict-box { border-radius: 6px; padding: 10px 12px; font-size: 12.5px; margin-bottom: 8px; }
+  .v-good { background: rgba(110,231,160,0.08); border: 1px solid rgba(110,231,160,0.3); }
+  .v-bad { background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.3); }
+  .v-warn { background: rgba(255,157,107,0.08); border: 1px solid rgba(255,157,107,0.3); }
+  .v-neutral { background: rgba(127,214,228,0.08); border: 1px solid rgba(127,214,228,0.3); }
+  .verdict-box b { display: block; margin-bottom: 3px; }
+  .fix { font-size: 12.5px; color: var(--dim); margin-top: 8px; border-top: 1px dashed var(--line); padding-top: 8px; }
+  .fix b { color: var(--gold); }
+
+  /* ===== Issues ===== */
+  .issues { display: flex; flex-direction: column; gap: 12px; }
+  .issue {
+    border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px;
+    display: flex; gap: 14px; background: var(--card);
+  }
+  .issue .sev {
+    flex-shrink: 0; width: 44px; height: 44px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 14px;
+  }
+  .sev-P0 { background: rgba(255,107,107,0.15); color: var(--red); border: 1px solid rgba(255,107,107,0.4); }
+  .sev-P1 { background: rgba(255,157,107,0.15); color: var(--orange); border: 1px solid rgba(255,157,107,0.4); }
+  .sev-P2 { background: rgba(127,214,228,0.12); color: var(--blue); border: 1px solid rgba(127,214,228,0.35); }
+  .issue h4 { font-size: 14.5px; margin-bottom: 4px; }
+  .issue p { font-size: 13px; color: var(--dim); }
+  .issue p b { color: var(--text); }
+
+  /* ===== Reco table ===== */
+  .reco { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-bottom: 10px; }
+  .reco h4 { font-size: 14px; color: var(--gold); margin-bottom: 6px; }
+  .reco p { font-size: 13px; color: var(--dim); margin-bottom: 4px; }
+  .reco .why { color: var(--text); }
+  .ph { color: var(--orange); font-size: 11px; border: 1px solid rgba(255,157,107,0.4); border-radius: 4px; padding: 0 5px; margin-left: 4px; }
+
+  /* ===== Footnotes ===== */
+  .note { font-size: 12px; color: var(--dim); margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .note b { color: var(--text); }
+
+  footer { text-align: center; color: var(--dim); font-size: 12px; margin-top: 48px; }
+
+  /* small helpers */
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .grow { flex: 1; min-width: 260px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="kicker">Balance Audit · 数值审计</div>
+    <h1>蚀月远征 <span>武器平衡性报告</span></h1>
+    <div class="sub">13 把武器 · 全量数值建模 · 只诊断不改数据</div>
+    <div class="meta">
+      <span>数据源：src/config/weapons.json</span>
+      <span>基准：BASE_STATS</span>
+      <span>口径：理论 DPS @ 60fps</span>
+      <span>版本：2026-08-06</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ 结论摘要 ============ -->
+  <section>
+    <h2>审计结论 <span class="en">EXECUTIVE SUMMARY</span></h2>
+    <div class="verdict">
+      <h3>一句话结论</h3>
+      <p>整体平衡是"<b style="color:var(--gold)">群伤溢出、单体贫血、成长断层</b>"：轨道类（风暴之眼、环舞之刃）纸面 DPS 高到溢出且存在帧率相关 bug，幻影成长曲线 9.6 倍是均值（2.1 倍）的 4.5 倍；而月辉回刃成长仅 1.3 倍、影袭/弧光单体 DPS 垫底。玩家按"手感"选武器时，选中的往往是数值陷阱或数值炸弹。</p>
+      <p>优先级：<span class="badge" style="background:rgba(255,107,107,.2);color:var(--red)">P0 ×2</span> 环舞之刃帧率 bug、幻影成长失控；<span class="badge" style="background:rgba(255,157,107,.2);color:var(--orange)">P1 ×4</span> 风暴弹幕溢出、月辉成长断层、光柱词条错位、新星单体贫血；<span class="badge" style="background:rgba(127,214,228,.2);color:var(--blue)">P2 ×3</span> 弧光/影袭协同过窄、潮锚收益区间过窄。</p>
+      <p>所有修改建议均标注 <span class="ph" style="border:none;padding:0;color:var(--orange)">[PLACEHOLDER]</span> 与验证路径，未经 playtest 的数值一律待验证。</p>
+    </div>
+  </section>
+
+  <!-- ============ 方法论 ============ -->
+  <section>
+    <h2>建模口径 <span class="en">METHODOLOGY</span></h2>
+    <div class="verdict">
+      <h3>基准玩家（BASE_STATS，无转模/道具/祝福）</h3>
+      <p>攻击 10 · 移速 240 · 生命上限 100 · 攻速 100% · 暴击 5% · 暴伤 150% · 投射物 +0 · 冷却缩减 0 · 月蚀深度 0</p>
+      <h3 style="margin-top:14px">计算公式（与实现逐字一致）</h3>
+      <p>单发伤害 = weapons.json 的 formulaDmg，代入基准属性；冷却 = cd × (1 − cdr) ÷ effAtkSpd；effAtkSpd = atkSpd × (1 + critRate × 0.3) = 1.015。轨道类武器按源码 tick/节流换算。群伤按「命中圈内 N 个敌人」估算，标注命中假设。</p>
+      <p style="color:var(--dim);font-size:12.5px">注：所有数值为<b>静态理论模型</b>，不含走位、敌人分布、弹道命中率的动态损耗——它衡量的是「武器自身的数值上限」，不是实战强度。</p>
+    </div>
+  </section>
+
+  <!-- ============ 总览表 ============ -->
+  <section>
+    <h2>全武器总览 <span class="en">OVERVIEW</span></h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>评级</th><th>武器</th><th>定位</th>
+            <th class="num">单发 L1</th><th class="num">单发 L10</th>
+            <th class="num">成长倍率</th><th class="num">单体 DPS L1</th><th class="num">单体 DPS L10</th>
+            <th class="num">冷却</th><th>范围/穿透</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="tier tier-S">S</td><td class="w-name">蚀星连弩<small>crossbow</small></td><td>速射核心</td><td class="num">13.5</td><td class="num">27.0</td><td class="num up">2.00×</td><td class="num">19.0</td><td class="num">38.1</td><td class="num">0.71s</td><td>射程400 / 穿0</td></tr>
+          <tr><td class="tier tier-S">S</td><td class="w-name">潮涌之枪<small>lance</small></td><td>贯穿齐射</td><td class="num">38.0</td><td class="num">99.2</td><td class="num up">2.61×</td><td class="num">21.4</td><td class="num">55.9</td><td class="num">1.77s</td><td>射程560 / 穿4</td></tr>
+          <tr><td class="tier tier-A">A</td><td class="w-name">弧光引雷<small>arc</small></td><td>连锁群伤</td><td class="num">10.6</td><td class="num">25.0</td><td class="num up">2.36×</td><td class="num down">7.2</td><td class="num">16.9</td><td class="num">1.48s</td><td>链4×0.65衰减</td></tr>
+          <tr><td class="tier tier-A">A</td><td class="w-name">焚天陨星<small>meteor</small></td><td>重击范围</td><td class="num">46.0</td><td class="num">91.0</td><td class="num">1.98×</td><td class="num">14.6</td><td class="num">28.9</td><td class="num">3.15s</td><td>AOE130 / 中心1.4×</td></tr>
+          <tr><td class="tier tier-A">A</td><td class="w-name">霜华之环<small>frost</small></td><td>脉冲范围</td><td class="num">26.6</td><td class="num">59.0</td><td class="num up">2.22×</td><td class="num">13.5</td><td class="num">29.9</td><td class="num">1.97s</td><td>AOE200 / 减速0.4</td></tr>
+          <tr><td class="tier tier-B">B</td><td class="w-name">圣裁光柱<small>beam</small></td><td>穿透直线</td><td class="num">13.1</td><td class="num">29.2</td><td class="num up">2.24×</td><td class="num down">9.8</td><td class="num">22.0</td><td class="num">1.33s</td><td>射程620 / 无限穿</td></tr>
+          <tr><td class="tier tier-B">B</td><td class="w-name">月辉回刃<small>moonRing</small></td><td>回旋疾风</td><td class="num">35.5</td><td class="num">46.3</td><td class="num down">1.30×</td><td class="num">31.3</td><td class="num">40.9</td><td class="num">1.13s</td><td>射程420 / 穿3</td></tr>
+          <tr><td class="tier tier-B">B</td><td class="w-name">破晓之辉<small>nova</small></td><td>全向爆发</td><td class="num">41.5</td><td class="num">64.0</td><td class="num down">1.54×</td><td class="num down">11.1</td><td class="num down">17.1</td><td class="num">3.74s</td><td>10发 / 穿5</td></tr>
+          <tr><td class="tier tier-B">B</td><td class="w-name">风暴之眼<small>storm</small></td><td>环绕弹幕</td><td class="num">19.0</td><td class="num">35.2</td><td class="num down">1.85×</td><td class="num up">67.9*</td><td class="num up">754*</td><td class="num">0.56s tick</td><td>双核 / 弹幕</td></tr>
+          <tr><td class="tier tier-B">B</td><td class="w-name">影袭之刃<small>shadow</small></td><td>追踪必中</td><td class="num">12.5</td><td class="num">26.0</td><td class="num">2.08×</td><td class="num">14.1</td><td class="num">29.3</td><td class="num">0.89s</td><td>射程520 / 追踪</td></tr>
+          <tr><td class="tier tier-C">C</td><td class="w-name">蚀潮之锚<small>tideAnchor</small></td><td>深度重击</td><td class="num">22.3</td><td class="num">47.5</td><td class="num">2.13×</td><td class="num down">8.1</td><td class="num">17.2</td><td class="num">2.76s</td><td>AOE130 / 深度×12%</td></tr>
+          <tr><td class="tier tier-C">C</td><td class="w-name">环舞之刃<small>orbit</small></td><td>环绕近战</td><td class="num">60.0</td><td class="num">168.0</td><td class="num up">2.80×</td><td class="num">32.0</td><td class="num">89.6</td><td class="num">0.25s节流</td><td>半径120 / 近身</td></tr>
+          <tr><td class="tier tier-C">C</td><td class="w-name">月影残像<small>phantom</small></td><td>召唤分身</td><td class="num">12.4</td><td class="num">119.0</td><td class="num up">9.60×</td><td class="num">28.2</td><td class="num up">270*</td><td class="num">4s召唤</td><td>分身7 / 各0.55s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">* = 满命中/稳态理论值，实战需按命中率打折（风暴弹幕分散、幻影分身各打各的）。「单体 DPS」= 单发 × 每秒发射数，冷却已含 effAtkSpd 折算。评级为<b>综合评估</b>：单体×群伤×成长×协同×机制健康度。</p>
+  </section>
+
+  <!-- ============ 五维评分 ============ -->
+  <section>
+    <h2>五维强度评分 <span class="en">STRENGTH PROFILE</span></h2>
+    <div class="score-grid">
+      <div class="score-card">
+        <div class="score-head"><b>蚀星连弩</b><em>综合 8.6 · S</em></div>
+        <div class="bar"><i style="width:86%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>8</b></span><span class="dim">群伤 <b>6</b></span><span class="dim">成长 <b>8</b></span><span class="dim">协同 <b>9</b></span><span class="dim">健康 <b>9</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>潮涌之枪</b><em>综合 8.4 · S</em></div>
+        <div class="bar"><i style="width:84%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>9</b></span><span class="dim">群伤 <b>7</b></span><span class="dim">成长 <b>9</b></span><span class="dim">协同 <b>8</b></span><span class="dim">健康 <b>9</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>霜华之环</b><em>综合 8.2 · A</em></div>
+        <div class="bar"><i style="width:82%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>6</b></span><span class="dim">群伤 <b>9</b></span><span class="dim">成长 <b>8</b></span><span class="dim">协同 <b>8</b></span><span class="dim">健康 <b>9</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>弧光引雷</b><em>综合 7.4 · A</em></div>
+        <div class="bar"><i style="width:74%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>4</b></span><span class="dim">群伤 <b>9</b></span><span class="dim">成长 <b>8</b></span><span class="dim">协同 <b>7</b></span><span class="dim">健康 <b>8</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>焚天陨星</b><em>综合 7.0 · A</em></div>
+        <div class="bar"><i style="width:70%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>7</b></span><span class="dim">群伤 <b>8</b></span><span class="dim">成长 <b>7</b></span><span class="dim">协同 <b>6</b></span><span class="dim">健康 <b>8</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>风暴之眼</b><em>综合 7.0 · B</em></div>
+        <div class="bar"><i style="width:70%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>6</b></span><span class="dim">群伤 <b>10</b></span><span class="dim">成长 <b>6</b></span><span class="dim">协同 <b>4</b></span><span class="dim">健康 <b class="down">3</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>圣裁光柱</b><em>综合 6.8 · B</em></div>
+        <div class="bar"><i style="width:68%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>4</b></span><span class="dim">群伤 <b>9</b></span><span class="dim">成长 <b>8</b></span><span class="dim">协同 <b>6</b></span><span class="dim">健康 <b>8</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>月辉回刃</b><em>综合 6.6 · B</em></div>
+        <div class="bar"><i class="mid" style="width:66%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>8</b></span><span class="dim">群伤 <b>6</b></span><span class="dim">成长 <b class="down">3</b></span><span class="dim">协同 <b>7</b></span><span class="dim">健康 <b>8</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>影袭之刃</b><em>综合 6.4 · B</em></div>
+        <div class="bar"><i style="width:64%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>7</b></span><span class="dim">群伤 <b>4</b></span><span class="dim">成长 <b>7</b></span><span class="dim">协同 <b>6</b></span><span class="dim">健康 <b>8</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>破晓之辉</b><em>综合 6.2 · B</em></div>
+        <div class="bar"><i class="mid" style="width:62%"></i></div>
+        <div class="dims"><span class="dim">单体 <b class="down">3</b></span><span class="dim">群伤 <b>9</b></span><span class="dim">成长 <b class="down">4</b></span><span class="dim">协同 <b>6</b></span><span class="dim">健康 <b>8</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>环舞之刃</b><em>综合 5.8 · C</em></div>
+        <div class="bar"><i class="mid" style="width:58%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>7</b></span><span class="dim">群伤 <b>7</b></span><span class="dim">成长 <b>8</b></span><span class="dim">协同 <b>4</b></span><span class="dim">健康 <b class="down">3</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>蚀潮之锚</b><em>综合 5.4 · C</em></div>
+        <div class="bar"><i class="bad" style="width:54%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>5</b></span><span class="dim">群伤 <b>6</b></span><span class="dim">成长 <b>6</b></span><span class="dim">协同 <b>5</b></span><span class="dim">健康 <b>6</b></span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-head"><b>月影残像</b><em>综合 5.2 · C</em></div>
+        <div class="bar"><i class="bad" style="width:52%"></i></div>
+        <div class="dims"><span class="dim">单体 <b>5</b></span><span class="dim">群伤 <b>7</b></span><span class="dim">成长 <b class="up">10</b></span><span class="dim">协同 <b>5</b></span><span class="dim">健康 <b class="down">2</b></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 成长曲线 ============ -->
+  <section>
+    <h2>成长倍率曲线 <span class="en">GROWTH CURVE</span></h2>
+    <div class="verdict">
+      <p>横向对比 Lv1→Lv10 单发伤害倍率：<b style="color:var(--red)">幻影 9.6×</b> 一骑绝尘（分身数 × 单发伤害双因子同时成长），<b style="color:var(--orange)">月辉 1.3×</b> 与 <b style="color:var(--orange)">新星 1.5×</b> 垫底（移速/暴击固定项不随等级成长，稀释了攻击系数的收益）。其余 9 把集中在 1.85×~2.80×，带宽合理。</p>
+      <p style="margin-top:6px">健康区间建议为 <b>1.9×~2.6×</b>（幸存者类每局武器成长节奏）。超出上限 → 后期数值爆炸；低于下限 → 后期手感「我升了个寂寞」。</p>
+    </div>
+    <div class="table-scroll" style="margin-top:14px">
+      <table>
+        <thead><tr><th>武器</th><th>Lv1→Lv10 倍率</th><th>曲线形态</th><th>健康度</th></tr></thead>
+        <tbody>
+          <tr><td class="w-name">月影残像</td><td class="num up">9.60×</td><td>分身数×单发 双因子</td><td class="up">远超上限</td></tr>
+          <tr><td class="w-name">环舞之刃</td><td class="num">2.80×</td><td>刃数 + 伤害同步</td><td>略超上限</td></tr>
+          <tr><td class="w-name">潮涌之枪</td><td class="num">2.61×</td><td>攻击+移速 双线性</td><td class="up" style="color:var(--gold)">上限边缘</td></tr>
+          <tr><td class="w-name">弧光引雷</td><td class="num">2.36×</td><td>线性</td><td class="up">健康</td></tr>
+          <tr><td class="w-name">圣裁光柱</td><td class="num">2.24×</td><td>线性</td><td class="up">健康</td></tr>
+          <tr><td class="w-name">霜华之环</td><td class="num">2.22×</td><td>攻击+生命 双线性</td><td class="up">健康</td></tr>
+          <tr><td class="w-name">蚀潮之锚</td><td class="num">2.13×</td><td>线性+深度系数</td><td class="up">健康</td></tr>
+          <tr><td class="w-name">影袭之刃</td><td class="num">2.08×</td><td>线性</td><td class="up">健康</td></tr>
+          <tr><td class="w-name">蚀星连弩</td><td class="num">2.00×</td><td>线性</td><td class="up">健康</td></tr>
+          <tr><td class="w-name">焚天陨星</td><td class="num">1.98×</td><td>攻击+生命 双线性</td><td>健康</td></tr>
+          <tr><td class="w-name">风暴之眼</td><td class="num">1.85×</td><td>弹幕数成长（每2级+1）</td><td>健康（但弹幕总数爆炸）</td></tr>
+          <tr><td class="w-name">破晓之辉</td><td class="num">1.54×</td><td>移速固定项稀释</td><td class="down">低于下限</td></tr>
+          <tr><td class="w-name">月辉回刃</td><td class="num">1.30×</td><td>移速固定项稀释</td><td class="down">严重低于下限</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 逐武器档案 ============ -->
+  <section>
+    <h2>逐武器档案 <span class="en">WEAPON DOSSIERS</span></h2>
+    <div class="cards">
+
+      <!-- 蚀星连弩 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">蚀星连弩</div><div class="wtag">crossbow · 速射</div></div><div class="tier tier-S" style="font-size:18px">S</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(0.8+0.15L) + atkSpd×effAtk×0.4</div>
+          <div class="stats">
+            <div><dt>单体 DPS L1/L10</dt><dd>19.0 / 38.1</dd></div>
+            <div><dt>成长</dt><dd class="up">2.00×</dd></div>
+            <div><dt>冷却</dt><dd>0.72s</dd></div>
+            <div><dt>攻速协同</dt><dd class="up">双重吃</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>攻速吃两次：既缩短冷却（冷却÷effAtkSpd），伤害又加 atkSpd×0.4——攻速流最佳载体。全游戏最低 cd，手感最顺滑的"主武器骨架"。</div>
+          <div class="verdict-box v-warn"><b>隐患</b>穿透 0，纯单体；后期敌群密度上来后清场靠队友。成长 2.0× 属合格线，不吃任何「非攻速」属性，词条面窄。</div>
+          <div class="fix"><b>建议</b>无需大改。可考虑「穿透 0→1」作为 Lv10 隐藏奖励，让后期手感不塌。<span class="ph">[PLACEHOLDER]</span> 验证：测 Lv10 面对 stage 15 混合群，连弩贡献占比。</div>
+        </div>
+      </div>
+
+      <!-- 潮涌之枪 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">潮涌之枪</div><div class="wtag">lance · 贯穿</div></div><div class="tier tier-S" style="font-size:18px">S</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(1.2+0.2L) + speed×(0.08+0.02L)</div>
+          <div class="stats">
+            <div><dt>单体 DPS L1/L10</dt><dd>21.4 / 55.9</dd></div>
+            <div><dt>成长</dt><dd class="up">2.61×</dd></div>
+            <div><dt>冷却</dt><dd>1.8s</dd></div>
+            <div><dt>穿透</dt><dd>4 · 射程 560</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>单体 DPS 前十武器中最高之一，L10 55.9 全场第一档；穿透 4 + 移速成长，移速流既加伤害又加射程，数值和风味高度自洽。</div>
+          <div class="verdict-box v-neutral"><b>定位</b>「贯穿」定位的教科书：单体强、群体靠贯穿吃一条线。齐射 count = 1+floor(projCount×0.5)，投射物收益减半是防溢出的正确设计。</div>
+          <div class="fix"><b>建议</b>保持。若担心 2.61× 略超上限，可将移速系数 (0.08+0.02L) 微调为 (0.06+0.02L)，代价是移速流联动变弱——先 playtest 再动。<span class="ph">[PLACEHOLDER]</span></div>
+        </div>
+      </div>
+
+      <!-- 弧光引雷 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">弧光引雷</div><div class="wtag">arc · 连锁</div></div><div class="tier tier-A" style="font-size:18px">A</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(0.9+0.16L) · 连锁4×0.65衰减</div>
+          <div class="stats">
+            <div><dt>单体 DPS L1/L10</dt><dd class="down">7.2 / 16.9</dd></div>
+            <div><dt>连锁 4 目标</dt><dd class="up">16.8 / 39.7</dd></div>
+            <div><dt>冷却</dt><dd>1.5s</dd></div>
+            <div><dt>链距</dt><dd>340</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>连锁本质是「0 操作量的自动群伤」，4 跳 ×0.65 衰减总倍率 2.35×，敌群越密收益越高，是最省心的清场件。</div>
+          <div class="verdict-box v-bad"><b>隐患</b>单体 DPS 7.2 全场垫底——对 BOSS/孤敌场景完全白给；cd 1.5s 在「单体+群伤」双维度都慢。成长 2.36× 健康但基础太低。</div>
+          <div class="fix"><b>建议</b>方向一：cd 1.5→1.2s 抬高基础频率；方向二：给「连锁落点附带一次 0.3× 单体补刀」，解决 boss 白给。<span class="ph">[PLACEHOLDER]</span> 验证：Boss 战 DPS 贡献应不低于同档武器的 60%。</div>
+        </div>
+      </div>
+
+      <!-- 焚天陨星 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">焚天陨星</div><div class="wtag">meteor · 重击范围</div></div><div class="tier tier-A" style="font-size:18px">A</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(2.8+0.5L) + maxHp×13%</div>
+          <div class="stats">
+            <div><dt>单体 DPS L1/L10</dt><dd>14.6 / 28.9</dd></div>
+            <div><dt>单发最高</dt><dd>L1 46 · L10 91</dd></div>
+            <div><dt>冷却</dt><dd>3.2s</dd></div>
+            <div><dt>AOE</dt><dd>130 · 中心 1.4×</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>单发爆发全场最高（L10 91），配合 denseArea 瞄准敌群密集处，一击清场的爽感无可替代；生命上限 13% 词条让肉装玩家也有输出。</div>
+          <div class="verdict-box v-warn"><b>隐患</b>3.2s 长冷却 × 延迟 0.55s 下落 = 7.4 发/分钟，手感「憋大招」；弹道延迟时敌人已散开，实战命中率低于模型。AOE130 小于霜环的 200。</div>
+          <div class="fix"><b>建议</b>保持爽感定位。可给陨星「中心伤害 1.4×→1.6×」强化「重击」身份，同时接受它单体 DPS 平庸——它卖的是爆发不是 DPS。<span class="ph">[PLACEHOLDER]</span></div>
+        </div>
+      </div>
+
+      <!-- 霜华之环 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">霜华之环</div><div class="wtag">frost · 脉冲范围</div></div><div class="tier tier-A" style="font-size:18px">A</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(0.7+0.12L) + maxHp×(16%+2.4%L)</div>
+          <div class="stats">
+            <div><dt>单体 DPS L1/L10</dt><dd>13.5 / 29.9</dd></div>
+            <div><dt>成长</dt><dd class="up">2.22×</dd></div>
+            <div><dt>冷却</dt><dd>2.0s</dd></div>
+            <div><dt>AOE / 减速</dt><dd>200 / 0.4</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>全游戏最大 AOE（200 半径）+ 常驻减速 0.4，自环绕零瞄准成本，生命词条与陨星/潮锚共享「肉装输出」build，是最强防御型武器。</div>
+          <div class="verdict-box v-warn"><b>隐患</b>群伤口径上悄悄碾压陨星（AOE 大 54%、cd 短 37%、无延迟），存在「同定位上位替代」——数值上霜环是陨星的加强版，但风味上陨星才是重击。</div>
+          <div class="fix"><b>建议</b>在「范围 vs 爆发」上做差异：霜环 AOE 200→170 或减速 0.4→0.35，给陨星的 1.4× 中心衰减留出不可替代性。<span class="ph">[PLACEHOLDER]</span> 验证：两把武器同装时总伤害拆解。</div>
+        </div>
+      </div>
+
+      <!-- 圣裁光柱 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">圣裁光柱</div><div class="wtag">beam · 穿透直线</div></div><div class="tier tier-B" style="font-size:18px">B</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(1.05+0.18L) + critRate×effAtk×1.5</div>
+          <div class="stats">
+            <div><dt>单体 DPS L1/L10</dt><dd class="down">9.8 / 22.0</dd></div>
+            <div><dt>成长</dt><dd class="up">2.24×</dd></div>
+            <div><dt>冷却</dt><dd>1.35s</dd></div>
+            <div><dt>穿透</dt><dd>无限 · 射程 620</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>620 射程 + 无限穿透 = 全游戏唯一「整条线清空」武器，配合 BOSS 战敌人站位往往成线，实战价值高于单体模型。</div>
+          <div class="verdict-box v-warn"><b>隐患</b>暴击率词条（+1.5×critRate）在 5% 基础暴击下只贡献 0.75 伤害（5%），词条完全依赖暴击装；单体 DPS 9.8 偏低，孤敌/BOSS 尾刀疲软。</div>
+          <div class="fix"><b>建议</b>词条与定位错位：穿透直线武器该吃「穿透」而非「暴击」。可将 critRate×1.5 改为「+0.5×已穿透次数」，让贯穿越深越疼，与无限穿透自洽。<span class="ph">[PLACEHOLDER]</span></div>
+        </div>
+      </div>
+
+      <!-- 月辉回刃 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">月辉回刃</div><div class="wtag">moonRing · 回旋疾风</div></div><div class="tier tier-B" style="font-size:18px">B</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(0.55+0.12L) + speed×0.12</div>
+          <div class="stats">
+            <div><dt>单体 DPS L1/L10</dt><dd>31.3 / 40.9</dd></div>
+            <div><dt>成长</dt><dd class="down">1.30× ← 全场最差</dd></div>
+            <div><dt>冷却</dt><dd>1.15s</dd></div>
+            <div><dt>穿透</dt><dd>3 · 归途二段</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>L1 开局之王：35.5 单发 + 1.13s 冷却 = 31 DPS，开局就能秒小怪，回旋二段伤害风味独特，移速词条白给。</div>
+          <div class="verdict-box v-bad"><b>隐患</b>成长断层：speed×0.12 = 28.8 是「固定值」不随武器等级成长，L10 总伤只到 46.3（L1 的 1.3 倍）。前期越强、后期越废，是 13 把里唯一的「伪成长」武器。</div>
+          <div class="fix"><b>建议</b>核心修复：把移速项改成随等级成长，如 speed×(0.12+0.02L)，L10 单发 ≈ 46.3→61；或降低固定项占比、提高攻击系数 0.55→0.75。<span class="ph">[PLACEHOLDER]</span> 验证：L10 单体 DPS 应进入 50+ 档。</div>
+        </div>
+      </div>
+
+      <!-- 破晓之辉 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">破晓之辉</div><div class="wtag">nova · 全向爆发</div></div><div class="tier tier-B" style="font-size:18px">B</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(1.5+0.25L) + speed×0.1</div>
+          <div class="stats">
+            <div><dt>单体 DPS L1/L10</dt><dd class="down">11.1 / 17.1</dd></div>
+            <div><dt>满命中 10 发</dt><dd class="up">110.8 / 170.9</dd></div>
+            <div><dt>冷却</dt><dd>3.8s</dd></div>
+            <div><dt>穿透</dt><dd>5 × 10 发全向</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>清场天花板之一：10 发全向 × 穿 5，敌群贴脸时满命中 DPS 110+，是「被包围时一键清屏」的终极逃生物。</div>
+          <div class="verdict-box v-bad"><b>隐患</b>单体贫血：全向散射对单目标只命中 1 发，boss 战 DPS 只有 11——和弧光并列「boss 白给」；成长 1.54× 同样被 speed×0.1 固定项稀释。</div>
+          <div class="fix"><b>建议</b>给「facing」瞄准加权重：朝向目标方向的 1-2 发获得 2× 伤害，让清场定位不变、boss 战不裸奔；同步处理固定项成长。<span class="ph">[PLACEHOLDER]</span></div>
+        </div>
+      </div>
+
+      <!-- 风暴之眼 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">风暴之眼</div><div class="wtag">storm · 环绕弹幕</div></div><div class="tier tier-B" style="font-size:18px">B</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(1.0+0.18L) + speed×atkSpd×0.03</div>
+          <div class="stats">
+            <div><dt>理论 DPS L1/L10</dt><dd class="up">67.9 / 754</dd></div>
+            <div><dt>实战估算</dt><dd>~30% / ~220</dd></div>
+            <div><dt>tick</dt><dd>0.56s · 双核</dd></div>
+            <div><dt>弹幕数</dt><dd>每核 1+⌊L/2⌋+⌊projCount/2⌋</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>全游戏纸面 DPS 之王：双核 0.56s tick，Lv10 每核 6 发 = 12 发/0.56s，满命中 754——清怪效率碾压全场。</div>
+          <div class="verdict-box v-bad"><b>隐患</b>① 弹幕数随等级线性涨到 6 发/核，投射物总量爆炸 → 性能与画面负担；② 弹幕是「切线方向」发射，实战命中率随敌群密度剧烈波动，纸面 754 实际可能只有 1/3；③ 攻速协同弱（不吃 effAtkSpd 加速，只吃 cdr）。</div>
+          <div class="fix"><b>建议</b>给弹幕数设上限（每核 ≤4 发），把溢出 DPS 移回单发质量；或 projCount 转化系数 0.5→0.3，防止投射物道具让它破表。<span class="ph">[PLACEHOLDER]</span> 验证：模拟 60 敌人场景帧耗时与清场秒数。</div>
+        </div>
+      </div>
+
+      <!-- 影袭之刃 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">影袭之刃</div><div class="wtag">shadow · 追踪</div></div><div class="tier tier-B" style="font-size:18px">B</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(1.1+0.15L) + max(0,critDmg−1.5)×effAtk×0.9</div>
+          <div class="stats">
+            <div><dt>单体 DPS L1/L10</dt><dd>14.1 / 29.3</dd></div>
+            <div><dt>成长</dt><dd>2.08×</dd></div>
+            <div><dt>冷却</dt><dd>0.9s</dd></div>
+            <div><dt>追踪</dt><dd>必中 · 可被甩开</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>追踪弹 + 0.89s 短冷却 = 全游戏最省心的单体输出，「闭眼出伤」；暴伤词条给暴伤流一条独特的武器支线。</div>
+          <div class="verdict-box v-warn"><b>隐患</b>「溢出暴伤」门槛过高：基准暴伤 150% 时词条贡献 = 0，必须堆到 150%+ 才有收益，而暴伤装本身稀缺；追踪时限（lockT）后变直线，高速敌人可甩开，实战 DPS 打折。</div>
+          <div class="fix"><b>建议</b>门槛从「>1.5」降到「>1.3」或改「critDmg×0.6 全额加成」，让词条在基准 150% 暴伤下就有 40% 利用率。<span class="ph">[PLACEHOLDER]</span> 验证：无暴伤装 vs 200% 暴伤装，影袭 DPS 差距应控制在 1.5× 内。</div>
+        </div>
+      </div>
+
+      <!-- 蚀潮之锚 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">蚀潮之锚</div><div class="wtag">tideAnchor · 深度重击</div></div><div class="tier tier-C" style="font-size:18px">C</div></div>
+        <div class="card-body">
+          <div class="formula">(effAtk×(0.75+0.13L) + maxHp×(12%+1.5%L)) × (1+depth×12%)</div>
+          <div class="stats">
+            <div><dt>单体 DPS L1/L10</dt><dd class="down">8.1 / 17.2</dd></div>
+            <div><dt>深度 9 时</dt><dd class="up">×2.08</dd></div>
+            <div><dt>冷却</dt><dd>2.8s</dd></div>
+            <div><dt>AOE</dt><dd>130 · 延迟 0.5s</dd></div>
+          </div>
+          <div class="verdict-box v-neutral"><b>定位</b>「月蚀深度」系武器：深度 9 时伤害 ×2.08，是全游戏唯一吃深度倍率的输出武器，与侵蚀/诅咒玩法强绑定。</div>
+          <div class="verdict-box v-bad"><b>隐患</b>收益区间过窄：深度 0-3 时纯白板（8.1 DPS 垫底档），只有高深度局才翻身；延迟 0.5s + AOE130 与陨星撞定位但全面劣化。</div>
+          <div class="fix"><b>建议</b>把「深度×12%」拆成「基础项 + 深度项」：如 (0.75+0.13L) → (0.95+0.15L)，深度系数 12%→8%，让低深度不裸奔、高深度仍有专长。<span class="ph">[PLACEHOLDER]</span> 验证：depth 0/5/9 三档 DPS 曲线。</div>
+        </div>
+      </div>
+
+      <!-- 环舞之刃 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">环舞之刃</div><div class="wtag">orbit · 环绕近战</div></div><div class="tier tier-C" style="font-size:18px">C</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(0.8+0.2L)×6 每刃 · 每敌 0.25s 节流</div>
+          <div class="stats">
+            <div><dt>单体 DPS L1/L10</dt><dd>32.0 / 89.6</dd></div>
+            <div><dt>成长</dt><dd class="up">2.80×</dd></div>
+            <div><dt>刃数</dt><dd>2+L 刃环绕</dd></div>
+            <div><dt>半径</dt><dd>120 · 近身</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>零瞄准持续输出 + 刃数随等级涨（Lv10 十二刃），近身绞肉机的定位明确，成长 2.8× 是健康上限的参考值。</div>
+          <div class="verdict-box v-neutral"><b>帧率 bug · 已修复 ✅</b>原伤害公式 `weaponDmg × dt × 8` 直接乘帧时间，60fps 单次命中 ≈ 0.133×weaponDmg，144fps 仅 ≈ 0.056×weaponDmg，高刷屏伤害缩水一半以上。已改为固定系数 weaponDmg × (8/60)，任意帧率 DPS 一致（与 60fps 基准持平，不改平衡），分支：fix/orbit-fps-damage。</div>
+          <div class="fix"><b>建议</b>帧率问题已修复，评级应从 C 回升。剩余观察项：近身 120 半径的风险收益是否匹配，留待 playtest。<span class="ph">[PLACEHOLDER]</span></div>
+        </div>
+      </div>
+
+      <!-- 月影残像 -->
+      <div class="card">
+        <div class="card-top"><div><div class="wname">月影残像</div><div class="wtag">phantom · 召唤分身</div></div><div class="tier tier-C" style="font-size:18px">C</div></div>
+        <div class="card-body">
+          <div class="formula">effAtk×(0.5+0.12L) × (2+⌊L/2⌋) 分身</div>
+          <div class="stats">
+            <div><dt>稳态 DPS L1/L10</dt><dd>28.2 / 270</dd></div>
+            <div><dt>成长</dt><dd class="up">9.60× ← 全场最高</dd></div>
+            <div><dt>召唤</dt><dd>cd 4s · 持续 5s</dd></div>
+            <div><dt>分身</dt><dd>2+⌊L/2⌋ · 各 0.55s 射击</dd></div>
+          </div>
+          <div class="verdict-box v-good"><b>优势</b>「召唤流」风味：分身在场时形成额外火力点，分身数随等级涨到 7 个，L10 稳态 DPS 270 纸面登顶。</div>
+          <div class="verdict-box v-bad"><b>隐患 P0</b>成长 9.6× 是均值（2.1×）的 4.5 倍——分身数 × 单发伤害双因子同时成长，后期必然数值爆炸；且分身「各打各的」实际命中率分散，纸面与实战落差最大的一把。</div>
+          <div class="fix"><b>建议</b>二选一：① 分身数量上限 5 个，后续等级只加单发伤害；② 分身数改为 ⌈L/4⌉ 增长，把成长压到 4× 以内。<span class="ph">[PLACEHOLDER]</span> 验证：Lv10 稳态 DPS 应回落到 150 以内。</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ 问题清单 ============ -->
+  <section>
+    <h2>问题清单 <span class="en">ISSUE LOG</span></h2>
+    <div class="issues">
+
+      <div class="issue">
+        <div class="sev sev-P0">P0</div>
+        <div>
+          <h4>环舞之刃：帧率相关伤害 bug ✅ 已修复</h4>
+          <p>原伤害 = <b>weaponDmg × dt × 8</b>，dt 为帧时间。60fps 单次命中 ≈ 0.133×weaponDmg，144fps 仅 ≈ 0.056×weaponDmg——<b>高刷屏玩家伤害缩水一半以上</b>。已修复为固定系数 weaponDmg × (8/60)，任意帧率 DPS 一致（分支 fix/orbit-fps-damage）。同类问题排查：凡乘 dt 的伤害都应改为固定换算。</p>
+        </div>
+      </div>
+
+      <div class="issue">
+        <div class="sev sev-P0">P0</div>
+        <div>
+          <h4>月影残像：成长曲线失控（9.6×）</h4>
+          <p>分身数（2+⌊L/2⌋）与单发伤害（0.5+0.12L）<b>双因子同时成长</b>，Lv10 稳态 DPS 270，为全武器均值 2.1× 的 4.5 倍。召唤类武器常见病：纸面爆炸但实战分散，需先压曲线再谈命中。</p>
+        </div>
+      </div>
+
+      <div class="issue">
+        <div class="sev sev-P1">P1</div>
+        <div>
+          <h4>风暴之眼：弹幕数线性爆炸 → 性能 + 数值双风险</h4>
+          <p>每核弹幕数 = 1+⌊L/2⌋+⌊projCount/2⌋，Lv10 双核 12 发/0.56s，投射物总量撑爆帧预算；纸面 DPS 754 虚高，实战受命中率拖累约 1/3，形成「数据看很强、实际飘弹」的割裂。</p>
+        </div>
+      </div>
+
+      <div class="issue">
+        <div class="sev sev-P1">P1</div>
+        <div>
+          <h4>月辉回刃：成长断层（1.30×）</h4>
+          <p>移速项 speed×0.12 为固定值不随等级成长，占 L1 伤害 81%；L10 总伤仅 L1 的 1.3 倍。<b>开局最强、终局最弱</b>，是唯一「前期骗局」武器。破晓之辉（1.54×）同病因。</p>
+        </div>
+      </div>
+
+      <div class="issue">
+        <div class="sev sev-P1">P1</div>
+        <div>
+          <h4>圣裁光柱：词条与定位错位</h4>
+          <p>定位是「无限穿透直线」，词条却绑暴击率（+1.5×critRate），5% 基础暴击下贡献仅 5%。应让词条服务穿透（贯穿越深越疼），而非逼玩家堆暴击。</p>
+        </div>
+      </div>
+
+      <div class="issue">
+        <div class="sev sev-P1">P1</div>
+        <div>
+          <h4>破晓之辉：单体贫血 + 成长稀释</h4>
+          <p>全向 10 发对单目标只中 1 发，boss 战 DPS 11 与弧光并列垫底；speed×0.1 固定项又把成长拉到 1.54×。清场定位没问题，但 boss 战必须有保底手段。</p>
+        </div>
+      </div>
+
+      <div class="issue">
+        <div class="sev sev-P2">P2</div>
+        <div>
+          <h4>弧光引雷 / 影袭之刃：词条协同面过窄</h4>
+          <p>弧光「敌群越密越强」，影袭「暴伤越高越强」，两者都有明显的构建前置条件；基础状态下（无协同）弧光单体 7.2、影袭 14.1 均低于 S 档。可接受为「构筑型武器」，但需保证无协同时也有合格基线。</p>
+        </div>
+      </div>
+
+      <div class="issue">
+        <div class="sev sev-P2">P2</div>
+        <div>
+          <h4>蚀潮之锚：收益区间过窄</h4>
+          <p>深度 0-3 时纯白板（DPS 8.1 垫底），深度 9 才 ×2.08 翻身。与陨星同定位（AOE130+延迟）却全面劣化，高深度翻身能否挽回要看 playtest。</p>
+        </div>
+      </div>
+
+      <div class="issue">
+        <div class="sev sev-P2">P2</div>
+        <div>
+          <h4>霜华之环：同定位隐形上位替代</h4>
+          <p>AOE 200（陨星 130）、cd 2.0s（陨星 3.2s）、无延迟、带减速——数值口径上霜环全面覆盖陨星。「范围脉冲」和「重击爆发」需要更清晰的边界。</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ 修改建议 ============ -->
+  <section>
+    <h2>修改建议汇总 <span class="en">RECOMMENDATIONS</span></h2>
+
+    <div class="reco">
+      <h4>① P0 · 修复环舞之刃帧率 bug <span class="ph">[PLACEHOLDER]</span></h4>
+      <p class="why">改法：伤害改为 weaponDmg × 0.5 × dt/1（即把 dt×8 换成固定每秒 4 次 × 0.125×weaponDmg），或直接 node 里把 dt 换成 clamp(dt, 0, 1/30) 兜底。</p>
+      <p>验证路径：60/120/144Hz 三个刷新率下，同配置 30s 总伤偏差 &lt; 5%。</p>
+    </div>
+
+    <div class="reco">
+      <h4>② P0 · 压缩月影残像成长 <span class="ph">[PLACEHOLDER]</span></h4>
+      <p class="why">改法 A：分身数 2+⌊L/2⌋ → 2+⌊L/4⌋（Lv10 从 7 个降到 4 个），成长压到 ~4.6×；改法 B：分身数量上限 5，剩余等级只加伤害。</p>
+      <p>验证路径：Lv10 稳态 DPS ≤ 150；5 分身 vs 4 分身手感差 &lt; 20%。</p>
+    </div>
+
+    <div class="reco">
+      <h4>③ P1 · 风暴弹幕数封顶 <span class="ph">[PLACEHOLDER]</span></h4>
+      <p class="why">每核弹幕数 = min(4, 1+⌊L/2⌋+⌊projCount/2⌋)，溢出部分转为单发伤害 +10%/级，保住纸面 DPS 同时控住投射物总量。</p>
+      <p>验证路径：模拟 60 敌场景，帧耗时增量 ≤ 10%；清场秒数不劣于改前。</p>
+    </div>
+
+    <div class="reco">
+      <h4>④ P1 · 月辉回刃成长修复 <span class="ph">[PLACEHOLDER]</span></h4>
+      <p class="why">移速项 speed×0.12 → speed×(0.12+0.02L)，Lv1 不变（35.5），Lv10 单发 46.3→61，成长 1.30×→1.72×；破晓之辉同理处理 speed×0.1 项。</p>
+      <p>验证路径：L10 单体 DPS 进入 50+ 档；开局强度不降（不破坏新手体验）。</p>
+    </div>
+
+    <div class="reco">
+      <h4>⑤ P1 · 光柱词条改穿透向 <span class="ph">[PLACEHOLDER]</span></h4>
+      <p class="why">critRate×effAtk×1.5 → +0.5×effAtk×已穿透数（首目标 0，穿 3 个后 +1.5×），让「无限穿透」真正成为词条而非背景板。</p>
+      <p>验证路径：直线 5 敌场景，末位敌人受到的加成伤害 ≥ 2× 首目标。</p>
+    </div>
+
+    <div class="reco">
+      <h4>⑥ P1 · 新星 boss 战保底 <span class="ph">[PLACEHOLDER]</span></h4>
+      <p class="why">facing 朝向方向的 2 发伤害 ×2（其余 8 发不变），清场能力几乎无损，boss 战单体 DPS 从 11 提到 ~17。</p>
+      <p>验证路径：boss 战 DPS 贡献 ≥ 同档武器 60%；清场满命中 DPS 不降。</p>
+    </div>
+
+    <div class="reco">
+      <h4>⑦ P2 · 霜环与陨星差异化 <span class="ph">[PLACEHOLDER]</span></h4>
+      <p class="why">二选一：霜环 AOE 200→170（保住陨星的范围优势）或减速 0.4→0.35；同时陨星中心 1.4×→1.6× 强化「重击」不可替代性。</p>
+      <p>验证路径：两把同装时的总伤拆解，各自贡献占比 ≥ 40%。</p>
+    </div>
+
+    <div class="reco">
+      <h4>⑧ P2 · 潮锚低深度保底 <span class="ph">[PLACEHOLDER]</span></h4>
+      <p class="why">基础项 (0.75+0.13L) → (0.95+0.15L)，深度系数 12%→8%：depth 0 时 DPS 8.1→10.4，depth 9 时仍 ×1.72（原 ×2.08），缩窄收益落差。</p>
+      <p>验证路径：depth 0/5/9 三档 DPS 曲线应单调、无断崖。</p>
+    </div>
+
+    <p class="note"><b>红线声明：</b>以上所有数值均为 <span class="ph">[PLACEHOLDER]</span> —— 只给出方向与量级，具体数字必须经 playtest 校准。报告仅诊断，未修改任何源数据文件。</p>
+  </section>
+
+  <!-- ============ 附录 ============ -->
+  <section>
+    <h2>附录 <span class="en">APPENDIX</span></h2>
+    <div class="verdict">
+      <h3>建模假设</h3>
+      <p>① 基准玩家 = BASE_STATS 裸装，不含道具/祝福/诅咒/侵蚀；② 单体 DPS = 单发×每秒发射数（冷却含 effAtkSpd 折算），假设命中率 100%；③ 轨道类（orbit/storm/phantom）按源码 tick 换算稳态值；④ 群伤按 AOE/穿透/连锁覆盖估算；⑤ 月蚀深度按 0 计（潮锚单独标注）。</p>
+      <h3 style="margin-top:12px">数据来源</h3>
+      <p>weapons.json（公式/cd/范围）、stats.ts（BASE_STATS）、player.ts（派生属性）、weapons/index.ts（开火调度）、orbit.ts / storm.ts（轨道 tick）、OrbitSystem.ts（分身循环）、hit_detection.ts / patterns.ts（结算）、stage_curves.json（敌人血量标尺）。</p>
+      <h3 style="margin-top:12px">已知盲区</h3>
+      <p>未覆盖：侵蚀加成对平衡的实际影响（被侵蚀武器 +depth×(x+yL) 会放大强势武器的优势）、道具/祝福联动、projCount 满配场景、Boss 血量标尺对比。这些需要 <b>Monte Carlo 模拟 + playtest</b> 补全，建议作为下一步。</p>
+    </div>
+  </section>
+
+  <footer>蚀月远征 · Weapon Balance Audit · 数值只诊断，改动需 playtest</footer>
+
+</div>
+</body>
+</html>
