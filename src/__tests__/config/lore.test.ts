@@ -10,8 +10,8 @@ import { SHOP_ITEMS } from '../../config/items.js';
 import loreData from '../../config/lore.json';
 
 const LORE: {
-  weapons: Record<string, { src: string; text: string }[]>;
-  items: Record<string, { src: string; text: string }[]>;
+  weapons: Record<string, { src: string; text: string; deep?: boolean }[]>;
+  items: Record<string, { src: string; text: string; deep?: boolean }[]>;
 } = loreData as any;
 
 describe('lore 数据完整性', () => {
@@ -30,6 +30,15 @@ describe('lore 数据完整性', () => {
     const itemIds = new Set(SHOP_ITEMS.map(it => it.id));
     expect(Object.keys(LORE.weapons).filter(id => !weaponIds.has(id))).toEqual([]);
     expect(Object.keys(LORE.items).filter(id => !itemIds.has(id))).toEqual([]);
+  });
+
+  it('双层结构：第 1 条浅层可见，第 2 条为深层（deep）', () => {
+    const entries = [...Object.values(LORE.weapons), ...Object.values(LORE.items)];
+    for (const frags of entries) {
+      expect(frags.length).toBe(2);        // 每条恰两层
+      expect(frags[0].deep).toBeFalsy();   // 第 1 条：默认可见
+      expect(frags[1].deep).toBe(true);    // 第 2 条：需相伴十次
+    }
   });
 
   it('每段碎片都有出处与正文，且正文非空', () => {

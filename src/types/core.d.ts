@@ -9,6 +9,8 @@ export interface LoreFragment {
   src: string;
   /** 碎片正文：克制、留白、不点破因果 */
   text: string;
+  /** 深层档案：需与该器物相伴十次（选取 ≥10 次）才显现 */
+  deep?: boolean;
 }
 
 /* ---------- 玩家运行时效果（道具/祝福/诅咒触发的状态） ---------- */

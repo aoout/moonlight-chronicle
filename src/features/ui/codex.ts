@@ -8,6 +8,7 @@ import { iconSVG } from '../../assets/icons.js';
 import { ENEMIES, BOSSES, WEAPONS, SHOP_ITEMS } from '../../config/index.js';
 import { AudioEngine } from '../../platform/audio/engine.js';
 import { codexUnlocked } from '../../infra/persistence/codex.js';
+import { handsGet, HANDS_DEEP_THRESHOLD } from '../../infra/persistence/hands.js';
 import { isDevMode } from '../../engine/env.js';
 import { weaponRangeText } from './shop/index.js';
 import { ENEMY_SHAPES, BOSS_SHAPES } from '../render/index.js';
@@ -95,14 +96,41 @@ function _weaponStatsHtml(wdef: WeaponDef): string {
 }
 
 /* ---------- lore 碎片 ---------- */
-function _loreHtml(lore: LoreFragment[] | undefined): string {
-  if (!lore || !lore.length) return '';
-  const frags = lore.map(f => html`
-    <div class="cd-frag">
-      <div class="cd-frag-src">${f.src}</div>
-      <div class="cd-frag-text">${f.text}</div>
+/** 记手录类目映射：图鉴 meta → hands 存档 type（敌人/Boss 无此概念） */
+const HANDS_TYPE: Record<string, string> = { weapon: 'weapons', item: 'items' };
+
+/** 选取次数抬头（仅武器/道具） */
+function _handsHtml(type: string, id: string, hands: number): string {
+  const unlocked = hands >= HANDS_DEEP_THRESHOLD;
+  return html`
+    <div class="cd-hands">
+      此物与你相伴 <b>${hands}</b> 次${unlocked ? ' · 深层字迹已显' : ''}
     </div>
-  `).join('');
+  `;
+}
+
+function _loreHtml(lore: LoreFragment[] | undefined, hands: number): string {
+  if (!lore || !lore.length) return '';
+  const frags = lore.map(f => {
+    // 深层档案：相伴十次之前，字迹尚不可辨
+    if (f.deep && hands < HANDS_DEEP_THRESHOLD) {
+      return html`
+        <div class="cd-frag locked">
+          <div class="cd-frag-src">月背档案 · 深层</div>
+          <div class="cd-frag-text">
+            器识其主。同一件器物被同一只手拿起十次，深一层的字才会从纸下渗出来。
+            <div class="cd-frag-progress">与此物相伴 ${hands} / ${HANDS_DEEP_THRESHOLD} 次</div>
+          </div>
+        </div>
+      `;
+    }
+    return html`
+      <div class="cd-frag${f.deep ? ' deep' : ''}">
+        <div class="cd-frag-src">${f.deep ? '✦ 深层 · ' : ''}${f.src}</div>
+        <div class="cd-frag-text">${f.text}</div>
+      </div>
+    `;
+  }).join('');
   return `<div class="cd-lore"><div class="cd-lore-title">✦ 月背档案</div>${frags}</div>`;
 }
 
@@ -118,6 +146,10 @@ function showCodexDetail(id: string, meta: string): void {
   let headHtml = '';
   let bodyHtml = '';
 
+  // 记手录：武器/道具的相伴次数；深层档案需相伴十次才显现（dev 模式直显）
+  const hType = HANDS_TYPE[meta] || '';
+  const hands = isDevMode() ? HANDS_DEEP_THRESHOLD : (hType ? handsGet(hType, id) : 0);
+
   if (meta === 'weapon') {
     const d = WEAPONS[id] as WeaponDef;
     headHtml = html`
@@ -128,10 +160,11 @@ function showCodexDetail(id: string, meta: string): void {
       </div>
     `;
     bodyHtml = html`
+      ${_handsHtml(hType, id, hands)}
       <div class="cd-stats">${_weaponStatsHtml(d)}</div>
       <div class="cd-formula">${d.formula || ''}</div>
       <div class="cd-desc">${d.desc}</div>
-      ${_loreHtml(d.lore)}
+      ${_loreHtml(d.lore, hands)}
     `;
   } else if (meta === 'item') {
     const d = (SHOP_ITEMS.find(it => it.id === id)) as ShopItemDef;
@@ -145,9 +178,10 @@ function showCodexDetail(id: string, meta: string): void {
       </div>
     `;
     bodyHtml = html`
+      ${_handsHtml(hType, id, hands)}
       <div class="cd-stats"><span>${d.price} ${iconSVG('coin')}</span></div>
       <div class="cd-desc">${d.desc}</div>
-      ${_loreHtml(d.lore)}
+      ${_loreHtml(d.lore, hands)}
     `;
   } else if (meta === 'enemy' || meta === 'boss') {
     const d = (meta === 'boss' ? BOSSES : ENEMIES)[id] as any;

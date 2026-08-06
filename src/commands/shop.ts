@@ -9,6 +9,7 @@ import { playerState } from '../state/player.js';
 import { addWeapon, upgradeWeapon, removeWeapon, computeDerived } from '../domain/player.js';
 import { applyItemEffect } from '../domain/item_effects.js';
 import { codexAdd } from '../infra/persistence/codex.js';
+import { handsAdd } from '../infra/persistence/hands.js';
 import { isDevMode } from '../engine/env.js';
 
 interface Result {
@@ -26,6 +27,7 @@ export function purchaseWeapon(id: string, price: number, eroded?: boolean): Res
   const god = isDevMode(); // god 模式：无限金币
   if (!god && s.gold < price) return { ok: false, reason: '金币不足' };
   if (!addWeapon(id, { eroded })) return { ok: false, reason: '武器栏已满（最多 5 件）' };
+  handsAdd('weapons', id); // 记手录：选取一次，深一层字迹
   if (!god) statsState.set('gold', s.gold - price);
   const p = playerState.state.player;
   if (p) computeDerived(p);
@@ -54,6 +56,7 @@ export function purchaseItem(item: any, price: number): Result {
   if (!god) statsState.set('gold', s.gold - price);
   applyItemEffect(item.id, p);
   codexAdd('items', item.id);
+  handsAdd('items', item.id); // 记手录：选取一次，深一层字迹
   const prev = p.effects.boughtItems?.[item.id] ?? 0;
   const cnt = prev + 1;
   p.effects.boughtItems = p.effects.boughtItems || {};

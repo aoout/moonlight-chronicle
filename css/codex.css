@@ -195,7 +195,12 @@
   scrollbar-width: thin;
 }
 .cd-stats { display: flex; gap: 8px; flex-wrap: wrap; }
-.cd-stats span {
+.cd-hands {
+  font-size: 10.5px; letter-spacing: .2em;
+  color: rgba(var(--gold-rgb), .6);
+  margin: 2px 0 10px;
+}
+.cd-hands b { color: var(--gold); font-size: 12px; }.cd-stats span {
   font-size: 10.5px; letter-spacing: .12em; color: rgba(var(--ice-rgb), .9);
   background: rgba(var(--ice-rgb), .07); border: 1px solid rgba(var(--ice-rgb), .16);
   padding: 3px 9px; border-radius: 8px;
@@ -237,6 +242,28 @@
 .cd-frag-src {
   font-size: 10px; letter-spacing: .22em; font-weight: 700;
   color: rgba(var(--gold-rgb), .7); margin-bottom: 6px;
+}
+/* 深层档案：已解锁——紫罗兰加深 + 星光左线 */
+.cd-frag.deep {
+  border-left-color: var(--gold);
+  background: linear-gradient(135deg, rgba(var(--gold-rgb), .08), rgba(var(--violet-rgb), .04));
+}
+.cd-frag.deep .cd-frag-src { color: var(--gold); }
+/* 深层档案：未解锁——字迹尚不可辨 */
+.cd-frag.locked {
+  opacity: .72;
+  border-left-style: dashed;
+  border-left-color: rgba(var(--moon-rgb), .3);
+  background: rgba(var(--moon-rgb), .04);
+}
+.cd-frag.locked .cd-frag-src { color: rgba(var(--moon-rgb), .5); }
+.cd-frag.locked .cd-frag-text { color: rgba(var(--moon-rgb), .55); }
+.cd-frag-progress {
+  margin-top: 8px;
+  font-size: 10.5px; letter-spacing: .18em;
+  color: rgba(var(--gold-rgb), .65);
+  border-top: 1px dashed rgba(var(--gold-rgb), .18);
+  padding-top: 7px;
 }
 .cd-frag-text {
   font-size: 12.5px; line-height: 1.85;
