@@ -24,9 +24,9 @@ describe('道具 interval 与描述一致性', () => {
     }
   });
 
-  it('群星陨落触发间隔为 9 秒（与 effects.ts 实现一致）', () => {
+  it('群星陨落触发间隔为 8 秒（与 effects.ts 实现一致）', () => {
     const starfall = SHOP_ITEMS.find(i => i.id === 'starfall');
-    expect(starfall?.interval).toBe(9);
-    expect(starfall?.desc).toContain('9 秒');
+    expect(starfall?.interval).toBe(8);
+    expect(starfall?.desc).toContain('8 秒');
   });
 });

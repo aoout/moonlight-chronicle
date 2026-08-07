@@ -332,7 +332,8 @@ function tickAoeDelay(pr: Projectile, dt: number, p: Player, cfg: AoeBurstCfg): 
     const impactMul = cfg.impactMul ?? 1;
     for (const e of queryRadius(pr.x, pr.y, aoe)) {
       if (e.dead) continue;
-      damageEnemy(e, pr.dmg * (AOE_CENTER_DMG - dist(e, pr) / aoe) * impactMul, RNG() < p.effCrit, cfg.srcType, pr.wId);
+      const isSecret = pr.wId === 'starfall' || pr.wId === 'achJudge';
+      damageEnemy(e, pr.dmg * (AOE_CENTER_DMG - dist(e, pr) / aoe) * impactMul, false, cfg.srcType, pr.wId, isSecret);
     }
 
     // 蚀潮：爆炸后留下蚀潮水域（周期性潮压 + 持续减速）

@@ -39,7 +39,7 @@ export class OrbitSystem extends System {
       }
       const t = nearestEnemy(ph.x, ph.y, 380);
       if (t && ph.fireT <= 0) {
-        ph.fireT = 0.55;
+        ph.fireT = 0.9;
         const a = angTo(ph, t);
         world.add('projectiles', { x: ph.x, y: ph.y, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300,
           r: 5, dmg: ph.dmg, pierce: p.pierce, color: PALETTE.icePale, hit: new Set(), wId: 'phantom', life: 2 });

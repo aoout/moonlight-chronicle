@@ -17,7 +17,7 @@ import { damageEnemy } from './combat.js';
 import { MOON_NAMES, MOON_EFFECTS, currentMoonPhase } from '../config/moon_phase.js';
 import { SHOP_ITEMS } from '../config/index.js';
 
-import { gmSt } from '../state/accessors.js';
+import { gmSt, gSt } from '../state/accessors.js';
 
 /** 你的月亮：按数据表 MOON_EFFECTS 应用月相加成。记录增量以便还原，避免覆盖月相期间新购入的道具加成 */
 export function applyMoonEffects(p: Player, ph: number): void {
@@ -72,6 +72,9 @@ type EffectHandler = (p: Player, dt: number) => void;
 
 /** 群星陨落触发间隔（秒）——以 items.json 的 interval 字段为单一事实来源，防止实现与图鉴文本脱节 */
 const STARFALL_INTERVAL = SHOP_ITEMS.find(i => i.id === 'starfall')?.interval ?? 9;
+/** 时之残响触发间隔（秒）/ 减速持续（秒）——同上，单一事实来源来自 items.json */
+const ECHOSLOW_INTERVAL = SHOP_ITEMS.find(i => i.id === 'echoSlow')?.interval ?? 20;
+const ECHOSLOW_DURATION = SHOP_ITEMS.find(i => i.id === 'echoSlow')?.duration ?? 1;
 
 /** 效果注册表：效果名 → 策略对象 */
 const REGISTRY: Record<string, EffectStrategy> = {
@@ -103,10 +106,10 @@ const REGISTRY: Record<string, EffectStrategy> = {
   /* ===== 回响减速 ===== */
   echoSlow: { name: '回响减速', desc: '周期性触发全场减速', update(p, dt) {
     if (gmSt()._echoSlowT > 0) gameState.set('_echoSlowT', gmSt()._echoSlowT - dt);
-    const { t, fired } = tickCooldown(p.effects.echoTimer, 20, dt);
+    const { t, fired } = tickCooldown(p.effects.echoTimer, ECHOSLOW_INTERVAL, dt);
     p.effects.echoTimer = t;
     if (fired) {
-      gameState.set('_echoSlowT', 1);
+      gameState.set('_echoSlowT', ECHOSLOW_DURATION);
       EventBus.emit(EVENTS.VISUAL_RING, { x: p.x, y: p.y, color: PALETTE.ice, life: 0.5, radius: 420, width: 2 });
     }
   }},
@@ -120,15 +123,15 @@ const REGISTRY: Record<string, EffectStrategy> = {
       if (tgt) {
         world.add('projectiles', {
           meteor: true, x: tgt.x + rand(-40, 40), y: tgt.y + rand(-40, 40),
-          t: 0, delay: 0.45, dmg: p.effAtk, aoe: 90, color: PALETTE.fireBright, r: 12, wId: 'starfall',
+          t: 0, delay: 0.45, dmg: 60 * (1 + 0.12 * gSt().stage) * (1 + 0.12 * gSt().depth), aoe: 90, color: PALETTE.fireBright, r: 12, wId: 'starfall',
         });
       }
     }
   }},
 
   /* ===== 辉光审判 ===== */
-  achJudge: { name: '辉光审判', desc: '每6秒对随机敌人降下裁决辉光，随成就数量增伤', update(p, dt) {
-    const { t, fired } = tickCooldown(p.effects.achJudgeTimer, 6, dt);
+  achJudge: { name: '辉光审判', desc: '每5秒对随机敌人降下裁决辉光，随成就数量增伤', update(p, dt) {
+    const { t, fired } = tickCooldown(p.effects.achJudgeTimer, 5, dt);
     p.effects.achJudgeTimer = t;
     if (fired) {
       const alive = entityState.state.enemies.filter(e => !e.dead);
@@ -137,7 +140,7 @@ const REGISTRY: Record<string, EffectStrategy> = {
         const ach = achievements().earnedTotal();
         world.add('projectiles', {
           judge: 1, x: tgt.x + rand(-35, 35), y: tgt.y + rand(-35, 35),
-          t: 0, delay: 0.5, dmg: p.effAtk * 2 * (1 + ach * 0.08), aoe: 110,
+          t: 0, delay: 0.5, dmg: 40 * (1 + 0.12 * gSt().stage) * (1 + 0.12 * gSt().depth) * (1 + 0.08 * ach), aoe: 110,
           color: PALETTE.goldBright, r: 12, wId: 'achJudge',
         });
       }

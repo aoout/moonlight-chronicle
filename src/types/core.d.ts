@@ -378,6 +378,8 @@ export interface ShopItemDef {
   desc: string;
   /** 效果触发间隔（秒）：实现层读此字段，desc 文本须与之保持一致（有测试断言） */
   interval?: number;
+  /** 效果持续时间（秒）：实现层读此字段，desc 文本须与之保持一致 */
+  duration?: number;
   /** 碎片化背景文案（图鉴详情展示） */
   lore?: LoreFragment[];
   max?: number;

@@ -280,8 +280,8 @@
     "icon": "frozenHourglass",
     "rarity": "legend",
     "price": 86,
-    "interval": 12,
-    "desc": "每 <span class=\"stat-up\">12 秒</span> 令全场敌人停滞 <span class=\"stat-up\">1 秒</span>。"
+    "interval": 10,
+    "desc": "每 <span class=\"stat-up\">10 秒</span> 令全场敌人停滞 <span class=\"stat-up\">1 秒</span>。"
   },
   "vamp": {
     "id": "vamp",
@@ -412,8 +412,8 @@
     "icon": "starfall",
     "rarity": "legend",
     "price": 90,
-    "interval": 9,
-    "desc": "每 <span class=\"stat-up\">9 秒</span> 自动朝最近敌人坠落一颗陨星。"
+    "interval": 8,
+    "desc": "每 <span class=\"stat-up\">8 秒</span> 自动朝最近敌人坠落一颗陨星。"
   },
   "tideRegen": {
     "id": "tideRegen",
@@ -449,7 +449,9 @@
     "icon": "echoSlow",
     "rarity": "legend",
     "price": 83,
-    "desc": "每 <span class=\"stat-up\">20 秒</span> 令全场敌人减速 <span class=\"stat-down\">50%</span>，持续 1 秒。"
+    "interval": 12,
+    "duration": 2,
+    "desc": "每 <span class=\"stat-up\">12 秒</span> 令全场敌人减速 <span class=\"stat-down\">50%</span>，持续 2 秒。"
   },
   "coinHeal": {
     "id": "coinHeal",
@@ -467,7 +469,7 @@
     "icon": "gloryJudge",
     "rarity": "legend",
     "price": 90,
-    "desc": "每 <span class=\"stat-up\">6 秒</span> 对随机敌人降下裁决辉光；每解锁 1 项成就，伤害 <span class=\"stat-up\">+8%</span>。"
+    "desc": "每 <span class=\"stat-up\">5 秒</span> 对随机敌人降下裁决辉光；每解锁 1 项成就，伤害 <span class=\"stat-up\">+8%</span>。"
   },
   "yourMoon": {
     "id": "yourMoon",
