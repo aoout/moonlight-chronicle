@@ -91,25 +91,31 @@ function aoeSplash(e: EnemyInstance, radius: number, dmg: number, ratio: number,
   }
 }
 
-export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcType?: string, srcW?: string): void {
+export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcType?: string, srcW?: string, secret?: boolean): void {
   if (e.hp <= 0) return;
   const p = pSt().player;
   if (!p) return;
-  // fullHpCrit 与 effCrit 加法叠加（与 calcDamage 一致）
-  if (p.hp >= p.maxHp && p.fullHpCrit > 0) {
-    const totalCrit = Math.min(CRIT_CAP, p.effCrit + p.fullHpCrit);
-    if (RNG() < totalCrit) isCrit = true;
+  /* 秘宝等非玩家伤害：跳过一切玩家侧修正（暴击 / 增伤 / 吸血 / 溅射 / 护盾生成），
+     但仍正常扣血并进入 killEnemy，从而触发击杀类全局机制（金币流星 / 吞噬之月 / 爆裂之核 / 汲魂之镰） */
+  const isSecret = secret === true;
+  let moonCrit = false;
+  if (!isSecret) {
+    // fullHpCrit 与 effCrit 加法叠加（与 calcDamage 一致）
+    if (p.hp >= p.maxHp && p.fullHpCrit > 0) {
+      const totalCrit = Math.min(CRIT_CAP, p.effCrit + p.fullHpCrit);
+      if (RNG() < totalCrit) isCrit = true;
+    }
+    if (p.lowHpDmg > 0 && p.hp <= p.maxHp * LOW_HP_DMG_THRESHOLD) dmg *= (1 + p.lowHpDmg);
+    /* 残月·将熄之勇：必爆蓄力，本次伤害必定暴击且暴伤额外 +50% */
+    moonCrit = (p.effects.moonCrit ?? 0) > 0;
+    if (moonCrit) { p.effects.moonCrit = 0; isCrit = true; }
   }
-  if (p.lowHpDmg > 0 && p.hp <= p.maxHp * LOW_HP_DMG_THRESHOLD) dmg *= (1 + p.lowHpDmg);
-  /* 残月·将熄之勇：必爆蓄力，本次伤害必定暴击且暴伤额外 +50% */
-  const moonCrit = (p.effects.moonCrit ?? 0) > 0;
-  if (moonCrit) { p.effects.moonCrit = 0; isCrit = true; }
   if (isCrit) dmg *= p.critDmg * (moonCrit ? MOON_CRIT_BONUS : 1);
-  if (p.effects.horde) {
+  if (!isSecret && p.effects.horde) {
     const hc = Math.min(HORDE_MAX_STACKS, Math.floor(eSt().enemies.length / HORDE_DIVISOR));
     if (hc > 0) dmg *= 1 + p.effects.horde * hc;
   }
-  if (isCrit && p.effects.critBoom && srcType !== 'splash') {
+  if (!isSecret && isCrit && p.effects.critBoom && srcType !== 'splash') {
     // 暴月之眼：金色光爆（双冲击环 + 星芒 + 金色火花 + 光晕）
     EventBus.emit(EVENTS.VISUAL_RING, { x: e.x, y: e.y, color: PALETTE.gold, life: 0.4, radius: 100, width: 3.2 });
     EventBus.emit(EVENTS.VISUAL_RING, { x: e.x, y: e.y, color: PALETTE.warmWhite, life: 0.3, radius: 58, width: 2 });
@@ -118,7 +124,7 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
     EventBus.emit(EVENTS.VISUAL_GLOW, { x: e.x, y: e.y, color: PALETTE.gold, size: 24, life: 0.35 });
     aoeSplash(e, CRIT_BOOM_RADIUS, dmg, CRIT_BOOM_RATIO, p, 'critBoom', 'boom');
   }
-  if (p.effects.splash && RNG() < p.effects.splash && srcType !== 'splash') {
+  if (!isSecret && p.effects.splash && RNG() < p.effects.splash && srcType !== 'splash') {
     // 破晓溅射：金光碎浪（粒子 + 小冲击环 + 白火花）
     EventBus.emit(EVENTS.VISUAL_BURST, { x: e.x, y: e.y, color: PALETTE.fireBright, count: 12 });
     EventBus.emit(EVENTS.VISUAL_RING, { x: e.x, y: e.y, color: PALETTE.fireBright, life: 0.26, radius: 62, width: 1.6 });
@@ -129,7 +135,7 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
   dmg = Math.max(MIN_DMG, Math.round(dmg));
   e.hp -= dmg;
   /* 亏凸·回澜之护：造成伤害的 12% 转化为护盾（上限 30，停止输出 6 秒后消散） */
-  if (p.effects.moonWane) {
+  if (!isSecret && p.effects.moonWane) {
     p.effects.shield = Math.min(MOON_WANE_SHIELD_CAP, (p.effects.shield || 0) + dmg * MOON_WANE_SHIELD_RATE);
     p.effects.moonLastDmgT = p.effects.moonT || 0;
   }
@@ -148,7 +154,7 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
   /* 道具伤害追踪（无 srcW 的爆炸/反伤类） */
   if (srcType === 'boom') trackItemDmg(p, 'boom', dmg);
   else if (srcType === 'thorns') trackItemDmg(p, 'thorns', dmg);
-  if (p.lifesteal > 0) {
+  if (!isSecret && p.lifesteal > 0) {
     healPlayer(dmg * p.lifesteal);
   }
   EventBus.emit(EVENTS.VISUAL_HIT_FX, { x: e.x, y: e.y, dmg, crit: isCrit });

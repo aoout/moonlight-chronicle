@@ -135,12 +135,12 @@
   "phantom": {
     "id": "phantom", "name": "月影残像", "icon": "wPhantom", "tag": "召唤·幻影",
     "desc": "月光在蚀雾中折射出的残像，替守月人而战。",
-    "formula": "召唤 2+⌊L/2⌋ 个分身，各自发射 攻击×(0.5+0.12L) 的月牙",
-    "formulaDmg": "effAtk * (0.5 + 0.12 * level) * (2 + floor(level / 2))",
+    "formula": "召唤 2+⌊L/2⌋ 个分身，各自发射 攻击×(0.8+0.12L) 的月牙",
+    "formulaDmg": "effAtk * (0.8 + 0.12 * level) * (2 + floor(level / 2))",
     "cd": 4, "color": "#dbe8ff",
     "erosion": {"x": 2, "y": 0.4},
     "posOffset": 42, "followDist": 96, "followSpeed": 92, "wanderSpeed": 8,
-    "targetRange": 380, "fireIntv": 0.55, "duration": 5, "initFireT": 0.5,
+    "targetRange": 380, "fireIntv": 0.9, "duration": 5, "initFireT": 0.5,
     "fire": { "targeting": "self", "pattern": "phantom",
       "projectile": { "speed": 300, "range": 600, "radius": 5, "color": "#dbe8ff", "life": 2 }
     }
