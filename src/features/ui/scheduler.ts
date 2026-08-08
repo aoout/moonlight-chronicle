@@ -135,7 +135,10 @@ export function refreshMenuDepth(): void {
   if (btn && save && save.player && save.stage > 0) {
     btn.classList.remove('hidden');
     const info = $('continue-info');
-    if (info) info.textContent = '第 ' + save.stage + ' 夜 · ' + (LEVELS[save.depth] ? LEVELS[save.depth].name : '月背远征');
+    if (info) {
+      const depth = save.depth ?? 0;
+      info.textContent = '第 ' + save.stage + ' 夜 · 蚀月深度 ' + depth + ' · ' + (LEVELS[depth] ? LEVELS[depth].name : '月背远征');
+    }
   } else if (btn) btn.classList.add('hidden');
 }
 
