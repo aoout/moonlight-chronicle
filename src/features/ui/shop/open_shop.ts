@@ -137,11 +137,15 @@ function renderShop(): void {
       AudioEngine.playSfx('buy');
       if (slot.kind === 'weapon') toast(def.name + (p.weapons.some((x: any) => x.id === slot.id && x.lv > 1) ? ' 强化完成' : ' 已佩戴'));
       else toast(title + ' 已生效');
-      // 标记该槽售罄（复制后替换，确保 Store 感知）
+      // 原地置为已售罄，不重建整面货架（避免"购买=刷新"的视觉误感）
       const next = shopState.state.slots.map(x => ({ ...x }));
       next[i].sold = true;
       shopState.set('slots', next);
-      renderShop();
+      c.classList.add('sold');
+      c.innerHTML = '<div class="sold-tag">已售罄</div>';
+      c.onclick = null;
+      $('shop-gold').textContent = String(Math.floor(sSt().gold));
+      renderShopPanel(p);
     };
     cards.appendChild(c);
   });
