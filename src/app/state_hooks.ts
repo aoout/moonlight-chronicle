@@ -10,7 +10,6 @@ import { stageState } from '../state/stage.js';
 import { statsState } from '../state/stats.js';
 import { startRun, startStage } from '../commands/run.js';
 import { openLevelUp, openResult, curseScreen, showCurseBanner } from '../features/ui/scheduler.js';
-import { openShop } from '../features/ui/shop/index.js';
 import { curseRecordInc } from '../infra/persistence/curse_records.js';
 import { EventBus } from '../engine/core/event_bus.js';
 
@@ -37,7 +36,8 @@ export function initStateHooks(): void {
   // ----- 进入 SHOP 时打开商店面板 -----
   sm.onEnter(STATE.SHOP, () => {
     gameState.set('shopOpen', true);
-    openShop();
+    // 集市面板按需加载：进入 SHOP 状态才拉取 open_shop 模块（含武器/道具详情链）
+    void import('../features/ui/shop/index.js').then(m => m.openShop());
   });
 
   // ----- 离开 SHOP 时重置面板标志 -----

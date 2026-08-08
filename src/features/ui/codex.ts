@@ -12,7 +12,7 @@ import { AudioEngine } from '../../platform/audio/engine.js';
 import { codexUnlocked } from '../../infra/persistence/codex.js';
 import { handsGet, HANDS_DEEP_THRESHOLD } from '../../infra/persistence/hands.js';
 import { isDevMode } from '../../engine/env.js';
-import { weaponRangeText } from './shop/index.js';
+import { weaponRangeText } from './shop/formulas.js';
 import { ENEMY_SHAPES, BOSS_SHAPES } from '../render/index.js';
 import type { WeaponDef, ShopItemDef, LoreFragment } from '../../types/core.d.ts';
 
@@ -67,7 +67,7 @@ let _codexTab = 'enemies';
 /** 详情面板当前条目（用于返回时还原） */
 let _cdEntry: { id: string; meta: string } | null = null;
 
-function openCodex(): void {
+export function openCodex(): void {
   closeCodexDetail();
   renderCodex(_codexTab);
   $('codex').classList.remove('hidden');

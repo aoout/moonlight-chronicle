@@ -13,7 +13,6 @@ import { initUIEventBridge } from './features/ui/event_bridge.js';
 import { initPersistenceBridge } from './infra/persistence/event_bridge.js';
 import { initHudReactive } from './features/ui/hud_reactive.js';
 import { initGlassQuality } from './features/ui/glass_quality.js';
-import { initPlanetUI } from './features/ui/planet.js';
 import { initGamepad } from './features/input/gamepad.js';
 import { initHint } from './features/ui/gamepad_hint.js';
 import { initTouch, showJoystick, hideJoystick } from './features/input/touch.js';
@@ -54,7 +53,6 @@ initUIEventBridge();
 initPersistenceBridge();
 initHudReactive();
 initGlassQuality();
-initPlanetUI();
 bindDebugKeys();
 fillIconSpans();
 initHint();
@@ -62,6 +60,33 @@ initGamepad();
 initTouch();
 initOrientation();
 requestAnimationFrame(gameLoop);
+
+// 蚀月之望（右上角残月 · 存档同步）：云同步模块（含 WebDAV 客户端与完整存档序列化）
+// 体积较大且非首屏必需，改为点击残月时才动态加载；按钮显形联动则为启动期常驻逻辑。
+const planetBtn = document.getElementById('btn-planet') as HTMLElement;
+let _planetMod: typeof import('./features/ui/planet.js') | null = null;
+let _planetLoading: Promise<typeof import('./features/ui/planet.js')> | null = null;
+function loadPlanet(): Promise<typeof import('./features/ui/planet.js')> {
+  _planetLoading ??= import('./features/ui/planet.js').then(m => { _planetMod = m; return m; });
+  return _planetLoading;
+}
+planetBtn.onclick = () => {
+  // 首次点击：加载模块并绑定面板事件后打开；之后 initPlanetUI 已接管按钮 onclick
+  void loadPlanet().then(m => { m.initPlanetUI(); m.openPlanet(); });
+};
+// 残月与主菜单同生共死：只在 MENU 状态显形，战斗/升级/商店/结算/暂停一律隐去
+function setPlanetVisible(visible: boolean): void {
+  planetBtn.classList.toggle('planet-hidden', !visible);
+}
+setTimeout(() => {
+  if (sm.is(STATE.MENU)) setPlanetVisible(true);
+}, sm.is(STATE.MENU) ? 600 : 0);
+sm.onEnter(STATE.MENU, () => setPlanetVisible(true));
+[STATE.PLAYING, STATE.LEVELUP, STATE.SHOP, STATE.CURSE, STATE.RESULT].forEach(s => {
+  sm.onEnter(s, () => setPlanetVisible(false));
+});
+EventBus.on(EVENTS.PAUSE_OPEN, () => setPlanetVisible(false));
+EventBus.on(EVENTS.PAUSE_CLOSE, () => setPlanetVisible(false));
 
 // 摇杆可见性：进入 PLAYING 时显示，离开 PLAYING 时隐藏
 sm.onEnter(STATE.PLAYING, () => showJoystick());

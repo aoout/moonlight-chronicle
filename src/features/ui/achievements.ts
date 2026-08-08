@@ -2,13 +2,11 @@
    蚀月远征 · 蚀月功勋：成就面板
    守月人的荣耀刻痕，按稀有度陈列于月光之下
    ========================================================= */
-import { EVENTS } from '../../engine/core/events.js';
 import { ACHIEVEMENTS, ACH_RARITY_ORDER, type AchievementDef } from '../../config/achievements.js';
 import { achProgressOf, achIsEarned, achEarnedTotal, achTotal } from '../../systems/AchievementSystem.js';
 import { iconSVG } from '../../assets/icons.js';
-import { $, el, toast } from './hud_utils.js';
+import { $, el } from './hud_utils.js';
 import { AudioEngine } from '../../platform/audio/engine.js';
-import { EventBus } from '../../engine/core/event_bus.js';
 
 const RARITY_META: Record<string, { label: string; cls: string }> = {
   common: { label: '寻常', cls: 'common' },
@@ -68,9 +66,7 @@ export function openAchievements(): void {
 export function bindAchievements(): void {
   $('btn-achievements').onclick = () => { AudioEngine.playSfx('open'); openAchievements(); };
   $('btn-achievements-close').onclick = () => { AudioEngine.playSfx('close'); $('achievements').classList.add('hidden'); };
-  // 功勋达成提示
-  EventBus.on(EVENTS.ACHIEVEMENT_UNLOCKED, (d: any) => {
-    toast('功勋达成 · ' + d.name);
-    AudioEngine.playSfx('unlock');
-  });
+  // 功勋达成提示已移至 scheduler.bindUI 的常驻轻量监听：
+  // 本模块随「蚀月功勋」面板懒加载，而提示必须在游戏运行期即时生效，
+  // 故不放回此处，避免整模块随首包加载。
 }

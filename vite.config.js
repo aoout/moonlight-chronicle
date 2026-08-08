@@ -10,8 +10,9 @@ export default defineConfig({
   // 构建配置
   build: {
     outDir: 'dist',
-    // 确保 Google Fonts 等外部资源不被 Vite 内联
-    assetsInlineLimit: 0,
+    // 小于 4KB 的本地资源（如 noise.png 噪点贴图 3.4KB）内联为 data URI，
+    // 减少首屏独立请求数；Google Fonts 等外部 URL 不受此限制影响。
+    assetsInlineLimit: 4096,
   },
   // CSS 配置
   css: {

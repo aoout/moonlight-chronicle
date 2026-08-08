@@ -14,10 +14,6 @@ import { CONFIG, STAGE_NAMES, LEVELS, CURSES } from '../../config/index.js';
 import { iconSVG } from '../../assets/icons.js';
 import { AudioEngine } from '../../platform/audio/engine.js';
 import { $, el, html, showScreen, showStageBanner, toast } from './hud_utils.js';
-import { openShop, renderStatGroupsInto } from './shop/index.js';
-import { bindCodex } from './codex.js';
-import { bindAchievements } from './achievements.js';
-import { bindSettingsUI, closeSettings, isSettingsOpen } from './settings_panel.js';
 import { startRun, startStage, resumeRun as resumeRunCmd } from '../../commands/run.js';
 import { isDevMode } from '../../engine/env.js';
 import { LevelUpPanel } from './components/LevelUpPanel.js';
@@ -35,6 +31,18 @@ export const levelUpPanel = new LevelUpPanel();
 export const resultPanel = new ResultPanel();
 export const gateScreen = new GateScreen();
 export const curseScreen = new CurseScreen();
+
+/* ---------- 非首屏面板：惰性加载缓存 ----------
+ * 图鉴 / 功勋 / 月蚀之仪均为主菜单入口，首次点击才动态 import 并绑定。
+ * _mod 在 import 完成后指向模块命名空间（同步可访问其导出，供 keydown 分支判断），
+ * _loading 持有 in-flight promise 保证并发点击只加载一次。
+ */
+let _codexMod: typeof import('./codex.js') | null = null;
+let _codexLoading: Promise<typeof import('./codex.js')> | null = null;
+let _achvMod: typeof import('./achievements.js') | null = null;
+let _achvLoading: Promise<typeof import('./achievements.js')> | null = null;
+let _settingsMod: typeof import('./settings_panel.js') | null = null;
+let _settingsLoading: Promise<typeof import('./settings_panel.js')> | null = null;
 
 /* 兼容再导出：暂停控制已下沉到 pause_control.ts */
 export { pausePanel, togglePause };
@@ -193,19 +201,21 @@ export function bindUI(): void {
   window.addEventListener('keydown', e => {
     const k = e.key.toLowerCase();
     iSt().keys[k] = true;
-    // 月蚀之仪：设置面板打开时 Escape 优先关闭面板（收敛单一监听，避免与其他入口冲突）
-    if (k === 'escape' && isSettingsOpen()) {
-      AudioEngine.playSfx('close');
-      closeSettings();
-      return;
-    }
-    if ((k === '1' || k === '2' || k === '3') && sm.current === STATE.LEVELUP) {
+    // 月蚀之仪：设置面板打开时 Escape 优先关闭面板。
+    // 惰性引用：面板未加载过则必然未打开，直接落入下方战斗分支。
+    if (k === 'escape') {
+      if (_settingsMod && _settingsMod.isSettingsOpen()) {
+        AudioEngine.playSfx('close');
+        _settingsMod.closeSettings();
+        return;
+      }
+      if (sm.current === STATE.SHOP) { goNext(); return; }
+      if (sm.current === STATE.PLAYING) { togglePause(); return; }
+    } else if ((k === '1' || k === '2' || k === '3') && sm.current === STATE.LEVELUP) {
       const cards = document.querySelectorAll('#levelup-cards .card');
       const idx = +k - 1;
       if (cards[idx]) { (cards[idx] as HTMLElement).click(); AudioEngine.playSfx('click'); }
-    } else if (k === 'escape' && sm.current === STATE.SHOP) goNext();
-    else if (k === 'escape' && sm.current === STATE.PLAYING) togglePause();
-    else if (k === 'p' && sm.current === STATE.PLAYING) togglePause();
+    } else if (k === 'p' && sm.current === STATE.PLAYING) togglePause();
     else if (k === 'm') {
       AudioEngine.toggleMode();
       toast('音频：' + AudioEngine.getModeLabel());
@@ -220,7 +230,26 @@ export function bindUI(): void {
     const keys = iSt().keys;
     for (const k in keys) delete keys[k];
   });
-  bindCodex();
-  bindAchievements();
-  bindSettingsUI();
+  // 蚀之图鉴 / 蚀月功勋 / 月蚀之仪：主菜单入口，点击时才加载面板模块并绑定。
+  // 首次 import 完成后 bind* 会覆盖本处 handler（直接调用对应 open*），后续点击零额外开销。
+  $('btn-codex').onclick = () => {
+    AudioEngine.playSfx('open');
+    _codexLoading ??= import('./codex.js').then(m => { _codexMod = m; return m; });
+    void _codexLoading.then(m => { m.bindCodex(); m.openCodex(); });
+  };
+  $('btn-achievements').onclick = () => {
+    AudioEngine.playSfx('open');
+    _achvLoading ??= import('./achievements.js').then(m => { _achvMod = m; return m; });
+    void _achvLoading.then(m => { m.bindAchievements(); m.openAchievements(); });
+  };
+  $('btn-settings').onclick = () => {
+    AudioEngine.playSfx('click');
+    _settingsLoading ??= import('./settings_panel.js').then(m => { _settingsMod = m; return m; });
+    void _settingsLoading.then(m => { m.bindSettingsUI(); m.openSettings(); });
+  };
+  // 功勋达成提示：常驻轻量监听（面板模块懒加载，提示必须游戏运行期即时生效）
+  EventBus.on(EVENTS.ACHIEVEMENT_UNLOCKED, (d: any) => {
+    toast('功勋达成 · ' + d.name);
+    AudioEngine.playSfx('unlock');
+  });
 }
