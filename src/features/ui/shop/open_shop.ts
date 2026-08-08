@@ -11,8 +11,8 @@ import { shopState, resetShopNight } from '../../../state/shop.js';
 import { statsState } from '../../../state/stats.js';
 import { EventBus } from '../../../engine/core/event_bus.js';
 import { purchaseWeapon, upgradeWeaponCmd, purchaseItem, refillShop } from '../../../commands/index.js';
-import { CONFIG, WEAPONS, SHOP_ITEMS, inflationRate, WEAPON_UPGRADE_COST, refillPrice } from '../../../config/index.js';
-import { generateShopSlots } from '../../../domain/shop_offers.js';
+import { CONFIG, WEAPONS, SHOP_ITEMS, inflationRate, WEAPON_UPGRADE_COST } from '../../../config/index.js';
+import { generateShopSlots, refillCost } from '../../../domain/shop_offers.js';
 import { $, el, html, toast } from '../hud_utils.js';
 import { AudioEngine } from '../../../platform/audio/engine.js';
 import { iconSVG } from '../../../assets/icons.js';
@@ -47,12 +47,14 @@ function formulaRow(def: any, eroded: boolean): string {
   return '<div class="upgrade-tier">倍率构成：' + weaponFormulaText(def) + er + '</div>';
 }
 
-/** 刷新按钮状态与价格（每次渲染刷新）：始终可用，只受金币约束 */
+/** 刷新按钮状态与价格（每次渲染刷新）：始终可用，只受金币约束；价格走 refillCost（集市三契联动） */
 function updateRefillBtn(): void {
   const btn = $('btn-shop-refill') as HTMLButtonElement | null;
   if (!btn) return;
+  const p = pSt().player;
   btn.disabled = false;
-  btn.textContent = '涨潮补货 · ' + refillPrice(shopState.state.refills + 1) + ' 金';
+  const cost = p ? refillCost(p, shopState.state.refills + 1) : 0;
+  btn.textContent = '涨潮补货 · ' + (cost === 0 ? '免费' : cost + ' 金');
 }
 
 /** 渲染货架卡片（不清状态；购买后置 sold 再调用本函数即可） */

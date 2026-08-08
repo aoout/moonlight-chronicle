@@ -69,3 +69,16 @@ export function regenerateAllSlots(p: Player, slots: ShopOffer[]): void {
     }
   }
 }
+
+/**
+ * 涨潮补货价格（集市三契联动）：
+ * - 退潮拾贝（nextRefillFree > 0）：免费 → 0
+ * - 落潮之契（refillDiscount = 0.5）：基础价减半（2→1、6→3、10→5…）
+ * - 不乘 inflationRate 与 priceMul：不受通货膨胀与蚀雾弥漫诅咒影响
+ */
+export function refillCost(p: Player, n: number): number {
+  if ((p.effects.nextRefillFree || 0) > 0) return 0;
+  const base = 2 * Math.pow(Math.max(1, n), 1.5);
+  const disc = p.effects.refillDiscount || 1;
+  return Math.round(base * disc);
+}

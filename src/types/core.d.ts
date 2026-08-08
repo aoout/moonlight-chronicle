@@ -60,6 +60,10 @@ export interface PlayerEffects {
   echoTimer?: number;
   coinHeal?: number;
   curseTimer?: number;
+  /* 集市三契：落潮之契（补货 -50%）/ 潮生之珠（每次补货成长）/ 退潮拾贝（下次补货免费次数） */
+  refillDiscount?: number;
+  tideGrowth?: number;
+  nextRefillFree?: number;
   boughtItems?: Record<string, number>;
   /* 时停激活层 */
   tsActive?: number;

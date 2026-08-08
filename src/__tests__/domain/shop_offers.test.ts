@@ -3,10 +3,10 @@
    ========================================================= */
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  generateShopSlots, regenerateAllSlots,
+  generateShopSlots, regenerateAllSlots, refillCost,
   SHOP_WEAPON_SLOTS, SHOP_ITEM_SLOTS,
 } from '../../domain/shop_offers.js';
-import { WEAPONS, SHOP_ITEMS } from '../../config/index.js';
+import { WEAPONS, SHOP_ITEMS, refillPrice } from '../../config/index.js';
 import { installPlayer } from '../_harness/index.js';
 import { addWeapon } from '../../domain/player.js';
 import { playerState } from '../../state/player.js';
@@ -66,5 +66,36 @@ describe('regenerateAllSlots（涨潮补货 = 全量刷新）', () => {
     expect(slots[0].sold).toBe(false);
     expect(slots[0].kind).toBe('weapon');
     expect(WEAPONS[slots[0].id]).toBeDefined();
+  });
+});
+
+describe('refillCost（集市三契联动价格）', () => {
+  it('无道具时等于 refillPrice（2/6/10…）', () => {
+    const p = player();
+    expect(refillCost(p, 1)).toBe(refillPrice(1));
+    expect(refillCost(p, 2)).toBe(refillPrice(2));
+    expect(refillCost(p, 3)).toBe(refillPrice(3));
+  });
+
+  it('落潮之契：价格减半（2→1、6→3、10→5）', () => {
+    const p = player();
+    p.effects.refillDiscount = 0.5;
+    expect(refillCost(p, 1)).toBe(1);
+    expect(refillCost(p, 2)).toBe(3);
+    expect(refillCost(p, 3)).toBe(5);
+    expect(refillCost(p, 4)).toBe(8); // round(16×0.5)
+  });
+
+  it('退潮拾贝：免费次数优先于折扣 → 0', () => {
+    const p = player();
+    p.effects.nextRefillFree = 1;
+    p.effects.refillDiscount = 0.5;
+    expect(refillCost(p, 5)).toBe(0);
+  });
+
+  it('不受通货膨胀与加价诅咒影响', () => {
+    const p = player();
+    p.effects.priceMul = 1.3; // 蚀雾弥漫
+    expect(refillCost(p, 1)).toBe(2); // 仍是 2，未 ×1.3
   });
 });

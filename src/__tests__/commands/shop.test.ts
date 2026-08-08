@@ -270,6 +270,56 @@ describe('refillShop（涨潮补货 = 全量刷新）', () => {
   });
 });
 
+/* ========== 集市三契 × 涨潮补货 ========== */
+
+describe('集市三契与涨潮补货联动', () => {
+  it('落潮之契：第 1 次刷新价减半 2→1', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    player().effects.refillDiscount = 0.5;
+    const r = refillShop();
+    expect(r.price).toBe(1);
+    expect(gold()).toBe(9); // 10 - 1
+  });
+
+  it('退潮拾贝：下一次刷新免费（不扣款）且计数照加，之后恢复原价', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    player().effects.nextRefillFree = 1;
+    const r1 = refillShop();
+    expect(r1.price).toBe(0);
+    expect(gold()).toBe(10);              // 免费，未扣款
+    expect(shopState.state.refills).toBe(1);
+    expect(player().effects.nextRefillFree).toBe(0); // 次数已消耗
+    const r2 = refillShop();
+    expect(r2.price).toBe(refillPrice(2)); // 恢复原价 6
+    expect(gold()).toBe(4);
+  });
+
+  it('退潮拾贝可累积：买 2 次 = 2 次免费', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    player().effects.nextRefillFree = 2;
+    expect(refillShop().price).toBe(0);
+    expect(refillShop().price).toBe(0);
+    expect(refillShop().price).toBe(refillPrice(3)); // 第 3 次恢复
+  });
+
+  it('潮生之珠：每次刷新 +1 生命上限、+1% 暴伤', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    const p = player();
+    p.effects.tideGrowth = 1;
+    const hp0 = p.maxHp;
+    const crit0 = p.critDmg;
+    refillShop();
+    expect(p.maxHp).toBe(hp0 + 1);
+    expect(p.critDmg).toBeCloseTo(crit0 + 0.01);
+    refillShop();
+    expect(p.maxHp).toBe(hp0 + 2);
+  });
+});
+
 /* ========== god 模式 ========== */
 
 describe('god 模式（?dev=1）：无限金币', () => {

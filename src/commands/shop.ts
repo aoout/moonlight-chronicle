@@ -9,8 +9,7 @@ import { playerState } from '../state/player.js';
 import { shopState } from '../state/shop.js';
 import { addWeapon, upgradeWeapon, removeWeapon, computeDerived } from '../domain/player.js';
 import { applyItemEffect } from '../domain/item_effects.js';
-import { regenerateAllSlots } from '../domain/shop_offers.js';
-import { refillPrice } from '../config/index.js';
+import { regenerateAllSlots, refillCost } from '../domain/shop_offers.js';
 import { codexAdd } from '../infra/persistence/codex.js';
 import { handsAdd } from '../infra/persistence/hands.js';
 import { isDevMode } from '../engine/env.js';
@@ -88,17 +87,28 @@ export function weaponSellPrice(lv: number): number {
   return Math.floor(8 + (lv - 1) * 4);
 }
 
-/** 涨潮补货：付费刷新全部槽位。价格 = refillPrice(本夜已刷次数+1)，不受通胀/诅咒 */
+/** 涨潮补货：刷新全部槽位。价格由 refillCost 计算（集市三契联动），不受通胀/诅咒 */
 export function refillShop(): Result & { price?: number } {
   const s = statsState.state;
   const p = playerState.state.player;
   if (!p) return { ok: false, reason: '无玩家' };
   const st = shopState.state;
-  const price = refillPrice(st.refills + 1);
+  const price = refillCost(p, st.refills + 1);
   const god = isDevMode();
-  if (!god && s.gold < price) return { ok: false, reason: '金币不足' };
-  if (!god) statsState.set('gold', s.gold - price);
+  if (!god && price > 0 && s.gold < price) return { ok: false, reason: '金币不足' };
+  if (!god && price > 0) statsState.set('gold', s.gold - price);
+  // 消耗退潮拾贝的免费次数（免费刷新也计入刷新计数，价格照常递增）
+  if ((p.effects.nextRefillFree || 0) > 0) {
+    p.effects.nextRefillFree = (p.effects.nextRefillFree || 0) - 1;
+  }
   shopState.set('refills', st.refills + 1);
+  // 潮生之珠：每次补货 +1 生命上限 / +1% 暴击伤害
+  if (p.effects.tideGrowth) {
+    p.maxHp += 1;
+    p.hp = Math.min(p.maxHp, p.hp + 1);
+    p.critDmg += 0.01;
+    computeDerived(p);
+  }
   // 全量重掷后整体替换，确保 Store 订阅感知
   const slots = st.slots.map(x => ({ ...x }));
   regenerateAllSlots(p, slots);

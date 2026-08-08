@@ -479,5 +479,34 @@
     "rarity": "legend",
     "price": 90,
     "desc": "守月人守望的月亮，映照着玩家世界的夜空。效果随<span class=\"stat-up\">现实月相</span>流转。"
+  },
+  "tideDiscount": {
+    "id": "tideDiscount",
+    "max": 1,
+    "name": "落潮之契",
+    "icon": "tideDiscount",
+    "rarity": "epic",
+    "price": 42,
+    "tag": "集市",
+    "desc": "涨潮补货价格 <span class=\"stat-up\">-50%</span>（2→1、6→3、10→5…）。"
+  },
+  "tideGrowth": {
+    "id": "tideGrowth",
+    "max": 1,
+    "name": "潮生之珠",
+    "icon": "tideGrowth",
+    "rarity": "epic",
+    "price": 46,
+    "tag": "集市",
+    "desc": "每次涨潮补货：生命上限 <span class=\"stat-up\">+1</span>、暴击伤害 <span class=\"stat-up\">+1%</span>。"
+  },
+  "tideGift": {
+    "id": "tideGift",
+    "name": "退潮拾贝",
+    "icon": "tideGift",
+    "rarity": "common",
+    "price": 7,
+    "tag": "集市",
+    "desc": "可反复拾取。下一次涨潮补货 <span class=\"stat-up\">免费</span>。"
   }
 }
