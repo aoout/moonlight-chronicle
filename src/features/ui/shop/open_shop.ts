@@ -1,7 +1,8 @@
 /* =========================================================
    蚀月远征 · 商店：打开集市与卡牌渲染（槽位驱动）
-   货架由 ShopState.slots 承载：购买置空（sold），涨潮补货只补空位，
-   未售槽位跨重渲染保留。每夜进入商店时 resetShopNight() 重建货架。
+   货架由 ShopState.slots 承载：购买置空（sold）；
+   涨潮补货 = 全量刷新全部槽位（含未售），槽类型不变。
+   每夜进入商店时 resetShopNight() 重建货架。
    ========================================================= */
 import { EVENTS } from '../../../engine/core/events.js';
 import { playerState } from '../../../state/player.js';
@@ -46,14 +47,12 @@ function formulaRow(def: any, eroded: boolean): string {
   return '<div class="upgrade-tier">倍率构成：' + weaponFormulaText(def) + er + '</div>';
 }
 
-/** 刷新按钮状态与价格（每次渲染刷新） */
+/** 刷新按钮状态与价格（每次渲染刷新）：始终可用，只受金币约束 */
 function updateRefillBtn(): void {
   const btn = $('btn-shop-refill') as HTMLButtonElement | null;
   if (!btn) return;
-  const st = shopState.state;
-  const hasSold = st.slots.some(x => x.sold);
-  btn.disabled = !hasSold;
-  btn.textContent = '涨潮补货 · ' + refillPrice(st.refills + 1) + ' 金';
+  btn.disabled = false;
+  btn.textContent = '涨潮补货 · ' + refillPrice(shopState.state.refills + 1) + ' 金';
 }
 
 /** 渲染货架卡片（不清状态；购买后置 sold 再调用本函数即可） */

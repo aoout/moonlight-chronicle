@@ -1,8 +1,8 @@
 /* =========================================================
    蚀月远征 · 领域模块：集市货架生成
-   从 open_shop.ts 抽出的纯逻辑：生成货架 / 补满空位。
-   槽位模型：每夜 2 武器 + 4 道具共 6 槽，购买后置空（sold），
-   涨潮补货只重填空槽，未售槽位原样保留。
+   从 open_shop.ts 抽出的纯逻辑：生成货架 / 涨潮补货（全量刷新）。
+   槽位模型：每夜 2 武器 + 4 道具共 6 槽，购买后置空（sold）；
+   涨潮补货 = 全部槽位重掷（含未售），槽类型不变。
    ========================================================= */
 import { RNG } from '../engine/util/utils.js';
 import { WEAPONS, SHOP_ITEMS } from '../config/index.js';
@@ -57,10 +57,10 @@ export function generateShopSlots(p: Player): ShopOffer[] {
   return slots.sort(() => RNG() - 0.5);
 }
 
-/** 补满空槽（涨潮补货）：只重填 sold 槽，未售槽保留；池空时槽保持售罄 */
-export function refillSoldSlots(p: Player, slots: ShopOffer[]): void {
+/** 涨潮补货：刷新全部槽位（6 槽全部重掷，槽类型不变：武器槽重掷武器、道具槽重掷道具）。
+    池空无法重掷的槽保持原内容与售罄状态。 */
+export function regenerateAllSlots(p: Player, slots: ShopOffer[]): void {
   for (const s of slots) {
-    if (!s.sold) continue;
     const o = s.kind === 'weapon' ? rollWeaponOffer(p) : rollItemOffer(p);
     if (o) {
       s.id = o.id;

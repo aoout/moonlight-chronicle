@@ -9,7 +9,7 @@ import { playerState } from '../state/player.js';
 import { shopState } from '../state/shop.js';
 import { addWeapon, upgradeWeapon, removeWeapon, computeDerived } from '../domain/player.js';
 import { applyItemEffect } from '../domain/item_effects.js';
-import { refillSoldSlots } from '../domain/shop_offers.js';
+import { regenerateAllSlots } from '../domain/shop_offers.js';
 import { refillPrice } from '../config/index.js';
 import { codexAdd } from '../infra/persistence/codex.js';
 import { handsAdd } from '../infra/persistence/hands.js';
@@ -88,21 +88,20 @@ export function weaponSellPrice(lv: number): number {
   return Math.floor(8 + (lv - 1) * 4);
 }
 
-/** 涨潮补货：付费补满货架空位。价格 = refillPrice(本夜已刷次数+1)，不受通胀/诅咒 */
+/** 涨潮补货：付费刷新全部槽位。价格 = refillPrice(本夜已刷次数+1)，不受通胀/诅咒 */
 export function refillShop(): Result & { price?: number } {
   const s = statsState.state;
   const p = playerState.state.player;
   if (!p) return { ok: false, reason: '无玩家' };
   const st = shopState.state;
-  if (!st.slots.some(x => x.sold)) return { ok: false, reason: '货架已满，无需补货' };
   const price = refillPrice(st.refills + 1);
   const god = isDevMode();
   if (!god && s.gold < price) return { ok: false, reason: '金币不足' };
   if (!god) statsState.set('gold', s.gold - price);
   shopState.set('refills', st.refills + 1);
-  // 原地补空槽后整体替换，确保 Store 订阅感知
+  // 全量重掷后整体替换，确保 Store 订阅感知
   const slots = st.slots.map(x => ({ ...x }));
-  refillSoldSlots(p, slots);
+  regenerateAllSlots(p, slots);
   shopState.set('slots', slots);
   return { ok: true, price };
 }

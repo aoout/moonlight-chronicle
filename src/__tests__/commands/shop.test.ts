@@ -216,61 +216,53 @@ describe('sellWeapon', () => {
 
 /* ========== 涨潮补货 ========== */
 
-describe('refillShop（涨潮补货）', () => {
-  /** 构造含 1 个空位的货架 */
-  const withSoldSlot = () => {
-    const slots = generateShopSlots(player());
-    slots[0].sold = true;
-    shopState.set('slots', slots);
-    shopState.set('refills', 0);
-  };
-
-  it('货架无空位时失败', () => {
+describe('refillShop（涨潮补货 = 全量刷新）', () => {
+  it('金币不足时失败，不扣款不计数', () => {
     shopState.set('slots', generateShopSlots(player()));
     shopState.set('refills', 0);
-    const r = refillShop();
-    expect(r.ok).toBe(false);
-    expect(r.reason).toBe('货架已满，无需补货');
-  });
-
-  it('金币不足时失败，不扣款不计数', () => {
-    withSoldSlot();
     statsState.set('gold', 1);
     const r = refillShop();
     expect(r.ok).toBe(false);
     expect(r.reason).toBe('金币不足');
     expect(gold()).toBe(1);
     expect(shopState.state.refills).toBe(0);
-    expect(shopState.state.slots.some(s => s.sold)).toBe(true);
   });
 
-  it('成功补货：扣基础价 2、计数 +1、空槽补满且未售槽保留', () => {
-    withSoldSlot();
-    const kept = { ...shopState.state.slots[1] };
+  it('成功刷新：扣基础价 2、计数 +1、全部槽位恢复在售', () => {
+    const slots = generateShopSlots(player());
+    slots[0].sold = true; // 有售罄槽
+    shopState.set('slots', slots);
+    shopState.set('refills', 0);
     const r = refillShop();
     expect(r.ok).toBe(true);
     expect(r.price).toBe(2);
     expect(gold()).toBe(8); // 10 - 2
     expect(shopState.state.refills).toBe(1);
-    expect(shopState.state.slots.some(s => s.sold)).toBe(false);
-    expect(shopState.state.slots[1]).toEqual(kept); // 未售槽原样
+    expect(shopState.state.slots.every(s => s.sold === false)).toBe(true);
+    expect(shopState.state.slots).toHaveLength(6);
   });
 
-  it('第二次补货涨价：refillPrice(2) = 6', () => {
-    withSoldSlot();
-    refillShop();
-    // 再制造一个空位后补第二次
-    const slots = shopState.state.slots.map(s => ({ ...s }));
-    slots[0].sold = true;
-    shopState.set('slots', slots);
+  it('货架未买任何东西也能刷新（全量换新）', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    const r = refillShop();
+    expect(r.ok).toBe(true);
+    expect(r.price).toBe(2);
+    expect(shopState.state.refills).toBe(1);
+  });
+
+  it('第二次刷新涨价：refillPrice(2) = 6', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 1);
     const r = refillShop();
     expect(r.price).toBe(refillPrice(2));
     expect(shopState.state.refills).toBe(2);
-    expect(gold()).toBe(8 - 6);
+    expect(gold()).toBe(10 - 6);
   });
 
-  it('补货价不受通货膨胀与加价诅咒影响（纯 refillPrice）', () => {
-    withSoldSlot();
+  it('刷新价不受通货膨胀与加价诅咒影响（纯 refillPrice）', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
     const p = player();
     p.effects.priceMul = 1.3;          // 蚀雾弥漫诅咒
     const r = refillShop();

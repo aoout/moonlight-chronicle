@@ -3,7 +3,7 @@
    ========================================================= */
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  generateShopSlots, refillSoldSlots,
+  generateShopSlots, regenerateAllSlots,
   SHOP_WEAPON_SLOTS, SHOP_ITEM_SLOTS,
 } from '../../domain/shop_offers.js';
 import { WEAPONS, SHOP_ITEMS } from '../../config/index.js';
@@ -40,26 +40,29 @@ describe('generateShopSlots', () => {
   });
 });
 
-describe('refillSoldSlots', () => {
-  it('只重填空槽：未售槽原样保留，售罄槽被新货填充', () => {
+describe('regenerateAllSlots（涨潮补货 = 全量刷新）', () => {
+  it('所有槽位被重掷：售罄与未售槽一律刷新、类型保留、全部恢复在售', () => {
     const p = player();
-    const keep = { kind: 'weapon' as const, id: 'crossbow', eroded: false, sold: false };
     const slots = [
-      { ...keep },
+      { kind: 'weapon' as const, id: 'crossbow', eroded: false, sold: false },
       { kind: 'item' as const, id: SHOP_ITEMS[0].id, sold: true },
     ];
-    refillSoldSlots(p, slots);
-    expect(slots[0]).toEqual(keep);
-    expect(slots[1].sold).toBe(false);
-    expect(SHOP_ITEMS.some(it => it.id === slots[1].id)).toBe(true);
+    regenerateAllSlots(p, slots);
+    expect(slots[0].kind).toBe('weapon');
+    expect(slots[1].kind).toBe('item');
+    expect(slots.every(s => s.sold === false)).toBe(true);
+    for (const s of slots) {
+      if (s.kind === 'weapon') expect(WEAPONS[s.id]).toBeDefined();
+      else expect(SHOP_ITEMS.some(it => it.id === s.id)).toBe(true);
+    }
   });
 
-  it('已拥有且未满级的武器可被补成升级槽', () => {
+  it('已拥有且未满级的武器可被刷成升级槽', () => {
     const p = player();
     const slots = [
       { kind: 'weapon' as const, id: 'moonRing', eroded: false, sold: true },
     ];
-    refillSoldSlots(p, slots);
+    regenerateAllSlots(p, slots);
     expect(slots[0].sold).toBe(false);
     expect(slots[0].kind).toBe('weapon');
     expect(WEAPONS[slots[0].id]).toBeDefined();
