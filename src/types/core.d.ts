@@ -322,6 +322,15 @@ export interface Projectile {
   /* 追踪弹（homing）参数：速度上限 / 转向率 / 锁定时限 */
   speedMax?: number;
   turnRate?: number;
+  /* 敌方异型弹行为（v0.6）：卵囊分裂 / 符箓蓄力 / 浪花呼吸 */
+  splitAt?: number;
+  chargeT?: number;
+  charge?: number;
+  baseSpeed?: number;
+  phase?: number;
+  /* 弹头视觉参数（异型弹绘制） */
+  arc?: number;
+  gap?: number;
   lockT?: number;
   /* 视图基础设施 */
   _meta?: Record<string, any>;

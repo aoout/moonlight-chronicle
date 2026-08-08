@@ -206,22 +206,41 @@ const PROJ_LINEAR_HEADS: Record<string, (ctx: CanvasRenderingContext2D, pr: any)
     ctx.beginPath(); ctx.arc(0, 0, R * 0.26, 0, TAU); ctx.fill();
   },
 
-  /* 潮噬之母 · 卵囊（椭卵 + 内膜纹理 + 光泽） */
+  /* 潮噬之母 · 卵囊（椭卵 + 内膜纹理 + 光泽 + 临破裂裂纹） */
   enemy_egg(ctx, pr) {
-    const R = pr.r;
-    const g = ctx.createRadialGradient(-R * 0.3, -R * 0.45, R * 0.2, 0, 0, R * 1.6);
+    const R = pr.r; const t = pr.t || 0;
+    // 临破裂预警：t 接近 splitAt 时胀大 + 裂纹（玩家可读「要炸了」）
+    const k = Math.min(1, t / (pr.splitAt || 1.1));
+    const swell = 1 + Math.max(0, k - 0.6) * 0.5;
+    const RR = R * swell;
+    const g = ctx.createRadialGradient(-RR * 0.3, -RR * 0.45, RR * 0.2, 0, 0, RR * 1.6);
     g.addColorStop(0, 'rgba(182,240,224,.5)'); g.addColorStop(1, 'transparent');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R * 1.6, 0, TAU); ctx.fill();
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, RR * 1.6, 0, TAU); ctx.fill();
     // 卵壳
     ctx.fillStyle = pr.color;
-    ctx.beginPath(); ctx.ellipse(0, 0, R, R * 1.35, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 0, RR, RR * 1.35, 0, 0, TAU); ctx.fill();
     // 内膜暗纹（弧形纹理）
     ctx.strokeStyle = 'rgba(10,13,22,.35)'; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.ellipse(0, R * 0.15, R * 0.62, R * 0.95, 0, -2.2, -0.9); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(0, -R * 0.1, R * 0.5, R * 0.8, 0, 0.9, 2.2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, RR * 0.15, RR * 0.62, RR * 0.95, 0, -2.2, -0.9); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -RR * 0.1, RR * 0.5, RR * 0.8, 0, 0.9, 2.2); ctx.stroke();
+    // 临破裂裂纹（从蛋顶裂开，随 k 加深）
+    if (k > 0.6) {
+      ctx.strokeStyle = `rgba(255,255,255,${(k - 0.6) * 2})`;
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(0, -RR * 1.3);
+      ctx.lineTo(RR * 0.3, -RR * 0.4);
+      ctx.lineTo(RR * 0.05, RR * 0.2);
+      ctx.lineTo(RR * 0.45, RR * 0.75);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-RR * 0.2, -RR * 1.1);
+      ctx.lineTo(-RR * 0.5, -RR * 0.3);
+      ctx.stroke();
+    }
     // 光泽高光
     ctx.fillStyle = 'rgba(255,255,255,.5)';
-    ctx.beginPath(); ctx.ellipse(-R * 0.32, -R * 0.55, R * 0.28, R * 0.4, -0.4, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-RR * 0.32, -RR * 0.55, RR * 0.28, RR * 0.4, -0.4, 0, TAU); ctx.fill();
   },
 
   /* 潮噬之母 · 三角幼体（锯齿小虫 + 内核） */

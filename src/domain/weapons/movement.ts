@@ -4,7 +4,8 @@
    ========================================================= */
 import { PALETTE } from '../../assets/palette.js';
 import { RNG, dist, angTo, TAU } from '../../engine/util/utils.js';
-import { rSt, pSt } from '../../state/accessors.js';
+import { rSt, pSt, eSt } from '../../state/accessors.js';
+import { PROJECTILE_POOL } from '../../engine/ecs/entity_pool.js';
 import { spawnBurst, spawnShard, spawnSpark, spawnRing, spawnGlow } from '../../platform/fx/fx.js';
 import { damageEnemy } from '../combat.js';
 import { queryRadius } from '../../engine/spatial/SpatialSystem.js';
@@ -127,7 +128,88 @@ export const MOVEMENT: Record<string, (pr: Projectile, dt: number, p: Player) =>
     if (pr.t > (pr.dur || 0.6)) { pr.dead = 1; return false; }
     return true;
   },
+
+  /* =========================================================
+     敌方异型弹行为（v0.6 完整实装）
+     ========================================================= */
+
+  /** 潮噬之母 · 卵囊弹：直线飞行 splitAt 秒后破裂成 3 只三角幼体 */
+  enemyEgg(pr, dt, _p) {
+    pr.t = (pr.t || 0) + dt;
+    pr.x += (pr.vx || 0) * dt;
+    pr.y += (pr.vy || 0) * dt;
+    pr.life = (pr.life || 2.6) - dt;
+    if (pr.t >= (pr.splitAt || 1.1)) {
+      for (const s of eggSplitBurst(pr)) {
+        eSt().projectiles.push(PROJECTILE_POOL.addWith(s));
+      }
+      pr.dead = 1;
+      return false;
+    }
+    if (pr.life <= 0 || pr.x < -50 || pr.x > rSt().width + 50 || pr.y < -50 || pr.y > rSt().height + 50) {
+      pr.dead = 1;
+      return false;
+    }
+    return true;
+  },
+
+  /** 月影巫王 · 符箓弹：蓄力 chargeT 秒后爆发加速（咒语引导完成） */
+  enemyRune(pr, dt, _p) {
+    pr.t = (pr.t || 0) + dt;
+    // 蓄力进度交给渲染层（发亮）
+    pr.charge = Math.min(1, pr.t / (pr.chargeT || 0.9));
+    if (pr.t >= (pr.chargeT || 0.9)) {
+      const f = 1 + 2.4 * dt;   // 引导完成：持续加速
+      pr.vx = (pr.vx || 0) * f;
+      pr.vy = (pr.vy || 0) * f;
+    }
+    pr.x += (pr.vx || 0) * dt;
+    pr.y += (pr.vy || 0) * dt;
+    pr.life = (pr.life || 3.2) - dt;
+    if (pr.life <= 0 || pr.x < -50 || pr.x > rSt().width + 50 || pr.y < -50 || pr.y > rSt().height + 50) {
+      pr.dead = 1;
+      return false;
+    }
+    return true;
+  },
+
+  /** 蚀潮巨兽 · 浪花弹：速度随潮汐呼吸波动（涨潮快 / 退潮滞涩） */
+  enemyWave(pr, dt, _p) {
+    pr.t = (pr.t || 0) + dt;
+    const base = pr.baseSpeed || 200;
+    const f = 1 + 0.45 * Math.sin(pr.t * 2.4 + (pr.phase || 0));
+    const ang = Math.atan2(pr.vy || 0, pr.vx || 0);
+    pr.vx = Math.cos(ang) * base * f;
+    pr.vy = Math.sin(ang) * base * f;
+    pr.x += pr.vx * dt;
+    pr.y += pr.vy * dt;
+    pr.life = (pr.life || 3) - dt;
+    if (pr.life <= 0 || pr.x < -50 || pr.x > rSt().width + 50 || pr.y < -50 || pr.y > rSt().height + 50) {
+      pr.dead = 1;
+      return false;
+    }
+    return true;
+  },
 };
+
+/**
+ * 卵囊破裂：生成 3 只三角幼体（扇形散射，纯函数便于测试）
+ * @returns 幼体投射物参数数组
+ */
+export function eggSplitBurst(pr: Projectile): Array<Record<string, unknown>> {
+  const ang = Math.atan2(pr.vy || 0, pr.vx || 0);
+  const out: Array<Record<string, unknown>> = [];
+  for (let i = -1; i <= 1; i++) {
+    const a = ang + i * 0.5;
+    out.push({
+      enemy: true, x: pr.x, y: pr.y,
+      vx: Math.cos(a) * 200, vy: Math.sin(a) * 200,
+      r: 5, dmg: (pr.dmg || 1) * 0.7, color: pr.color || PALETTE.teal,
+      hit: new Set(), life: 1.8, wId: 'enemy_tri',
+    });
+  }
+  return out;
+}
 
 /* =========================================================
    蚀痕喷发：地面延迟圈到期时的爆裂

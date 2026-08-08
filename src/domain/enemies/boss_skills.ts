@@ -33,6 +33,7 @@ function shot(e: any, ang: number, speed: number, color: string, opts: any = {})
     r: opts.r ?? 6, dmg: e.dmg * (opts.dmgMul ?? 0.7),
     color, hit: new Set(), enemy: true, life: opts.life ?? 2.5,
     wId: opts.wId, arc: opts.arc, charge: opts.charge, gap: opts.gap,
+    baseSpeed: opts.baseSpeed ?? speed, splitAt: opts.splitAt, chargeT: opts.chargeT, phase: opts.phase,
     ...mark,
   }));
 }
@@ -113,10 +114,10 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     // 潮汐呼吸：涨潮(breath>1)推快 / 退潮(<1)滞涩——节奏随 attT 相位波动
     const breath = 1 + 0.45 * Math.sin(e.attT * 2.4);
     // 浪花弧片双层（错位消除间隙）+ 快层推挤
-    ringLayerShot(e, 12, 210 * breath, PALETTE.ice, { offset: base, r: 6, dmgMul: 0.45, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3 });
-    ringLayerShot(e, 12, 300 * breath, PALETTE.skyDark, { offset: base + 0.2, r: 6, dmgMul: 0.4, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3 });
+    ringLayerShot(e, 12, 210 * breath, PALETTE.ice, { offset: base, r: 6, dmgMul: 0.45, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3, phase: RNG() * TAU });
+    ringLayerShot(e, 12, 300 * breath, PALETTE.skyDark, { offset: base + 0.2, r: 6, dmgMul: 0.4, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3, phase: RNG() * TAU });
     // 螺旋潮圈（持续漩涡压迫）
-    spiralBurst(e, 2, 10, 260 * breath, '#7fc4d8', { r: 5, dmgMul: 0.35, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3 });
+    spiralBurst(e, 2, 10, 260 * breath, '#7fc4d8', { r: 5, dmgMul: 0.35, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3, phase: RNG() * TAU });
     // 追踪潮球（绕圈甩）
     trackBalls(e, 2, 211, 60, PALETTE.skyDark, { dmgMul: 0.53, life: 3.5, ...HOMING_TUNE.tidalWave });
   },
@@ -137,7 +138,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     // 产卵时也不忘压制：卵囊弹（母体孕育，飞散中挣出幼体）+ 三角幼体 + 追踪泡
     for (let i = 0; i < 6; i++) {
       const a = (i / 6) * TAU + RNG() * 0.5;
-      shot(e, a, 150, PALETTE.teal, { r: 7, dmgMul: 0.5, life: 3, wId: 'enemy_egg' });
+      shot(e, a, 150, PALETTE.teal, { r: 7, dmgMul: 0.5, life: 3, wId: 'enemy_egg', splitAt: 1.1 });
     }
     for (let i = 0; i < 5; i++) {
       const a = (i / 5) * TAU + RNG() * 0.6;
@@ -191,7 +192,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     trackBalls(e, 3, 210, 55, PALETTE.orchid, { dmgMul: 0.7, life: 4, ...HOMING_TUNE.shadowOrbF });
     trackBalls(e, 2, 150, 35, PALETTE.violet, { dmgMul: 0.62, life: 4.5, ...HOMING_TUNE.shadowOrbS });
     // 咒文符箓：旋转符箓飞散（蓄力发亮由渲染层 charge 表达）
-    ringShot(e, 12, 230, PALETTE.violetDark, { r: 7, dmgMul: 0.55, life: 3, mark: 'pulse', wId: 'enemy_rune' });
+    ringShot(e, 12, 230, PALETTE.violetDark, { r: 7, dmgMul: 0.55, life: 3, mark: 'pulse', wId: 'enemy_rune', chargeT: 0.9 });
     p.effects.curseTimer = Math.max(p.effects.curseTimer || 0, 3);
     EventBus.emit(EVENTS.UI_SPAWN_TEXT, { x: p.x, y: p.y - 40, text: '蚀咒', color: PALETTE.orchid });
   },

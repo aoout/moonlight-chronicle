@@ -152,6 +152,10 @@ export function resolveProjectileType(pr: Projectile): string {
   if (pr.ground) return 'ground';
   if (pr.breath) return 'breath';
   if (pr.boomerang) return 'boomerang';
+  // 敌方异型弹行为（v0.6 实装：卵囊分裂 / 符箓蓄力 / 浪花呼吸）
+  if (pr.enemy && pr.wId === 'enemy_egg') return 'enemyEgg';
+  if (pr.enemy && pr.wId === 'enemy_rune') return 'enemyRune';
+  if (pr.enemy && pr.wId === 'enemy_wave') return 'enemyWave';
   if (pr.homing) return 'homing';
   if (pr.beam) return 'beam';
   if (pr.aoe) return 'aoe';
