@@ -48,6 +48,41 @@
   border-color: rgba(var(--gold-rgb), .18);
   cursor: not-allowed;
 }
+/* 余额不足补货成本：按钮转血红色提示 */
+.btn-refill.poor {
+  color: var(--blood);
+  border-color: rgba(var(--blood-rgb), .45);
+  background: linear-gradient(160deg, rgba(var(--blood-rgb), .14), rgba(var(--blood-rgb), .04));
+}
+.btn-refill.poor:hover:not(:disabled) {
+  filter: brightness(1.25);
+  box-shadow: 0 0 14px rgba(var(--blood-rgb), .25);
+}
+
+/* ---------- 商店金币徽章 · 余额不足 ---------- */
+.coin.poor {
+  color: var(--blood);
+  border-color: rgba(var(--blood-rgb), .45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 0 18px rgba(var(--blood-rgb), .18);
+  animation: coinPoor 1.1s ease-in-out infinite;
+}
+.coin.poor .ic {
+  color: var(--blood);
+  filter: drop-shadow(0 0 6px rgba(var(--blood-rgb), .5));
+}
+@keyframes coinPoor {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .68; }
+}
+
+/* ---------- 买不起的卡片：整体淡化 + 价格徽章明示「不足」 ---------- */
+.card.cant-afford {
+  filter: saturate(.7) brightness(.82);
+}
+.card.cant-afford .card-price::after {
+  content: ' · 不足';
+  letter-spacing: .04em;
+}
 
 /* ---------- 已售罄空位卡 ---------- */
 .card.sold {

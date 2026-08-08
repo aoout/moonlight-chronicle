@@ -55,6 +55,35 @@ function updateRefillBtn(): void {
   btn.disabled = false;
   const cost = p ? refillCost(p, shopState.state.refills + 1) : 0;
   btn.textContent = '涨潮补货 · ' + (cost === 0 ? '免费' : cost + ' 金');
+  /* 余额不足补货成本 → 按钮转血红色提示 */
+  btn.classList.toggle('poor', !!p && cost > Math.floor(sSt().gold));
+}
+
+/** 货币不足反馈：余额买不起任何未售品且补不起货时，金币徽章转红（渲染后/购买后复用，自算价格） */
+function updateGoldStatus(): void {
+  const p = pSt().player;
+  if (!p) return;
+  const st = shopState.state;
+  const gold = Math.floor(sSt().gold);
+  const refill = refillCost(p, st.refills + 1);
+  let min = Infinity;   /* 剩余未售品最低价 */
+  for (const s of st.slots) {
+    if (s.sold) continue;
+    const inflate = inflationRate(gSt().stage);
+    if (s.kind === 'weapon') {
+      const def = WEAPONS[s.id];
+      const w = p.weapons.find((x: any) => x.id === s.id);
+      min = Math.min(min, w
+        ? Math.round(WEAPON_UPGRADE_COST[w.lv + 1] * (p.effects.priceMul || 1) * inflate)
+        : Math.round(16 * (p.effects.priceMul || 1) * inflate));
+    } else {
+      const it = SHOP_ITEMS.find(x => x.id === s.id);
+      if (it) min = Math.min(min, Math.round(it.price * (p.effects.priceMul || 1) * inflate));
+    }
+  }
+  const poor = !isDevMode() && gold < min && gold < refill;
+  const coin = $('shop-gold')?.parentElement;
+  if (coin) coin.classList.toggle('poor', poor);
 }
 
 /** 渲染货架卡片（不清状态；购买后置 sold 再调用本函数即可） */
@@ -148,6 +177,8 @@ function renderShop(): void {
       c.onclick = null;
       $('shop-gold').textContent = String(Math.floor(sSt().gold));
       renderShopPanel(p);
+      /* 购买后余额可能跌破剩余商品最低价 → 刷新金币不足提示 */
+      updateGoldStatus();
     };
     cards.appendChild(c);
   });
@@ -158,6 +189,7 @@ function renderShop(): void {
   updateRefillBtn();
   $('shop-gold').textContent = String(Math.floor(sSt().gold));
   renderShopPanel(p);
+  updateGoldStatus();
   $('shop').classList.remove('hidden');
   EventBus.emit(EVENTS.SHOP_OPEN, { stage: gSt().stage, gold: sSt().gold });
 }

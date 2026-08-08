@@ -281,8 +281,15 @@ export function handleConfirm(): void {
     case 'result': clickById('btn-retry'); return;
     case 'howto': clickById('btn-close-how'); return;
     default:
-      if (ctx.items[_focusIndex]) (ctx.items[_focusIndex] as HTMLElement).click();
+      /* dispatchEvent 而非 .click()：SVGPathElement 没有 click() 方法（HTMLElement 专属），
+         手柄聚焦项可能是 SVG 扇区 path（强化/踢格模式），必须派发合成 click 事件 */
+      if (ctx.items[_focusIndex]) dispatchClick(ctx.items[_focusIndex]);
   }
+}
+
+/* 派发合成 click 事件：HTML + SVG 元素通用（兼容 SVGPathElement 无 click() 方法） */
+function dispatchClick(el: Element): void {
+  el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 }
 
 export function handleCancel(): void {
