@@ -89,10 +89,10 @@ export class CurseScreen extends Component<{}> {
         confirmCurses(_picked, _options);
       };
     }
-    $('#curse').classList.remove('hidden');
+    $('curse').classList.remove('hidden');
   }
 
   close(): void {
-    $('#curse').classList.add('hidden');
+    $('curse').classList.add('hidden');
   }
 }
