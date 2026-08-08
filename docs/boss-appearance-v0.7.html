@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蚀月远征 · Boss 外观设计 v0.7 — 十位蚀月之主的立像</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   月蚀玻璃 · HTML 汇报规范 v0.2（本报告即规范样板）
+   ============================================================ */
+:root{
+  --bg-0:#0a0d16; --bg-1:#0e1220; --bg-2:#121729; --bg-3:#181f36;
+  --glass-bg:rgba(19,24,43,.55); --glass-blur:16px;
+  --glass-border:linear-gradient(160deg, rgba(212,169,78,.28), rgba(212,169,78,.06) 40%, rgba(232,230,223,.08) 100%);
+  --glass-highlight:inset 0 1px 0 rgba(255,255,255,.06);
+  --gold:#d4a94e; --gold-bright:#eec97a; --gold-dim:#8a7340;
+  --moon:#e8e6df; --moon-dim:#a9aec4;
+  --red:#c05050; --red-bright:#e06a5a;
+  --teal:#5fb3a8; --blue:#6d8fd6;
+  --text:#cfd3e4; --text-dim:#8b91ab; --text-faint:#5c6279;
+  --serif:'Noto Serif SC',serif; --sans:'Noto Sans SC',system-ui,sans-serif;
+  --radius:18px; --radius-sm:10px;
+  --shadow:0 24px 70px rgba(0,0,0,.55);
+  --line:#262e4a; --line-soft:#1e2540;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg-0);color:var(--text);font-family:var(--sans);font-weight:300;
+  line-height:1.78;font-size:15.5px;overflow-x:hidden}
+
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(1100px 560px at 88% -8%, rgba(212,169,78,.08), transparent 60%),
+    radial-gradient(900px 520px at 6% 108%, rgba(109,143,214,.09), transparent 62%),
+    linear-gradient(180deg,var(--bg-0),var(--bg-1) 55%,var(--bg-0))}
+.stars::after{content:'';position:absolute;inset:0;opacity:.55;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 27% 66%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1.4px 1.4px at 43% 11%, rgba(255,255,255,.45), transparent),
+    radial-gradient(1px 1px at 58% 44%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1px 1px at 71% 80%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1.4px 1.4px at 85% 24%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1px 1px at 92% 57%, rgba(255,255,255,.25), transparent),
+    radial-gradient(1px 1px at 8% 87%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1px 1px at 36% 93%, rgba(255,255,255,.22), transparent)}
+
+.glass{background:var(--glass-bg);backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
+  border:1px solid transparent;
+  background-image:var(--glass-border),var(--glass-bg);
+  background-origin:border-box;background-clip:padding-box,border-box;
+  box-shadow:var(--shadow),var(--glass-highlight)}
+
+.wrap{position:relative;z-index:1;max-width:1160px;margin:0 auto;padding:0 30px 130px}
+section{margin-top:104px;scroll-margin-top:24px}
+
+nav.toc{position:fixed;top:50%;right:18px;transform:translateY(-50%);z-index:60;
+  display:flex;flex-direction:column;gap:2px;padding:10px 6px;border-radius:999px;
+  background:rgba(14,18,32,.72);backdrop-filter:blur(10px);border:1px solid var(--line)}
+nav.toc a{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;color:var(--text-faint);
+  text-decoration:none;font-size:11px;letter-spacing:.06em;white-space:nowrap;transition:all .25s}
+nav.toc a .dot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:all .25s}
+nav.toc a:hover{color:var(--text)}
+nav.toc a.active{color:var(--gold-bright)}
+nav.toc a.active .dot{background:var(--gold-bright);box-shadow:0 0 9px rgba(212,169,78,.85)}
+nav.toc a .lab{display:none}
+nav.toc a.active .lab{display:inline}
+@media(max-width:920px){nav.toc{display:none}}
+
+.hero{min-height:84vh;display:flex;flex-direction:column;justify-content:center;position:relative;padding-top:56px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:12.5px;letter-spacing:.35em;color:var(--gold-dim);margin-bottom:22px}
+.eyebrow::before{content:'';width:46px;height:1px;background:var(--gold-dim)}
+h1{font-family:var(--serif);font-weight:900;font-size:clamp(32px,5.2vw,56px);line-height:1.24;color:var(--moon);letter-spacing:.02em;max-width:860px}
+h1 .accent{color:var(--gold-bright)}
+.hero-sub{margin-top:24px;max-width:720px;color:var(--text-dim);font-size:16px}
+.principles{margin-top:40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.prin{padding:20px 22px;border-radius:var(--radius-sm)}
+.prin .pn{font-family:var(--serif);font-weight:900;color:var(--gold);font-size:14px;letter-spacing:.1em;margin-bottom:8px}
+.prin p{font-size:13px;color:var(--text-dim);line-height:1.75}
+.prin p b{color:var(--moon);font-weight:500}
+.meta-strip{display:flex;flex-wrap:wrap;gap:12px;margin-top:44px}
+.meta-strip .m{display:flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;font-size:12.5px;color:var(--text-dim);
+  background:rgba(26,32,54,.55);border:1px solid var(--line-soft);backdrop-filter:blur(8px)}
+.meta-strip .m b{color:var(--gold);font-weight:600}
+
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:14px}
+.sec-no{font-family:var(--serif);font-weight:700;font-size:15px;color:var(--gold-dim);letter-spacing:.22em}
+.sec-head h2{font-family:var(--serif);font-weight:700;font-size:clamp(24px,3vw,32px);color:var(--moon)}
+.sec-lead{color:var(--text-dim);max-width:880px;margin-bottom:34px;font-size:15px}
+.sec-lead b{color:var(--gold);font-weight:500}
+
+/* ===== Boss 图鉴卡 ===== */
+.boss-card{padding:30px 32px;border-radius:22px;margin-bottom:30px;position:relative;overflow:hidden}
+.boss-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),transparent 70%)}
+.bc-head{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.bc-num{flex:none;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-weight:900;font-size:19px;color:var(--bg-1);
+  background:linear-gradient(135deg,var(--gold-bright),var(--gold));
+  box-shadow:0 6px 22px rgba(212,169,78,.35)}
+.bc-head h3{font-family:var(--serif);font-weight:700;font-size:22px;color:var(--moon)}
+.bc-head .en{font-size:11px;color:var(--text-faint);letter-spacing:.2em;margin-top:2px}
+.bc-night{font-size:11.5px;padding:5px 12px;border-radius:999px;margin-left:auto;
+  background:rgba(212,169,78,.08);border:1px solid rgba(212,169,78,.22);color:var(--gold-bright);white-space:nowrap}
+.bc-grid{display:grid;grid-template-columns:340px 1fr;gap:24px;margin-top:16px}
+@media(max-width:860px){.bc-grid{grid-template-columns:1fr}}
+.bc-art{position:relative;border-radius:var(--radius);overflow:hidden;
+  background:radial-gradient(380px 260px at 50% 30%, rgba(255,255,255,.05), rgba(8,10,20,.6) 70%)}
+.bc-art svg{display:block;width:100%;height:auto}
+.bc-info .lore{font-size:13.5px;color:var(--text-dim);line-height:1.9;margin-bottom:14px;
+  border-left:2px solid var(--gold-dim);padding-left:14px}
+.bc-info .lore b{color:var(--moon)}
+.dtbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.dtbl td{padding:7px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top;line-height:1.7}
+.dtbl tr:last-child td{border-bottom:none}
+.dtbl td:first-child{white-space:nowrap;color:var(--gold-dim);font-size:11.5px;letter-spacing:.08em;width:88px}
+.dtbl td b{color:var(--moon);font-weight:500}
+
+/* ===== 配色表 ===== */
+.sw-row{display:flex;gap:6px;align-items:center}
+.sw{width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.14)}
+.sw.lg{width:34px;height:34px}
+.ph{font-size:10.5px;letter-spacing:.1em;color:var(--gold-dim);background:rgba(212,169,78,.1);
+  padding:1px 6px;border-radius:4px;font-weight:500;vertical-align:2px;white-space:nowrap}
+.tbl-wrap{border-radius:var(--radius);border:1px solid var(--line);overflow-x:auto;
+  background:rgba(18,23,41,.6);backdrop-filter:blur(12px)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
+th{font-size:11.5px;letter-spacing:.14em;color:var(--gold-dim);font-weight:500;text-align:left;
+  padding:13px 15px;border-bottom:1px solid var(--line);background:rgba(212,169,78,.05);white-space:nowrap}
+td{padding:12px 15px;border-bottom:1px solid var(--line-soft);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+td b{color:var(--moon);font-weight:500}
+
+footer{margin-top:110px;padding-top:30px;border-top:1px solid var(--line-soft);text-align:center;
+  color:var(--text-faint);font-size:12.5px;line-height:2.2}
+footer .moonlet{color:var(--gold-dim);letter-spacing:.4em}
+.changelog{margin-top:16px;display:inline-block;text-align:left;font-size:11.5px;color:var(--text-faint);
+  border:1px dashed var(--line);border-radius:10px;padding:12px 20px;background:rgba(18,23,41,.5)}
+.changelog b{color:var(--gold-dim)}
+
+::-webkit-scrollbar{width:9px}
+::-webkit-scrollbar-track{background:var(--bg-0)}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-dim)}
+
+/* ===== SVG 动效语言（全局） ===== */
+svg .anim{transform-box:fill-box;transform-origin:center}
+.breath{animation:breath 3.4s ease-in-out infinite}
+.breath-f{animation:breath 2.2s ease-in-out infinite}
+.rot-slow{animation:rot 16s linear infinite}
+.rot-mid{animation:rot 9s linear infinite}
+.rot-rev{animation:rot 12s linear infinite reverse}
+.pulse{animation:pulse 2.6s ease-in-out infinite}
+.pulse-f{animation:pulse 1.4s ease-in-out infinite}
+.flicker{animation:flicker 1.8s steps(2,end) infinite}
+.flow-x{animation:flowX 5s linear infinite}
+.sway{animation:sway 4.4s ease-in-out infinite}
+.sway-r{animation:swayR 4.4s ease-in-out infinite}
+.blink{animation:blink 4.6s ease-in-out infinite}
+.float-y{animation:floatY 4.8s ease-in-out infinite}
+.glow-p{animation:glowP 3s ease-in-out infinite}
+.spin-bounce{animation:spinB 7s linear infinite}
+@keyframes breath{0%,100%{transform:scale(1)}50%{transform:scale(1.055)}}
+@keyframes rot{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:.65}50%{opacity:1}}
+@keyframes flicker{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes flowX{to{transform:translateX(-42px)}}
+@keyframes sway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+@keyframes swayR{0%,100%{transform:rotate(5deg)}50%{transform:rotate(-5deg)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes glowP{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes spinB{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none}.anim,.breath,.rot-slow,.pulse,.flicker,.flow-x,.sway,.blink,.float-y{animation:none}}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<nav class="toc" id="toc"></nav>
+
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="eyebrow">Moonlight Chronicle · Boss Appearance v0.7</div>
+    <h1>外观不是皮肤，<br>是 Boss 的<span class="accent">世界观立像</span>。</h1>
+    <p class="hero-sub">十位蚀月之主，每位的外形都从「它叫什么、它打什么弹幕」里长出来——潮汐兽有浪脊，战车有蚀轮，终焉就是月亮本身。SVG 立像 + 设计语言，一眼看懂设定。</p>
+    <div class="principles">
+      <div class="prin glass"><div class="pn">意象 · 它是什么</div><p>每位 Boss 一个核心意象：<b>潮汐之魂 / 孕育之躯 / 碾压之械 / 月神王者 / 幽灵咒师 / 月白剑客 / 天空霸主 / 雷暴之枭 / 凝视之巢 / 蚀月本体</b>。</p></div>
+      <div class="prin glass"><div class="pn">形状 · 它长什么样</div><p>形状语言来自名字：<b>浪脊背甲、蚀轮、月冠、兜帽雾体、熔岩鳞、雷羽翼</b>——玩家看剪影就知道是谁。</p></div>
+      <div class="prin glass"><div class="pn">材质 · 它由什么构成</div><p>材质表达来源：潮水、蚀壳、月光、影雾、熔岩、深渊——<b>身体的材质就是它的出处</b>。</p></div>
+      <div class="prin glass"><div class="pn">动效 · 它怎么活着</div><p>动效表达性格：<b>潮汐呼吸、卵囊搏动、车轮碾转、月相轮转</b>——静止的 Boss 立像也会「活」。</p></div>
+      <div class="prin glass"><div class="pn">呼应 · 弹幕即投射</div><p>弹幕是外观的投射：<b>浪花弧片弹 = 背脊浪纹、蚀月环 = 终焉外环</b>——打出去的弹和立像同源。</p></div>
+    </div>
+    <div class="meta-strip">
+      <div class="m">立像：<b>10</b> 座（SVG 可动）</div>
+      <div class="m">设计语言：<b>5</b> 层</div>
+      <div class="m">动效：<b>12</b> 种</div>
+      <div class="m">配色系统：<b>10</b> 套</div>
+    </div>
+  </header>
+
+  <!-- ============ 壹 设计语言 ============ -->
+  <section id="s1">
+    <div class="sec-head reveal">
+      <span class="sec-no">壹</span>
+      <h2>设计语言：五层，逐位拆解</h2>
+    </div>
+    <p class="sec-lead reveal">每位 Boss 的立像按 <b>意象 → 形状 → 材质 → 动效 → 弹幕呼应</b> 五层设计。下表是十位的速览，细节在图鉴区。</p>
+    <div class="tbl-wrap reveal">
+      <table>
+        <thead><tr><th>Boss</th><th>核心意象</th><th>形状语言</th><th>材质</th><th>标志动效</th><th>弹幕呼应</th></tr></thead>
+        <tbody>
+          <tr><td><b>蚀潮巨兽</b></td><td>潮汐之魂</td><td>浪脊背甲 · 漩涡眼 · 鳍鬃</td><td>水纹 + 浪花白沫</td><td>全身波浪流动 + 呼吸明暗</td><td>浪花弧片弹 = 背脊浪纹</td></tr>
+          <tr><td><b>潮噬之母</b></td><td>孕育之躯</td><td>透明卵腹 · 产卵触手 · 壳纹背</td><td>腐殖潮水 + 卵膜</td><td>卵囊搏动（脉动节奏）</td><td>卵囊弹 = 腹中卵的投射</td></tr>
+          <tr><td><b>蚀壳战车</b></td><td>碾压之械</td><td>蚀轮 · 层叠蚀甲 · 巨角撞器</td><td>锈蚀金属 + 蚀纹</td><td>车轮碾转 + 甲片呼吸</td><td>轮辐弹 = 蚀轮的投射</td></tr>
+          <tr><td><b>噬月君主</b></td><td>月神王者</td><td>月袍 · 月冠 · 月刃剑</td><td>月光长袍 + 金饰</td><td>袍缘星点流动 + 月冠旋转</td><td>月相月刃 = 剑光的分身</td></tr>
+          <tr><td><b>月影巫王</b></td><td>幽灵咒师</td><td>兜帽雾体 · 咒火眼 · 符箓环</td><td>影雾（半透明）</td><td>雾体飘动 + 符箓环绕</td><td>符箓弹 = 身周符文的投射</td></tr>
+          <tr><td><b>断月剑豪</b></td><td>月白剑客</td><td>束发 · 长衣摆 · 月牙单刃</td><td>月白绸缎 + 银刃</td><td>衣摆飘动 + 蓄力刀光</td><td>刀气弧 = 衣摆边缘的斩出</td></tr>
+          <tr><td><b>裂空魔龙</b></td><td>天空霸主</td><td>裂空翼 · 熔岩鳞 · 蚀月角</td><td>熔岩 + 火纹翼膜</td><td>鳞片熔岩流动 + 口含火光</td><td>泪滴龙焰 = 口火的迸出</td></tr>
+          <tr><td><b>蚀雷巨枭</b></td><td>雷暴之枭</td><td>展翼 · 雷核目 · 闪电羽</td><td>雷云 + 电弧</td><td>羽缘电弧脉动 + 双目放电</td><td>雷羽弹 = 振落的翎羽</td></tr>
+          <tr><td><b>深渊巢母</b></td><td>凝视之巢</td><td>同心口器 · 眼柄 · 酸触须</td><td>深渊壁 + 酸液</td><td>口器开合 + 众眼眨动</td><td>深渊之眼 = 巢壁凝视的投射</td></tr>
+          <tr><td><b>蚀月终焉</b></td><td>蚀月本体</td><td>蚀纹月面 · 金核 · 蚀月环</td><td>蚀月 + 血雨云</td><td>蚀相轮转 + 月核呼吸</td><td>蚀月环 = 外环的抛出</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 贰 十位图鉴 ============ -->
+  <section id="s2">
+    <div class="sec-head reveal">
+      <span class="sec-no">贰</span>
+      <h2>十位蚀月之主 · 立像图鉴</h2>
+    </div>
+    <p class="sec-lead reveal">每座立像都是动态 SVG——<b>悬停可暂停</b>（尊重 reduced-motion）。设计要素逐层标注。</p>
+
+    <!-- 01 蚀潮巨兽 -->
+    <article class="boss-card glass reveal">
+      <div class="bc-head">
+        <div class="bc-num">01</div>
+        <div><h3>蚀潮巨兽</h3><div class="en">BEHEMOTH · 潮汐之魂</div></div>
+        <span class="bc-night">第六夜 · 蚀潮自月背翻涌而出</span>
+      </div>
+      <div class="bc-grid">
+        <div class="bc-art">
+          <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-label="蚀潮巨兽">
+            <defs>
+              <linearGradient id="bh-body" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#9fe0ef"/><stop offset=".45" stop-color="#5c8a9e"/><stop offset="1" stop-color="#1f3a4a"/>
+              </linearGradient>
+              <radialGradient id="bh-eye" cx=".5" cy=".5" r=".5">
+                <stop offset="0" stop-color="#e8f4f8"/><stop offset=".55" stop-color="#7fc4d8"/><stop offset="1" stop-color="#1f3a4a"/>
+              </radialGradient>
+              <linearGradient id="bh-fin" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#b8ecf5"/><stop offset="1" stop-color="#3d6a7d"/>
+              </linearGradient>
+            </defs>
+            <!-- 尾迹潮水 -->
+            <path d="M30 268 Q80 250 140 264 T260 262" stroke="#7fc4d8" stroke-width="3" fill="none" opacity=".35" class="anim flow-x"/>
+            <path d="M40 282 Q100 268 170 280 T280 276" stroke="#5c8a9e" stroke-width="2.5" fill="none" opacity=".28" class="anim flow-x"/>
+            <!-- 鳍鬃（水浪垂落，摆动） -->
+            <g class="anim sway">
+              <path d="M150 96 Q132 130 138 162 Q146 132 158 118 Z" fill="url(#bh-fin)" opacity=".85"/>
+              <path d="M170 92 Q152 136 158 172 Q168 138 180 116 Z" fill="url(#bh-fin)" opacity=".95"/>
+              <path d="M192 98 Q178 138 184 168 Q194 136 202 120 Z" fill="url(#bh-fin)" opacity=".8"/>
+            </g>
+            <!-- 主体（浪脊背甲） -->
+            <path d="M120 200 Q128 128 160 108 Q192 128 200 200 Q190 246 160 258 Q130 246 120 200 Z" fill="url(#bh-body)" class="anim breath"/>
+            <!-- 背脊浪纹 -->
+            <path d="M132 186 Q160 150 188 186" stroke="#b8ecf5" stroke-width="4" fill="none" opacity=".8" stroke-linecap="round"/>
+            <path d="M138 168 Q160 138 182 168" stroke="#9fe0ef" stroke-width="3.5" fill="none" opacity=".6" stroke-linecap="round"/>
+            <path d="M144 150 Q160 128 176 150" stroke="#b8ecf5" stroke-width="3" fill="none" opacity=".45" stroke-linecap="round"/>
+            <!-- 漩涡眼 -->
+            <circle cx="156" cy="188" r="14" fill="url(#bh-eye)" class="anim glow-p"/>
+            <path d="M148 188 A8 8 0 0 1 164 188" stroke="#1f3a4a" stroke-width="2" fill="none" opacity=".7"/>
+            <!-- 浪花鳍（身体两侧） -->
+            <path d="M118 196 Q92 176 84 194 Q100 196 116 210 Z" fill="url(#bh-fin)" opacity=".9" class="anim sway-r"/>
+            <path d="M204 196 Q228 176 236 194 Q220 196 204 210 Z" fill="url(#bh-fin)" opacity=".9" class="anim sway"/>
+            <!-- 白沫缘 -->
+            <path d="M126 236 Q160 252 194 236" stroke="#e8f4f8" stroke-width="2.5" fill="none" opacity=".7" stroke-linecap="round"/>
+            <!-- 底部浪座 -->
+            <path d="M96 268 Q160 238 224 268 Q188 286 160 284 Q128 286 96 268 Z" fill="#1f3a4a" opacity=".8" class="anim breath"/>
+          </svg>
+        </div>
+        <div class="bc-info">
+          <p class="lore"><b>设定：</b>潮汐的化身——它不是「住在潮里的兽」，它就是潮本身。身体由层层浪脊堆叠，漩涡眼凝视着月背，白沫沿身体边缘起落，<b>每一次呼吸都是潮汐的一次涨落</b>。</p>
+          <table class="dtbl">
+            <tr><td>意象</td><td>潮汐之魂：身体即浪潮</td></tr>
+            <tr><td>形状</td><td>浪脊背甲（三道波峰）/ 漩涡眼 / 水浪鳍鬃</td></tr>
+            <tr><td>材质</td><td>水纹渐变（青蓝→深蓝）+ 浪花白沫边缘</td></tr>
+            <tr><td>动效</td><td>全身呼吸明暗 + 鳍鬃摆动 + 尾迹潮水流动</td></tr>
+            <tr><td>呼应</td><td>浪花弧片弹 = 背脊浪纹的投射；弹幕呼吸变速 = 它呼吸的节奏</td></tr>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 02 潮噬之母 -->
+    <article class="boss-card glass reveal">
+      <div class="bc-head">
+        <div class="bc-num">02</div>
+        <div><h3>潮噬之母</h3><div class="en">TIDE MOTHER · 孕育之躯</div></div>
+        <span class="bc-night">第六夜 · 潮噬之母分娩蚀潮</span>
+      </div>
+      <div class="bc-grid">
+        <div class="bc-art">
+          <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-label="潮噬之母">
+            <defs>
+              <radialGradient id="tm-belly" cx=".5" cy=".45" r=".55">
+                <stop offset="0" stop-color="#8ad4c7"/><stop offset=".6" stop-color="#4a7d74"/><stop offset="1" stop-color="#2a4a44"/>
+              </radialGradient>
+              <radialGradient id="tm-egg" cx=".4" cy=".4" r=".6">
+                <stop offset="0" stop-color="#e0f5ec"/><stop offset="1" stop-color="#b6f0e0"/>
+              </radialGradient>
+              <linearGradient id="tm-back" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#6fa8a0"/><stop offset="1" stop-color="#2a4a44"/>
+              </linearGradient>
+            </defs>
+            <!-- 产卵触手（摆动） -->
+            <g class="anim sway"><path d="M96 150 Q74 120 66 92" stroke="#4a7d74" stroke-width="7" stroke-linecap="round" fill="none"/><circle cx="66" cy="90" r="7" fill="#b6f0e0" opacity=".8"/></g>
+            <g class="anim sway-r"><path d="M224 150 Q246 118 252 88" stroke="#4a7d74" stroke-width="7" stroke-linecap="round" fill="none"/><circle cx="252" cy="86" r="7" fill="#b6f0e0" opacity=".8"/></g>
+            <!-- 背甲（壳纹） -->
+            <path d="M112 108 Q160 82 208 108 L196 152 Q160 132 124 152 Z" fill="url(#tm-back)" class="anim breath"/>
+            <path d="M132 116 Q160 98 188 116" stroke="#8ad4c7" stroke-width="2.5" fill="none" opacity=".7"/>
+            <path d="M140 132 Q160 118 180 132" stroke="#8ad4c7" stroke-width="2" fill="none" opacity=".5"/>
+            <!-- 卵腹（透明，可见卵） -->
+            <ellipse cx="160" cy="196" rx="62" ry="58" fill="url(#tm-belly)" class="anim breath-f"/>
+            <!-- 腹中卵（搏动） -->
+            <g class="anim glow-p">
+              <ellipse cx="140" cy="184" rx="13" ry="16" fill="url(#tm-egg)"/>
+              <ellipse cx="172" cy="176" rx="14" ry="17" fill="url(#tm-egg)"/>
+              <ellipse cx="158" cy="212" rx="15" ry="18" fill="url(#tm-egg)"/>
+              <ellipse cx="188" cy="206" rx="11" ry="14" fill="url(#tm-egg)"/>
+            </g>
+            <!-- 卵腹高光 -->
+            <path d="M132 172 Q150 160 172 162" stroke="#e0f5ec" stroke-width="3" fill="none" opacity=".6" stroke-linecap="round"/>
+            <!-- 头（低伏） -->
+            <ellipse cx="160" cy="98" rx="26" ry="18" fill="#4a7d74"/>
+            <circle cx="150" cy="94" r="4" fill="#e0f5ec" class="anim glow-p"/>
+            <circle cx="172" cy="94" r="4" fill="#e0f5ec" class="anim glow-p"/>
+            <!-- 底部潮座 -->
+            <path d="M100 250 Q160 234 222 250 Q188 266 160 264 Q132 266 100 250 Z" fill="#1f3a3a" opacity=".85" class="anim breath"/>
+          </svg>
+        </div>
+        <div class="bc-info">
+          <p class="lore"><b>设定：</b>孕育蚀潮的母体。巨大的腹部近乎透明，<b>腹中卵囊清晰可数、随心跳搏动</b>——你看到的每一颗卵，都是下一波弹幕的胚胎。触手既是产卵器也是捕食器，低伏的头颅从不高昂，因为它所有存在感都在腹中。</p>
+          <table class="dtbl">
+            <tr><td>意象</td><td>孕育之躯：腹即子宫，卵即弹药</td></tr>
+            <tr><td>形状</td><td>透明卵腹 / 产卵触手 ×2 / 壳纹背甲</td></tr>
+            <tr><td>材质</td><td>腐殖青绿（青→墨绿）+ 卵膜半透明 + 卵白光泽</td></tr>
+            <tr><td>动效</td><td>腹中卵搏动（脉动节奏）+ 触手摆动 + 背甲呼吸</td></tr>
+            <tr><td>呼应</td><td>卵囊弹 = 腹中卵的直接投射；卵囊会裂，腹中卵也终将孵出</td></tr>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 03 蚀壳战车 -->
+    <article class="boss-card glass reveal">
+      <div class="bc-head">
+        <div class="bc-num">03</div>
+        <div><h3>蚀壳战车</h3><div class="en">ERODE CHARIOT · 碾压之械</div></div>
+        <span class="bc-night">第六夜 · 蚀壳战车碾过月面</span>
+      </div>
+      <div class="bc-grid">
+        <div class="bc-art">
+          <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-label="蚀壳战车">
+            <defs>
+              <linearGradient id="ec-body" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#9fb4cc"/><stop offset=".5" stop-color="#7a8aa5"/><stop offset="1" stop-color="#2e3648"/>
+              </linearGradient>
+              <radialGradient id="ec-wheel" cx=".5" cy=".5" r=".5">
+                <stop offset="0" stop-color="#c8ced8"/><stop offset=".7" stop-color="#5a6880"/><stop offset="1" stop-color="#2e3648"/>
+              </radialGradient>
+              <linearGradient id="ec-horn" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#d9915a"/><stop offset="1" stop-color="#8a5a38"/>
+              </linearGradient>
+            </defs>
+            <!-- 车轮（蚀环裂纹，碾转） -->
+            <g class="anim rot-mid">
+              <circle cx="98" cy="238" r="40" fill="url(#ec-wheel)"/>
+              <circle cx="98" cy="238" r="34" fill="none" stroke="#2e3648" stroke-width="5" stroke-dasharray="10 8"/>
+              <line x1="98" y1="210" x2="98" y2="266" stroke="#c8ced8" stroke-width="3"/>
+              <line x1="70" y1="238" x2="126" y2="238" stroke="#c8ced8" stroke-width="3"/>
+            </g>
+            <g class="anim rot-rev">
+              <circle cx="222" cy="238" r="40" fill="url(#ec-wheel)"/>
+              <circle cx="222" cy="238" r="34" fill="none" stroke="#2e3648" stroke-width="5" stroke-dasharray="10 8"/>
+              <line x1="222" y1="210" x2="222" y2="266" stroke="#c8ced8" stroke-width="3"/>
+              <line x1="194" y1="238" x2="250" y2="238" stroke="#c8ced8" stroke-width="3"/>
+            </g>
+            <!-- 车身（层叠蚀甲） -->
+            <path d="M78 128 Q160 96 242 128 L246 196 Q160 222 74 196 Z" fill="url(#ec-body)" class="anim breath"/>
+            <!-- 甲片层叠 -->
+            <path d="M86 144 Q160 118 234 144" stroke="#9fb4cc" stroke-width="3.5" fill="none" opacity=".8"/>
+            <path d="M80 164 Q160 138 240 164" stroke="#9fb4cc" stroke-width="3" fill="none" opacity=".6"/>
+            <path d="M76 184 Q160 158 242 184" stroke="#9fb4cc" stroke-width="2.5" fill="none" opacity=".45"/>
+            <!-- 蚀纹（锈蚀裂纹） -->
+            <path d="M140 130 L150 152 L142 168" stroke="#d9915a" stroke-width="2" fill="none" opacity=".8"/>
+            <path d="M196 138 L188 158 L198 172" stroke="#d9915a" stroke-width="2" fill="none" opacity=".7"/>
+            <!-- 巨角撞器 -->
+            <path d="M120 132 L88 84 L104 128 Z" fill="url(#ec-horn)" class="anim glow-p"/>
+            <path d="M180 132 L212 84 L196 128 Z" fill="url(#ec-horn)" class="anim glow-p"/>
+            <!-- 车头警示光 -->
+            <circle cx="160" cy="108" r="10" fill="#ffd95a" opacity=".7" class="anim flicker"/>
+            <!-- 碾尘 -->
+            <ellipse cx="160" cy="266" rx="70" ry="10" fill="#2e3648" opacity=".6" class="anim breath"/>
+          </svg>
+        </div>
+        <div class="bc-info">
+          <p class="lore"><b>设定：</b>被蚀壳驱使的战争机械——没人知道壳里是什么，只知道它碾过月面时，蚀纹沿着甲片蔓延。<b>双蚀轮是它最醒目的身份：轮辐开裂、锈橙渗出</b>，每一次碾转都在大地留下灼烧的轨道。</p>
+          <table class="dtbl">
+            <tr><td>意象</td><td>碾压之械：壳里无主，轮即意志</td></tr>
+            <tr><td>形状</td><td>双蚀轮（裂纹环）/ 层叠蚀甲 ×4 / 巨角撞器</td></tr>
+            <tr><td>材质</td><td>钢蓝蚀壳 + 锈橙蚀纹（金属被蚀的斑驳）</td></tr>
+            <tr><td>动效</td><td>双轮反向碾转 + 甲片呼吸翘动 + 车头警示灯闪烁</td></tr>
+            <tr><td>呼应</td><td>轮辐弹 = 蚀轮的凌空投射；冲撞 = 车身碾压的动作</td></tr>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 04 噬月君主 -->
+    <article class="boss-card glass reveal">
+      <div class="bc-head">
+        <div class="bc-num">04</div>
+        <div><h3>噬月君主</h3><div class="en">MOON LORD · 月神王者</div></div>
+        <span class="bc-night">第十二夜 · 君主亲临吞噬月辉</span>
+      </div>
+      <div class="bc-grid">
+        <div class="bc-art">
+          <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-label="噬月君主">
+            <defs>
+              <linearGradient id="ml-robe" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#d8c4f5"/><stop offset=".55" stop-color="#b49ae8"/><stop offset="1" stop-color="#3a2f5c"/>
+              </linearGradient>
+              <radialGradient id="ml-moon" cx=".5" cy=".5" r=".5">
+                <stop offset="0" stop-color="#f0e8ff"/><stop offset=".7" stop-color="#b49ae8"/><stop offset="1" stop-color="#3a2f5c"/>
+              </radialGradient>
+              <linearGradient id="ml-blade" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#eec97a"/><stop offset="1" stop-color="#fff6e0"/>
+              </linearGradient>
+            </defs>
+            <!-- 身后月轮（月相渐变） -->
+            <circle cx="160" cy="140" r="88" fill="url(#ml-moon)" opacity=".35" class="anim glow-p"/>
+            <!-- 月袍（长袍拖地，星点流动） -->
+            <path d="M128 96 Q160 84 192 96 L212 258 Q160 274 108 258 Z" fill="url(#ml-robe)" class="anim breath"/>
+            <!-- 袍缘月相齿 -->
+            <path d="M112 246 L124 232 L136 248 L148 234 L160 250 L172 234 L184 248 L196 232 L208 246" stroke="#eec97a" stroke-width="2.5" fill="none" opacity=".8"/>
+            <!-- 袍面星点 -->
+            <circle cx="142" cy="150" r="2.5" fill="#fff" opacity=".8" class="anim pulse"/>
+            <circle cx="176" cy="170" r="2" fill="#fff" opacity=".7" class="anim pulse-f"/>
+            <circle cx="152" cy="200" r="2.5" fill="#fff" opacity=".6" class="anim pulse"/>
+            <!-- 头与月冠（弯月冠旋转） -->
+            <ellipse cx="160" cy="84" rx="26" ry="32" fill="#3a2f5c"/>
+            <path d="M134 62 Q160 30 186 62 Q160 52 134 62 Z" fill="#eec97a" class="anim float-y"/>
+            <circle cx="152" cy="88" r="4" fill="#fff" opacity=".9" class="anim glow-p"/>
+            <!-- 月刃剑（斜持，剑光呼吸） -->
+            <g class="anim sway">
+              <path d="M218 84 L288 40 L220 92 Z" fill="url(#ml-blade)" class="anim glow-p"/>
+              <path d="M288 40 L298 36 L290 46 Z" fill="#fff" opacity=".9"/>
+              <line x1="214" y1="88" x2="200" y2="104" stroke="#8a6a3a" stroke-width="5" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </div>
+        <div class="bc-info">
+          <p class="lore"><b>设定：</b>吞噬月辉的王者——长袍拖地三尺，袍缘镶着月相齿纹，<b>头顶弯月冠，斜持月刃剑</b>。它不奔跑、不咆哮，只是走到你面前，月亮就暗一分。它与巫王不同：巫王低语诅咒，君主只是挥剑，而剑光落处，月相改变。</p>
+          <table class="dtbl">
+            <tr><td>意象</td><td>月神王者：威严的静态压迫</td></tr>
+            <tr><td>形状</td><td>月袍（拖地 + 月相齿缘）/ 弯月冠 / 月刃剑</td></tr>
+            <tr><td>材质</td><td>月光紫袍（紫→深紫）+ 金饰 + 月轮背光</td></tr>
+            <tr><td>动效</td><td>袍面星点流动 + 月冠浮沉 + 剑光呼吸 + 月轮辉光</td></tr>
+            <tr><td>呼应</td><td>月相月刃弹 = 剑光的投射；弹幕数量随月相 = 背后月轮的状态</td></tr>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 05 月影巫王 -->
+    <article class="boss-card glass reveal">
+      <div class="bc-head">
+        <div class="bc-num">05</div>
+        <div><h3>月影巫王</h3><div class="en">MOON WRAITH · 幽灵咒师</div></div>
+        <span class="bc-night">第十二夜 · 月影巫王低语蚀咒</span>
+      </div>
+      <div class="bc-grid">
+        <div class="bc-art">
+          <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-label="月影巫王">
+            <defs>
+              <radialGradient id="mw-fog" cx=".5" cy=".4" r=".6">
+                <stop offset="0" stop-color="#b4a0e0" stop-opacity=".9"/><stop offset=".7" stop-color="#6b5a9e" stop-opacity=".65"/><stop offset="1" stop-color="#221c38" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="mw-eye" cx=".5" cy=".5" r=".5">
+                <stop offset="0" stop-color="#fff8d8"/><stop offset="1" stop-color="#ffd700" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <!-- 影雾裙（飘动） -->
+            <ellipse cx="160" cy="228" rx="82" ry="52" fill="url(#mw-fog)" class="anim float-y"/>
+            <!-- 兜帽雾体（主体） -->
+            <path d="M118 208 Q110 140 160 108 Q210 140 202 208 Q190 232 160 236 Q130 232 118 208 Z" fill="url(#mw-fog)" class="anim breath"/>
+            <!-- 兜帽褶皱 -->
+            <path d="M128 176 Q160 160 192 176" stroke="#4a3f78" stroke-width="2" fill="none" opacity=".6"/>
+            <!-- 咒火双瞳 -->
+            <circle cx="146" cy="152" r="10" fill="url(#mw-eye)" class="anim flicker"/>
+            <circle cx="176" cy="152" r="10" fill="url(#mw-eye)" class="anim flicker"/>
+            <circle cx="146" cy="152" r="4" fill="#fff8d8" class="anim pulse-f"/>
+            <circle cx="176" cy="152" r="4" fill="#fff8d8" class="anim pulse-f"/>
+            <!-- 身周符箓环（旋转） -->
+            <g class="anim rot-mid">
+              <rect x="96" y="118" width="20" height="20" rx="4" fill="none" stroke="#b4a0e0" stroke-width="2" transform="rotate(45 106 128)" class="anim glow-p"/>
+              <rect x="204" y="176" width="20" height="20" rx="4" fill="none" stroke="#b4a0e0" stroke-width="2" transform="rotate(45 214 186)" class="anim glow-p"/>
+              <rect x="222" y="128" width="16" height="16" rx="3" fill="none" stroke="#8a7ab8" stroke-width="1.8" transform="rotate(45 230 136)" class="anim pulse"/>
+            </g>
+            <!-- 浮游法杖（悬空） -->
+            <g class="anim float-y">
+              <line x1="232" y1="96" x2="240" y2="200" stroke="#4a3f78" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="236" cy="88" r="9" fill="none" stroke="#ffd700" stroke-width="2.5" class="anim flicker"/>
+              <circle cx="236" cy="88" r="4" fill="#ffd700" class="anim pulse-f"/>
+            </g>
+            <!-- 脚下咒圈 -->
+            <ellipse cx="160" cy="252" rx="58" ry="12" fill="none" stroke="#6b5a9e" stroke-width="2" stroke-dasharray="6 6" opacity=".7" class="anim rot-mid"/>
+          </svg>
+        </div>
+        <div class="bc-info">
+          <p class="lore"><b>设定：</b>低语的咒师——兜帽下没有面容，只有两团咒火。身体是影雾凝聚的半透明存在，<b>符箓绕身旋转，法杖悬空不落</b>。它从不逼近你，只是飘浮、低语、施咒——你中咒的时候，它甚至没有转身。</p>
+          <table class="dtbl">
+            <tr><td>意象</td><td>幽灵咒师：飘浮的诅咒本身</td></tr>
+            <tr><td>形状</td><td>兜帽雾体（无脸）/ 咒火双瞳 / 符箓环 / 悬空法杖</td></tr>
+            <tr><td>材质</td><td>影雾半透明（紫雾）+ 咒火鎏金</td></tr>
+            <tr><td>动效</td><td>雾体呼吸飘动 + 符箓环旋转 + 咒火闪烁 + 法杖浮沉</td></tr>
+            <tr><td>呼应</td><td>符箓弹 = 身周符文的投射；蓄力加速 = 咒语引导的过程</td></tr>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 06 断月剑豪 -->
+    <article class="boss-card glass reveal">
+      <div class="bc-head">
+        <div class="bc-num">06</div>
+        <div><h3>断月剑豪</h3><div class="en">MOON SWORDSMAN · 月白剑客</div></div>
+        <span class="bc-night">第十二夜 · 断月之刃划过月辉</span>
+      </div>
+      <div class="bc-grid">
+        <div class="bc-art">
+          <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-label="断月剑豪">
+            <defs>
+              <linearGradient id="ms-robe" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#f0eefb"/><stop offset="1" stop-color="#9a92c8"/>
+              </linearGradient>
+              <linearGradient id="ms-blade" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#e8f4ff"/><stop offset="1" stop-color="#ffffff"/>
+              </linearGradient>
+            </defs>
+            <!-- 月辉步尘 -->
+            <ellipse cx="160" cy="264" rx="60" ry="9" fill="#d8d4f0" opacity=".35" class="anim glow-p"/>
+            <!-- 长衣摆（刀气边缘飘动） -->
+            <path d="M136 150 L124 246 L196 246 L184 150 Z" fill="url(#ms-robe)" class="anim sway"/>
+            <path d="M124 246 L132 258 L150 250 L158 262 L172 252 L184 262 L196 246 Z" fill="url(#ms-robe)" opacity=".95" class="anim sway-r"/>
+            <!-- 躯干 -->
+            <path d="M146 100 Q160 92 174 100 L182 154 Q160 164 138 154 Z" fill="#c8c2e8"/>
+            <!-- 束发带（飘动） -->
+            <path d="M196 86 Q210 82 220 90" stroke="#e2546a" stroke-width="3.5" fill="none" stroke-linecap="round" class="anim sway-r"/>
+            <!-- 头（低眉） -->
+            <ellipse cx="160" cy="80" rx="17" ry="20" fill="#b8b0dc"/>
+            <line x1="150" y1="80" x2="170" y2="80" stroke="#4a4480" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- 月牙单刃（斜持，蓄力发亮） -->
+            <g class="anim glow-p">
+              <path d="M204 96 L282 52 L206 106 Z" fill="url(#ms-blade)"/>
+              <path d="M282 52 L292 48 L284 58 Z" fill="#fff"/>
+              <line x1="200" y1="102" x2="188" y2="116" stroke="#6a62a0" stroke-width="4.5" stroke-linecap="round"/>
+            </g>
+            <!-- 刀光残影（蓄力态） -->
+            <path d="M200 100 Q226 84 252 76" stroke="#e8f4ff" stroke-width="2" fill="none" opacity=".6" class="anim pulse-f"/>
+          </svg>
+        </div>
+        <div class="bc-info">
+          <p class="lore"><b>设定：</b>三位十二夜之主中唯一「利落」的存在。束发、长衣、单刃——<b>衣摆的边缘就是刀气的形状</b>，蓄力时刀身泛起月白。它不施咒、不召唤，只是收刀、出刀、收刀，三连斩快-快-慢，是武道，不是巫术。</p>
+          <table class="dtbl">
+            <tr><td>意象</td><td>月白剑客：静如止水，动如断月</td></tr>
+            <tr><td>形状</td><td>束发（红带）/ 刀气衣摆 / 月牙单刃 / 低眉</td></tr>
+            <tr><td>材质</td><td>月白绸缎（白→淡紫）+ 银白刃 + 一点红</td></tr>
+            <tr><td>动效</td><td>衣摆双段飘动 + 刀身蓄力发光 + 束发带飘 + 刀光残影</td></tr>
+            <tr><td>呼应</td><td>刀气弧弹 = 衣摆边缘的斩出；快-快-慢节奏 = 收刀-出刀的身位</td></tr>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 07 裂空魔龙 -->
+    <article class="boss-card glass reveal">
+      <div class="bc-head">
+        <div class="bc-num">07</div>
+        <div><h3>裂空魔龙</h3><div class="en">DRAGON · 天空霸主</div></div>
+        <span class="bc-night">第十八夜 · 魔龙撕裂穹顶降临</span>
+      </div>
+      <div class="bc-grid">
+        <div class="bc-art">
+          <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-label="裂空魔龙">
+            <defs>
+              <linearGradient id="dr-skin" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#e2546a"/><stop offset="1" stop-color="#3a1420"/>
+              </linearGradient>
+              <radialGradient id="dr-magma" cx=".5" cy=".5" r=".5">
+                <stop offset="0" stop-color="#ffb84d"/><stop offset="1" stop-color="#e2546a" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="dr-memb" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#ff9d6b" stop-opacity=".9"/><stop offset="1" stop-color="#3a1420" stop-opacity=".4"/>
+              </linearGradient>
+            </defs>
+            <!-- 左翼（裂空翼膜 + 火纹） -->
+            <path d="M150 130 L44 66 L58 120 L24 150 L92 152 Z" fill="url(#dr-memb)" class="anim sway"/>
+            <path d="M150 130 L84 104 L60 118" stroke="#ff9d6b" stroke-width="2.5" fill="none" opacity=".7"/>
+            <!-- 右翼 -->
+            <path d="M170 130 L276 66 L262 120 L296 150 L228 152 Z" fill="url(#dr-memb)" class="anim sway-r"/>
+            <path d="M170 130 L236 104 L260 118" stroke="#ff9d6b" stroke-width="2.5" fill="none" opacity=".7"/>
+            <!-- 躯干（熔岩鳞） -->
+            <path d="M138 96 Q160 76 182 96 L194 208 Q160 224 126 208 Z" fill="url(#dr-skin)" class="anim breath"/>
+            <!-- 熔岩裂纹 -->
+            <path d="M150 110 L158 132 L148 148 L160 168" stroke="#ffb84d" stroke-width="2.2" fill="none" opacity=".9" class="anim glow-p"/>
+            <path d="M176 118 L170 138 L180 154" stroke="#ff9d6b" stroke-width="2" fill="none" opacity=".75"/>
+            <!-- 蚀月弯角 -->
+            <path d="M144 84 Q122 52 108 40" stroke="#ffb84d" stroke-width="5" stroke-linecap="round" fill="none" class="anim glow-p"/>
+            <path d="M176 84 Q198 52 212 40" stroke="#ffb84d" stroke-width="5" stroke-linecap="round" fill="none" class="anim glow-p"/>
+            <!-- 口部火光 -->
+            <ellipse cx="160" cy="92" rx="14" ry="9" fill="url(#dr-magma)" class="anim flicker"/>
+            <!-- 头（俯视） -->
+            <path d="M142 100 L160 76 L178 100 Z" fill="#e2546a"/>
+            <!-- 尾（摆动 + 尾焰） -->
+            <path d="M160 214 Q196 236 224 228" stroke="#3a1420" stroke-width="9" stroke-linecap="round" fill="none" class="anim sway-r"/>
+            <circle cx="230" cy="226" r="7" fill="#ff9d6b" class="anim flicker"/>
+          </svg>
+        </div>
+        <div class="bc-info">
+          <p class="lore"><b>设定：</b>撕裂穹顶的天空霸主——翼膜是撕开的夜空，龙鳞是流动的熔岩裂纹，<b>弯角如蚀月、口含火光</b>。它俯冲时翼展遮住整片月面，吐息时火光从喉口倾泻。与巨枭的「雷」不同，魔龙是「火」的纯粹暴力。</p>
+          <table class="dtbl">
+            <tr><td>意象</td><td>天空霸主：翼即苍穹之裂</td></tr>
+            <tr><td>形状</td><td>裂空双翼（翼膜火纹）/ 熔岩鳞裂纹 / 蚀月弯角 / 尾焰</td></tr>
+            <tr><td>材质</td><td>绯红龙皮 + 熔岩裂纹（橙→红）+ 暗黑翼膜</td></tr>
+            <tr><td>动效</td><td>双翼摆动 + 熔岩纹脉动发光 + 口火闪烁 + 尾焰</td></tr>
+            <tr><td>呼应</td><td>泪滴龙焰弹 = 口火的迸出；翼展 V 弹 = 双翼扇出的方向</td></tr>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 08 蚀雷巨枭 -->
+    <article class="boss-card glass reveal">
+      <div class="bc-head">
+        <div class="bc-num">08</div>
+        <div><h3>蚀雷巨枭</h3><div class="en">STORM OWL · 雷暴之枭</div></div>
+        <span class="bc-night">第十八夜 · 蚀雷巨枭撕裂雷云</span>
+      </div>
+      <div class="bc-grid">
+        <div class="bc-art">
+          <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-label="蚀雷巨枭">
+            <defs>
+              <linearGradient id="so-wing" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#8f9aee"/><stop offset="1" stop-color="#262a55"/>
+              </linearGradient>
+              <radialGradient id="so-eye" cx=".5" cy=".5" r=".5">
+                <stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#ffd95a"/><stop offset="1" stop-color="#8f9aee"/>
+              </radialGradient>
+            </defs>
+            <!-- 双翼（展开，羽缘电弧） -->
+            <path d="M150 140 Q80 96 30 110 Q76 128 96 152 Z" fill="url(#so-wing)" class="anim sway"/>
+            <path d="M170 140 Q240 96 290 110 Q244 128 224 152 Z" fill="url(#so-wing)" class="anim sway-r"/>
+            <!-- 翼羽闪电纹 -->
+            <path d="M120 118 L96 128 L118 134 L88 146" stroke="#cfe4ff" stroke-width="2" fill="none" opacity=".9" class="anim pulse"/>
+            <path d="M200 118 L224 128 L202 134 L232 146" stroke="#cfe4ff" stroke-width="2" fill="none" opacity=".9" class="anim pulse-f"/>
+            <!-- 躯干（雷云色） -->
+            <ellipse cx="160" cy="168" rx="52" ry="62" fill="#4a5290"/>
+            <!-- 胸羽纹 -->
+            <path d="M136 176 Q160 192 184 176" stroke="#8f9aee" stroke-width="2.5" fill="none" opacity=".7"/>
+            <path d="M140 190 Q160 204 180 190" stroke="#8f9aee" stroke-width="2" fill="none" opacity=".5"/>
+            <!-- 枭面（大眼 = 雷核） -->
+            <path d="M134 112 Q160 94 186 112 L180 148 Q160 158 140 148 Z" fill="#4a5290"/>
+            <circle cx="146" cy="128" r="15" fill="url(#so-eye)" class="anim flicker"/>
+            <circle cx="174" cy="128" r="15" fill="url(#so-eye)" class="anim flicker"/>
+            <circle cx="146" cy="128" r="5" fill="#262a55" class="anim pulse"/>
+            <circle cx="174" cy="128" r="5" fill="#262a55" class="anim pulse"/>
+            <!-- 爪握雷光 -->
+            <path d="M150 224 L138 240 L148 238 M170 224 L182 240 L172 238" stroke="#ffd95a" stroke-width="2.5" fill="none" opacity=".8" class="anim flicker"/>
+            <!-- 羽缘电弧 -->
+            <path d="M36 112 L20 108 M286 112 L302 108" stroke="#cfe4ff" stroke-width="2" fill="none" opacity=".7" class="anim pulse-f"/>
+          </svg>
+        </div>
+        <div class="bc-info">
+          <p class="lore"><b>设定：</b>雷暴的化身——展开的双翼就是雷云，翼羽边缘拖着电弧，<b>双目是两颗雷核，眨动之间放电</b>。它不吼叫，落雷就是它的语言：成行成列的雷在战场织成网格，而它悬在雷暴中心，像风暴本身。</p>
+          <table class="dtbl">
+            <tr><td>意象</td><td>雷暴之枭：翼即雷云，目即雷核</td></tr>
+            <tr><td>形状</td><td>展翼（闪电羽纹）/ 雷核巨目 / 爪握雷光</td></tr>
+            <tr><td>材质</td><td>电蓝雷云（蓝→深紫）+ 白电弧 + 鎏金雷光</td></tr>
+            <tr><td>动效</td><td>双目放电闪烁 + 翼羽电弧脉动 + 双翼起伏</td></tr>
+            <tr><td>呼应</td><td>雷羽弹 = 振落的翎羽；落雷网格 = 双目放电的方向</td></tr>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 09 深渊巢母 -->
+    <article class="boss-card glass reveal">
+      <div class="bc-head">
+        <div class="bc-num">09</div>
+        <div><h3>深渊巢母</h3><div class="en">ABYSS MOTHER · 凝视之巢</div></div>
+        <span class="bc-night">第十八夜 · 深渊巢母孵化万噬</span>
+      </div>
+      <div class="bc-grid">
+        <div class="bc-art">
+          <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-label="深渊巢母">
+            <defs>
+              <radialGradient id="am-pit" cx=".5" cy=".5" r=".5">
+                <stop offset="0" stop-color="#1a0a14"/><stop offset=".65" stop-color="#5a2a3e"/><stop offset="1" stop-color="#a05a6e"/>
+              </radialGradient>
+              <radialGradient id="am-eye" cx=".5" cy=".5" r=".5">
+                <stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#e8d8d8"/><stop offset="1" stop-color="#7fd6a4" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="am-tent" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#7fd6a4"/><stop offset="1" stop-color="#2a4a30"/>
+              </linearGradient>
+            </defs>
+            <!-- 巢壁骨刺 -->
+            <path d="M60 96 L36 60 L74 84 Z" fill="#3a1a28"/><path d="M260 96 L284 60 L246 84 Z" fill="#3a1a28"/>
+            <path d="M84 54 L66 26 L96 46 Z" fill="#3a1a28"/><path d="M236 54 L254 26 L224 46 Z" fill="#3a1a28"/>
+            <!-- 酸液触须（垂落摆动） -->
+            <path d="M128 214 Q112 248 116 278" stroke="url(#am-tent)" stroke-width="5" fill="none" stroke-linecap="round" class="anim sway"/>
+            <path d="M192 214 Q208 248 204 278" stroke="url(#am-tent)" stroke-width="5" fill="none" stroke-linecap="round" class="anim sway-r"/>
+            <path d="M160 222 Q160 258 158 282" stroke="url(#am-tent)" stroke-width="4" fill="none" stroke-linecap="round" class="anim sway"/>
+            <!-- 深渊之巢（同心口器） -->
+            <ellipse cx="160" cy="176" rx="74" ry="62" fill="#5a2a3e" class="anim breath"/>
+            <ellipse cx="160" cy="176" rx="54" ry="44" fill="url(#am-pit)" class="anim breath-f"/>
+            <ellipse cx="160" cy="176" rx="34" ry="26" fill="#1a0a14"/>
+            <!-- 口器齿环 -->
+            <path d="M128 158 L136 170 L128 182 M192 158 L184 170 L192 182" stroke="#c08090" stroke-width="2.5" fill="none" opacity=".8"/>
+            <!-- 眼柄复眼（眨动） -->
+            <g class="anim sway-r">
+              <path d="M104 148 Q84 132 74 118" stroke="#5a2a3e" stroke-width="6" stroke-linecap="round" fill="none"/>
+              <circle cx="72" cy="114" r="11" fill="url(#am-eye)" class="anim blink"/>
+            </g>
+            <g class="anim sway">
+              <path d="M216 148 Q236 132 246 118" stroke="#5a2a3e" stroke-width="6" stroke-linecap="round" fill="none"/>
+              <circle cx="248" cy="114" r="11" fill="url(#am-eye)" class="anim blink"/>
+            </g>
+            <!-- 巢壁小眼（凝视） -->
+            <circle cx="120" cy="122" r="5" fill="#e8d8d8" class="anim pulse"/>
+            <circle cx="200" cy="122" r="5" fill="#e8d8d8" class="anim pulse"/>
+            <!-- 酸液滴 -->
+            <circle cx="116" cy="280" r="3" fill="#7fd6a4" class="anim pulse-f"/>
+            <circle cx="204" cy="284" r="2.5" fill="#7fd6a4" class="anim pulse-f"/>
+          </svg>
+        </div>
+        <div class="bc-info">
+          <p class="lore"><b>设定：</b>深渊本身在孕育。它的身体是层层内收的口器，一圈比一圈深，<b>巢壁探出无数眼柄——每一只都在看你</b>。酸液从触须滴落，骨刺如獠牙环立。与潮噬之母不同：潮母孕育于水，巢母孕育于深渊；潮母的卵看得见，巢母的凝视你躲不开。</p>
+          <table class="dtbl">
+            <tr><td>意象</td><td>凝视之巢：深渊的每一层都在看你</td></tr>
+            <tr><td>形状</td><td>同心口器（三层内收）/ 眼柄复眼 / 酸触须 / 骨刺</td></tr>
+            <tr><td>材质</td><td>深渊暗红（深→红紫）+ 酸液青绿 + 眼白</td></tr>
+            <tr><td>动效</td><td>口器缓慢开合呼吸 + 众眼眨动/脉动 + 触须摆动 + 酸液滴</td></tr>
+            <tr><td>呼应</td><td>深渊之眼弹 = 巢壁凝视的投射；微追踪 = 「被看着」的压力</td></tr>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 10 蚀月终焉 -->
+    <article class="boss-card glass reveal">
+      <div class="bc-head">
+        <div class="bc-num">10</div>
+        <div><h3>蚀月终焉</h3><div class="en">FINAL ECLIPSE · 蚀月本体</div></div>
+        <span class="bc-night">第二十夜 · 蚀月化身——终焉之潮</span>
+      </div>
+      <div class="bc-grid">
+        <div class="bc-art">
+          <svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-label="蚀月终焉">
+            <defs>
+              <radialGradient id="fe-moon" cx=".45" cy=".4" r=".6">
+                <stop offset="0" stop-color="#fff0d0"/><stop offset=".55" stop-color="#ffb84d"/><stop offset="1" stop-color="#8a4a20"/>
+              </radialGradient>
+              <radialGradient id="fe-core" cx=".5" cy=".5" r=".5">
+                <stop offset="0" stop-color="#fff"/><stop offset=".7" stop-color="#ffd95a"/><stop offset="1" stop-color="#ffb84d" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <!-- 血雨云 -->
+            <ellipse cx="86" cy="52" rx="34" ry="14" fill="#5a1a24" opacity=".6"/>
+            <ellipse cx="244" cy="44" rx="30" ry="12" fill="#5a1a24" opacity=".5"/>
+            <!-- 血雨滴 -->
+            <path d="M78 60 L76 78 L80 78 Z" fill="#e06a5a" class="anim float-y"/>
+            <path d="M250 52 L248 70 L252 70 Z" fill="#e06a5a" class="anim float-y" style="animation-delay:-1.6s"/>
+            <path d="M96 66 L94 82 L98 82 Z" fill="#e06a5a" class="anim float-y" style="animation-delay:-2.8s"/>
+            <!-- 蚀月本体 -->
+            <circle cx="160" cy="170" r="92" fill="url(#fe-moon)" class="anim breath"/>
+            <!-- 蚀纹（月相被蚀的缺口） -->
+            <path d="M160 78 A92 92 0 0 0 160 262 A66 66 0 0 1 160 78 Z" fill="#1a1020" opacity=".92"/>
+            <!-- 月面环形山 -->
+            <circle cx="120" cy="150" r="12" fill="none" stroke="#8a4a20" stroke-width="3" opacity=".6"/>
+            <circle cx="196" cy="120" r="9" fill="none" stroke="#8a4a20" stroke-width="2.5" opacity=".5"/>
+            <circle cx="150" cy="210" r="7" fill="none" stroke="#8a4a20" stroke-width="2" opacity=".5"/>
+            <!-- 金核（呼吸） -->
+            <circle cx="160" cy="176" r="22" fill="url(#fe-core)" class="anim breath-f"/>
+            <circle cx="160" cy="176" r="10" fill="#fff" opacity=".9" class="anim pulse-f"/>
+            <!-- 蚀月环（带缺口旋转 = 生路） -->
+            <g class="anim rot-mid">
+              <circle cx="160" cy="170" r="116" fill="none" stroke="#ffd95a" stroke-width="7" stroke-dasharray="600 60" opacity=".85"/>
+              <circle cx="276" cy="170" r="8" fill="#fff" opacity=".9"/>
+            </g>
+          </svg>
+        </div>
+        <div class="bc-info">
+          <p class="lore"><b>设定：</b>终焉就是月亮本身——被蚀去一半的月面悬在夜空，<b>蚀纹之外是暗，蚀纹之内是金核在呼吸</b>。外环蚀月环缓缓旋转，缺口处亮着一点白光——那不是装饰，那是它留给你的唯一生路。血雨从云中坠落，它不看你，因为你就是它要吞噬的整个月背。</p>
+          <table class="dtbl">
+            <tr><td>意象</td><td>蚀月本体：它就是月亮，被蚀的月亮</td></tr>
+            <tr><td>形状</td><td>蚀纹月面（半月缺口）/ 金核 / 环形山 / 蚀月外环 / 血雨云</td></tr>
+            <tr><td>材质</td><td>蚀月金（金→橙→暗）+ 暗蚀 + 血雨绯红</td></tr>
+            <tr><td>动效</td><td>月核呼吸脉动 + 蚀月环旋转（缺口转 = 生路转）+ 血雨坠落</td></tr>
+            <tr><td>呼应</td><td>蚀月环弹 = 外环的抛出（缺口即生路）；三相轮转 = 月相被蚀的过程</td></tr>
+          </table>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 叁 配色系统 ============ -->
+  <section id="s3">
+    <div class="sec-head reveal">
+      <span class="sec-no">叁</span>
+      <h2>配色系统：十套色板</h2>
+    </div>
+    <p class="sec-lead reveal">每套五色：<b>主色（主体）/ 次色（材质高光）/ 深色（阴影暗部）/ 点缀（身份标识）/ 辉光（发光特效）</b>。与既有弹幕色同源——打出去的弹是什么色，立像就是什么色。</p>
+    <div class="tbl-wrap reveal">
+      <table>
+        <thead><tr><th>Boss</th><th>主色</th><th>次色</th><th>深色</th><th>点缀</th><th>辉光</th></tr></thead>
+        <tbody>
+          <tr><td><b>蚀潮巨兽</b></td><td><div class="sw-row"><span class="sw lg" style="background:#5c8a9e"></span>#5c8a9e</div></td><td><div class="sw-row"><span class="sw" style="background:#7fc4d8"></span>#7fc4d8</div></td><td><div class="sw-row"><span class="sw" style="background:#1f3a4a"></span>#1f3a4a</div></td><td><div class="sw-row"><span class="sw" style="background:#e8f4f8"></span>#e8f4f8</div></td><td><div class="sw-row"><span class="sw" style="background:#9fe0ef"></span>#9fe0ef</div></td></tr>
+          <tr><td><b>潮噬之母</b></td><td><div class="sw-row"><span class="sw lg" style="background:#6fa8a0"></span>#6fa8a0</div></td><td><div class="sw-row"><span class="sw" style="background:#b6f0e0"></span>#b6f0e0</div></td><td><div class="sw-row"><span class="sw" style="background:#2a4a44"></span>#2a4a44</div></td><td><div class="sw-row"><span class="sw" style="background:#e0f5ec"></span>#e0f5ec</div></td><td><div class="sw-row"><span class="sw" style="background:#8ad4c7"></span>#8ad4c7</div></td></tr>
+          <tr><td><b>蚀壳战车</b></td><td><div class="sw-row"><span class="sw lg" style="background:#7a8aa5"></span>#7a8aa5</div></td><td><div class="sw-row"><span class="sw" style="background:#c8ced8"></span>#c8ced8</div></td><td><div class="sw-row"><span class="sw" style="background:#2e3648"></span>#2e3648</div></td><td><div class="sw-row"><span class="sw" style="background:#d9915a"></span>#d9915a</div></td><td><div class="sw-row"><span class="sw" style="background:#9fb4cc"></span>#9fb4cc</div></td></tr>
+          <tr><td><b>噬月君主</b></td><td><div class="sw-row"><span class="sw lg" style="background:#b49ae8"></span>#b49ae8</div></td><td><div class="sw-row"><span class="sw" style="background:#d8c4f5"></span>#d8c4f5</div></td><td><div class="sw-row"><span class="sw" style="background:#3a2f5c"></span>#3a2f5c</div></td><td><div class="sw-row"><span class="sw" style="background:#eec97a"></span>#eec97a</div></td><td><div class="sw-row"><span class="sw" style="background:#f0e8ff"></span>#f0e8ff</div></td></tr>
+          <tr><td><b>月影巫王</b></td><td><div class="sw-row"><span class="sw lg" style="background:#9a86c8"></span>#9a86c8</div></td><td><div class="sw-row"><span class="sw" style="background:#6b5a9e"></span>#6b5a9e</div></td><td><div class="sw-row"><span class="sw" style="background:#221c38"></span>#221c38</div></td><td><div class="sw-row"><span class="sw" style="background:#ffd700"></span>#ffd700</div></td><td><div class="sw-row"><span class="sw" style="background:#b4a0e0"></span>#b4a0e0</div></td></tr>
+          <tr><td><b>断月剑豪</b></td><td><div class="sw-row"><span class="sw lg" style="background:#c8c2e8"></span>#c8c2e8</div></td><td><div class="sw-row"><span class="sw" style="background:#f0eefb"></span>#f0eefb</div></td><td><div class="sw-row"><span class="sw" style="background:#4a4480"></span>#4a4480</div></td><td><div class="sw-row"><span class="sw" style="background:#e2546a"></span>#e2546a</div></td><td><div class="sw-row"><span class="sw" style="background:#ffffff"></span>#ffffff</div></td></tr>
+          <tr><td><b>裂空魔龙</b></td><td><div class="sw-row"><span class="sw lg" style="background:#e2546a"></span>#e2546a</div></td><td><div class="sw-row"><span class="sw" style="background:#ff9d6b"></span>#ff9d6b</div></td><td><div class="sw-row"><span class="sw" style="background:#3a1420"></span>#3a1420</div></td><td><div class="sw-row"><span class="sw" style="background:#ffb84d"></span>#ffb84d</div></td><td><div class="sw-row"><span class="sw" style="background:#ff7a5a"></span>#ff7a5a</div></td></tr>
+          <tr><td><b>蚀雷巨枭</b></td><td><div class="sw-row"><span class="sw lg" style="background:#8f9aee"></span>#8f9aee</div></td><td><div class="sw-row"><span class="sw" style="background:#cfe4ff"></span>#cfe4ff</div></td><td><div class="sw-row"><span class="sw" style="background:#262a55"></span>#262a55</div></td><td><div class="sw-row"><span class="sw" style="background:#ffd95a"></span>#ffd95a</div></td><td><div class="sw-row"><span class="sw" style="background:#b8c6ff"></span>#b8c6ff</div></td></tr>
+          <tr><td><b>深渊巢母</b></td><td><div class="sw-row"><span class="sw lg" style="background:#a05a6e"></span>#a05a6e</div></td><td><div class="sw-row"><span class="sw" style="background:#7fd6a4"></span>#7fd6a4</div></td><td><div class="sw-row"><span class="sw" style="background:#2a1420"></span>#2a1420</div></td><td><div class="sw-row"><span class="sw" style="background:#e8d8d8"></span>#e8d8d8</div></td><td><div class="sw-row"><span class="sw" style="background:#c08090"></span>#c08090</div></td></tr>
+          <tr><td><b>蚀月终焉</b></td><td><div class="sw-row"><span class="sw lg" style="background:#ffb84d"></span>#ffb84d</div></td><td><div class="sw-row"><span class="sw" style="background:#e06a5a"></span>#e06a5a</div></td><td><div class="sw-row"><span class="sw" style="background:#1a1020"></span>#1a1020</div></td><td><div class="sw-row"><span class="sw" style="background:#ffd95a"></span>#ffd95a</div></td><td><div class="sw-row"><span class="sw" style="background:#fff0d0"></span>#fff0d0</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 肆 动效语言 ============ -->
+  <section id="s4">
+    <div class="sec-head reveal">
+      <span class="sec-no">肆</span>
+      <h2>动效语言：立像怎么「活」</h2>
+    </div>
+    <p class="sec-lead reveal">十二种动效，每种对应一种性格。规则：<b>动效必须服务于设定</b>——潮汐兽呼吸、车轮碾转、咒火闪烁，没有一个是装饰。</p>
+    <div class="tbl-wrap reveal">
+      <table>
+        <thead><tr><th>动效</th><th>参数</th><th>用于</th><th>性格表达</th></tr></thead>
+        <tbody>
+          <tr><td><b>breath 呼吸</b></td><td>scale 1→1.055 · 3.4s</td><td>巨兽身体 / 潮母背甲 / 终焉月面</td><td>活着的、有节律的存在</td></tr>
+          <tr><td><b>breath-f 急呼吸</b></td><td>scale 1→1.055 · 2.2s</td><td>潮母卵腹 / 终焉金核</td><td>孕育/核心的脉动</td></tr>
+          <tr><td><b>rot 旋转</b></td><td>360° · 9–16s</td><td>战车轮 / 巫王符箓环 / 终焉蚀月环</td><td>机械运转 / 咒法循环 / 天体的恒定</td></tr>
+          <tr><td><b>pulse 脉动</b></td><td>opacity .65→1 · 2.6s</td><td>君主星点 / 巢母小眼 / 魔龙熔岩纹</td><td>能量的呼吸</td></tr>
+          <tr><td><b>flicker 闪烁</b></td><td>opacity 1↔.35 · 1.8s</td><td>巫王咒火 / 战车警示灯 / 魔龙口火 / 巨枭雷眼</td><td>不稳定、危险、不可预测</td></tr>
+          <tr><td><b>flow-x 流动</b></td><td>translateX -42px · 5s</td><td>巨兽尾迹潮水</td><td>水在流动</td></tr>
+          <tr><td><b>sway 摆动</b></td><td>rotate ±5° · 4.4s</td><td>巨兽鳍鬃 / 潮母触手 / 魔龙翼 / 巢母触须</td><td>柔软、有机、活物</td></tr>
+          <tr><td><b>blink 眨眼</b></td><td>scaleY 1↔.08 · 4.6s</td><td>巢母复眼</td><td>「它在看你」的实感</td></tr>
+          <tr><td><b>float-y 浮沉</b></td><td>translateY ±7px · 4.8s</td><td>巫王法杖 / 君主月冠 / 终焉血雨</td><td>失重、非人间之物</td></tr>
+          <tr><td><b>glow-p 辉光</b></td><td>opacity .5→1 · 3s</td><td>君主月轮 / 剑豪刀光 / 战车撞角 / 巨兽漩涡眼</td><td>力量的蓄积与释放</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ Footer ============ -->
+  <footer>
+    <div class="moonlet">蚀 月 远 征 · Boss 外观设计</div>
+    <div>本报告立像为设定稿（SVG 示意）—— 实际实现需 2D 素材细化，数值与形状均 <span class="ph">[PLACEHOLDER]</span>，以实机视觉验收为准。</div>
+    <div class="changelog">
+      <b>CHANGELOG v0.7</b>（2026-08-08）<br>
+      + 10 位 Boss 外观全面重绘：意象 → 形状 → 材质 → 动效 → 弹幕呼应 五层设计语言<br>
+      + 10 座动态 SVG 立像（12 种动效，尊重 reduced-motion）<br>
+      + 十套五色配色系统（主/次/深/点缀/辉光，与弹幕色同源）<br>
+      + 区分设计：君主(王者·月袍月冠) vs 巫王(咒师·兜帽咒火) vs 剑豪(武者·束发单刃)；潮母(水育·卵腹) vs 巢母(渊育·凝视口器)<br>
+      v0.6：Boss 弹幕设计；v0.5：小怪技能系统修正；v0.4：spitter/bomber 修正；v0.3：敌人五维体检
+    </div>
+    <div style="margin-top:10px">Moonlight Chronicle Design Doc · 月蚀玻璃规范 v0.2</div>
+  </footer>
+</div>
+
+<script>
+/* 导航 + 入场 */
+(function(){
+  const secs=[['s1','设计语言'],['s2','十位图鉴'],['s3','配色系统'],['s4','动效语言']];
+  const toc=document.getElementById('toc');
+  secs.forEach(([id,lab])=>{const a=document.createElement('a');a.href='#'+id;
+    a.innerHTML='<span class="dot"></span><span class="lab">'+lab+'</span>';toc.appendChild(a);});
+  const links=[...toc.querySelectorAll('a')];
+  const map={};secs.forEach(([id],i)=>{const el=document.getElementById(id);if(el)map[el.offsetTop]=links[i];});
+  const tops=Object.keys(map).map(Number).sort((a,b)=>a-b);
+  function onScroll(){const y=window.scrollY+window.innerHeight*0.35;let cur=null;
+    for(const t of tops){if(y>=t)cur=map[t];else break}
+    links.forEach(l=>l.classList.remove('active'));if(cur)cur.classList.add('active');}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+})();
+(function(){const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.05});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));})();
+</script>
+</body>
+</html>
