@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蚀月远征 · 终局进度设计 v0.2 — 节奏、维度与汇报规范</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   月蚀玻璃 · HTML 汇报规范 v0.2（本报告即规范样板）
+   ------------------------------------------------------------
+   DESIGN TOKENS —— 全部以 CSS 变量声明，复用即取
+   bg 夜色三档 / glass 玻璃拟态 / gold 月蚀金 / moon 月白
+   serif 标题衬线 / sans 正文 / radius 圆角 / shadow 阴影
+   ============================================================ */
+:root{
+  /* 夜色 */
+  --bg-0:#0a0d16; --bg-1:#0e1220; --bg-2:#121729; --bg-3:#181f36;
+  /* 玻璃拟态 */
+  --glass-bg:rgba(19,24,43,.55); --glass-blur:16px;
+  --glass-border:linear-gradient(160deg, rgba(212,169,78,.28), rgba(212,169,78,.06) 40%, rgba(232,230,223,.08) 100%);
+  --glass-highlight:inset 0 1px 0 rgba(255,255,255,.06);
+  /* 月蚀金 */
+  --gold:#d4a94e; --gold-bright:#eec97a; --gold-dim:#8a7340; --gold-faint:rgba(212,169,78,.09);
+  /* 月白 / 血月 / 蚀青 */
+  --moon:#e8e6df; --moon-dim:#a9aec4;
+  --red:#c05050; --red-bright:#e06a5a;
+  --teal:#5fb3a8; --blue:#6d8fd6;
+  /* 文字 */
+  --text:#cfd3e4; --text-dim:#8b91ab; --text-faint:#5c6279;
+  /* 排版 */
+  --serif:'Noto Serif SC',serif; --sans:'Noto Sans SC',system-ui,sans-serif;
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 24px 70px rgba(0,0,0,.55);
+  --line:#262e4a; --line-soft:#1e2540;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg-0);color:var(--text);font-family:var(--sans);font-weight:300;
+  line-height:1.78;font-size:15.5px;overflow-x:hidden}
+
+/* ===== 星幕背景 ===== */
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(1100px 560px at 88% -8%, rgba(212,169,78,.08), transparent 60%),
+    radial-gradient(900px 520px at 6% 108%, rgba(109,143,214,.09), transparent 62%),
+    linear-gradient(180deg,var(--bg-0),var(--bg-1) 55%,var(--bg-0))}
+.stars::after{content:'';position:absolute;inset:0;opacity:.55;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 27% 66%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1.4px 1.4px at 43% 11%, rgba(255,255,255,.45), transparent),
+    radial-gradient(1px 1px at 58% 44%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1px 1px at 71% 80%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1.4px 1.4px at 85% 24%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1px 1px at 92% 57%, rgba(255,255,255,.25), transparent),
+    radial-gradient(1px 1px at 8% 87%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1px 1px at 36% 93%, rgba(255,255,255,.22), transparent)}
+
+/* ===== 玻璃 ===== */
+.glass{background:var(--glass-bg);backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
+  border:1px solid transparent;
+  background-image:var(--glass-border),var(--glass-bg);
+  background-origin:border-box;background-clip:padding-box,border-box;
+  box-shadow:var(--shadow),var(--glass-highlight)}
+
+/* ===== 布局 ===== */
+.wrap{position:relative;z-index:1;max-width:1060px;margin:0 auto;padding:0 30px 130px}
+section{margin-top:104px;scroll-margin-top:24px}
+
+/* ===== 侧栏 ===== */
+nav.toc{position:fixed;top:50%;right:18px;transform:translateY(-50%);z-index:60;
+  display:flex;flex-direction:column;gap:2px;padding:10px 6px;border-radius:999px;
+  background:rgba(14,18,32,.72);backdrop-filter:blur(10px);border:1px solid var(--line)}
+nav.toc a{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;color:var(--text-faint);
+  text-decoration:none;font-size:11px;letter-spacing:.06em;white-space:nowrap;transition:all .25s}
+nav.toc a .dot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:all .25s}
+nav.toc a:hover{color:var(--text)}
+nav.toc a.active{color:var(--gold-bright)}
+nav.toc a.active .dot{background:var(--gold-bright);box-shadow:0 0 9px rgba(212,169,78,.85)}
+nav.toc a .lab{display:none}
+nav.toc a.active .lab{display:inline}
+@media(max-width:920px){nav.toc{display:none}}
+
+/* ===== Hero ===== */
+.hero{min-height:88vh;display:flex;flex-direction:column;justify-content:center;position:relative;padding-top:56px}
+.hero .moon-orb{position:absolute;top:8%;right:-90px;width:360px;height:360px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 38% 35%, #3c3150, #1c1527 72%);
+  box-shadow:inset -32px -22px 64px rgba(0,0,0,.68), inset 8px 10px 30px rgba(255,255,255,.05),
+    0 0 100px rgba(212,169,78,.14);opacity:.9}
+.hero .moon-orb::before{content:'';position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 62% 58%, transparent 0 42%, rgba(160,120,80,.26) 44%, rgba(120,80,90,.18) 56%, transparent 58%);
+  mix-blend-mode:screen;filter:blur(1px)}
+.hero .crater{position:absolute;border-radius:50%;background:radial-gradient(circle at 40% 35%, #251b31, #181021 70%);
+  box-shadow:inset 2px 3px 8px rgba(0,0,0,.6)}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:12.5px;letter-spacing:.35em;color:var(--gold-dim);margin-bottom:22px}
+.eyebrow::before{content:'';width:46px;height:1px;background:var(--gold-dim)}
+h1{font-family:var(--serif);font-weight:900;font-size:clamp(32px,5.2vw,56px);line-height:1.24;color:var(--moon);letter-spacing:.02em;max-width:780px}
+h1 .accent{color:var(--gold-bright)}
+.hero-sub{margin-top:24px;max-width:660px;color:var(--text-dim);font-size:16px}
+.concl{margin-top:40px;max-width:880px;display:flex;flex-direction:column;gap:12px}
+.concl .row{padding:18px 24px;border-radius:var(--radius-sm);display:flex;gap:16px;align-items:flex-start;
+  background:rgba(212,169,78,.05);border:1px solid rgba(212,169,78,.16)}
+.concl .row .no{font-family:var(--serif);font-weight:900;color:var(--gold);font-size:15px;flex:none;padding-top:2px}
+.concl .row p{font-size:14.5px;color:var(--moon);line-height:1.85}
+.concl .row p b{color:var(--gold-bright);font-weight:600}
+.meta-strip{display:flex;flex-wrap:wrap;gap:12px;margin-top:46px}
+.meta-strip .m{display:flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;font-size:12.5px;color:var(--text-dim);
+  background:rgba(26,32,54,.55);border:1px solid var(--line-soft);backdrop-filter:blur(8px)}
+.meta-strip .m b{color:var(--gold);font-weight:600}
+
+/* ===== 章节标题 ===== */
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:14px}
+.sec-no{font-family:var(--serif);font-weight:700;font-size:15px;color:var(--gold-dim);letter-spacing:.22em}
+.sec-head h2{font-family:var(--serif);font-weight:700;font-size:clamp(24px,3vw,32px);color:var(--moon)}
+.sec-lead{color:var(--text-dim);max-width:780px;margin-bottom:34px;font-size:15px}
+.sec-lead b{color:var(--gold);font-weight:500}
+
+/* ===== 杠杆 ===== */
+.lever{display:grid;grid-template-columns:74px 1fr;gap:22px;padding:26px 28px;border-radius:var(--radius);
+  margin-bottom:16px;position:relative;overflow:hidden}
+.lever::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--gold),rgba(212,169,78,0))}
+.lever .lv-no{font-family:var(--serif);font-weight:900;font-size:38px;line-height:1;color:rgba(212,169,78,.16);padding-top:6px}
+.lever h4{font-family:var(--serif);font-size:18px;color:var(--moon);margin-bottom:8px}
+.lever h4 .en{font-size:11px;color:var(--text-faint);letter-spacing:.16em;margin-left:10px}
+.lever p{font-size:13.8px;color:var(--text-dim);line-height:1.9}
+.lever p b{color:var(--moon);font-weight:500}
+.lever .take{display:block;margin-top:10px;font-size:12.5px;color:var(--gold-bright);
+  border-left:2px solid var(--gold-dim);padding-left:12px}
+@media(max-width:560px){.lever{grid-template-columns:1fr;gap:8px}}
+
+/* ===== 表格 ===== */
+.tbl-wrap{border-radius:var(--radius);border:1px solid var(--line);overflow-x:auto;
+  background:rgba(18,23,41,.6);backdrop-filter:blur(12px)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:660px}
+th{font-size:11.5px;letter-spacing:.14em;color:var(--gold-dim);font-weight:500;text-align:left;
+  padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(212,169,78,.05);white-space:nowrap}
+td{padding:13px 16px;border-bottom:1px solid var(--line-soft);color:var(--text);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td .sub{display:block;font-size:11.5px;color:var(--text-faint);margin-top:2px}
+td b{color:var(--moon);font-weight:500}
+.pill{display:inline-block;font-size:11px;padding:3px 10px;border-radius:999px;white-space:nowrap;font-weight:400}
+.pill.low{background:rgba(95,179,168,.13);color:var(--teal);border:1px solid rgba(95,179,168,.3)}
+.pill.mid{background:rgba(212,169,78,.13);color:var(--gold-bright);border:1px solid rgba(212,169,78,.35)}
+.pill.high{background:rgba(192,80,80,.13);color:var(--red-bright);border:1px solid rgba(192,80,80,.3)}
+.star{color:var(--gold-bright);letter-spacing:2px;font-size:12px}
+.ph{font-size:10.5px;letter-spacing:.1em;color:var(--gold-dim);background:rgba(212,169,78,.1);
+  padding:1px 6px;border-radius:4px;font-weight:500;vertical-align:2px;white-space:nowrap}
+.num{color:var(--gold-bright);font-weight:400}
+
+/* ===== 维度分类 ===== */
+.dims{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.dim{padding:24px 26px;border-radius:var(--radius);position:relative;overflow:hidden}
+.dim .d-icon{font-size:26px;margin-bottom:10px;filter:drop-shadow(0 0 12px rgba(212,169,78,.35))}
+.dim h4{font-family:var(--serif);font-size:17px;color:var(--moon);margin-bottom:4px}
+.dim .d-en{font-size:10.5px;color:var(--text-faint);letter-spacing:.18em;margin-bottom:12px}
+.dim p{font-size:12.8px;color:var(--text-dim);line-height:1.75}
+.dim .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.dim .tags span{font-size:11px;padding:3px 10px;border-radius:999px;background:rgba(212,169,78,.08);
+  color:var(--gold-bright);border:1px solid rgba(212,169,78,.2)}
+.dim.d1 .d-icon{color:var(--gold-bright)}
+.dim.d2 .d-icon{color:var(--teal)}
+.dim.d3 .d-icon{color:var(--blue)}
+.dim.d4 .d-icon{color:var(--red-bright)}
+.dim.d5 .d-icon{color:var(--moon)}
+.dim.d6 .d-icon{color:var(--gold)}
+
+/* ===== 提案卡 ===== */
+.proposal{padding:30px 32px;border-radius:18px;margin-bottom:22px;position:relative;overflow:hidden}
+.proposal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),transparent 75%)}
+.prop-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:4px}
+.prop-letter{flex:none;width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-weight:900;font-size:21px;color:var(--bg-1);
+  background:linear-gradient(135deg,var(--gold-bright),var(--gold));
+  box-shadow:0 6px 22px rgba(212,169,78,.35)}
+.prop-letter.alt{background:linear-gradient(135deg,#7fc8bc,var(--teal));box-shadow:0 6px 22px rgba(95,179,168,.3)}
+.prop-head h3{font-family:var(--serif);font-weight:700;font-size:20px;color:var(--moon);padding-top:7px}
+.prop-head .en{font-size:11px;color:var(--text-faint);letter-spacing:.16em;margin-top:2px}
+.fun-hypo{margin:14px 0 16px;padding:13px 18px;border-radius:var(--radius-sm);font-size:13.8px;line-height:1.8;
+  background:rgba(212,169,78,.06);border-left:3px solid var(--gold);color:var(--gold-bright)}
+.fun-hypo .label{display:block;font-size:10px;letter-spacing:.3em;color:var(--gold-dim);margin-bottom:3px}
+.prop-body{font-size:13.8px;color:var(--text);line-height:1.9}
+.prop-body p{margin-bottom:11px}
+.prop-body b{color:var(--moon);font-weight:500}
+.prop-body ul{padding-left:20px;margin-bottom:11px}
+.prop-body li{margin-bottom:6px}
+.hazard{margin-top:14px;padding:13px 18px;border-radius:var(--radius-sm);font-size:12.8px;line-height:1.8;
+  background:rgba(192,80,80,.06);border:1px solid rgba(192,80,80,.2);color:var(--text-dim)}
+.hazard b{color:var(--red-bright)}
+.prop-meta{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line-soft)}
+.prop-meta .pm{font-size:12px;color:var(--text-faint)}
+.prop-meta .pm b{color:var(--text-dim);font-weight:500}
+
+/* ===== 矩阵 ===== */
+.mtx-badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11.5px;font-weight:500;white-space:nowrap}
+.mtx-badge.s{background:rgba(95,179,168,.13);color:var(--teal);border:1px solid rgba(95,179,168,.3)}
+.mtx-badge.a{background:rgba(212,169,78,.13);color:var(--gold-bright);border:1px solid rgba(212,169,78,.35)}
+.mtx-badge.b{background:rgba(192,80,80,.13);color:var(--red-bright);border:1px solid rgba(192,80,80,.3)}
+.matrix td:first-child{white-space:nowrap}
+
+/* ===== 组合包 ===== */
+.packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.pack{padding:26px;border-radius:var(--radius);position:relative;overflow:hidden}
+.pack .p-tag{display:inline-block;font-family:var(--serif);font-weight:700;font-size:12.5px;letter-spacing:.12em;
+  padding:4px 14px;border-radius:999px;margin-bottom:14px}
+.pack.pk1 .p-tag{color:#141a10;background:linear-gradient(135deg,var(--gold-bright),var(--gold))}
+.pack.pk2 .p-tag{color:#0c1715;background:linear-gradient(135deg,#8ad4c7,var(--teal))}
+.pack.pk3 .p-tag{color:#0e1424;background:linear-gradient(135deg,#a5bcf0,var(--blue))}
+.pack h4{font-family:var(--serif);color:var(--moon);font-size:17.5px;margin-bottom:6px}
+.pack .goal{font-size:12.5px;color:var(--gold-dim);margin-bottom:13px}
+.pack ul{padding-left:18px}
+.pack li{font-size:12.8px;color:var(--text-dim);margin-bottom:8px}
+.pack li b{color:var(--moon);font-weight:500}
+.pack .why{margin-top:13px;padding-top:11px;border-top:1px dashed var(--line-soft);font-size:12px;color:var(--text-faint);line-height:1.8}
+
+/* ===== 规范 section ===== */
+.spec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.spec{padding:20px 22px;border-radius:var(--radius-sm)}
+.spec h4{font-family:var(--serif);font-size:14px;color:var(--moon);margin-bottom:10px;letter-spacing:.05em}
+.swatch-row{display:flex;flex-direction:column;gap:8px}
+.swatch{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--text-dim)}
+.swatch .sq{width:20px;height:20px;border-radius:6px;border:1px solid rgba(255,255,255,.12);flex:none}
+.swatch .nm{flex:1}
+.swatch .cv{font-family:monospace;font-size:10.5px;color:var(--text-faint)}
+.spec ul{padding-left:16px}
+.spec li{font-size:12px;color:var(--text-dim);margin-bottom:7px;line-height:1.7}
+.spec li b{color:var(--moon);font-weight:500}
+.spec .rules{font-size:12px;color:var(--text-dim);line-height:1.9}
+.spec .rules b{color:var(--gold-bright);font-weight:500}
+pre.code{background:#0b0e1a;border:1px solid var(--line);border-radius:var(--radius-sm);padding:18px 20px;
+  font-family:'SF Mono',Consolas,monospace;font-size:12px;line-height:1.7;color:#c9d1e8;overflow-x:auto;margin-top:8px}
+pre.code .c{color:#5c6279}
+pre.code .k{color:var(--gold-bright)}
+pre.code .s{color:var(--teal)}
+
+/* ===== Footer ===== */
+footer{margin-top:110px;padding-top:30px;border-top:1px solid var(--line-soft);text-align:center;
+  color:var(--text-faint);font-size:12.5px;line-height:2.2}
+footer .moonlet{color:var(--gold-dim);letter-spacing:.4em}
+.changelog{margin-top:16px;display:inline-block;text-align:left;font-size:11.5px;color:var(--text-faint);
+  border:1px dashed var(--line);border-radius:10px;padding:12px 20px;background:rgba(18,23,41,.5)}
+.changelog b{color:var(--gold-dim)}
+
+/* ===== 滚动条 ===== */
+::-webkit-scrollbar{width:9px}
+::-webkit-scrollbar-track{background:var(--bg-0)}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-dim)}
+
+/* ===== 入场 ===== */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+
+<!-- 月轮装饰 -->
+<div class="hero-moon" aria-hidden="true" style="position:fixed;pointer-events:none;z-index:0">
+  <div style="position:absolute;top:-40px;right:-90px;width:360px;height:360px;border-radius:50%;
+    background:radial-gradient(circle at 38% 35%, #3c3150, #1c1527 72%);
+    box-shadow:inset -32px -22px 64px rgba(0,0,0,.68),0 0 100px rgba(212,169,78,.12)"></div>
+</div>
+
+<nav class="toc" id="toc"></nav>
+
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="eyebrow">Moonlight Chronicle · Progression Design v0.2</div>
+    <h1>升级节奏是难题？<br>先别调数字，<span class="accent">拆掉那条唯一的轴。</span></h1>
+    <p class="hero-sub">「升太快玩完、升太慢气馁」的根源，是把所有进度都押在一条轴上。这一版给解法、给维度、给规范。</p>
+    <div class="concl">
+      <div class="row"><div class="no">01</div><p><b>节奏矛盾的正解不是选中间值</b>，而是五根杠杆同时上：凹形成本曲线、横轴优先于纵轴、软上限衰减、目标锚定、多轴并行——最后一根才是治本的，前四根是让单轴别那么脆。</p></div>
+      <div class="row"><div class="no">02</div><p><b>可玩内容 ≠ 只加局外升级</b>。六个维度：横向新内容 / 重玩机制 / 比较进度 / 发现进度 / 熟练度 / 时间性。本轮新增 9 项提案，其中<b>武器进化与武器熟练度</b>是这游戏最缺的两块（13 把武器、无进化、无熟练度——机制满意但横向空间一直空着）。</p></div>
+      <div class="row"><div class="no">03</div><p><b>月相是白捡的进度资产</b>：8 相效果表已存在（满月 +25% 攻），玩家却看不见、没有目标。显性化 + 目标化，成本极低，每日节奏立刻有了。</p></div>
+    </div>
+    <div class="meta-strip">
+      <div class="m">提案数：<b>15</b>（上轮 6 + 本轮 9）</div>
+      <div class="m">节奏杠杆：<b>5</b> 根</div>
+      <div class="m">内容维度：<b>6</b> 类</div>
+      <div class="m">汇报规范：<b>月蚀玻璃 v0.2</b></div>
+    </div>
+  </header>
+
+  <!-- ============ 壹 节奏难题 ============ -->
+  <section id="s1">
+    <div class="sec-head reveal">
+      <span class="sec-no">壹</span>
+      <h2>节奏难题的解药：五根杠杆，不是一根曲线</h2>
+    </div>
+    <p class="sec-lead reveal">「升太快玩完 / 升太慢气馁」不是同一个问题——<b>前者是内容耗尽速度问题，后者是挫败感反馈问题</b>，一根曲线救不了两个人。逐根上杠杆：</p>
+
+    <article class="lever glass reveal">
+      <div class="lv-no">01</div>
+      <div>
+        <h4>凹形成本曲线<span class="en">CONCAVE COST · 甜点区 + 马拉松区</span></h4>
+        <p>成本不线性，前段极便宜、后段指数贵。前 3 级一局半点完（<b>甜点区</b>：玩家立刻体感变强，满足感充值）；4–8 级线性（稳定推进）；9–15 级指数（<b>马拉松区</b>：慢，但那是留给长期玩家的，不是留给所有人的）。关键心理：<b>没人要求你满级</b>——满级是理论极限，不是通关条件。</p>
+        <span class="take">结论：曲线的形状比曲线的长度重要。前 30% 的成本应该买到 50% 的收益。</span>
+      </div>
+    </article>
+
+    <article class="lever glass reveal">
+      <div class="lv-no">02</div>
+      <div>
+        <h4>横轴优先于纵轴<span class="en">WIDTH OVER DEPTH · 多树浅深 > 单树深挖</span></h4>
+        <p>一棵树 30 级是错的，3 棵树各 10 级才对。<b>「玩完」的感觉来自单一轴上的线性劳动</b>——同一棵树上点第 28 级和第 8 级是同一件事的重复。横向多轴让玩家每换一条轴都经历一次「新东西」的兴奋。再加一层<b>共鸣节点</b>：攻击树 5 级 + 金币树 5 级同时达成 → 解锁特殊月契，逼玩家横向走而不是纵向刷。</p>
+        <span class="take">结论：内容耗尽的本质是单轴重复。多轴交替，把「玩完」的定义推后三倍。</span>
+      </div>
+    </article>
+
+    <article class="lever glass reveal">
+      <div class="lv-no">03</div>
+      <div>
+        <h4>软上限衰减<span class="en">DIMINISHING RETURNS · 让满级不值得刷</span></h4>
+        <p>收益分段递减：1–5 级每级 <span class="num">+2%</span>，6–10 级 <span class="num">+1.5%</span>，11–15 级 <span class="num">+1%</span>，总加成硬 cap <span class="num">+30%</span>。<b>设计意图：第 15 级永远不值得专门去刷</b>——玩家点完第 10 级自然转向其他轴，追求「满级」变成没有性价比的行为，纵向的尽头被从心理上移除。</p>
+        <span class="take">结论：硬 cap 管通胀，软衰减管「刷满强迫症」。两个都要，缺一不可。</span>
+      </div>
+    </article>
+
+    <article class="lever glass reveal">
+      <div class="lv-no">04</div>
+      <div>
+        <h4>目标锚定<span class="en">ANCHORED PROGRESSION · 升级是深度的验货单</span></h4>
+        <p>把每段升级显式绑定深度区间：「这 5 级攻击力，正好够从深度 3 上到深度 5」。玩家冲深度的心理从「这局会输吗」变成「我攒的力量该验货了」——<b>输了也得到信息：还差两级，再打一局</b>。挫败感被翻译成明确的下一步，这是治「冲深玩家气馁」的直接解药。HUD 或结算页显示「下一段升级将解锁：深度 5 舒适区」。</p>
+        <span class="take">结论：气馁来自没有进度反馈。锚定让每一次失败都变成「还差什么」而不是「我不行」。</span>
+      </div>
+    </article>
+
+    <article class="lever glass reveal">
+      <div class="lv-no">05</div>
+      <div>
+        <h4>多轴并行<span class="en">PARALLEL AXES · 唯一治本的杠杆</span></h4>
+        <p>前四根让单轴别太脆，但<b>单轴再完美也脆</b>——任何一根曲线的节奏总会和某类玩家错位。真正的解药是 4–5 条节奏各异的并行轴：<b>货币树</b>（周尺度，缓慢持续）、<b>图鉴/猎杀</b>（天尺度，中速收集）、<b>挑战纪事</b>（离散目标，随时有得做）、<b>每日/周常</b>（短频，天尺度）、<b>身份</b>（月尺度，长期沉淀）。玩家总有至少一条轴在推进，<b>「没事做」的窗口被多轴填满</b>——这就是下一章的框架。</p>
+        <span class="take">结论：这一根才是治本的。前面四根优化单轴，这一根消灭「单轴决定成败」本身。</span>
+      </div>
+    </article>
+
+    <div class="tbl-wrap reveal" style="margin-top:26px">
+      <table>
+        <thead><tr><th>月契树节点（单树草案）</th><th>成本（回响）</th><th>收益</th><th>阶段</th><th>设计意图</th></tr></thead>
+        <tbody>
+          <tr><td>1–3 级</td><td>10 / 25 / 50 <span class="ph">[PLACEHOLDER]</span></td><td>+2% / 级</td><td>甜点区</td><td>1–2 局点完，第一次「明显变强」必须来得快</td></tr>
+          <tr><td>4–8 级</td><td>85→300 递增</td><td>+2% / 级</td><td>推进区</td><td>稳定节奏，一局一级左右</td></tr>
+          <tr><td>9–10 级</td><td>360 / 440</td><td>+1.5% / 级</td><td>衰减起</td><td>收益开始缩水，玩家开始左顾右盼</td></tr>
+          <tr><td>11–15 级</td><td>520→920</td><td>+1% / 级</td><td>马拉松区</td><td>只为长期玩家存在；刷满 = 不划算，引导转向</td></tr>
+          <tr><td>单树满级成本</td><td>≈ 5,400</td><td>+30% cap</td><td>—</td><td>约 30 局深度 5+；但 10 局后收益已到 85%，没人该刷满</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sec-lead" style="margin-top:16px;margin-bottom:0">成本公式 <span class="num">cost(n) = 10 × n^1.7</span>，收益分段递减。<span class="ph">[PLACEHOLDER]</span>——先按「前 10 局体感明显、30 局后无人在意」验，再调。</p>
+  </section>
+
+  <!-- ============ 贰 内容维度 ============ -->
+  <section id="s2">
+    <div class="sec-head reveal">
+      <span class="sec-no">贰</span>
+      <h2>可玩内容全景：六个维度</h2>
+    </div>
+    <p class="sec-lead reveal">加内容的正确姿势是<b>先分类再动手</b>——六个维度代表六种不同的「进度感来源」，每个维度服务不同的玩家动机。本轮新增 9 项提案（G1–G9），分布如下：</p>
+    <div class="dims reveal">
+      <div class="dim glass d1">
+        <div class="d-icon">✦</div>
+        <h4>横向新内容</h4>
+        <div class="d-en">NEW CONTENT · 新东西</div>
+        <p>机制复用优先的「新条目」：进化武器、月相事件。给「已经会的玩法」一个新目标，而不是教玩家新规则。</p>
+        <div class="tags"><span>G1 武器进化</span><span>G2 月相显性化</span></div>
+      </div>
+      <div class="dim glass d2">
+        <div class="d-icon">♻</div>
+        <h4>重玩机制</h4>
+        <div class="d-en">REPLAY MECHANICS · 老内容新玩法</div>
+        <p>同一套 20 夜，换规则重打：限制 run 收集、流派图鉴。零美术投入，纯规则与目标。</p>
+        <div class="tags"><span>G3 远征纪事</span><span>G4 流派图鉴</span></div>
+      </div>
+      <div class="dim glass d3">
+        <div class="d-icon">⇡</div>
+        <h4>比较进度</h4>
+        <div class="d-en">COMPARATIVE · 无限上限</div>
+        <p>排行榜与每日种子。上限不是 20 夜、不是深度 9——是「总有人比你快」。</p>
+        <div class="tags"><span>G5 蚀月占星榜</span></div>
+      </div>
+      <div class="dim glass d4">
+        <div class="d-icon">◈</div>
+        <h4>发现进度</h4>
+        <div class="d-en">DISCOVERY · 未知的诱惑</div>
+        <p>叙事碎片与隐藏夜。有限但不可预测的收集，是「差一片就难受」的收集驱动。</p>
+        <div class="tags"><span>G6 蚀潮纪事</span><span>G7 隐藏夜</span></div>
+      </div>
+      <div class="dim glass d5">
+        <div class="d-icon">◎</div>
+        <h4>熟练度</h4>
+        <div class="d-en">MASTERY · 用过即进度</div>
+        <p>武器熟练度。13 把武器 × 3 形态 = 39 个目标，「见过所有武器」升级为「精通所有武器」。</p>
+        <div class="tags"><span>G8 武器熟练度</span></div>
+      </div>
+      <div class="dim glass d6">
+        <div class="d-icon">◐</div>
+        <h4>时间性</h4>
+        <div class="d-en">TEMPORAL · 每天一个理由</div>
+        <p>每日通缉（上轮 C）+ 每周蚀潮 + 月相轮转。让「今天」成为打开游戏的原因。</p>
+        <div class="tags"><span>G9 每周蚀潮</span><span>C 每日通缉</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 叁 新提案详情 ============ -->
+  <section id="s3">
+    <div class="sec-head reveal">
+      <span class="sec-no">叁</span>
+      <h2>本轮新提案详情（G1–G9）</h2>
+    </div>
+    <p class="sec-lead reveal">上轮 A–F 不变，本轮按信号强度排序。全数值 <span class="ph">[PLACEHOLDER]</span>。</p>
+
+    <!-- G1 -->
+    <article class="proposal glass reveal">
+      <div class="prop-head">
+        <div class="prop-letter alt">G1</div>
+        <div><h3>武器进化 · 月蚀合铸</h3><div class="en">WEAPON EVOLUTION — FORGED BY ECLIPSE</div></div>
+      </div>
+      <div class="fun-hypo"><span class="label">FUN HYPOTHESIS</span>「差一把武器就能合出那把传说中的月蚀之刃」——满级双武器合成进化武器，单局构筑有了明确的「追装备」目标。</div>
+      <div class="prop-body">
+        <p><b>为什么这是本轮最重的提案：</b>类幸存者品类的招牌纵向目标，你的游戏居然没有——13 把武器、5 槽上限、满级 Lv10，但满级之后武器只是数字变大。<b>进化 = 给「凑两把武器」制造目标</b>，玩家为进化而选 build、为进化而买商店、为进化而冒险冲深度。</p>
+        <p><b>草案组合（6 对，覆盖 12 把，初始武器 moonRing 参与）：</b></p>
+        <ul>
+          <li>moonRing + crossbow → <b>月光连弩</b>（环绕月环 + 连射）</li>
+          <li>meteor + frost → <b>冰陨星</b>（大范围冰爆陨石）</li>
+          <li>beam + shadow → <b>影光蚀刃</b>（穿透光束 + 暴击溢出）</li>
+          <li>orbit + lance → <b>月环长枪</b>（多环 + 突刺）</li>
+          <li>storm + nova → <b>雷暴新星</b>（弹幕 + 核爆）</li>
+          <li>phantom + tideAnchor → <b>深潮幻影</b>（分身 + 深度倍率，吃深度对偶）</li>
+        </ul>
+        <p>进化武器占 1 槽、自带独立图鉴条目与熟练度轨道（与 G8 联动），且进化不可逆——<b>决策感：合了就没有回头路</b>。</p>
+        <div class="hazard"><b>风险：</b>数值成本高（6 把新武器 = 美术 + 公式 + 图鉴）。对策：先做 3 对（月光连弩 / 冰陨星 / 雷暴新星），验证「为进化而玩」的假设成立再补齐。另一风险：进化后 5 槽回收（原两把消失）导致中期 DPS 真空——进化武器的首级数值要覆盖两把满级之和，否则是负提升。</div>
+      </div>
+      <div class="prop-meta">
+        <div class="pm">实现成本：<b>中-高</b>（新武器 ×6 + 合成 UI + 图鉴）</div>
+        <div class="pm">维度：<b>横向新内容</b></div>
+        <div class="pm">进度感贡献：<b>★★★★★</b>（单局目标 + 图鉴条目 + 熟练度轨道）</div>
+      </div>
+    </article>
+
+    <!-- G2 -->
+    <article class="proposal glass reveal">
+      <div class="prop-head">
+        <div class="prop-letter alt">G2</div>
+        <div><h3>月相显性化 · 把白捡的资产亮出来</h3><div class="en">LUNAR PHASE MADE VISIBLE</div></div>
+      </div>
+      <div class="fun-hypo"><span class="label">FUN HYPOTHESIS</span>「今晚满月，攻击 +25%——今晚是冲深度的日子」——月相效果表已存在，玩家看不见，等于没有。</div>
+      <div class="prop-body">
+        <p><b>事实：</b>MOON_EFFECT_DESCS 已有 8 相完整效果（新月闪避 +25%、满月攻击 +25% 暴伤 +25%……）且按现实月相自动轮转。<b>但玩家在局内看不到今天什么月相、有什么效果</b>——一个每天在变的全局 modifier 白白躺着。</p>
+        <p><b>机制：</b>① 开局界面 + HUD 明示「今日月相 · 满月 · 攻击 +25%」；② 特定月相触发稀有事件（血月出「蚀月精英」，掉双倍回响，与 A 联动）；③ 月相成为<b>计划工具</b>：玩家学会「等满月冲深度、等新月打无伤成就」——月相从装饰变成玩家的决策输入。</p>
+        <div class="hazard"><b>风险：</b>几乎无。唯一注意：月相效果与 B 契约叠加后可能超预期（满月 + 蚀牙锋利 × 高阶深度）——倍率乘法封顶需 playtest，这是唯一要盯的点。</div>
+      </div>
+      <div class="prop-meta">
+        <div class="pm">实现成本：<b>极低</b>（HUD 显示 + 事件钩子）</div>
+        <div class="pm">维度：<b>横向新内容</b></div>
+        <div class="pm">进度感贡献：<b>★★★☆☆</b>（但成本近乎为零，性价比之王）</div>
+      </div>
+    </article>
+
+    <!-- G3 -->
+    <article class="proposal glass reveal">
+      <div class="prop-head">
+        <div class="prop-letter alt">G3</div>
+        <div><h3>远征纪事 · 限制 run 收集</h3><div class="en">EXPEDITION CHRONICLE — CONSTRAINT RUNS</div></div>
+      </div>
+      <div class="fun-hypo"><span class="label">FUN HYPOTHESIS</span>「这张纪事卡还差最后一格」——把散落的成就挑战系统化成 3×3 纪事卡组，完成一张点亮一格。</div>
+      <div class="prop-body">
+        <p><b>机制：</b>现有成就里已有大量「单局限制」素材（无伤之夜、90 秒 Boss、仅初始武器、一命……），把它们结构化：每张纪事卡 = 一种限制 run（如「孤月：仅 moonRing 通关终焉」），3×3 为一组，<b>完成一行/一列解锁一枚「月契徽记」</b>（回响或身份资产，与 A/E 共用 sink）。全组完成解锁隐藏称号。</p>
+        <p><b>与成就的区别：</b>成就是「发生了就记一笔」，纪事是「预先承诺的目标」——玩家开局就知道这局要完成什么限制，决策感前置。且纪事卡 3×3 的格子视觉本身就是一个「还差一格」的收集进度条。</p>
+        <div class="hazard"><b>风险：</b>限制 run 与随机性的冲突（「仅初始武器」可能商店刷不到理想辅助）。对策：纪事卡允许「契约豁免券」——已完成 5 次的诅咒可选择不抽（现成精通机制扩展），降低运气成分。</div>
+      </div>
+      <div class="prop-meta">
+        <div class="pm">实现成本：<b>低</b>（成就机制现成，加结构化 UI）</div>
+        <div class="pm">维度：<b>重玩机制</b></div>
+        <div class="pm">进度感贡献：<b>★★★★☆</b></div>
+      </div>
+    </article>
+
+    <!-- G4 -->
+    <article class="proposal glass reveal">
+      <div class="prop-head">
+        <div class="prop-letter alt">G4</div>
+        <div><h3>流派图鉴 · 官方 build 挑战</h3><div class="en">ARCHETYPE CODEX — OFFICIAL BUILDS</div></div>
+      </div>
+      <div class="fun-hypo"><span class="label">FUN HYPOTHESIS</span>「血月狂战流派，我还差两件专属道具」——官方定义 6 种流派，首通给「流派烙印」，驱动玩家换 build 玩。</div>
+      <div class="prop-body">
+        <p><b>机制：</b>官方设计 6 种流派（如「蚀雾商人」：金币 build + 补货流；「新月刺客」：暴击 + 闪避流；「深潮守望」：深度倍率 + 生命流），每种 = 武器组合 + 道具清单 + 推荐契约。局内达成「流派配置 ≥ 80%」即判定流派 run，通关给「流派烙印」+ 回响加成 <span class="num">+15%</span>。<b>为什么有效：</b>玩家最常问的是「这局怎么配」，流派图鉴把答案变成目标——参考与挑战一体化。</p>
+        <div class="hazard"><b>风险：</b>流派判定过严则劝退、过松则无意义。阈值 80% 是 <span class="ph">[PLACEHOLDER]</span>；另一个风险是流派与随机商店冲突——商店可提供「流派关键件必出」保证（每流派 2 个核心件优先出现）。</div>
+      </div>
+      <div class="prop-meta">
+        <div class="pm">实现成本：<b>低-中</b>（配置表 + 判定 + 图鉴 UI）</div>
+        <div class="pm">维度：<b>重玩机制</b></div>
+        <div class="pm">进度感贡献：<b>★★★★☆</b>（让 build 多样性变成可收集的目标）</div>
+      </div>
+    </article>
+
+    <!-- G5 -->
+    <article class="proposal glass reveal">
+      <div class="prop-head">
+        <div class="prop-letter alt">G5</div>
+        <div><h3>蚀月占星榜 · 排行榜与每日种子</h3><div class="en">STARCAST RANKING — LEADERBOARD + DAILY SEED</div></div>
+      </div>
+      <div class="fun-hypo"><span class="label">FUN HYPOTHESIS</span>「同一个世界，为什么他比我多撑了 6 夜」——排行榜是唯一「上限无限」的进度，总有人在你前面。</div>
+      <div class="prop-body">
+        <p><b>机制：</b>三张榜——<b>深度榜</b>（深度 × 通关夜数复合分）、<b>无尽榜</b>（撑过夜数）、<b>速通榜</b>（终焉通关时间）。本地榜零成本先上；每日官方种子「蚀月占星」：所有玩家同一天打同一个种子世界，比成绩（种子系统 = 固定 RNG 序列，你的 RNG 已注入化，改造可控）。</p>
+        <p><b>为什么它属于「进度」而非「炫耀」：</b>排行榜把「最高深度打完」变成「我的分数还有提升空间」——上限从设计者定死的数字，变成「别人做到过的事」。这是唯一不需要任何新内容的无限进度。</p>
+        <div class="hazard"><b>风险：</b>云榜 = 后端成本，先本地榜。种子榜要防「种子世界被解出最优 build」——这是 feature 不是 bug：最优解公开反而制造「所有人都能挑战极限」的社区话题。</div>
+      </div>
+      <div class="prop-meta">
+        <div class="pm">实现成本：<b>低</b>（本地榜）/ <b>中</b>（云榜 + 种子）</div>
+        <div class="pm">维度：<b>比较进度</b></div>
+        <div class="pm">进度感贡献：<b>★★★★☆</b>（无限上限，零内容消耗）</div>
+      </div>
+    </article>
+
+    <!-- G6 -->
+    <article class="proposal glass reveal">
+      <div class="prop-head">
+        <div class="prop-letter alt">G6</div>
+        <div><h3>蚀潮纪事 · 叙事碎片</h3><div class="en">TIDE CHRONICLE — LORE FRAGMENTS</div></div>
+      </div>
+      <div class="fun-hypo"><span class="label">FUN HYPOTHESIS</span>「蚀月的真相，还差最后一片」——通关与特定条件解锁世界观文本，凑成编年史。</div>
+      <div class="prop-body">
+        <p><b>机制：</b>24 片叙事碎片（对应 20 夜 + 深度 + 隐藏条件），通关第 N 夜解锁一片，特定深度/无伤/全图鉴解锁隐藏碎片。收集页以「蚀月编年史」时间线呈现。<b>为什么有效：</b>叙事是「有限但不可预测」的收集——玩家不知道还剩几片，也不知道下一片讲什么，这个「未知」本身就是进度钩子（区别于可见的成就列表）。</p>
+        <div class="hazard"><b>风险：</b>文案成本被低估是常态。对策：先写 8 片核心（终焉 + 深度 9 + 隐藏），其余碎片化短句——碎片系统允许「一句话也算一片」。</div>
+      </div>
+      <div class="prop-meta">
+        <div class="pm">实现成本：<b>低</b>（文案为主，UI 复用图鉴）</div>
+        <div class="pm">维度：<b>发现进度</b></div>
+        <div class="pm">进度感贡献：<b>★★★☆☆</b>（长尾收集，适合后期内容）</div>
+      </div>
+    </article>
+
+    <!-- G7 -->
+    <article class="proposal glass reveal">
+      <div class="prop-head">
+        <div class="prop-letter alt">G7</div>
+        <div><h3>隐藏夜 · 蚀月回廊</h3><div class="en">SECRET NIGHT — ECLIPSE CORRIDOR</div></div>
+      </div>
+      <div class="fun-hypo"><span class="label">FUN HYPOTHESIS</span>「这个条件达成后……怎么多了一夜？」——隐藏夜是发现式惊喜，一次就值回票价。</div>
+      <div class="prop-body">
+        <p><b>机制：</b>特定月相 + 特定条件触发（如「满月之夜无伤通关 12 夜」）→ 终焉前插入隐藏夜「蚀月回廊」：全新敌型组合 + 专属 Boss + 专属回响奖励（<span class="num">×2 结算</span>）。不告知条件（图鉴里给模糊提示：「有些夜晚，只在血月之下开门」）。</p>
+        <div class="hazard"><b>风险：</b>隐藏条件太苛刻 → 社区考古成本高；太简单 → 没有发现感。条件设计为「中高级玩家自然路过」——不是要求极限操作，是要求「尝试了不同月相」。做 1 个验证假设，别一口气做 3 个。</div>
+      </div>
+      <div class="prop-meta">
+        <div class="pm">实现成本：<b>中</b>（一个新夜 + 触发系统）</div>
+        <div class="pm">维度：<b>发现进度</b></div>
+        <div class="pm">进度感贡献：<b>★★★☆☆</b>（惊喜值高，但一次性）</div>
+      </div>
+    </article>
+
+    <!-- G8 -->
+    <article class="proposal glass reveal">
+      <div class="prop-head">
+        <div class="prop-letter alt">G8</div>
+        <div><h3>武器熟练度 · 月蚀形态</h3><div class="en">WEAPON MASTERY — ECLIPSE FORMS</div></div>
+      </div>
+      <div class="fun-hypo"><span class="label">FUN HYPOTHESIS</span>「这把弩我用了二十局，它该记得我了」——用过的武器累积熟练度，解锁月蚀形态（视觉 + 小被动）。</div>
+      <div class="prop-body">
+        <p><b>机制：</b>每把武器按「携带局数 × 击杀数」累积熟练度，3 档形态：<b>初蚀</b>（100 击杀 · 无）→ <b>蚀染</b>（500 击杀 · 小被动如攻速 +4%）→ <b>月蚀</b>（1500 击杀 · 专属特效 + 图鉴条目）。13 把 × 3 档 = 39 个目标。<b>为什么对这个游戏特别契合：</b>5 武器上限 + 商店武器池 = 玩家天然会换 build——熟练度把「换 build 的沉没成本」变成「新目标」，鼓励广度而非重复最优解。</p>
+        <div class="hazard"><b>风险：</b>熟练度只奖励老武器 → 新武器无人问津。对策：新武器首局给 1.5× 熟练度加成（尝鲜奖励）；形态被动必须小于月契树同级收益，防止两套成长叠加失控。</div>
+      </div>
+      <div class="prop-meta">
+        <div class="pm">实现成本：<b>低-中</b>（计数 + 形态配置 + 图鉴）</div>
+        <div class="pm">维度：<b>熟练度</b></div>
+        <div class="pm">进度感贡献：<b>★★★★☆</b>（39 个目标，换 build 有奖励）</div>
+      </div>
+    </article>
+
+    <!-- G9 -->
+    <article class="proposal glass reveal">
+      <div class="prop-head">
+        <div class="prop-letter alt">G9</div>
+        <div><h3>每周蚀潮 · 周常规则</h3><div class="en">WEEKLY TIDE — ROTATING RULES</div></div>
+      </div>
+      <div class="fun-hypo"><span class="label">FUN HYPOTHESIS</span>「本周敌人死后会分裂——上周那套 build 不灵了」——周常规则让 meta 每七天换血一次。</div>
+      <div class="prop-body">
+        <p><b>机制：</b>每周一刷新一个全局规则（规则表 6–8 条轮转：分裂潮 / 双 Boss / 金币翻倍敌人数翻倍 / 投射物减速……），叠加月相与每日通缉形成三层时间节奏（日 = 月相 + 通缉，周 = 蚀潮规则）。周常规则改变<b>最优 build</b>——上周的毕业构筑这周可能不是最优，meta 每七天动一次，重玩性自动刷新。</p>
+        <div class="hazard"><b>风险：</b>规则若只是数值浮动 → 第三周无感。每条规则必须改变一种<b>决策</b>（分裂潮逼你优先范围伤害，金币翻倍逼你激进抢钱），否则就是换皮数字——这条红线与上轮 F 一致，两条时间轴共用一条设计准则。</div>
+      </div>
+      <div class="prop-meta">
+        <div class="pm">实现成本：<b>低</b>（规则表 + 周刷新）</div>
+        <div class="pm">维度：<b>时间性</b></div>
+        <div class="pm">进度感贡献：<b>★★★☆☆</b>（依赖 A 的回响出口才有意义）</div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 肆 全量矩阵 ============ -->
+  <section id="s4">
+    <div class="sec-head reveal">
+      <span class="sec-no">肆</span>
+      <h2>全量矩阵：15 项提案一张表</h2>
+    </div>
+    <p class="sec-lead reveal">上轮 A–F + 本轮 G1–G9，按<b>实现成本 / 进度感贡献 / 与现有系统契合度</b>统一过审。成本按「有代码可复用」估算。</p>
+    <div class="tbl-wrap reveal">
+      <table>
+        <thead><tr><th>提案</th><th>维度</th><th>成本</th><th>进度感</th><th>契合度</th><th>一句话判断</th></tr></thead>
+        <tbody>
+          <tr><td><b>A 蚀月回响</b><span class="sub">跨局货币 + 月契树</span></td><td>元进度</td><td><span class="pill mid">中</span></td><td><span class="star">★★★★★</span></td><td><span class="pill high">高</span></td><td>主轴，必做；节奏按五杠杆定</td></tr>
+          <tr><td><b>B 蚀之契约</b><span class="sub">诅咒改自选</span></td><td>元进度</td><td><span class="pill low">低</span></td><td><span class="star">★★★★☆</span></td><td><span class="pill high">高</span></td><td>与 A 合体才是闭环，一起做</td></tr>
+          <tr><td><b>G2 月相显性化</b><span class="sub">效果亮出来</span></td><td>横向</td><td><span class="pill low">极低</span></td><td><span class="star">★★★☆☆</span></td><td><span class="pill high">极高</span></td><td>白捡的资产，先做，一天的事</td></tr>
+          <tr><td><b>C 每日通缉令</b><span class="sub">Boss 通缉</span></td><td>时间性</td><td><span class="pill low">低</span></td><td><span class="star">★★★☆☆</span></td><td><span class="pill high">高</span></td><td>每日一局的理由，跟 G2 一起上</td></tr>
+          <tr><td><b>G8 武器熟练度</b><span class="sub">月蚀形态</span></td><td>熟练度</td><td><span class="pill low">低-中</span></td><td><span class="star">★★★★☆</span></td><td><span class="pill high">高</span></td><td>13 把武器现成，39 个目标白给</td></tr>
+          <tr><td><b>G3 远征纪事</b><span class="sub">限制 run 卡组</span></td><td>重玩</td><td><span class="pill low">低</span></td><td><span class="star">★★★★☆</span></td><td><span class="pill high">高</span></td><td>成就素材现成，结构化即可</td></tr>
+          <tr><td><b>G4 流派图鉴</b><span class="sub">官方 build</span></td><td>重玩</td><td><span class="pill low">低-中</span></td><td><span class="star">★★★★☆</span></td><td><span class="pill high">高</span></td><td>把「怎么配」变成目标</td></tr>
+          <tr><td><b>G5 占星榜</b><span class="sub">排行榜 + 种子</span></td><td>比较</td><td><span class="pill low">低</span></td><td><span class="star">★★★★☆</span></td><td><span class="pill mid">中</span></td><td>本地榜先上，无限上限</td></tr>
+          <tr><td><b>G1 武器进化</b><span class="sub">月蚀合铸</span></td><td>横向</td><td><span class="pill high">中-高</span></td><td><span class="star">★★★★★</span></td><td><span class="pill high">高</span></td><td>品类招牌目标；先做 3 对验证</td></tr>
+          <tr><td><b>D 无尽蚀潮</b><span class="sub">20 夜后无限</span></td><td>元进度</td><td><span class="pill low">低</span></td><td><span class="star">★★★☆☆</span></td><td><span class="pill mid">中</span></td><td>上限无限化，曲线要重做</td></tr>
+          <tr><td><b>G6 蚀潮纪事</b><span class="sub">叙事碎片</span></td><td>发现</td><td><span class="pill low">低</span></td><td><span class="star">★★★☆☆</span></td><td><span class="pill high">高</span></td><td>长尾收集，后期补</td></tr>
+          <tr><td><b>G7 隐藏夜</b><span class="sub">蚀月回廊</span></td><td>发现</td><td><span class="pill mid">中</span></td><td><span class="star">★★★☆☆</span></td><td><span class="pill mid">中</span></td><td>做 1 个验证惊喜假设</td></tr>
+          <tr><td><b>F 月相轮转</b><span class="sub">每日 modifier</span></td><td>时间性</td><td><span class="pill low">低</span></td><td><span class="star">★★★☆☆</span></td><td><span class="pill high">高</span></td><td>G2 升级版，依赖 C/A 出口</td></tr>
+          <tr><td><b>G9 每周蚀潮</b><span class="sub">周常规则</span></td><td>时间性</td><td><span class="pill low">低</span></td><td><span class="star">★★★☆☆</span></td><td><span class="pill mid">中</span></td><td>meta 每七天换血一次</td></tr>
+          <tr><td><b>E 月契书</b><span class="sub">身份装饰</span></td><td>元进度</td><td><span class="pill low">低</span></td><td><span class="star">★★☆☆☆</span></td><td><span class="pill high">高</span></td><td>奖励层，给回响一个 sink</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 伍 组合包 ============ -->
+  <section id="s5">
+    <div class="sec-head reveal">
+      <span class="sec-no">伍</span>
+      <h2>推荐组合包：按投入分三档</h2>
+    </div>
+    <p class="sec-lead reveal">别 15 个一起做。三档，每档是一个完整闭环，先跑通再扩。</p>
+    <div class="packs reveal">
+      <div class="pack glass pk1">
+        <span class="p-tag">档位 1 · 快赢（约 1–2 周）</span>
+        <h4>G2 + C + G8：把已有资产点亮</h4>
+        <div class="goal">目标：让玩家「看见」进度</div>
+        <ul>
+          <li><b>G2 月相显性化</b>：HUD 亮出月相效果</li>
+          <li><b>C 每日通缉令</b>：每天一个 Boss 目标</li>
+          <li><b>G8 武器熟练度</b>：39 个形态目标</li>
+        </ul>
+        <div class="why">为什么：三件全是「现有资产 + 目标化」，零新美术、零新曲线，但立刻产生「每天有目标、用过的武器有进度」。给玩家一个「你还有事做」的即时信号，验证进度感假设的最小闭环。</div>
+      </div>
+      <div class="pack glass pk2">
+        <span class="p-tag">档位 2 · 主轴（约 3–5 周）</span>
+        <h4>A + B + G3 + G4：进度货币与目标体系</h4>
+        <div class="goal">目标：任何一局都不白打</div>
+        <ul>
+          <li><b>A 蚀月回响</b>：跨局货币 + 月契树（五杠杆节奏）</li>
+          <li><b>B 蚀之契约</b>：自选挑战 × 回响倍率</li>
+          <li><b>G3 远征纪事</b> + <b>G4 流派图鉴</b>：限制 run 与 build 目标</li>
+        </ul>
+        <div class="why">为什么：档位 1 是信号，档位 2 才是回路——货币把「任何一局」都变成资产，契约让难度变成赌注，纪事与流派把重玩变成收集。G2/C 的回响出口也接在这里（每日通缉给回响）。</div>
+      </div>
+      <div class="pack glass pk3">
+        <span class="p-tag">档位 3 · 纵深（约 6–10 周）</span>
+        <h4>G1 + D + G5 + G6/G7：内容与上限</h4>
+        <div class="goal">目标：上限无限化</div>
+        <ul>
+          <li><b>G1 武器进化</b>：先 3 对，品类招牌目标</li>
+          <li><b>D 无尽蚀潮</b> + <b>G5 占星榜</b>：无限上限 + 比较</li>
+          <li><b>G6 纪事碎片</b> / <b>G7 隐藏夜</b>：发现式长尾</li>
+        </ul>
+        <div class="why">为什么：档位 1+2 已经回答了「为什么继续打」，档位 3 回答「打完以后呢」——进化给单局终极目标、无尽给无限上限、排行榜给比较意义、碎片给收集长尾。这是「最高深度打完」之后的世界。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 陆 汇报规范 ============ -->
+  <section id="s6">
+    <div class="sec-head reveal">
+      <span class="sec-no">陆</span>
+      <h2>HTML 汇报规范：月蚀玻璃 v0.2</h2>
+    </div>
+    <p class="sec-lead reveal">本报告即规范样板。规范目标：<b>任何一份设计汇报打开就是项目的味道</b>——token 化、组件化、复用即一致。规则：<b>用 CSS 变量，不硬编码颜色；数值必须标 <span class="ph">[PLACEHOLDER]</span>；报告头部必须有结论先行区；页脚必须有版本与变更日志。</b></p>
+
+    <div class="spec-grid reveal">
+      <div class="spec glass">
+        <h4>色彩 Tokens</h4>
+        <div class="swatch-row">
+          <div class="swatch"><span class="sq" style="background:#0a0d16"></span><span class="nm">夜色 · bg-0</span><span class="cv">#0a0d16</span></div>
+          <div class="swatch"><span class="sq" style="background:#121729"></span><span class="nm">夜色 · bg-2</span><span class="cv">#121729</span></div>
+          <div class="swatch"><span class="sq" style="background:#d4a94e"></span><span class="nm">月蚀金 · gold</span><span class="cv">#d4a94e</span></div>
+          <div class="swatch"><span class="sq" style="background:#eec97a"></span><span class="nm">亮金 · gold-bright</span><span class="cv">#eec97a</span></div>
+          <div class="swatch"><span class="sq" style="background:#e8e6df"></span><span class="nm">月白 · moon</span><span class="cv">#e8e6df</span></div>
+          <div class="swatch"><span class="sq" style="background:#c05050"></span><span class="nm">血月 · red</span><span class="cv">#c05050</span></div>
+          <div class="swatch"><span class="sq" style="background:#5fb3a8"></span><span class="nm">蚀青 · teal</span><span class="cv">#5fb3a8</span></div>
+          <div class="swatch"><span class="sq" style="background:#6d8fd6"></span><span class="nm">蚀蓝 · blue</span><span class="cv">#6d8fd6</span></div>
+        </div>
+      </div>
+      <div class="spec glass">
+        <h4>玻璃组件</h4>
+        <ul>
+          <li><b>hero</b>：结论先行区 ≤ 3 条，每条带编号</li>
+          <li><b>glass 卡片</b>：blur 16px + 渐变边框 + 内高光</li>
+          <li><b>提案块</b>：字母徽章 + fun hypothesis 引条 + 风险块</li>
+          <li><b>表格</b>：半透明底 + 金系表头，min-width 防挤</li>
+          <li><b>矩阵徽章</b>：intended 青 / acceptable 金 / bug 红</li>
+          <li><b>成本标签</b>：低青 / 中金 / 高红</li>
+        </ul>
+      </div>
+      <div class="spec glass">
+        <h4>版式规则</h4>
+        <div class="rules">
+          <b>标题</b>：Noto Serif SC 900，正文 Noto Sans SC 300<br>
+          <b>正文字号</b>：15.5px / 行高 1.78<br>
+          <b>圆角</b>：卡片 16px，组件 10px<br>
+          <b>间距</b>：section 间距 104px，卡片间距 16–22px<br>
+          <b>章节编号</b>：中文大写（壹贰叁）衬线体<br>
+          <b>数值</b>：一律 <span class="ph">[PLACEHOLDER]</span> 标注，金色高亮
+        </div>
+      </div>
+      <div class="spec glass">
+        <h4>骨架（新报告复制即用）</h4>
+        <pre class="code"><span class="c">&lt;!-- 结构固定，样式引用 token --&gt;</span>
+&lt;div <span class="k">class</span>=<span class="s">"wrap"</span>&gt;
+  &lt;header <span class="k">class</span>=<span class="s">"hero"</span>&gt;
+    &lt;div <span class="k">class</span>=<span class="s">"eyebrow"</span>&gt;…&lt;/div&gt;
+    &lt;h1&gt;…&lt;/h1&gt;
+    &lt;div <span class="k">class</span>=<span class="s">"concl"</span>&gt;…&lt;/div&gt;  <span class="c">&lt;!-- 结论先行 ≤3 条 --&gt;</span>
+  &lt;/header&gt;
+  &lt;section&gt;&lt;div <span class="k">class</span>=<span class="s">"sec-head"</span>&gt;…&lt;/div&gt;
+    &lt;article <span class="k">class</span>=<span class="s">"proposal glass"</span>&gt;…&lt;/article&gt;
+  &lt;/section&gt;
+  &lt;footer&gt;版本 + 变更日志&lt;/footer&gt;
+&lt;/div&gt;</pre>
+      </div>
+    </div>
+
+    <div class="tbl-wrap reveal" style="margin-top:18px">
+      <table>
+        <thead><tr><th>Token</th><th>值</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><span class="num">--glass-bg / --glass-blur</span></td><td>rgba(19,24,43,.55) / 16px</td><td>所有卡片底；blur 越高越「月雾」</td></tr>
+          <tr><td><span class="num">--glass-border</span></td><td>160° 金→透明渐变 1px</td><td>玻璃描边，替代实线边框</td></tr>
+          <tr><td><span class="num">--glass-highlight</span></td><td>inset 0 1px 0 rgba(255,255,255,.06)</td><td>顶部高光，玻璃质感关键</td></tr>
+          <tr><td><span class="num">--serif / --sans</span></td><td>Noto Serif SC / Noto Sans SC</td><td>标题衬线、正文无衬线</td></tr>
+          <tr><td><span class="num">--radius / --radius-sm</span></td><td>16px / 10px</td><td>卡片 / 组件圆角</td></tr>
+          <tr><td><span class="num">--gold-faint</span></td><td>rgba(212,169,78,.09)</td><td>强调块底色（fun-hypo、高亮行）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ Footer ============ -->
+  <footer>
+    <div class="moonlet">蚀 月 远 征 · 终 局 进 度 设 计</div>
+    <div>所有数值均为 <span class="ph">[PLACEHOLDER]</span> —— 是假设，不是结论。playtest 是唯一的裁判。</div>
+    <div class="changelog">
+      <b>CHANGELOG v0.2</b>（2026-08-08）<br>
+      + 新增「节奏五杠杆」章节：凹形成本 / 横轴优先 / 软上限衰减 / 目标锚定 / 多轴并行<br>
+      + 新增内容维度框架（6 维）与 9 项新提案（G1 武器进化 / G2 月相显性化 / G3 远征纪事 / G4 流派图鉴 / G5 占星榜 / G6 蚀潮纪事 / G7 隐藏夜 / G8 武器熟练度 / G9 每周蚀潮）<br>
+      + 全量 15 提案优先级矩阵 + 三档组合包<br>
+      + 定义「月蚀玻璃」HTML 汇报规范 v0.2（token + 组件 + 版式 + 骨架）<br>
+      v0.1：上轮六提案（A–F）与四病灶诊断
+    </div>
+    <div style="margin-top:10px">Moonlight Chronicle Design Doc · 本报告即规范样板</div>
+  </footer>
+</div>
+
+<script>
+/* 导航 */
+(function(){
+  const secs=[['s1','节奏杠杆'],['s2','内容维度'],['s3','新提案'],['s4','全量矩阵'],['s5','组合包'],['s6','汇报规范']];
+  const toc=document.getElementById('toc');
+  secs.forEach(([id,lab])=>{const a=document.createElement('a');a.href='#'+id;
+    a.innerHTML='<span class="dot"></span><span class="lab">'+lab+'</span>';toc.appendChild(a);});
+  const links=[...toc.querySelectorAll('a')];
+  const map={};secs.forEach(([id],i)=>{const el=document.getElementById(id);if(el)map[el.offsetTop]=links[i];});
+  const tops=Object.keys(map).map(Number).sort((a,b)=>a-b);
+  function onScroll(){const y=window.scrollY+window.innerHeight*0.35;let cur=null;
+    for(const t of tops){if(y>=t)cur=map[t];else break}
+    links.forEach(l=>l.classList.remove('active'));if(cur)cur.classList.add('active');}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+})();
+/* 入场 */
+(function(){const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.06});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));})();
+</script>
+</body>
+</html>

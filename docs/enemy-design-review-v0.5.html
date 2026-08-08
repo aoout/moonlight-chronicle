@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蚀月远征 · 敌人设计体检 v0.5 — 小怪技能系统修正版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   月蚀玻璃 · HTML 汇报规范 v0.2（本报告即规范样板）
+   DESIGN TOKENS：夜色三档 / 玻璃拟态 / 月蚀金 / 月白 / 血月
+   ============================================================ */
+:root{
+  --bg-0:#0a0d16; --bg-1:#0e1220; --bg-2:#121729; --bg-3:#181f36;
+  --glass-bg:rgba(19,24,43,.55); --glass-blur:16px;
+  --glass-border:linear-gradient(160deg, rgba(212,169,78,.28), rgba(212,169,78,.06) 40%, rgba(232,230,223,.08) 100%);
+  --glass-highlight:inset 0 1px 0 rgba(255,255,255,.06);
+  --gold:#d4a94e; --gold-bright:#eec97a; --gold-dim:#8a7340; --gold-faint:rgba(212,169,78,.09);
+  --moon:#e8e6df; --moon-dim:#a9aec4;
+  --red:#c05050; --red-bright:#e06a5a;
+  --teal:#5fb3a8; --blue:#6d8fd6;
+  --text:#cfd3e4; --text-dim:#8b91ab; --text-faint:#5c6279;
+  --serif:'Noto Serif SC',serif; --sans:'Noto Sans SC',system-ui,sans-serif;
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 24px 70px rgba(0,0,0,.55);
+  --line:#262e4a; --line-soft:#1e2540;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg-0);color:var(--text);font-family:var(--sans);font-weight:300;
+  line-height:1.78;font-size:15.5px;overflow-x:hidden}
+
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(1100px 560px at 88% -8%, rgba(212,169,78,.08), transparent 60%),
+    radial-gradient(900px 520px at 6% 108%, rgba(192,80,80,.07), transparent 62%),
+    linear-gradient(180deg,var(--bg-0),var(--bg-1) 55%,var(--bg-0))}
+.stars::after{content:'';position:absolute;inset:0;opacity:.55;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 27% 66%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1.4px 1.4px at 43% 11%, rgba(255,255,255,.45), transparent),
+    radial-gradient(1px 1px at 58% 44%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1px 1px at 71% 80%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1.4px 1.4px at 85% 24%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1px 1px at 92% 57%, rgba(255,255,255,.25), transparent),
+    radial-gradient(1px 1px at 8% 87%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1px 1px at 36% 93%, rgba(255,255,255,.22), transparent)}
+
+.glass{background:var(--glass-bg);backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
+  border:1px solid transparent;
+  background-image:var(--glass-border),var(--glass-bg);
+  background-origin:border-box;background-clip:padding-box,border-box;
+  box-shadow:var(--shadow),var(--glass-highlight)}
+
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 30px 130px}
+section{margin-top:104px;scroll-margin-top:24px}
+
+nav.toc{position:fixed;top:50%;right:18px;transform:translateY(-50%);z-index:60;
+  display:flex;flex-direction:column;gap:2px;padding:10px 6px;border-radius:999px;
+  background:rgba(14,18,32,.72);backdrop-filter:blur(10px);border:1px solid var(--line)}
+nav.toc a{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;color:var(--text-faint);
+  text-decoration:none;font-size:11px;letter-spacing:.06em;white-space:nowrap;transition:all .25s}
+nav.toc a .dot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:all .25s}
+nav.toc a:hover{color:var(--text)}
+nav.toc a.active{color:var(--gold-bright)}
+nav.toc a.active .dot{background:var(--gold-bright);box-shadow:0 0 9px rgba(212,169,78,.85)}
+nav.toc a .lab{display:none}
+nav.toc a.active .lab{display:inline}
+@media(max-width:920px){nav.toc{display:none}}
+
+.hero{min-height:88vh;display:flex;flex-direction:column;justify-content:center;position:relative;padding-top:56px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:12.5px;letter-spacing:.35em;color:var(--gold-dim);margin-bottom:22px}
+.eyebrow::before{content:'';width:46px;height:1px;background:var(--gold-dim)}
+h1{font-family:var(--serif);font-weight:900;font-size:clamp(32px,5.2vw,56px);line-height:1.24;color:var(--moon);letter-spacing:.02em;max-width:840px}
+h1 .accent{color:var(--gold-bright)}
+.hero-sub{margin-top:24px;max-width:700px;color:var(--text-dim);font-size:16px}
+.concl{margin-top:40px;max-width:920px;display:flex;flex-direction:column;gap:12px}
+.concl .row{padding:18px 24px;border-radius:var(--radius-sm);display:flex;gap:16px;align-items:flex-start;
+  background:rgba(212,169,78,.05);border:1px solid rgba(212,169,78,.16)}
+.concl .row .no{font-family:var(--serif);font-weight:900;color:var(--gold);font-size:15px;flex:none;padding-top:2px}
+.concl .row p{font-size:14.5px;color:var(--moon);line-height:1.85}
+.concl .row p b{color:var(--gold-bright);font-weight:600}
+.concl .row.err{background:rgba(192,80,80,.06);border-color:rgba(192,80,80,.25)}
+.concl .row.err .no{color:var(--red-bright)}
+.meta-strip{display:flex;flex-wrap:wrap;gap:12px;margin-top:46px}
+.meta-strip .m{display:flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;font-size:12.5px;color:var(--text-dim);
+  background:rgba(26,32,54,.55);border:1px solid var(--line-soft);backdrop-filter:blur(8px)}
+.meta-strip .m b{color:var(--gold);font-weight:600}
+
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:14px}
+.sec-no{font-family:var(--serif);font-weight:700;font-size:15px;color:var(--gold-dim);letter-spacing:.22em}
+.sec-head h2{font-family:var(--serif);font-weight:700;font-size:clamp(24px,3vw,32px);color:var(--moon)}
+.sec-lead{color:var(--text-dim);max-width:820px;margin-bottom:34px;font-size:15px}
+.sec-lead b{color:var(--gold);font-weight:500}
+
+/* 修正声明 */
+.fix-note{padding:22px 26px;border-radius:var(--radius);margin-bottom:30px;
+  background:rgba(192,80,80,.06);border:1px solid rgba(192,80,80,.28)}
+.fix-note h4{font-family:var(--serif);color:var(--red-bright);font-size:16px;margin-bottom:8px}
+.fix-note p{font-size:13.5px;color:var(--text-dim);line-height:1.9}
+.fix-note p b{color:var(--moon)}
+
+/* ===== 维度定义 ===== */
+.dims{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.dim{padding:24px 26px;border-radius:var(--radius);position:relative;overflow:hidden}
+.dim .d-icon{font-size:26px;margin-bottom:10px}
+.dim h4{font-family:var(--serif);font-size:17px;color:var(--moon);margin-bottom:6px}
+.dim .d-en{font-size:10.5px;color:var(--text-faint);letter-spacing:.18em;margin-bottom:10px}
+.dim p{font-size:12.8px;color:var(--text-dim);line-height:1.75}
+.dim .qa{display:block;margin-top:10px;font-size:11.5px;color:var(--gold-bright);border-left:2px solid var(--gold-dim);padding-left:10px}
+.dim.d1 .d-icon{color:var(--red-bright)}
+.dim.d2 .d-icon{color:var(--teal)}
+.dim.d3 .d-icon{color:var(--blue)}
+.dim.d4 .d-icon{color:var(--gold-bright)}
+.dim.d5 .d-icon{color:var(--moon)}
+.dim.d6 .d-icon{color:#b49ae8}
+
+/* ===== 表格 ===== */
+.tbl-wrap{border-radius:var(--radius);border:1px solid var(--line);overflow-x:auto;
+  background:rgba(18,23,41,.6);backdrop-filter:blur(12px);margin-bottom:18px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
+th{font-size:11.5px;letter-spacing:.14em;color:var(--gold-dim);font-weight:500;text-align:left;
+  padding:13px 15px;border-bottom:1px solid var(--line);background:rgba(212,169,78,.05);white-space:nowrap}
+td{padding:12px 15px;border-bottom:1px solid var(--line-soft);color:var(--text);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td .sub{display:block;font-size:11px;color:var(--text-faint);margin-top:2px}
+td b{color:var(--moon);font-weight:500}
+td .enemy-n{font-family:var(--serif);font-weight:700;color:var(--moon);white-space:nowrap}
+td .enemy-n .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:1px}
+.score{font-family:var(--serif);font-weight:700;white-space:nowrap;font-size:12.5px}
+.s-high{color:var(--teal)} .s-mid{color:var(--gold-bright)} .s-low{color:var(--red-bright)}
+.pill{display:inline-block;font-size:11px;padding:3px 10px;border-radius:999px;white-space:nowrap;font-weight:400}
+.pill.low{background:rgba(95,179,168,.13);color:var(--teal);border:1px solid rgba(95,179,168,.3)}
+.pill.mid{background:rgba(212,169,78,.13);color:var(--gold-bright);border:1px solid rgba(212,169,78,.35)}
+.pill.high{background:rgba(192,80,80,.13);color:var(--red-bright);border:1px solid rgba(192,80,80,.3)}
+.pill.bad{background:rgba(192,80,80,.16);color:#ff8a7a;border:1px solid rgba(192,80,80,.45)}
+.ph{font-size:10.5px;letter-spacing:.1em;color:var(--gold-dim);background:rgba(212,169,78,.1);
+  padding:1px 6px;border-radius:4px;font-weight:500;vertical-align:2px;white-space:nowrap}
+.num{color:var(--gold-bright);font-weight:400}
+
+/* ===== 聚类卡片 ===== */
+.clusters{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.cluster{padding:22px 26px;border-radius:var(--radius)}
+.cluster .c-tag{display:inline-block;font-size:11px;letter-spacing:.2em;padding:3px 12px;border-radius:999px;margin-bottom:12px}
+.cluster.bad .c-tag{background:rgba(192,80,80,.15);color:var(--red-bright);border:1px solid rgba(192,80,80,.35)}
+.cluster.good .c-tag{background:rgba(95,179,168,.13);color:var(--teal);border:1px solid rgba(95,179,168,.3)}
+.cluster.mid .c-tag{background:rgba(212,169,78,.13);color:var(--gold-bright);border:1px solid rgba(212,169,78,.35)}
+.cluster h4{font-family:var(--serif);color:var(--moon);font-size:16px;margin-bottom:8px}
+.cluster p{font-size:12.8px;color:var(--text-dim);line-height:1.8}
+.cluster .fix{display:block;margin-top:10px;font-size:12px;color:var(--gold-bright);border-left:2px solid var(--gold-dim);padding-left:10px}
+
+/* ===== 提案卡 ===== */
+.proposal{padding:28px 30px;border-radius:18px;margin-bottom:20px;position:relative;overflow:hidden}
+.proposal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),transparent 75%)}
+.proposal.v2::before{background:linear-gradient(90deg,var(--teal),transparent 75%)}
+.proposal.v3::before{background:linear-gradient(90deg,var(--blue),transparent 75%)}
+.prop-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:4px}
+.prop-letter{flex:none;width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-weight:900;font-size:20px;color:var(--bg-1);
+  background:linear-gradient(135deg,var(--gold-bright),var(--gold));
+  box-shadow:0 6px 22px rgba(212,169,78,.35)}
+.prop-head h3{font-family:var(--serif);font-weight:700;font-size:20px;color:var(--moon);padding-top:7px}
+.prop-head .en{font-size:11px;color:var(--text-faint);letter-spacing:.16em;margin-top:2px}
+.prop-body{font-size:13.8px;color:var(--text);line-height:1.9}
+.prop-body p{margin-bottom:11px}
+.prop-body b{color:var(--moon);font-weight:500}
+.prop-body ul{padding-left:20px;margin-bottom:11px}
+.prop-body li{margin-bottom:6px}
+.prop-meta{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line-soft)}
+.prop-meta .pm{font-size:12px;color:var(--text-faint)}
+.prop-meta .pm b{color:var(--text-dim);font-weight:500}
+
+/* ===== 视觉修复示意 ===== */
+.vis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.vis-box{padding:22px 24px;border-radius:var(--radius)}
+.vis-box h4{font-family:var(--serif);color:var(--moon);font-size:15px;margin-bottom:6px}
+.vis-box .v-en{font-size:10.5px;color:var(--text-faint);letter-spacing:.16em;margin-bottom:12px}
+.vis-box p{font-size:12.8px;color:var(--text-dim);line-height:1.8}
+.vis-box .probe{display:block;margin-top:10px;font-size:12px;color:var(--teal);border-left:2px solid var(--teal);padding-left:10px}
+.vis-box.bad h4{color:var(--red-bright)}
+.vis-box.bad .probe{color:var(--gold-bright);border-color:var(--gold-dim)}
+.demon{border-radius:var(--radius-sm);padding:16px 18px;margin-top:12px;background:rgba(10,13,22,.7);
+  display:flex;gap:26px;flex-wrap:wrap;align-items:center}
+.demon .item{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:11px;color:var(--text-faint)}
+.demon svg{filter:drop-shadow(0 0 6px currentColor)}
+
+/* ===== 路线 ===== */
+.packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.pack{padding:26px;border-radius:var(--radius)}
+.pack .p-tag{display:inline-block;font-family:var(--serif);font-weight:700;font-size:12.5px;letter-spacing:.12em;
+  padding:4px 14px;border-radius:999px;margin-bottom:14px}
+.pack.pk1 .p-tag{color:#141a10;background:linear-gradient(135deg,var(--gold-bright),var(--gold))}
+.pack.pk2 .p-tag{color:#0c1715;background:linear-gradient(135deg,#8ad4c7,var(--teal))}
+.pack.pk3 .p-tag{color:#0e1424;background:linear-gradient(135deg,#a5bcf0,var(--blue))}
+.pack h4{font-family:var(--serif);color:var(--moon);font-size:17.5px;margin-bottom:6px}
+.pack .goal{font-size:12.5px;color:var(--gold-dim);margin-bottom:13px}
+.pack ul{padding-left:18px}
+.pack li{font-size:12.8px;color:var(--text-dim);margin-bottom:8px}
+.pack li b{color:var(--moon);font-weight:500}
+.pack .why{margin-top:13px;padding-top:11px;border-top:1px dashed var(--line-soft);font-size:12px;color:var(--text-faint);line-height:1.8}
+
+footer{margin-top:110px;padding-top:30px;border-top:1px solid var(--line-soft);text-align:center;
+  color:var(--text-faint);font-size:12.5px;line-height:2.2}
+footer .moonlet{color:var(--gold-dim);letter-spacing:.4em}
+.changelog{margin-top:16px;display:inline-block;text-align:left;font-size:11.5px;color:var(--text-faint);
+  border:1px dashed var(--line);border-radius:10px;padding:12px 20px;background:rgba(18,23,41,.5)}
+.changelog b{color:var(--gold-dim)}
+
+::-webkit-scrollbar{width:9px}
+::-webkit-scrollbar-track{background:var(--bg-0)}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-dim)}
+
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<nav class="toc" id="toc"></nav>
+
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="eyebrow">Moonlight Chronicle · Enemy Design Review v0.5</div>
+    <h1>v0.3 / v0.4 的「同质化」结论，<br>是我<span class="accent">漏读了一个文件</span>得出的。</h1>
+    <p class="hero-sub">向你说清楚：小怪有独立技能系统（src/domain/enemies/skills.ts），10 只全有专属技能，前 v0.3/v0.4 只读了移动层（behaviors/）就下了「6/10 直线追同质化」的结论——错得离谱。v0.5 全面修正。</p>
+    <div class="concl">
+      <div class="row err"><div class="no">纠</div><p><b>v0.3/v0.4 的两个核心判断是错的，撤回：</b>①「6/10 小怪行为同质、只有 4 只标杆」——<b>错误</b>。10/10 小怪都有专属技能（grub 酸液三连 / rat 撕咬扑击 / armored 重踏震地 / wing 羽毛弹+俯冲 / shadow 影雾闪现+流血 / giant 巨拳砸击……）；②「abilities 行为类承诺 0/3 兑现」——<b>错误</b>。wing「飞行」= 俯冲抓击、shadow「闪现」= 影雾瞬移 + 流血 DOT（bleed 系统真实存在），都兑现了。</p></div>
+      <div class="row"><div class="no">01</div><p><b>修正后的真相：小怪技能系统完成度很高。</b>10 只小怪拥有 10 套技能，其中 5 套带「前摇（skillP）+ 预警（flash）」双阶段——rat 0.28s 前摇扑击、armored 0.5s 重踏、giant 0.7s 巨拳、wing 0.55s 俯冲。spitter 有预判射击，shadow 的闪现还带 3 秒流血 DOT。<b>这套行为系统的设计质量，比 v0.3 报告描述的整整高一个档次。</b></p></div>
+      <div class="row"><div class="no">02</div><p><b>修正后的同质化判断：双层同质，不是行为同质。</b>真正的重复在两处——① <b>移动层</b>：6 只共用 chaseMove（直线追）；② <b>近战爆发模板</b>：grub / rat / armored / giant 共用「近身读条 → 前摇 → 范围爆发」同一个技能骨架（skillT → skillP → flash → meleeHit），差异只是半径 / 倍率 / 前摇时长。技能层是异构的，但 4 只近战怪打的是同一个「读条」节奏。</p></div>
+      <div class="row"><div class="no">03</div><p><b>视觉可读性诊断不受影响，依然成立：</b>敌我弹共用白核、颜色冲突、优先级不编码——这些基于渲染层代码，与小怪技能无关，v0.5 保留。</p></div>
+    </div>
+    <div class="meta-strip">
+      <div class="m">小怪专属技能：<b>10/10</b> 只全有</div>
+      <div class="m">带前摇+预警的技能：<b>5</b> 套</div>
+      <div class="m">abilities 行为类兑现：<b>2/3</b>（蚀毒待验证）</div>
+      <div class="m">本次失误：<b>漏读 skills.ts</b></div>
+    </div>
+  </header>
+
+  <!-- ============ 壹 分析框架 ============ -->
+  <section id="s1">
+    <div class="sec-head reveal">
+      <span class="sec-no">壹</span>
+      <h2>分析框架：五维 + 视觉可读性</h2>
+    </div>
+    <p class="sec-lead reveal">与 v0.4 相同。v0.5 的关键变化：<b>评分依据补齐了第二行为层（skills.ts 技能层）</b>，不再是只看移动。</p>
+    <div class="dims reveal">
+      <div class="dim glass d1">
+        <div class="d-icon">⚠</div>
+        <h4>威胁度</h4>
+        <div class="d-en">THREAT</div>
+        <p>这只怪何时、以多大强度威胁玩家？威胁曲线是否可预期（有前摇、有预警）？</p>
+        <span class="qa">问：玩家能不能说出「这只怪为什么危险」？</span>
+      </div>
+      <div class="dim glass d2">
+        <div class="d-icon">◎</div>
+        <h4>区分度</h4>
+        <div class="d-en">DISTINCTION</div>
+        <p>行为/视觉/应对是否可辨识？v0.5 重点看：技能动词是否各自不同。</p>
+        <span class="qa">问：黑压压一片里，能否 300ms 内认出每只？</span>
+      </div>
+      <div class="dim glass d3">
+        <div class="d-icon">✥</div>
+        <h4>可操作性</h4>
+        <div class="d-en">OPERABILITY</div>
+        <p>对它有什么反应动作？技能是否有前摇窗口、预警信号、判定容错？</p>
+        <span class="qa">问：看到它出招，知道该按什么键、往哪走？</span>
+      </div>
+      <div class="dim glass d4">
+        <div class="d-icon">♻</div>
+        <h4>同质化</h4>
+        <div class="d-en">HOMOGENEITY</div>
+        <p>v0.5 口径：移动层与技能层分别看。移动同质 ≠ 行为同质，要分开算。</p>
+        <span class="qa">问：它的移动和技能，分别和谁共用模板？</span>
+      </div>
+      <div class="dim glass d5">
+        <div class="d-icon">✺</div>
+        <h4>交互性</h4>
+        <div class="d-en">INTERACTION</div>
+        <p>与玩家/其它怪的系统级互动：分裂、自爆、闪现、流血 DOT、读玩家状态。</p>
+        <span class="qa">问：处理它的方式，是否改变了处理其它怪的方式？</span>
+      </div>
+      <div class="dim glass d6">
+        <div class="d-icon">◉</div>
+        <h4>视觉可读性</h4>
+        <div class="d-en">VISUAL LEGIBILITY</div>
+        <p>画面信息编码：敌我区分 / 威胁分层 / 弹幕可读。v0.5 保留 v0.4 诊断。</p>
+        <span class="qa">问：1 秒扫过屏幕，能否排出「先躲谁」的优先级？</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 贰 小怪体检（修正版） ============ -->
+  <section id="s2">
+    <div class="sec-head reveal">
+      <span class="sec-no">贰</span>
+      <h2>小怪五维体检（v0.5 修正版）：10 只全技能</h2>
+    </div>
+
+    <div class="fix-note reveal">
+      <h4>v0.5 修正声明</h4>
+      <p>v0.3/v0.4 只读了 <b>behaviors/（移动层）</b>，漏读了 <b>src/domain/enemies/skills.ts（技能层）</b>。v0.5 已补全：以下评分全部基于「移动 + 技能」双行为层。修正幅度最大的三只：<b>grub</b>（纯 filler → 有酸液三连喷吐）、<b>wing</b>（飞行未兑现 → 羽毛弹 + 俯冲抓击）、<b>shadow</b>（闪现未兑现 → 影雾瞬移突袭 + 流血 DOT）。</p>
+    </div>
+
+    <div class="tbl-wrap reveal">
+      <table>
+        <thead><tr><th>小怪</th><th>移动</th><th>技能（技能层）</th><th>威胁度</th><th>区分度</th><th>可操作性</th><th>交互性</th><th>体检结论</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="enemy-n"><span class="sw" style="background:#c98f6b"></span>蚀蛆 grub</span><span class="sub">hp14 · spd42</span></td>
+            <td>直线追</td>
+            <td>近身酸液 3 连喷（扇形）</td>
+            <td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-low">低</span></td>
+            <td><b>v0.5 修正：不是纯 filler。</b>95 距离内 3 连扇形酸液弹（间隔 2.6s）。「慢速蠕虫」皮下有远程吐酸——可操作性有（躲扇形弹），但无前摇、威胁中低，仍是底层怪。</td>
+          </tr>
+          <tr>
+            <td><span class="enemy-n"><span class="sw" style="background:#8fb9c9"></span>噬光鼠 rat</span><span class="sub">hp9 · spd110</span></td>
+            <td>直线追</td>
+            <td>撕咬扑击（0.28s 前摇 → 3.4× 突进）</td>
+            <td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-mid">中</span></td>
+            <td><b>v0.5 修正：标杆。</b>高速逼近 + 前摇扑击（flash 预警 + 突进 1.5× 伤）。玩家学会「看前摇、走侧」——教科书级的快怪设计，v0.3 误判为「纯数值快怪」。</td>
+          </tr>
+          <tr>
+            <td><span class="enemy-n"><span class="sw" style="background:#6d8a9e"></span>蚀甲兽 armored</span><span class="sub">hp55 · spd34</span></td>
+            <td>直线追</td>
+            <td>重踏震击（0.5s 前摇 → 92 半径 AOE）</td>
+            <td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-low">低</span></td>
+            <td><b>v0.5 修正：有技能。</b>重踏 92 半径 1.9× 伤 + 震屏。前摇 0.5s 充足，但 92 半径在近战位几乎必中——「离开范围」容错偏紧。</td>
+          </tr>
+          <tr>
+            <td><span class="enemy-n"><span class="sw" style="background:#b49ae8"></span>噬光翼 wing</span><span class="sub">hp22 · spd82</span></td>
+            <td>正弦波动</td>
+            <td>羽毛弹（远程）+ 俯冲抓击（0.55s 前摇 → 4× 俯冲）</td>
+            <td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-mid">中</span></td>
+            <td><b>v0.5 修正：飞行承诺兑现。</b>远程羽毛弹压制 + 前摇俯冲抓击双威胁。「飞行」不是标签——它真的升空俯冲。v0.3 说它「与 shadow 同源」是错读（移动同源，技能完全两套）。</td>
+          </tr>
+          <tr>
+            <td><span class="enemy-n"><span class="sw" style="background:#e2546a"></span>裂口魔 charger</span><span class="sub">hp30 · 冲刺 180</span></td>
+            <td>蓄力冲锋</td>
+            <td>冲刺 × 连段 + 地面犁痕</td>
+            <td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-mid">中</span></td>
+            <td>标杆（v0.3 已确认）。蓄力 0.7s 火星预警 + 冲锋 + 犁痕。不重复评价。</td>
+          </tr>
+          <tr>
+            <td><span class="enemy-n"><span class="sw" style="background:#7fd6a4"></span>蚀涎魔 spitter</span><span class="sub">hp26 · 远程</span></td>
+            <td>风筝</td>
+            <td>预判射击（读玩家速度向量）+ 新月隐匿交互</td>
+            <td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td>
+            <td>标杆中的标杆（v0.4 已确认）。保持距离 + 预判弹 + cloak 交互，不重复评价。</td>
+          </tr>
+          <tr>
+            <td><span class="enemy-n"><span class="sw" style="background:#d98a8a"></span>血疱魔 splitter</span><span class="sub">hp36 · 分裂</span></td>
+            <td>直线追</td>
+            <td>死亡分裂 ×2（sub 40% hp）</td>
+            <td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-high">高</span></td>
+            <td>交互性标杆（v0.3 已确认）。清怪顺序决策，不重复评价。</td>
+          </tr>
+          <tr>
+            <td><span class="enemy-n"><span class="sw" style="background:#7c6d9e"></span>影行者 shadow</span><span class="sub">hp40 · spd95</span></td>
+            <td>正弦波动</td>
+            <td>影雾瞬移突袭（无前摇）+ 3s 流血 DOT</td>
+            <td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-low">低</span></td><td><span class="score s-mid">中</span></td>
+            <td><b>v0.5 修正：闪现兑现，且是双刃剑。</b>瞬移到玩家侧翼 70 距离 + 伤害 + bleed DOT。兑现了「闪现」承诺——但<b>无前摇、瞬移即判定，玩家没有反应窗口</b>：可操作性反而全场最低。威胁高 = 无预警的代价。</td>
+          </tr>
+          <tr>
+            <td><span class="enemy-n"><span class="sw" style="background:#ff9d6b"></span>自爆魔 bomber</span><span class="sub">hp12 · 接触爆炸</span></td>
+            <td>加速接近</td>
+            <td>接触即爆（半径 90，无起爆计时）</td>
+            <td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td>
+            <td>标杆（v0.4 已修正）。加速接近 + 接触爆炸，预警靠火花粒子，不重复评价。</td>
+          </tr>
+          <tr>
+            <td><span class="enemy-n"><span class="sw" style="background:#4a5a72"></span>巨噬者 giant</span><span class="sub">hp150 · spd26</span></td>
+            <td>直线追</td>
+            <td>巨拳砸击（0.7s 前摇 → 140 半径重锤）</td>
+            <td><span class="score s-high">高</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-low">低</span></td>
+            <td><b>v0.5 修正：有技能。</b>巨拳 140 半径 2.2× 伤 + 强震屏。前摇 0.7s 最长，但 140 半径几乎覆盖整个近身区——闪避靠「提前离开」，容错最低的一只。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-family:var(--serif);color:var(--moon);font-size:19px;margin:34px 0 16px" class="reveal">修正后的同质化判断：双层同质</h3>
+    <div class="clusters reveal">
+      <div class="cluster glass bad">
+        <span class="c-tag">同质层 A · 移动（6 只）</span>
+        <h4>grub / rat / armored / giant / splitter + 召唤物共用 chaseMove</h4>
+        <p>6 只的「追你」动作完全一样（直线朝玩家），压迫感节奏雷同。<b>但注意：v0.5 修正后，移动同质 ≠ 行为同质</b>——这 6 只的技能各不相同（酸液 / 扑击 / 重踏 / 巨拳 / 分裂）。移动同质影响的只是「接近感」，技能层已经把它们区分开了。</p>
+        <span class="fix">修正方向：给 chaseMove 家族加「移动个性」（grub 蠕动间歇 / armored 缓步 + 转向慢 / giant 震地缓行），把压迫节奏也分开。</span>
+      </div>
+      <div class="cluster glass bad">
+        <span class="c-tag">同质层 B · 近战爆发模板（4 只）</span>
+        <h4>grub / rat / armored / giant 共用「读条爆发」骨架</h4>
+        <p>四只近战怪的技能骨架完全相同：<b>skillT 冷却 → skillP 前摇 → flash 预警 → meleeHit 范围判定</b>。差异只是半径（34/92/140）、倍率（1.5×/1.9×/2.2×）、前摇（0.28s/0.5s/0.7s）。<b>玩家面对四只怪打的节奏是同一个「看闪避读条」</b>——这是技能层的第二层同质，v0.3 完全没看到（因为没读技能层）。</p>
+        <span class="fix">修正方向：打破模板——把 rat 改成「连续两段扑击」、armored 改成「盾牌顶推 + 反伤」、giant 改成「多段震地波」而非单发读条。让 4 只近战怪节奏互不相同。</span>
+      </div>
+      <div class="cluster glass good">
+        <span class="c-tag">异构群 · 机制动词（6 只）</span>
+        <h4>charger 冲锋 / spitter 预判 / bomber 自爆 / wing 俯冲 / shadow 闪现 / splitter 分裂</h4>
+        <p>这 6 只的技能动词互不重复：冲锋、预判射击、接触自爆、俯冲、瞬移、分裂。<b>v0.5 修正后的真实结论：技能层的异构度远超 v0.3 的判断</b>——10 只怪里 6 只有独特动词，剩下 4 只共用爆发模板。系统底子比之前认为的好得多，问题收窄为「近战四只的节奏同构」+「移动层雷同」。</p>
+        <span class="fix">下一步：把 4 只近战爆发怪的节奏差异化，而不是再造新怪。新怪继续堆，只会加重移动层和爆发模板的重复。</span>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--serif);color:var(--moon);font-size:19px;margin:34px 0 16px" class="reveal">abilities 标签兑现审计（v0.5 修正版）</h3>
+    <div class="tbl-wrap reveal">
+      <table>
+        <thead><tr><th>小怪</th><th>配置 abilities</th><th>兑现状态</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><b>蚀蛆</b></td><td>低血 / 慢速</td><td><span class="pill low">数值 ✓</span></td><td>纯数值属性，直接落地</td></tr>
+          <tr><td><b>噬光鼠</b></td><td>极速 / 低血</td><td><span class="pill low">数值 ✓</span></td><td>纯数值属性，直接落地</td></tr>
+          <tr><td><b>蚀甲兽</b></td><td>高血 / 高伤 / 慢速</td><td><span class="pill low">数值 ✓</span></td><td>纯数值属性，直接落地</td></tr>
+          <tr><td><b>噬光翼</b></td><td><b>飞行</b> / 中速</td><td><span class="pill low">行为 ✓</span></td><td><b>v0.5 修正：兑现。</b>羽毛弹 + 0.55s 前摇俯冲抓击——「飞行」落地为俯冲动词</td></tr>
+          <tr><td><b>裂口魔</b></td><td><b>冲刺</b> / 高伤</td><td><span class="pill low">机制 ✓</span></td><td>蓄力 → 冲锋两段，标杆</td></tr>
+          <tr><td><b>蚀涎魔</b></td><td><b>远程</b> / <b>蚀毒</b></td><td><span class="pill mid">远程 ✓ · 蚀毒 △</span></td><td>远程预判射击落地；酸液弹命中「减速」注释存在但<b>玩家侧减速实现未确认</b> <span class="ph">[待验证]</span></td></tr>
+          <tr><td><b>血疱魔</b></td><td><b>分裂</b> / 中血</td><td><span class="pill low">机制 ✓</span></td><td>死亡分裂 ×2 实现完整</td></tr>
+          <tr><td><b>影行者</b></td><td><b>闪现</b> / 高速</td><td><span class="pill low">行为 ✓</span></td><td><b>v0.5 修正：兑现。</b>影雾瞬移突袭 + 3s 流血 DOT（bleed 系统在 EnemySystem 真实扣血）</td></tr>
+          <tr><td><b>巨噬者</b></td><td>巨型 / 极高血 / 极高伤</td><td><span class="pill low">数值 ✓</span></td><td>纯数值属性，直接落地</td></tr>
+          <tr><td><b>自爆魔</b></td><td><b>自爆</b> / 中速</td><td><span class="pill low">机制 ✓</span></td><td>接触爆炸实现完整；无起爆计时，预警靠粒子</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sec-lead" style="margin-top:14px;margin-bottom:0"><b>审计结论（v0.5 修正）：</b>机制类承诺 4/4 兑现；行为类承诺从「0/3」修正为「<b>2/3 兑现 + 1 待验证</b>」（wing 俯冲 ✓、shadow 闪现 ✓、spitter 蚀毒 △ 减速待确认）；数值类全落地。<b>配置表与行为层的信任账：此前被低估，实际兑现率很高</b>——v0.4 的「标签一半是装饰」判断错误，撤回。</p>
+  </section>
+
+  <!-- ============ 叁 Boss 体检 ============ -->
+  <section id="s3">
+    <div class="sec-head reveal">
+      <span class="sec-no">叁</span>
+      <h2>Boss 五维体检：11 位（v0.5 未改动）</h2>
+    </div>
+    <p class="sec-lead reveal">Boss 结论基于 boss_skills.ts 与 bosses.json，v0.3 已读全，无修正。核心：技能池 13 种，但每位 Boss 是「全向 + 追踪 + 地面/召唤」的排列组合；无阶段转换；终焉全技能混合。</p>
+    <div class="tbl-wrap reveal">
+      <table>
+        <thead><tr><th>Boss</th><th>出现夜</th><th>技能</th><th>招牌机制</th><th>威胁度</th><th>区分度</th><th>可操作性</th><th>同质化</th><th>交互性</th></tr></thead>
+        <tbody>
+          <tr><td><b>蚀潮巨兽</b><span class="sub">hp990 · attCd 3.4s</span></td><td>6</td><td>潮汐波</td><td><span class="pill mid">入门弹幕</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-low">低</span></td></tr>
+          <tr><td><b>潮噬之母</b><span class="sub">hp946 · attCd 3.2s</span></td><td>6</td><td>召唤 + 潮汐</td><td><span class="pill low">召唤型</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-high">高</span></td></tr>
+          <tr><td><b>蚀壳战车</b><span class="sub">hp902 · attCd 2.8s</span></td><td>6</td><td>冲撞 ×3</td><td><span class="pill high">冲撞型</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">低同质</span></td><td><span class="score s-mid">中</span></td></tr>
+          <tr><td><b>噬月君主</b><span class="sub">hp2640 · attCd 3.4s</span></td><td>12</td><td>月斩 + 波动 + 召唤</td><td><span class="pill mid">混合型</span></td><td><span class="score s-high">高</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td></tr>
+          <tr><td><b>月影巫王</b><span class="sub">hp2460 · attCd 3.0s</span></td><td>12</td><td>追踪球 + 蚀雷 + 蚀咒</td><td><span class="pill mid">追踪型</span></td><td><span class="score s-high">高</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td></tr>
+          <tr><td><b>断月剑豪</b><span class="sub">hp2580 · attCd 2.6s</span></td><td>12</td><td>三连斩</td><td><span class="pill high">近战型</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">低同质</span></td><td><span class="score s-mid">中</span></td></tr>
+          <tr><td><b>裂空魔龙</b><span class="sub">hp5460 · attCd 2.4s</span></td><td>18</td><td>龙息 + 召唤 + 绕后</td><td><span class="pill high">吐息型</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">高</span></td><td><span class="score s-high">低同质</span></td><td><span class="score s-mid">中</span></td></tr>
+          <tr><td><b>蚀雷巨枭</b><span class="sub">hp5200 · attCd 2.2s</span></td><td>18</td><td>落雷 + 追踪 + 全向</td><td><span class="pill mid">落雷型</span></td><td><span class="score s-high">高</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-low">低</span></td></tr>
+          <tr><td><b>深渊巢母</b><span class="sub">hp5720 · attCd 2.6s</span></td><td>18</td><td>酸雾 + 孵化 + 扇形</td><td><span class="pill mid">领域型</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-high">高</span></td></tr>
+          <tr><td><b>蚀月终焉</b><span class="sub">hp11900 · attCd 2.6s</span></td><td>20</td><td>潮汐 + 追踪 + 龙息 + 脉冲</td><td><span class="pill bad">全技能混合</span></td><td><span class="score s-high">高</span></td><td><span class="score s-mid">中</span></td><td><span class="score s-low">低</span></td><td><span class="score s-low">高同质</span></td><td><span class="score s-low">低</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-family:var(--serif);color:var(--moon);font-size:19px;margin:34px 0 16px" class="reveal">Boss 的三个结构性问题（v0.5 保留）</h3>
+    <div class="p-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:16px">
+      <div class="glass reveal" style="padding:24px 26px;border-radius:var(--radius)">
+        <h4 style="font-family:var(--serif);color:var(--red-bright);font-size:16px;margin-bottom:8px">问题一 · 无阶段转换</h4>
+        <p style="font-size:13.5px;color:var(--text-dim);line-height:1.9">Boss 从入场到死亡只有一套节奏：attCd 循环出招。血量 30% 只有视觉变红，没有行为变化。<b>「太弱无聊 / 太强挫败」的结构根源在此。</b></p>
+        <span class="fix" style="display:block;margin-top:12px;font-size:12.5px;color:var(--gold-bright);border-left:2px solid var(--gold-dim);padding-left:12px">修：血量 30% 狂暴——attCd ×0.75 + 追加新技能 <span class="ph">[PLACEHOLDER]</span>。狂暴前必须播演出，可预期。</span>
+      </div>
+      <div class="glass reveal" style="padding:24px 26px;border-radius:var(--radius)">
+        <h4 style="font-family:var(--serif);color:var(--red-bright);font-size:16px;margin-bottom:8px">问题二 · 终焉是「全技能混合」</h4>
+        <p style="font-size:13.5px;color:var(--text-dim);line-height:1.9">终焉把 4 技能全叠，一次出招 ≈ 60+ 弹。它没有自己的动词，只有别人的技能的合集——同质化最高的一位。</p>
+        <span class="fix" style="display:block;margin-top:12px;font-size:12.5px;color:var(--gold-bright);border-left:2px solid var(--gold-dim);padding-left:12px">修：给终焉独有机制（蚀月相位：30% 血切换弹幕相位，每相位 ≤2 类威胁），让终焉战变成「读懂机制」。</span>
+      </div>
+      <div class="glass reveal" style="padding:24px 26px;border-radius:var(--radius)">
+        <h4 style="font-family:var(--serif);color:var(--red-bright);font-size:16px;margin-bottom:8px">问题三 · 三威胁无解帧</h4>
+        <p style="font-size:13.5px;color:var(--text-dim);line-height:1.9">多数技能 = 全向弹 + 追踪球 + 地面封锁三件套。追踪要绕圈甩、地面要提前走、全向要侧移——三者同时出现时没有「安全移动」的帧。</p>
+        <span class="fix" style="display:block;margin-top:12px;font-size:12.5px;color:var(--gold-bright);border-left:2px solid var(--gold-dim);padding-left:12px">修：单次出招同时威胁类型 ≤ 2 <span class="ph">[PLACEHOLDER]</span>；追踪球上限 4，lockT 保持可甩差异化。</span>
+      </div>
+      <div class="glass reveal" style="padding:24px 26px;border-radius:var(--radius)">
+        <h4 style="font-family:var(--serif);color:var(--moon);font-size:16px;margin-bottom:8px">好消息 · 三只已有「招牌动词」</h4>
+        <p style="font-size:13.5px;color:var(--text-dim);line-height:1.9">战车（冲撞 ×3 转向追踪）、剑豪（三连斩横扫）、魔龙（吐息 + 双侧绕后）——机制身份已成型。方向正确，其余 7 位补上。</p>
+        <span class="fix" style="display:block;margin-top:12px;font-size:12.5px;color:var(--gold-bright);border-left:2px solid var(--gold-dim);padding-left:12px">行动：为每位 Boss 写一句「玩家学到的动词」，其余 7 位逐一补齐。</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 肆 视觉可读性 ============ -->
+  <section id="s4">
+    <div class="sec-head reveal">
+      <span class="sec-no">肆</span>
+      <h2>视觉可读性专项（v0.5 保留，不受修正影响）</h2>
+    </div>
+    <p class="sec-lead reveal">基于渲染层代码，与小怪技能系统无关，v0.4 诊断不变——「不知道往哪躲」的根因仍在。</p>
+    <div class="tbl-wrap reveal">
+      <table>
+        <thead><tr><th>根因</th><th>证据（代码）</th><th>后果</th></tr></thead>
+        <tbody>
+          <tr><td><b>敌我弹共用「白核高光」</b></td><td>玩家弹 nova/shadow/beam 有白核；敌弹 wave/ember/orb 也全带白点</td><td>白核 = 「高亮弹头」通用信号，敌我共用 → 150ms 内无法判断「这颗要不要躲」</td></tr>
+          <tr><td><b>颜色不可靠</b></td><td>敌弹颜色跟随 Boss 主题色；玩家武器同色系（nova 金 vs pulse 金、shadow 紫 vs orb 紫、frost 冰蓝 vs wave 冰蓝）</td><td>颜色被当信息使用，但它是冲突信息</td></tr>
+          <tr><td><b>威胁优先级不编码</b></td><td>追踪球 / 直线弹 / 地面预警视觉权重相同（r 5-8 同等亮度）</td><td>弹幕越多越不知道先处理哪个</td></tr>
+          <tr><td><b>地面预警可读性弱</b></td><td>预警圈与落雷同色，stagger 0.12s 交错 → 多圈同时出现</td><td>识别安全区要 300ms，而落雷 0.8s 就到</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="vis-grid reveal">
+      <div class="vis-box glass bad">
+        <h4>方案 V1 · 敌我弹「阵营编码」</h4>
+        <div class="v-en">CAMP CODING</div>
+        <p>给敌弹加唯一且统一的危险标识：血月红描边 + 暗色尾迹。玩家弹保持白核不动。<b>规则：白核是我的，红边是躲的。</b></p>
+        <div class="demon">
+          <div class="item" style="color:#eec97a"><span style="font-size:10px;color:var(--text-faint)">玩家弹 · 白核</span>
+            <svg width="52" height="24" viewBox="0 0 52 24"><circle cx="12" cy="12" r="7" fill="#eec97a"/><circle cx="10.5" cy="10.5" r="2.5" fill="#fff"/><circle cx="38" cy="12" r="6" fill="#8fb9c9"/><circle cx="36.5" cy="10.8" r="2.2" fill="#fff"/></svg>
+          </div>
+          <div class="item" style="color:#e06a5a"><span style="font-size:10px;color:var(--text-faint)">敌弹 · 红边 + 暗尾</span>
+            <svg width="52" height="24" viewBox="0 0 52 24"><circle cx="12" cy="12" r="7" fill="#c05050" stroke="#ff6a5a" stroke-width="2"/><circle cx="10.5" cy="10.5" r="2.5" fill="#2a1a3a"/><circle cx="38" cy="12" r="6" fill="#c05050" stroke="#ff6a5a" stroke-width="2"/><circle cx="36.5" cy="10.8" r="2.2" fill="#2a1a3a"/></svg>
+          </div>
+        </div>
+        <span class="probe">判据：敌弹 100% 带红边；同屏时玩家 200ms 内分辨敌我 &gt; 95% <span class="ph">[PLACEHOLDER]</span></span>
+      </div>
+      <div class="vis-box glass">
+        <h4>方案 V2 · 威胁优先级编码</h4>
+        <div class="v-en">THREAT PRIORITY CODING</div>
+        <p>三类威胁视觉权重分层：追踪球（大 + 亮 + 特殊形状）；直线弹（常规）；地面预警（高对比红圈 + 收缩动画显示剩余时间）。<b>大的先躲，圈的先跑，散的侧移。</b></p>
+        <div class="demon">
+          <div class="item" style="color:#b49ae8"><span style="font-size:10px;color:var(--text-faint)">追踪球 · 大 + 拖尾</span>
+            <svg width="64" height="24" viewBox="0 0 64 24"><circle cx="14" cy="12" r="10" fill="#2a1a3a" stroke="#b49ae8" stroke-width="2.5"/><circle cx="11.5" cy="10" r="3" fill="#e0d4ff"/><path d="M-2 12 L6 9 L4 12 L6 15 Z" fill="#b49ae8" opacity=".5"/></svg>
+          </div>
+          <div class="item" style="color:#eec97a"><span style="font-size:10px;color:var(--text-faint)">直线弹 · 常规</span>
+            <svg width="52" height="24" viewBox="0 0 52 24"><circle cx="12" cy="12" r="6" fill="#c05050" stroke="#ff6a5a" stroke-width="2"/><circle cx="10.5" cy="10.5" r="2" fill="#2a1a3a"/></svg>
+          </div>
+          <div class="item" style="color:#e06a5a"><span style="font-size:10px;color:var(--text-faint)">地面预警 · 高对比 + 收缩</span>
+            <svg width="64" height="24" viewBox="0 0 64 24"><circle cx="16" cy="12" r="12" fill="none" stroke="#ff6a5a" stroke-width="2" stroke-dasharray="3 2"/><circle cx="16" cy="12" r="6" fill="#ff6a5a" opacity=".35"/><circle cx="48" cy="12" r="9" fill="none" stroke="#ff6a5a" stroke-width="2"/><circle cx="48" cy="12" r="4.5" fill="#ff6a5a" opacity=".5"/></svg>
+          </div>
+        </div>
+        <span class="probe">判据：优先处理追踪球正确率 &gt; 90%；预警圈「剩 0.3s」辨识 &gt; 85%</span>
+      </div>
+      <div class="vis-box glass">
+        <h4>方案 V3 · 弹幕密度与出招纪律</h4>
+        <div class="v-en">DENSITY &amp; DISCIPLINE</div>
+        <p>① 同屏敌弹上限 <span class="num">≈180</span> <span class="ph">[PLACEHOLDER]</span>，超出最旧弹先消失；② 出招纪律：单次技能同时威胁类型 ≤ 2；③ 玩家弹颜色降噪，让敌弹红边成为唯一亮色焦点。</p>
+        <span class="probe">判据：终焉战平均同屏敌弹 &lt; 180；低配 60fps 保持</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 伍 修复路线 ============ -->
+  <section id="s5">
+    <div class="sec-head reveal">
+      <span class="sec-no">伍</span>
+      <h2>修复路线（v0.5 调整后）</h2>
+    </div>
+    <p class="sec-lead reveal">v0.5 修正后，小怪层的问题收窄：<b>从「造动词」变成「差异化节奏」</b>——技能动词大多已有，要改的是 4 只近战怪的爆发模板同构 + 移动层雷同。视觉可读性优先级不变。</p>
+    <div class="packs reveal">
+      <div class="pack glass pk1">
+        <span class="p-tag">阶段 1 · 视觉编码（0.5–1 周）</span>
+        <h4>V1 + V2 + V3：让画面可读</h4>
+        <div class="goal">目标：解决「不知道往哪躲」</div>
+        <ul>
+          <li><b>V1 阵营编码</b>：敌弹统一红边 + 暗尾</li>
+          <li><b>V2 优先级编码</b>：追踪球加大加亮、预警圈收缩动画</li>
+          <li><b>V3 密度纪律</b>：同屏弹上限 + 出招类型 ≤2</li>
+        </ul>
+        <div class="why">为什么第一：你的痛点全在这，纯渲染改造不碰平衡。改完录「识别延迟」playtest。</div>
+      </div>
+      <div class="pack glass pk2">
+        <span class="p-tag">阶段 2 · 节奏差异化（1–2 周）</span>
+        <h4>近战爆发模板拆解 + 移动个性化</h4>
+        <div class="goal">目标：消灭双层同质</div>
+        <ul>
+          <li><b>拆模板</b>：rat 两段扑击 / armored 盾推反伤 / giant 多段震波 / grub 喷吐留用</li>
+          <li><b>移动个性</b>：chaseMove 家族加蠕动/缓步/震地缓行</li>
+          <li><b>shadow 可操作性</b>：闪现前加 0.25s 影雾聚合预警 <span class="ph">[PLACEHOLDER]</span>（它是唯一无预警瞬移，可操作性全场最低）</li>
+        </ul>
+        <div class="why">v0.5 修正后的小怪核心工作。技能动词已大多存在，投入从「0 到 1」降为「1 到 N」。</div>
+      </div>
+      <div class="pack glass pk3">
+        <span class="p-tag">阶段 3 · 机制纵深（2–3 周）</span>
+        <h4>Boss 阶段转换 + 终焉相位</h4>
+        <div class="goal">目标：治「太弱无聊 / 太强挫败」</div>
+        <ul>
+          <li>全 Boss 血量 30% 狂暴（attCd ×0.75 + 新技能）</li>
+          <li>终焉「蚀月相位」：30% 血切换弹幕相位</li>
+          <li>强度三支柱建档：前摇可见性 / 弹速-移速比 / 同屏威胁数</li>
+        </ul>
+        <div class="why">依赖 V2 威胁编码 + 小怪节奏稳定后做。三支柱建档后强弱有客观指标。</div>
+      </div>
+    </div>
+
+    <div class="tbl-wrap reveal" style="margin-top:22px">
+      <table>
+        <thead><tr><th>失败信号</th><th>定义（坏掉长什么样）</th><th>阈值</th></tr></thead>
+        <tbody>
+          <tr><td><b>识别延迟超标</b></td><td>玩家无法快速区分敌我弹</td><td>敌我分辨正确率 &lt; 95%（200ms 内）→ V1 重做</td></tr>
+          <tr><td><b>近战节奏仍同构</b></td><td>四只近战怪玩家感觉「打法一样」</td><td>问卷「这怪与谁类似」&gt; 40% 答同源 → 模板未拆开</td></tr>
+          <tr><td><b>狂暴变挫败</b></td><td>阶段转换后死亡激增</td><td>30% 血后死亡率 &gt; 阶段前 3 倍 → 狂暴过陡</td></tr>
+          <tr><td><b>密度仍超载</b></td><td>弹幕上限被频繁打满</td><td>触及上限时长占比 &gt; 20% → 出招纪律不够</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ Footer ============ -->
+  <footer>
+    <div class="moonlet">蚀 月 远 征 · 敌 人 设 计 体 检</div>
+    <div>所有数值均为 <span class="ph">[PLACEHOLDER]</span> —— 是假设，不是结论。playtest 是唯一的裁判。</div>
+    <div class="changelog">
+      <b>CHANGELOG v0.5</b>（2026-08-08 · 重大修正）<br>
+      + <b>撤回 v0.3/v0.4 两大判断</b>：漏读 src/domain/enemies/skills.ts（小怪专属技能系统），「6/10 同质化」「abilities 行为类 0/3 兑现」均错误<br>
+      + 修正：10/10 小怪全有专属技能；wing 俯冲抓击（飞行 ✓）、shadow 影雾闪现 + 流血 DOT（闪现 ✓，bleed 系统真实扣血）、grub 酸液 3 连、rat 撕咬扑击、armored 重踏震地、giant 巨拳砸击<br>
+      + 同质化结论重写：双层同质（移动层 6 只 chaseMove + 近战爆发模板 4 只），技能层异构度远超原判（6 只独特动词）<br>
+      + abilities 审计修正：行为类 2/3 兑现 + 1 待验证（spitter 蚀毒减速）；「标签一半是装饰」判断撤回<br>
+      + 新增发现：shadow 闪现无预警瞬移 → 可操作性全场最低，修复路线加入 0.25s 影雾预警<br>
+      + 修复路线阶段 2 从「造动词」改为「拆模板 + 移动个性化」<br>
+      v0.4：spitter 预判射击 / bomber 接触爆炸修正 + abilities 审计初版<br>
+      v0.3：敌人五维体检 / 视觉可读性 / 三阶段路线；v0.2：节奏杠杆与内容维度；v0.1：终局六提案
+    </div>
+    <div style="margin-top:10px">Moonlight Chronicle Design Doc · 月蚀玻璃规范 v0.2</div>
+  </footer>
+</div>
+
+<script>
+/* 导航 */
+(function(){
+  const secs=[['s1','分析框架'],['s2','小怪体检'],['s3','Boss体检'],['s4','视觉可读性'],['s5','修复路线']];
+  const toc=document.getElementById('toc');
+  secs.forEach(([id,lab])=>{const a=document.createElement('a');a.href='#'+id;
+    a.innerHTML='<span class="dot"></span><span class="lab">'+lab+'</span>';toc.appendChild(a);});
+  const links=[...toc.querySelectorAll('a')];
+  const map={};secs.forEach(([id],i)=>{const el=document.getElementById(id);if(el)map[el.offsetTop]=links[i];});
+  const tops=Object.keys(map).map(Number).sort((a,b)=>a-b);
+  function onScroll(){const y=window.scrollY+window.innerHeight*0.35;let cur=null;
+    for(const t of tops){if(y>=t)cur=map[t];else break}
+    links.forEach(l=>l.classList.remove('active'));if(cur)cur.classList.add('active');}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+})();
+/* 入场 */
+(function(){const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.06});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));})();
+</script>
+</body>
+</html>

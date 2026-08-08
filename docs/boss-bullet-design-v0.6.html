@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蚀月远征 · Boss 弹幕设计 v0.6 — 弹幕即世界观语言</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-0:#0a0d16; --bg-1:#0e1220; --bg-2:#121729; --bg-3:#181f36;
+  --glass-bg:rgba(19,24,43,.55); --glass-blur:16px;
+  --glass-border:linear-gradient(160deg, rgba(212,169,78,.28), rgba(212,169,78,.06) 40%, rgba(232,230,223,.08) 100%);
+  --glass-highlight:inset 0 1px 0 rgba(255,255,255,.06);
+  --gold:#d4a94e; --gold-bright:#eec97a; --gold-dim:#8a7340;
+  --moon:#e8e6df; --moon-dim:#a9aec4;
+  --red:#c05050; --red-bright:#e06a5a;
+  --teal:#5fb3a8; --blue:#6d8fd6;
+  --text:#cfd3e4; --text-dim:#8b91ab; --text-faint:#5c6279;
+  --serif:'Noto Serif SC',serif; --sans:'Noto Sans SC',system-ui,sans-serif;
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 24px 70px rgba(0,0,0,.55);
+  --line:#262e4a; --line-soft:#1e2540;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg-0);color:var(--text);font-family:var(--sans);font-weight:300;
+  line-height:1.78;font-size:15.5px;overflow-x:hidden}
+
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(1100px 560px at 88% -8%, rgba(212,169,78,.08), transparent 60%),
+    radial-gradient(900px 520px at 6% 108%, rgba(109,143,214,.09), transparent 62%),
+    linear-gradient(180deg,var(--bg-0),var(--bg-1) 55%,var(--bg-0))}
+.stars::after{content:'';position:absolute;inset:0;opacity:.55;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 27% 66%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1.4px 1.4px at 43% 11%, rgba(255,255,255,.45), transparent),
+    radial-gradient(1px 1px at 58% 44%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1px 1px at 71% 80%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1.4px 1.4px at 85% 24%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1px 1px at 92% 57%, rgba(255,255,255,.25), transparent),
+    radial-gradient(1px 1px at 8% 87%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1px 1px at 36% 93%, rgba(255,255,255,.22), transparent)}
+
+.glass{background:var(--glass-bg);backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
+  border:1px solid transparent;
+  background-image:var(--glass-border),var(--glass-bg);
+  background-origin:border-box;background-clip:padding-box,border-box;
+  box-shadow:var(--shadow),var(--glass-highlight)}
+
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 30px 130px}
+section{margin-top:100px;scroll-margin-top:24px}
+
+nav.toc{position:fixed;top:50%;right:18px;transform:translateY(-50%);z-index:60;
+  display:flex;flex-direction:column;gap:2px;padding:10px 6px;border-radius:999px;
+  background:rgba(14,18,32,.72);backdrop-filter:blur(10px);border:1px solid var(--line)}
+nav.toc a{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;color:var(--text-faint);
+  text-decoration:none;font-size:11px;letter-spacing:.06em;white-space:nowrap;transition:all .25s}
+nav.toc a .dot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:all .25s}
+nav.toc a:hover{color:var(--text)}
+nav.toc a.active{color:var(--gold-bright)}
+nav.toc a.active .dot{background:var(--gold-bright);box-shadow:0 0 9px rgba(212,169,78,.85)}
+nav.toc a .lab{display:none}
+nav.toc a.active .lab{display:inline}
+@media(max-width:920px){nav.toc{display:none}}
+
+.hero{min-height:86vh;display:flex;flex-direction:column;justify-content:center;position:relative;padding-top:56px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:12.5px;letter-spacing:.35em;color:var(--gold-dim);margin-bottom:22px}
+.eyebrow::before{content:'';width:46px;height:1px;background:var(--gold-dim)}
+h1{font-family:var(--serif);font-weight:900;font-size:clamp(32px,5.2vw,56px);line-height:1.24;color:var(--moon);letter-spacing:.02em;max-width:860px}
+h1 .accent{color:var(--gold-bright)}
+.hero-sub{margin-top:24px;max-width:720px;color:var(--text-dim);font-size:16px}
+.principles{margin-top:40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.prin{padding:20px 22px;border-radius:var(--radius-sm)}
+.prin .pn{font-family:var(--serif);font-weight:900;color:var(--gold);font-size:14px;letter-spacing:.1em;margin-bottom:8px}
+.prin p{font-size:13px;color:var(--text-dim);line-height:1.75}
+.prin p b{color:var(--moon);font-weight:500}
+.meta-strip{display:flex;flex-wrap:wrap;gap:12px;margin-top:44px}
+.meta-strip .m{display:flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;font-size:12.5px;color:var(--text-dim);
+  background:rgba(26,32,54,.55);border:1px solid var(--line-soft);backdrop-filter:blur(8px)}
+.meta-strip .m b{color:var(--gold);font-weight:600}
+
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:14px}
+.sec-no{font-family:var(--serif);font-weight:700;font-size:15px;color:var(--gold-dim);letter-spacing:.22em}
+.sec-head h2{font-family:var(--serif);font-weight:700;font-size:clamp(24px,3vw,32px);color:var(--moon)}
+.sec-lead{color:var(--text-dim);max-width:860px;margin-bottom:34px;font-size:15px}
+.sec-lead b{color:var(--gold);font-weight:500}
+
+/* ===== Boss 卡片 ===== */
+.boss{padding:0;border-radius:20px;margin-bottom:34px;overflow:hidden}
+.boss-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  padding:26px 32px 20px;flex-wrap:wrap}
+.boss-title{display:flex;align-items:center;gap:16px}
+.boss-num{flex:none;font-family:var(--serif);font-weight:900;font-size:30px;line-height:1;
+  width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  color:var(--bg-1);background:linear-gradient(135deg,var(--gold-bright),var(--gold));
+  box-shadow:0 6px 22px rgba(212,169,78,.35)}
+.boss-title h3{font-family:var(--serif);font-weight:700;font-size:22px;color:var(--moon)}
+.boss-title .en{font-size:11px;color:var(--text-faint);letter-spacing:.18em;margin-top:2px}
+.boss-tag{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;padding:6px 14px;border-radius:999px;
+  background:rgba(212,169,78,.08);border:1px solid rgba(212,169,78,.22);color:var(--gold-bright)}
+.boss-body{padding:0 32px 26px}
+.boss-lore{font-size:13.5px;color:var(--text-dim);line-height:1.85;margin-bottom:16px;
+  border-left:2px solid var(--gold-dim);padding-left:14px}
+.boss-lore b{color:var(--moon)}
+.mech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:18px}
+.mech{padding:18px 20px;border-radius:var(--radius-sm);background:rgba(18,23,41,.5);border:1px solid var(--line-soft)}
+.mech h5{font-family:var(--serif);font-size:13.5px;color:var(--gold-bright);margin-bottom:8px;letter-spacing:.04em}
+.mech p{font-size:12.8px;color:var(--text-dim);line-height:1.8}
+.mech p b{color:var(--moon);font-weight:500}
+.mech .bullet-type{display:inline-block;font-size:11px;padding:2px 10px;border-radius:999px;margin-bottom:8px;
+  background:rgba(95,179,168,.12);color:var(--teal);border:1px solid rgba(95,179,168,.28)}
+.counter{padding:16px 20px;border-radius:var(--radius-sm);background:rgba(95,179,168,.06);
+  border:1px solid rgba(95,179,168,.2)}
+.counter h5{font-family:var(--serif);font-size:13px;color:var(--teal);margin-bottom:8px}
+.counter ul{padding-left:18px}
+.counter li{font-size:12.8px;color:var(--text-dim);margin-bottom:5px;line-height:1.7}
+.counter li b{color:var(--moon);font-weight:500}
+
+/* ===== 模拟器 ===== */
+.sim-frame{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);
+  background:radial-gradient(600px 300px at 70% 20%, rgba(212,169,78,.05), rgba(10,13,22,.9))}
+.sim-top{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 14px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap}
+.sim-mode{display:flex;gap:8px}
+.sim-mode button{font-family:var(--sans);font-size:12px;padding:6px 14px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--line);background:rgba(26,32,54,.5);color:var(--text-dim);transition:all .25s}
+.sim-mode button:hover{border-color:var(--gold-dim);color:var(--text)}
+.sim-mode button.on{background:rgba(212,169,78,.15);border-color:var(--gold);color:var(--gold-bright)}
+.sim-hud{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--text-faint)}
+.sim-hud .lives b{color:var(--red-bright);font-size:13px;letter-spacing:2px}
+.sim-hud .timer b{color:var(--gold-bright);font-family:var(--serif)}
+.sim-hud .hint{font-size:11px;color:var(--text-faint)}
+.sim-canvas{display:block;width:100%;height:auto;background:transparent;cursor:none}
+
+/* ===== 汇总表 ===== */
+.tbl-wrap{border-radius:var(--radius);border:1px solid var(--line);overflow-x:auto;
+  background:rgba(18,23,41,.6);backdrop-filter:blur(12px)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:800px}
+th{font-size:11.5px;letter-spacing:.14em;color:var(--gold-dim);font-weight:500;text-align:left;
+  padding:13px 15px;border-bottom:1px solid var(--line);background:rgba(212,169,78,.05);white-space:nowrap}
+td{padding:12px 15px;border-bottom:1px solid var(--line-soft);color:var(--text);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td b{color:var(--moon);font-weight:500}
+td .sub{display:block;font-size:11px;color:var(--text-faint);margin-top:2px}
+.badge{display:inline-block;font-size:11px;padding:2px 10px;border-radius:999px;white-space:nowrap}
+.badge.shape{background:rgba(212,169,78,.12);color:var(--gold-bright);border:1px solid rgba(212,169,78,.3)}
+.badge.track{background:rgba(95,179,168,.12);color:var(--teal);border:1px solid rgba(95,179,168,.3)}
+.badge.rhythm{background:rgba(109,143,214,.12);color:var(--blue);border:1px solid rgba(109,143,214,.3)}
+
+.ph{font-size:10.5px;letter-spacing:.1em;color:var(--gold-dim);background:rgba(212,169,78,.1);
+  padding:1px 6px;border-radius:4px;font-weight:500;vertical-align:2px;white-space:nowrap}
+
+footer{margin-top:110px;padding-top:30px;border-top:1px solid var(--line-soft);text-align:center;
+  color:var(--text-faint);font-size:12.5px;line-height:2.2}
+footer .moonlet{color:var(--gold-dim);letter-spacing:.4em}
+.changelog{margin-top:16px;display:inline-block;text-align:left;font-size:11.5px;color:var(--text-faint);
+  border:1px dashed var(--line);border-radius:10px;padding:12px 20px;background:rgba(18,23,41,.5)}
+.changelog b{color:var(--gold-dim)}
+
+::-webkit-scrollbar{width:9px}
+::-webkit-scrollbar-track{background:var(--bg-0)}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-dim)}
+
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<nav class="toc" id="toc"></nav>
+
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="eyebrow">Moonlight Chronicle · Boss Bullet Design v0.6</div>
+    <h1>弹幕不是弹幕，<br>是每位 Boss 的<span class="accent">世界观语言</span>。</h1>
+    <p class="hero-sub">10 位 Boss，10 套专属弹幕：形状、轨迹、节奏、交互全部从「它叫什么、它是什么」生长出来。每套都配可交互的躲避模拟器——先看演示，再亲手试躲，最后读对策。</p>
+    <div class="principles">
+      <div class="prin glass"><div class="pn">原则一 · 形随名</div><p><b>形状表达身份：</b>潮汐是弧形浪片、战车是轮辐、巫王是符文、枭是羽毛——异型弹不是猎奇，是让玩家「看形状就知道是谁打来的」。</p></div>
+      <div class="prin glass"><div class="pn">原则二 · 迹随性</div><p><b>轨迹表达性格：</b>巢母的弹会「注视」你、巫王的弹会「蓄力加速」、战车在地上留「轨道」——弹幕的脾气就是 Boss 的脾气。</p></div>
+      <div class="prin glass"><div class="pn">原则三 · 律随态</div><p><b>节奏表达处境：</b>巨兽的弹幕随潮汐呼吸、剑豪三连斩快-快-慢、终焉随月相轮转——同一招，节奏不同，压迫感完全不同。</p></div>
+      <div class="prin glass"><div class="pn">原则四 · 对可读</div><p><b>再花哨也必须可读：</b>每一套弹幕都保证「威胁类型 ≤ 2 同屏」（v0.5 修复路线纪律）、追踪弹可甩、地面预警先于落点。形式创新不能以牺牲可操作性为代价。</p></div>
+    </div>
+    <div class="meta-strip">
+      <div class="m">Boss：<b>10</b> 位</div>
+      <div class="m">异型弹种：<b>14</b> 种</div>
+      <div class="m">可交互模拟器：<b>10</b> 个</div>
+      <div class="m">演示 / 挑战双模式</div>
+    </div>
+  </header>
+
+  <!-- ============ 壹 设计原则 ============ -->
+  <section id="s1">
+    <div class="sec-head reveal">
+      <span class="sec-no">壹</span>
+      <h2>弹幕语言的四个维度</h2>
+    </div>
+    <p class="sec-lead reveal">每一套 Boss 弹幕 = <b>形状（说什么）</b> + <b>轨迹（怎么说）</b> + <b>节奏（何时说）</b> + <b>交互（对我做什么）</b>。四维共同表达 Boss 的身份，而不是只换个圆球颜色。</p>
+    <div class="tbl-wrap reveal">
+      <table>
+        <thead><tr><th>维度</th><th>定义</th><th>表达方式</th><th>示例</th></tr></thead>
+        <tbody>
+          <tr><td><b>形状</b><span class="sub">SHAPE · 说什么</span></td><td>弹幕的几何形态</td><td>异型弹：月牙 / 羽毛 / 符文 / 眼睛 / 泪焰 / 轮辐……</td><td>龙用泪滴火焰弹、枭用羽毛弹——「看到形状认出 Boss」</td></tr>
+          <tr><td><b>轨迹</b><span class="sub">TRAJECTORY · 怎么说</span></td><td>弹幕的移动方式</td><td>直线 / 弧形 / 旋转 / 分裂 / 追踪 / 蓄力爆发 / 地面留痕</td><td>巢母之眼微转向「注视」玩家；巫王符文中途蓄力加速</td></tr>
+          <tr><td><b>节奏</b><span class="sub">RHYTHM · 何时说</span></td><td>发射的时间模式</td><td>呼吸 / 连发 / 快-快-慢 / 相位轮转</td><td>巨兽随潮汐呼吸变速；终焉随月相切换弹幕形态</td></tr>
+          <tr><td><b>交互</b><span class="sub">INTERACTION · 对我做什么</span></td><td>弹幕与玩家的状态互动</td><td>命中印记 / 追踪锁定 / 地面领域 / 二次分裂</td><td>巫王咒印吸引追踪弹；战车轨道火线灼烧</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 贰 Boss 弹幕工坊 ============ -->
+  <section id="s2">
+    <div class="sec-head reveal">
+      <span class="sec-no">贰</span>
+      <h2>弹幕工坊：10 位 Boss</h2>
+    </div>
+    <p class="sec-lead reveal">每位 Boss 一块实验场：<b>演示模式</b>（自动播，看形态）→ 点「挑战」<b>亲手躲</b>（鼠标移动，3 次命中出局，测你能撑几秒）→ 读对策。所有弹幕均为 <span class="ph">[PLACEHOLDER]</span> 草案，仅供验证「形状/节奏表达世界观」的假设。</p>
+
+    <!-- ===== 1 蚀潮巨兽 ===== -->
+    <article class="boss glass reveal" id="boss1">
+      <div class="boss-head">
+        <div class="boss-title"><div class="boss-num">1</div>
+          <div><h3>蚀潮巨兽</h3><div class="en">BEHEMOTH · 潮汐波</div></div></div>
+        <span class="boss-tag">◐ 世界观：潮汐 · 呼吸</span>
+      </div>
+      <div class="boss-body">
+        <p class="boss-lore"><b>弹幕叙事：</b>巨兽每一次呼吸，潮水便涌起一次。弹幕的<b>速度随潮汐呼吸</b>——涨潮时弹幕加速推进、退潮时停滞收缩。<b>玩家要学会读潮：在退潮的滞涩瞬间穿行。</b>形状是「浪花弧形片」，不是圆球——浪潮不是点，是面。</p>
+        <div class="mech-grid">
+          <div class="mech"><span class="bullet-type">异型弹 · 浪花弧片</span>
+            <h5>潮汐环</h5>
+            <p>弧形浪片弹成环发射，速度 = <b>140 + 60×sin(全局潮汐)</b> 呼吸式波动。涨潮（高速段）弹幕密集推进，退潮（低速段）出现可穿行的滞涩窗口。</p></div>
+          <div class="mech"><span class="bullet-type">节奏 · 呼吸</span>
+            <h5>潮汐节律</h5>
+            <p>发射间隔 = 1.6s，但弹速随呼吸曲线变化。<b>威胁类型仅 1 种</b>（环形浪片），无追踪无地面——纯粹的空间 + 时机博弈。</p></div>
+          <div class="counter">
+            <h5>对策 · 读潮穿行</h5>
+            <ul>
+              <li><b>看潮：</b>观察环的推进速度，退潮（变慢）瞬间是唯一的安全窗口</li>
+              <li><b>斜穿：</b>从两片浪花的间隙斜向穿入，不要横穿环心</li>
+              <li><b>节奏感：</b>潮汐周期固定（约 2.6s 一轮），数拍子比盯弹幕更有效</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sim-frame">
+          <div class="sim-top">
+            <div class="sim-mode">
+              <button class="on" data-mode="demo">演示</button>
+              <button data-mode="play">挑战 · 亲手躲</button>
+              <button data-mode="reset">重置</button>
+            </div>
+            <div class="sim-hud"><span class="lives">命 <b>●●●</b></span><span class="timer">坚持 <b>0.0s</b></span><span class="hint">挑战模式：鼠标控制月牙移动</span></div>
+          </div>
+          <canvas class="sim-canvas" width="1000" height="300" data-boss="behemoth"></canvas>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== 2 潮噬之母 ===== -->
+    <article class="boss glass reveal" id="boss2">
+      <div class="boss-head">
+        <div class="boss-title"><div class="boss-num">2</div>
+          <div><h3>潮噬之母</h3><div class="en">TIDE MOTHER · 孵化</div></div></div>
+        <span class="boss-tag">◈ 世界观：分娩 · 繁衍</span>
+      </div>
+      <div class="boss-body">
+        <p class="boss-lore"><b>弹幕叙事：</b>母体不断<b>产卵、孵化、繁衍</b>。卵囊弹飞行途中破裂，裂出三只幼体；地面生出虫卵，计时孵化成弹幕。<b>处理她的正确姿势是「清卵优先」</b>——让战场保持可读，而不是等孵化场成型再绝望。</p>
+        <div class="mech-grid">
+          <div class="mech"><span class="bullet-type">异型弹 · 卵囊</span>
+            <h5>卵囊弹（二次分裂）</h5>
+            <p>椭圆卵囊直线飞行，<b>1.2s 后破裂</b>成 3 只三角幼体弹（散射）。卵囊本身低速无害，破裂瞬间才是威胁——读破裂倒计时。</p></div>
+          <div class="mech"><span class="bullet-type">地面 · 孵化场</span>
+            <h5>虫卵地标</h5>
+            <p>地面随机生成虫卵（红圈预警），<b>3s 后孵化</b>为环射弹幕。<b>威胁类型 = 卵囊分裂 + 地面孵化（2 种，符合纪律）</b>。玩家必须分心去清卵。</p></div>
+          <div class="counter">
+            <h5>对策 · 清卵优先</h5>
+            <ul>
+              <li><b>优先级：</b>先踩掉地面虫卵（红圈预警阶段），再处理飞行卵囊</li>
+              <li><b>躲分裂：</b>卵囊破裂前 0.3s 有闪光，横向位移避开三向散射</li>
+              <li><b>别站中心：</b>孵化环射从卵位爆发，清卵时保持移动</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sim-frame">
+          <div class="sim-top">
+            <div class="sim-mode">
+              <button class="on" data-mode="demo">演示</button>
+              <button data-mode="play">挑战 · 亲手躲</button>
+              <button data-mode="reset">重置</button>
+            </div>
+            <div class="sim-hud"><span class="lives">命 <b>●●●</b></span><span class="timer">坚持 <b>0.0s</b></span><span class="hint">挑战模式：鼠标控制月牙移动</span></div>
+          </div>
+          <canvas class="sim-canvas" width="1000" height="300" data-boss="tideMother"></canvas>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== 3 蚀壳战车 ===== -->
+    <article class="boss glass reveal" id="boss3">
+      <div class="boss-head">
+        <div class="boss-title"><div class="boss-num">3</div>
+          <div><h3>蚀壳战车</h3><div class="en">ERODE CHARIOT · 碾压</div></div></div>
+        <span class="boss-tag">✥ 世界观：机械 · 碾压</span>
+      </div>
+      <div class="boss-body">
+        <p class="boss-lore"><b>弹幕叙事：</b>战车碾过之处，大地留下<b>火线轨道</b>。它的弹幕是<b>轮辐弹</b>——旋转的十字辐条，像车轮凌空碾压；冲撞路径留下持续灼烧的轨道火线。<b>这场的核心动词：别站在车轮要过的地方。</b></p>
+        <div class="mech-grid">
+          <div class="mech"><span class="bullet-type">异型弹 · 轮辐十字</span>
+            <h5>轮辐弹</h5>
+            <p>十字形轮辐弹旋转着直线飞出（旋转增加视觉面积）。弹速中等，但旋转使判定变「模糊」——玩家的距离感被干扰。</p></div>
+          <div class="mech"><span class="bullet-type">地面 · 轨道火线</span>
+            <h5>冲撞轨迹</h5>
+            <p>战车每 3 次冲撞后，沿随机横线留下<b>火线轨道</b>（持续 3s 灼烧区）。<b>威胁类型 = 轮辐直线 + 地面轨道（2 种）</b>。轨道把战场切成「可通行走廊」。</p></div>
+          <div class="counter">
+            <h5>对策 · 数冲撞</h5>
+            <ul>
+              <li><b>数节奏：</b>冲撞 ×3 是固定连段（约 1.5s/次），第三撞后必留轨道——提前预判</li>
+              <li><b>横向闪：</b>轮辐弹旋转但轨迹是直线，横移即可避开</li>
+              <li><b>别回轨迹：</b>火线轨道持续 3s，绕行而非跨越</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sim-frame">
+          <div class="sim-top">
+            <div class="sim-mode">
+              <button class="on" data-mode="demo">演示</button>
+              <button data-mode="play">挑战 · 亲手躲</button>
+              <button data-mode="reset">重置</button>
+            </div>
+            <div class="sim-hud"><span class="lives">命 <b>●●●</b></span><span class="timer">坚持 <b>0.0s</b></span><span class="hint">挑战模式：鼠标控制月牙移动</span></div>
+          </div>
+          <canvas class="sim-canvas" width="1000" height="300" data-boss="erodeChariot"></canvas>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== 4 噬月君主 ===== -->
+    <article class="boss glass reveal" id="boss4">
+      <div class="boss-head">
+        <div class="boss-title"><div class="boss-num">4</div>
+          <div><h3>噬月君主</h3><div class="en">MOON LORD · 月相之刃</div></div></div>
+        <span class="boss-tag">☾ 世界观：君主 · 月光</span>
+      </div>
+      <div class="boss-body">
+        <p class="boss-lore"><b>弹幕叙事：</b>君主挥剑，剑光随<b>月相</b>而定——满月之夜斩出 8 道月牙，新月之夜只有 2 道但更快更狠。<b>弹幕数量即月相，玩家要读月亮判断这一刀的形状。</b>月牙刃拖着剑光尾迹旋转飞行，是「斩击」而非「抛射」。</p>
+        <div class="mech-grid">
+          <div class="mech"><span class="bullet-type">异型弹 · 月牙刃</span>
+            <h5>月牙斩（旋转剑光）</h5>
+            <p>新月形弹旋转飞行 + 拖刀光尾迹。旋转使月牙「开口方向」变化——<b>威胁来自刃口，不是弹体</b>，视觉重心设计成「刃口亮、背弧暗」。</p></div>
+          <div class="mech"><span class="bullet-type">节奏 · 月相</span>
+            <h5>月相斩</h5>
+            <p>每次挥剑发射数 = <b>4 + 4×cos(相位)</b>（满月 8 道 / 新月 2 道）。月相随时间轮转，玩家要学会「读相预判密度」。</p></div>
+          <div class="counter">
+            <h5>对策 · 读相</h5>
+            <ul>
+              <li><b>满月（密）：</b>8 道月牙环形展开——站在刀光内侧（圆心侧）空隙</li>
+              <li><b>新月（疏但快）：</b>2 道月牙速度 +40%——预判剑挥方向，提前横移</li>
+              <li><b>刃口朝向：</b>背弧一侧安全，刃口一侧危险</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sim-frame">
+          <div class="sim-top">
+            <div class="sim-mode">
+              <button class="on" data-mode="demo">演示</button>
+              <button data-mode="play">挑战 · 亲手躲</button>
+              <button data-mode="reset">重置</button>
+            </div>
+            <div class="sim-hud"><span class="lives">命 <b>●●●</b></span><span class="timer">坚持 <b>0.0s</b></span><span class="hint">挑战模式：鼠标控制月牙移动</span></div>
+          </div>
+          <canvas class="sim-canvas" width="1000" height="300" data-boss="moonLord"></canvas>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== 5 月影巫王 ===== -->
+    <article class="boss glass reveal" id="boss5">
+      <div class="boss-head">
+        <div class="boss-title"><div class="boss-num">5</div>
+          <div><h3>月影巫王</h3><div class="en">MOON WRAITH · 蚀咒</div></div></div>
+        <span class="boss-tag">✺ 世界观：巫术 · 诅咒</span>
+      </div>
+      <div class="boss-body">
+        <p class="boss-lore"><b>弹幕叙事：</b>巫王低语，咒文具现成<b>旋转符箓</b>。符文飞行中会「引导」——蓄力后突然加速扑向你；被符文命中的玩家身上烙下<b>咒印</b>，咒印存在期间追踪弹会优先锁定你。<b>这场是「中了诅咒就要付出代价」的教学。</b></p>
+        <div class="mech-grid">
+          <div class="mech"><span class="bullet-type">异型弹 · 符箓</span>
+            <h5>符文弹（蓄力加速）</h5>
+            <p>八角符箓旋转飞行，<b>飞行 0.9s 后突然加速 2.2 倍</b>（咒语引导完成）。前期看似无害，后期才露出杀机——读「符箓发亮 = 要加速了」。</p></div>
+          <div class="mech"><span class="bullet-type">交互 · 咒印</span>
+            <h5>蚀咒印记</h5>
+            <p>符文命中玩家 → 烙下咒印（3s）。<b>咒印期间，追踪弹锁定目标 = 你</b>（锁定其他弹会被引开）。威胁类型 = 符文直线 + 追踪弹（2 种，且追踪弹有「转移目标」的决策感）。</p></div>
+          <div class="counter">
+            <h5>对策 · 别贪输出</h5>
+            <ul>
+              <li><b>读发亮：</b>符文发亮 0.3s 后加速——看到亮光立刻横向位移</li>
+              <li><b>中了咒印：</b>别硬扛追踪，绕大圈甩掉（lockT 后可甩）</li>
+              <li><b>优先级：</b>咒印期间追踪弹 &gt; 符文 &gt; 输出</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sim-frame">
+          <div class="sim-top">
+            <div class="sim-mode">
+              <button class="on" data-mode="demo">演示</button>
+              <button data-mode="play">挑战 · 亲手躲</button>
+              <button data-mode="reset">重置</button>
+            </div>
+            <div class="sim-hud"><span class="lives">命 <b>●●●</b></span><span class="timer">坚持 <b>0.0s</b></span><span class="hint">挑战模式：鼠标控制月牙移动</span></div>
+          </div>
+          <canvas class="sim-canvas" width="1000" height="300" data-boss="moonWraith"></canvas>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== 6 断月剑豪 ===== -->
+    <article class="boss glass reveal" id="boss6">
+      <div class="boss-head">
+        <div class="boss-title"><div class="boss-num">6</div>
+          <div><h3>断月剑豪</h3><div class="en">MOON SWORDSMAN · 三连斩</div></div></div>
+        <span class="boss-tag">⚔ 世界观：剑道 · 节奏</span>
+      </div>
+      <div class="boss-body">
+        <p class="boss-lore"><b>弹幕叙事：</b>剑豪的三连斩是<b>剑道节奏：快-快-慢</b>。前两段刀气是虚招（侧移即避），第三段才是真正杀招（范围 +40%、弧宽加倍）。<b>弹幕在教玩家「读节奏」，而不是「看弹躲弹」</b>——这是全场唯一把节奏本身当机制的 Boss。</p>
+        <div class="mech-grid">
+          <div class="mech"><span class="bullet-type">异型弹 · 刀气弧</span>
+            <h5>刀气波（半圆推进）</h5>
+            <p>半圆弧形刀气横向推进，像剑气横扫。刀气弧宽 40px、飞行后渐宽——越远越难躲，逼玩家保持中距离。</p></div>
+          <div class="mech"><span class="bullet-type">节奏 · 快-快-慢</span>
+            <h5>三连斩节拍</h5>
+            <p>每轮三斩：<b>第一斩 0.7s 前摇（虚招）→ 第二斩 0.5s（虚招）→ 第三斩 1.0s 前摇（杀招，弧宽 ×2）</b>。前两段骗闪避，第三段才是真威胁——「听拍子」比「盯弹」可靠。</p></div>
+          <div class="counter">
+            <h5>对策 · 听拍子</h5>
+            <ul>
+              <li><b>一二段：</b>侧移一步即可，别大位移（留空间给第三段）</li>
+              <li><b>第三段：</b>前摇最长（1.0s）但范围最宽——绕背或大横跳</li>
+              <li><b>节奏锚点：</b>第三斩前剑豪会「收刀亮刃」（视觉节拍器）</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sim-frame">
+          <div class="sim-top">
+            <div class="sim-mode">
+              <button class="on" data-mode="demo">演示</button>
+              <button data-mode="play">挑战 · 亲手躲</button>
+              <button data-mode="reset">重置</button>
+            </div>
+            <div class="sim-hud"><span class="lives">命 <b>●●●</b></span><span class="timer">坚持 <b>0.0s</b></span><span class="hint">挑战模式：鼠标控制月牙移动</span></div>
+          </div>
+          <canvas class="sim-canvas" width="1000" height="300" data-boss="moonSwordsman"></canvas>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== 7 裂空魔龙 ===== -->
+    <article class="boss glass reveal" id="boss7">
+      <div class="boss-head">
+        <div class="boss-title"><div class="boss-num">7</div>
+          <div><h3>裂空魔龙</h3><div class="en">DRAGON · 烈焰与翼</div></div></div>
+        <span class="boss-tag">♨ 世界观：天空霸主</span>
+      </div>
+      <div class="boss-body">
+        <p class="boss-lore"><b>弹幕叙事：</b>龙的两件武器：<b>吐息</b>与<b>翼展</b>。龙焰弹是泪滴形火苗，飞行中膨胀、触墙炸裂；振翅时从双翼扇出 V 形「翼弹」——像天空被撕开两道口子。<b>这场的核心动词：别站在龙头正面。</b></p>
+        <div class="mech-grid">
+          <div class="mech"><span class="bullet-type">异型弹 · 龙焰泪滴</span>
+            <h5>龙焰弹（膨胀分裂）</h5>
+            <p>泪滴形火焰弹飞行中<b>半径逐渐膨胀 1.8 倍</b>，触墙/触底炸成 3 颗小火苗。<b>膨胀 = 判定扩大</b>，越到后期越难躲——别让它飞太久。</p></div>
+          <div class="mech"><span class="bullet-type">轨迹 · 翼展 V 弹</span>
+            <h5>翼展弹幕</h5>
+            <p>双翼各扇出 5 颗 V 形排列弹，<b>从两翼方向夹击</b>（不是从中心）。正面躲吐息会被侧翼夹击——「绕后」是唯一安全区。</p></div>
+          <div class="counter">
+            <h5>对策 · 贴侧绕后</h5>
+            <ul>
+              <li><b>别站正脸：</b>吐息是正面扇形，站侧翼 45° 外</li>
+              <li><b>翼弹夹击：</b>V 形弹从两翼来，中间留缝——站缝里</li>
+              <li><b>龙焰别放老：</b>越膨胀判定越大，优先击破近身龙焰</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sim-frame">
+          <div class="sim-top">
+            <div class="sim-mode">
+              <button class="on" data-mode="demo">演示</button>
+              <button data-mode="play">挑战 · 亲手躲</button>
+              <button data-mode="reset">重置</button>
+            </div>
+            <div class="sim-hud"><span class="lives">命 <b>●●●</b></span><span class="timer">坚持 <b>0.0s</b></span><span class="hint">挑战模式：鼠标控制月牙移动</span></div>
+          </div>
+          <canvas class="sim-canvas" width="1000" height="300" data-boss="dragon"></canvas>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== 8 蚀雷巨枭 ===== -->
+    <article class="boss glass reveal" id="boss8">
+      <div class="boss-head">
+        <div class="boss-title"><div class="boss-num">8</div>
+          <div><h3>蚀雷巨枭</h3><div class="en">STORM OWL · 雷暴场</div></div></div>
+        <span class="boss-tag">☇ 世界观：暴风眼</span>
+      </div>
+      <div class="boss-body">
+        <p class="boss-lore"><b>弹幕叙事：</b>枭张开双翼，落雷在战场织成<b>网格电场</b>——雷不是随机的，是成行成列的。<b>玩家要读网格的落雷顺序：上一波落完的区域 = 已安全区</b>，战场被切成会「放电」的棋盘。羽毛弹贴着闪电尾迹飞，像雷鸟振落的翎羽。</p>
+        <div class="mech-grid">
+          <div class="mech"><span class="bullet-type">异型弹 · 雷羽</span>
+            <h5>雷羽弹（倒三角 + 电弧尾）</h5>
+            <p>倒三角羽毛弹带闪电尾迹直线飞行，击中地面留下短时电弧残留。视觉上「羽毛 + 电光」——雷鸟的身份标志。</p></div>
+          <div class="mech"><span class="bullet-type">地面 · 雷暴网格</span>
+            <h5>落雷网格</h5>
+            <p>落雷按 <b>2 行 × 5 列网格</b>依次落下（列间隔 0.5s），每格预警 0.8s。<b>读顺序 = 找安全区</b>：刚落完的格子是安全的，即将落的格子会亮起。</p></div>
+          <div class="counter">
+            <h5>对策 · 站已落区</h5>
+            <ul>
+              <li><b>顺序记忆：</b>网格按行依次放电，站「刚放过电」的列 = 安全</li>
+              <li><b>雷羽横移：</b>羽毛弹是直线，横向小位移避开</li>
+              <li><b>别贪站桩：</b>网格每 6s 重排，安全区会转移</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sim-frame">
+          <div class="sim-top">
+            <div class="sim-mode">
+              <button class="on" data-mode="demo">演示</button>
+              <button data-mode="play">挑战 · 亲手躲</button>
+              <button data-mode="reset">重置</button>
+            </div>
+            <div class="sim-hud"><span class="lives">命 <b>●●●</b></span><span class="timer">坚持 <b>0.0s</b></span><span class="hint">挑战模式：鼠标控制月牙移动</span></div>
+          </div>
+          <canvas class="sim-canvas" width="1000" height="300" data-boss="stormOwl"></canvas>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== 9 深渊巢母 ===== -->
+    <article class="boss glass reveal" id="boss9">
+      <div class="boss-head">
+        <div class="boss-title"><div class="boss-num">9</div>
+          <div><h3>深渊巢母</h3><div class="en">ABYSS MOTHER · 凝视</div></div></div>
+        <span class="boss-tag">◉ 世界观：深渊 · 凝视</span>
+      </div>
+      <div class="boss-body">
+        <p class="boss-lore"><b>弹幕叙事：</b>深渊在<b>注视你</b>。眼睛形弹幕飞行中缓缓转向、瞳孔始终「看着」玩家——微追踪制造被凝视的压迫，但转向率极低（可甩）。地面酸液会扩散成<b>流动的酸池</b>（不是规整圆，是边缘蠕动的领域），站在里面持续被侵蚀。<b>这场是「别和深渊对视太久」的考验。</b></p>
+        <div class="mech-grid">
+          <div class="mech"><span class="bullet-type">异型弹 · 深渊之眼</span>
+            <h5>凝视之眼（微追踪）</h5>
+            <p>椭圆眼弹 + 瞳孔，飞行中<b>转向率 1.2 rad/s 缓慢注视玩家</b>。会拐弯但不死追——用急转可以甩开（「被看着」是心理压力，不是必中）。</p></div>
+          <div class="mech"><span class="bullet-type">地面 · 流动酸池</span>
+            <h5>酸液领域</h5>
+            <p>酸池半径随 <b>sin 扰动</b>流动扩张（边缘蠕动），站池内持续扣血。<b>威胁类型 = 眼睛直线微追踪 + 地面领域（2 种）</b>。酸池把地图切成「安全岛」。</p></div>
+          <div class="counter">
+            <h5>对策 · 别对视</h5>
+            <ul>
+              <li><b>甩眼：</b>眼睛转向率低，急转 90° 即可甩开</li>
+              <li><b>盯边缘：</b>酸池边缘波动，站安全岛内侧，别贴蠕动边缘</li>
+              <li><b>优先级：</b>酸池持续伤害 &gt; 眼睛单发伤害——先离池</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sim-frame">
+          <div class="sim-top">
+            <div class="sim-mode">
+              <button class="on" data-mode="demo">演示</button>
+              <button data-mode="play">挑战 · 亲手躲</button>
+              <button data-mode="reset">重置</button>
+            </div>
+            <div class="sim-hud"><span class="lives">命 <b>●●●</b></span><span class="timer">坚持 <b>0.0s</b></span><span class="hint">挑战模式：鼠标控制月牙移动</span></div>
+          </div>
+          <canvas class="sim-canvas" width="1000" height="300" data-boss="abyssMother"></canvas>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== 10 蚀月终焉 ===== -->
+    <article class="boss glass reveal" id="boss10">
+      <div class="boss-head">
+        <div class="boss-title"><div class="boss-num">10</div>
+          <div><h3>蚀月终焉</h3><div class="en">FINAL ECLIPSE · 蚀相轮转</div></div></div>
+        <span class="boss-tag">☄ 世界观：末日 · 蚀相</span>
+      </div>
+      <div class="boss-body">
+        <p class="boss-lore"><b>弹幕叙事：</b>终焉就是月亮本身——它的弹幕形态随<b>蚀相轮转</b>：满相时是辉光全向环（看得见、躲得开），渐蚀时是血月雨滴（下落、读落点），全蚀时是黑暗突袭（低可见度、但弹速极慢）。<b>玩家要读相换策略：这个 Boss 的「机制」是月相，弹幕只是月相的表达。</b></p>
+        <div class="mech-grid">
+          <div class="mech"><span class="bullet-type">异型弹 · 蚀月环 + 血雨</span>
+            <h5>蚀月环 / 血月雨</h5>
+            <p><b>蚀月环：</b>环形弹带缺口（月蚀的弧），旋转推进——缺口即生路。<b>血月雨：</b>红色雨滴下落，落地留短时水痕（落点预警）。</p></div>
+          <div class="mech"><span class="bullet-type">节奏 · 蚀相轮转</span>
+            <h5>三相循环（各 8s）</h5>
+            <p><b>满相</b>：全向环，密但可读 → <b>渐蚀</b>：血雨下落，读落点 → <b>全蚀</b>：黑暗弹（可见度 -50% 但弹速 -40%）。<b>威胁类型始终 ≤ 2</b>，压迫感来自「切换」，不是叠加。</p></div>
+          <div class="counter">
+            <h5>对策 · 读相换策略</h5>
+            <ul>
+              <li><b>满相：</b>盯缺口穿环（缺口随旋转变化，预判 0.5s）</li>
+              <li><b>渐蚀：</b>别站雨滴落点——落点有水痕预警，横向走</li>
+              <li><b>全蚀：</b>弹速慢 40%——大胆走位，用「看不清」换「躲得开」</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sim-frame">
+          <div class="sim-top">
+            <div class="sim-mode">
+              <button class="on" data-mode="demo">演示</button>
+              <button data-mode="play">挑战 · 亲手躲</button>
+              <button data-mode="reset">重置</button>
+            </div>
+            <div class="sim-hud"><span class="lives">命 <b>●●●</b></span><span class="timer">坚持 <b>0.0s</b></span><span class="hint">挑战模式：鼠标控制月牙移动</span></div>
+          </div>
+          <canvas class="sim-canvas" width="1000" height="300" data-boss="finalEclipse"></canvas>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ 叁 弹幕语言矩阵 ============ -->
+  <section id="s3">
+    <div class="sec-head reveal">
+      <span class="sec-no">叁</span>
+      <h2>弹幕语言矩阵：一表看全 10 位</h2>
+    </div>
+    <p class="sec-lead reveal">四维表达一览。每套弹幕都能回答「它叫什么 / 它怎么动 / 它什么时候发 / 它对我做什么」。</p>
+    <div class="tbl-wrap reveal">
+      <table>
+        <thead><tr><th>Boss</th><th>形状（说什么）</th><th>轨迹（怎么说）</th><th>节奏（何时说）</th><th>交互（对我做什么）</th><th>核心动词</th></tr></thead>
+        <tbody>
+          <tr><td><b>蚀潮巨兽</b></td><td><span class="badge shape">浪花弧片</span></td><td>环形 + 呼吸变速</td><td>潮汐节律 1.6s</td><td>—（纯空间博弈）</td><td>读潮穿行</td></tr>
+          <tr><td><b>潮噬之母</b></td><td><span class="badge shape">卵囊 / 三角幼体</span></td><td>直线 + 二次分裂</td><td>孵化倒计时</td><td>地面卵 → 孵化环射</td><td>清卵优先</td></tr>
+          <tr><td><b>蚀壳战车</b></td><td><span class="badge shape">轮辐十字</span></td><td>旋转直线</td><td>冲撞 ×3 连段</td><td>地面轨道火线</td><td>数冲撞</td></tr>
+          <tr><td><b>噬月君主</b></td><td><span class="badge shape">月牙刃 + 刀光</span></td><td>旋转 + 刃口判定</td><td>月相数量（8/2）</td><td>—</td><td>读相预判</td></tr>
+          <tr><td><b>月影巫王</b></td><td><span class="badge shape">八角符箓</span></td><td>蓄力 → 爆发加速</td><td>引导 0.9s</td><td>命中烙咒印 → 引追踪</td><td>别贪输出</td></tr>
+          <tr><td><b>断月剑豪</b></td><td><span class="badge shape">刀气弧</span></td><td>半圆推进渐宽</td><td>快-快-慢三连</td><td>—</td><td>听拍子</td></tr>
+          <tr><td><b>裂空魔龙</b></td><td><span class="badge shape">泪滴龙焰</span></td><td>膨胀 + 触墙炸裂</td><td>翼展 V 弹夹击</td><td>正面吐息封锁</td><td>贴侧绕后</td></tr>
+          <tr><td><b>蚀雷巨枭</b></td><td><span class="badge shape">雷羽倒三角</span></td><td>直线 + 电弧尾</td><td>网格逐列放电</td><td>落雷网格重排</td><td>站已落区</td></tr>
+          <tr><td><b>深渊巢母</b></td><td><span class="badge shape">深渊之眼</span></td><td>微追踪注视</td><td>酸池流动扩张</td><td>池内持续扣血</td><td>别对视</td></tr>
+          <tr><td><b>蚀月终焉</b></td><td><span class="badge shape">蚀月环 / 血雨</span></td><td>环旋转 / 雨下落</td><td>三相轮转 8s</td><td>全蚀可见度惩罚</td><td>读相换策略</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ Footer ============ -->
+  <footer>
+    <div class="moonlet">蚀 月 远 征 · Boss 弹幕设计</div>
+    <div>所有数值均为 <span class="ph">[PLACEHOLDER]</span> —— 是假设，不是结论。playtest 是唯一的裁判。</div>
+    <div class="changelog">
+      <b>CHANGELOG v0.6</b>（2026-08-08）<br>
+      + 10 位 Boss 专属弹幕设计：形状 / 轨迹 / 节奏 / 交互四维表达世界观<br>
+      + 14 种异型弹种：浪花弧片 / 卵囊 / 轮辐 / 月牙刃 / 符箓 / 刀气弧 / 泪滴焰 / 雷羽 / 深渊之眼 / 蚀月环 / 血雨……<br>
+      + 10 个可交互躲避模拟器（演示 / 挑战双模式，鼠标控制，3 命计时）<br>
+      + 每位 Boss 配对策方案（核心动词 + 3 条实操）<br>
+      + 全部遵守 v0.5 视觉纪律：威胁类型 ≤ 2 同屏、追踪可甩、地面先预警<br>
+      v0.5：小怪技能系统修正；v0.4：spitter/bomber 修正；v0.3：敌人五维体检；v0.2：节奏与内容维度；v0.1：终局六提案
+    </div>
+    <div style="margin-top:10px">Moonlight Chronicle Design Doc · 月蚀玻璃规范 v0.2</div>
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   弹幕模拟器引擎 · v0.6
+   10 位 Boss 各一个 spawner，共享粒子/绘制/玩家/碰撞系统
+   ============================================================ */
+const TAU = Math.PI * 2;
+
+/* ---------- 异型弹绘制 ---------- */
+function drawShape(ctx, p){
+  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot||0);
+  ctx.globalAlpha = p.alpha!=null ? p.alpha : 1;
+  switch(p.shape){
+    case 'wave':{ // 浪花弧片
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.arc(0,0,p.r, p.arc||0, (p.arc||0)+1.1); ctx.arc(0,0,p.r*0.55, (p.arc||0)+1.1, p.arc||0, true); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.45)';
+      ctx.beginPath(); ctx.arc(0,0,p.r*0.62,(p.arc||0)+0.15,(p.arc||0)+0.75); ctx.arc(0,0,p.r*0.42,(p.arc||0)+0.75,(p.arc||0)+0.15,true); ctx.closePath(); ctx.fill();
+      break;}
+    case 'egg':{ // 卵囊
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.ellipse(0,0,p.r,p.r*1.3,0,0,TAU); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.35)';
+      ctx.beginPath(); ctx.ellipse(-p.r*0.25,-p.r*0.5,p.r*0.3,p.r*0.42,0,0,TAU); ctx.fill();
+      break;}
+    case 'tri':{ // 三角幼体
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.moveTo(p.r*1.4,0); ctx.lineTo(-p.r,-p.r); ctx.lineTo(-p.r,p.r); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.4)';
+      ctx.beginPath(); ctx.arc(p.r*0.3,0,p.r*0.35,0,TAU); ctx.fill();
+      break;}
+    case 'spoke':{ // 轮辐十字
+      ctx.strokeStyle=p.color; ctx.lineWidth=p.r*0.9; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(-p.r*2.2,0); ctx.lineTo(p.r*2.2,0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,-p.r*2.2); ctx.lineTo(0,p.r*2.2); ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.5)';
+      ctx.beginPath(); ctx.arc(0,0,p.r*0.8,0,TAU); ctx.fill();
+      break;}
+    case 'moon':{ // 月牙刃
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.arc(0,0,p.r,0,TAU); ctx.arc(p.r*0.45,0,p.r*0.72,0,TAU,true); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.75)';
+      ctx.beginPath(); ctx.arc(-p.r*0.3,-p.r*0.3,p.r*0.3,0,TAU); ctx.fill();
+      break;}
+    case 'rune':{ // 八角符箓
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      for(let i=0;i<8;i++){const a=i*TAU/8, rr=i%2===0?p.r*1.5:p.r*0.6;
+        if(i===0)ctx.moveTo(Math.cos(a)*rr,Math.sin(a)*rr);else ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);}
+      ctx.closePath(); ctx.fill();
+      if(p.charge>0.55){ ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(0,0,p.r*0.35,0,TAU); ctx.fill(); }
+      break;}
+    case 'blade':{ // 刀气弧
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.arc(0,0,p.r, -0.9, 0.9); ctx.lineTo(p.r*0.7,0); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.5)';
+      ctx.beginPath(); ctx.arc(0,0,p.r*0.55,-0.6,0.6); ctx.lineTo(p.r*0.4,0); ctx.closePath(); ctx.fill();
+      break;}
+    case 'flame':{ // 泪滴龙焰
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.moveTo(0,-p.r*1.6);
+      ctx.bezierCurveTo(p.r*1.1,-p.r*0.5,p.r*1.0,p.r*0.8,0,p.r);
+      ctx.bezierCurveTo(-p.r*1.0,p.r*0.8,-p.r*1.1,-p.r*0.5,0,-p.r*1.6); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.55)';
+      ctx.beginPath(); ctx.arc(0,p.r*0.1,p.r*0.42,0,TAU); ctx.fill();
+      break;}
+    case 'feather':{ // 雷羽
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.moveTo(0,-p.r*1.8); ctx.lineTo(p.r*0.8,p.r*0.9); ctx.lineTo(0,p.r*0.4); ctx.lineTo(-p.r*0.8,p.r*0.9); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle='rgba(200,230,255,.8)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(0,-p.r*1.2); ctx.lineTo(0,p.r*0.9); ctx.stroke();
+      break;}
+    case 'eye':{ // 深渊之眼
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.ellipse(0,0,p.r*1.25,p.r*0.8,0,0,TAU); ctx.fill();
+      ctx.fillStyle='#0a0d16';
+      ctx.beginPath(); ctx.arc(0,0,p.r*0.45,0,TAU); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.8)';
+      ctx.beginPath(); ctx.arc(p.r*0.15,-p.r*0.12,p.r*0.14,0,TAU); ctx.fill();
+      break;}
+    case 'eclip':{ // 蚀月环（带缺口）
+      ctx.strokeStyle=p.color; ctx.lineWidth=p.r*0.5;
+      ctx.beginPath(); ctx.arc(0,0,p.r,(p.gap||0)+0.5,(p.gap||0)+TAU-0.5); ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.5)';
+      ctx.beginPath(); ctx.arc(Math.cos(p.gap)*p.r, Math.sin(p.gap)*p.r, p.r*0.3,0,TAU); ctx.fill();
+      break;}
+    case 'drop':{ // 血雨滴
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.moveTo(0,-p.r*1.4); ctx.bezierCurveTo(p.r*0.9,0,p.r*0.9,p.r*1.0,0,p.r); ctx.bezierCurveTo(-p.r*0.9,p.r*1.0,-p.r*0.9,0,0,-p.r*1.4); ctx.fill();
+      break;}
+    default:{ // 圆弹
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.arc(0,0,p.r,0,TAU); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.55)';
+      ctx.beginPath(); ctx.arc(-p.r*0.25,-p.r*0.25,p.r*0.3,0,TAU); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+/* ---------- 模拟器 ---------- */
+function makeSim(canvas){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const boss = canvas.dataset.boss;
+  const S = {
+    t:0, particles:[], ground:[], mode:'demo', lives:3, over:false, startT:0,
+    px:W/2, py:H/2, target:null, shake:0, flash:0, charged:0, phase:0,
+  };
+  const KEY = {left:false,right:false,up:false,down:false};
+
+  /* 玩家控制 */
+  canvas.addEventListener('pointermove', e=>{
+    const r = canvas.getBoundingClientRect();
+    S.target = { x:(e.clientX-r.left)*(W/r.width), y:(e.clientY-r.top)*(H/r.height) };
+  });
+  window.addEventListener('keydown', e=>{ if(e.key==='ArrowLeft'||e.key==='a')KEY.left=true; if(e.key==='ArrowRight'||e.key==='d')KEY.right=true; if(e.key==='ArrowUp'||e.key==='w')KEY.up=true; if(e.key==='ArrowDown'||e.key==='s')KEY.down=true; });
+  window.addEventListener('keyup', e=>{ if(e.key==='ArrowLeft'||e.key==='a')KEY.left=false; if(e.key==='ArrowRight'||e.key==='d')KEY.right=false; if(e.key==='ArrowUp'||e.key==='w')KEY.up=false; if(e.key==='ArrowDown'||e.key==='s')KEY.down=false; });
+
+  function emit(p){ S.particles.push({alpha:1, rot:0, charge:0, gap:Math.random()*TAU, ...p}); }
+
+  /* ---------- 各 Boss spawner ---------- */
+  const EMITTERS = {
+    behemoth: function(dt){
+      S.t += dt;
+      const breath = Math.sin(S.t * 2.4);            // 潮汐呼吸
+      const spd = 150 + 70 * breath;                 // 涨潮快/退潮慢
+      S.behemothT = (S.behemothT||0) - dt;
+      if (S.behemothT <= 0) {
+        S.behemothT = 1.5;
+        const base = Math.random()*TAU;
+        for(let i=0;i<10;i++) emit({shape:'wave', x:W/2, y:H/2, vx:Math.cos(base+i*TAU/10)*spd, vy:Math.sin(base+i*TAU/10)*spd, r:11, color:'#7fc4d8', arc:base+i*TAU/10, life:4.5});
+      }
+      // 粒子跟随呼吸变速
+      S.particles.forEach(p=>{ if(p.shape==='wave'){ const f = 1 + 0.35*Math.sin(S.t*2.4); p.vx*= (1+ (f-1)*0.3*dt*2); p.vy*= (1+ (f-1)*0.3*dt*2);} });
+    },
+    tideMother: function(dt){
+      S.t += dt;
+      S.tideT = (S.tideT||0) - dt;
+      if (S.tideT <= 0) {
+        S.tideT = 2.2;
+        const a = Math.random()*TAU;
+        emit({shape:'egg', x:W/2, y:H/2, vx:Math.cos(a)*130, vy:Math.sin(a)*130, r:8, color:'#6fa8a0', life:2.6, splitT:1.1});
+      }
+      // 地面卵孵化
+      S.eggT = (S.eggT||0) - dt;
+      if (S.eggT <= 0) {
+        S.eggT = 4.0;
+        S.ground.push({type:'nest', x:120+Math.random()*(W-240), y:80+Math.random()*(H-160), t:3.0, max:3.0});
+      }
+      for(const g of S.ground){
+        if(g.type==='nest'){
+          g.t -= dt;
+          if(g.t <= 0){
+            g.done = true;
+            const base = Math.random()*TAU;
+            for(let i=0;i<8;i++) emit({shape:'tri', x:g.x, y:g.y, vx:Math.cos(base+i*TAU/8)*170, vy:Math.sin(base+i*TAU/8)*170, r:6, color:'#7fd6a4', life:2.2});
+          }
+        }
+      }
+      S.ground = S.ground.filter(g=>!g.done);
+      // 卵囊分裂
+      for(const p of S.particles){
+        if(p.shape==='egg' && p.splitT!==undefined){
+          p.splitT -= dt;
+          if(p.splitT<=0 && !p.split){
+            p.split = true;
+            for(let i=-1;i<=1;i++){
+              const a = Math.atan2(p.vy,p.vx) + i*0.5;
+              emit({shape:'tri', x:p.x, y:p.y, vx:Math.cos(a)*190, vy:Math.sin(a)*190, r:5, color:'#7fd6a4', life:2});
+            }
+          }
+        }
+      }
+    },
+    erodeChariot: function(dt){
+      S.t += dt;
+      S.chariotT = (S.chariotT||0) - dt;
+      if (S.chariotT <= 0) {
+        S.chariotT = 2.6;
+        const base = Math.random()*TAU;
+        for(let i=0;i<6;i++) emit({shape:'spoke', x:W/2, y:H/2, vx:Math.cos(base+i*TAU/6)*170, vy:Math.sin(base+i*TAU/6)*170, r:7, color:'#7a8aa5', rot:Math.random()*TAU, vrot:5, life:3.2});
+      }
+      // 轨道火线（横贯扫过）
+      S.trackT = (S.trackT||0) - dt;
+      if (S.trackT <= 0) {
+        S.trackT = 5.0;
+        const y = 60 + Math.random()*(H-120);
+        S.ground.push({type:'track', y, t:3.0, max:3.0, remain:3.0});
+      }
+    },
+    moonLord: function(dt){
+      S.t += dt;
+      S.lordT = (S.lordT||0) - dt;
+      if (S.lordT <= 0) {
+        S.lordT = 2.8;
+        S.phase += 0.55;                        // 月相轮转
+        const n = 4 + Math.round(4*Math.cos(S.phase));  // 满月8/新月2
+        const base = Math.random()*TAU;
+        const spd = n <= 3 ? 250 : 190;         // 新月更快
+        for(let i=0;i<Math.max(2,n);i++) emit({shape:'moon', x:W/2, y:H/2, vx:Math.cos(base+i*TAU/Math.max(2,n))*spd, vy:Math.sin(base+i*TAU/Math.max(2,n))*spd, r:9, color:'#b49ae8', vrot:4, life:3});
+      }
+    },
+    moonWraith: function(dt){
+      S.t += dt;
+      S.wraithT = (S.wraithT||0) - dt;
+      if (S.wraithT <= 0) {
+        S.wraithT = 2.4;
+        const base = Math.random()*TAU;
+        for(let i=0;i<8;i++) emit({shape:'rune', x:W/2, y:H/2, vx:Math.cos(base+i*TAU/8)*120, vy:Math.sin(base+i*TAU/8)*120, r:7, color:'#9a86c8', vrot:2.5, life:3.5, chargeT:0.9});
+      }
+      // 追踪弹（每 3.5s 一波）
+      S.orbT = (S.orbT||0) - dt;
+      if (S.orbT <= 0) {
+        S.orbT = 3.5;
+        const a = Math.random()*TAU;
+        emit({shape:'orb', x:W/2, y:H/2, vx:Math.cos(a)*90, vy:Math.sin(a)*90, r:8, color:'#7c6d9e', life:5, homing:true});
+      }
+      // 符文蓄力加速
+      for(const p of S.particles){
+        if(p.shape==='rune'){
+          p.charge = p.charge===undefined ? 0 : p.charge+dt;
+          if(p.charge>0.55){ const f=1+0.5*dt; p.vx*=f; p.vy*=f; }
+        }
+      }
+      // 追踪弹转向玩家（仅挑战模式；演示模式保持直线展示形态）
+      for(const p of S.particles){
+        if(p.shape==='orb' && p.homing && S.mode==='play'){
+          const a = Math.atan2(S.py-p.y, S.px-p.x);
+          const cur = Math.atan2(p.vy,p.vx);
+          let d = a-cur; while(d>Math.PI)d-=TAU; while(d<-Math.PI)d+=TAU;
+          const turn = Math.max(-2.2*dt, Math.min(2.2*dt, d));
+          const sp = Math.hypot(p.vx,p.vy)+40*dt;
+          p.vx = Math.cos(cur+turn)*sp; p.vy = Math.sin(cur+turn)*sp;
+        }
+      }
+    },
+    moonSwordsman: function(dt){
+      S.t += dt;
+      S.swordT = (S.swordT||0) - dt;
+      if (S.swordT <= 0) {
+        const seq = (S.swordSeq||0) % 3;      // 快-快-慢：0→1→2 循环（修复从第二段开始）
+        S.swordSeq = seq + 1;
+        const delays = [0.5, 0.35, 0.9];
+        const widths = [0.8, 1.0, 2.0];        // 第三段最宽
+        S.swordT = delays[seq];
+        const side = Math.random()<0.5 ? -1 : 1;
+        const y = 40 + Math.random()*(H-80);
+        const w = widths[seq];
+        // 修复：从左侧来朝右飞（vx=-side*260），刀气弧朝向跟随运动方向（rot），寿命足够横跨全屏（出界自然死亡）
+        emit({shape:'blade', x: side<0 ? -40 : W+40, y, vx: -side*260, vy:0, rot: side<0 ? 0 : Math.PI, r:38*w, color: seq===2 ? '#e4e0f5' : '#c9b8f0', life:5});
+      }
+    },
+    dragon: function(dt){
+      S.t += dt;
+      S.dragonT = (S.dragonT||0) - dt;
+      if (S.dragonT <= 0) {
+        S.dragonT = 2.2;
+        const base = Math.random()*TAU;
+        for(let i=0;i<6;i++) emit({shape:'flame', x:W/2, y:H/2, vx:Math.cos(base+i*TAU/6)*140, vy:Math.sin(base+i*TAU/6)*140, r:8, color:'#e2546a', grow:1.8, life:3.6});
+        // 翼展 V 弹（双翼夹击）
+        const a = Math.atan2(S.py-H/2, S.px-W/2);
+        for(const side of [-1,1]){
+          for(let i=0;i<5;i++){
+            const ang = a + side*(0.9 + i*0.28);
+            emit({shape:'flame', x:W/2, y:H/2, vx:Math.cos(ang)*210, vy:Math.sin(ang)*210, r:6, color:'#ff9d6b', life:3});
+          }
+        }
+      }
+      // 火焰膨胀
+      for(const p of S.particles){
+        if(p.shape==='flame' && p.grow){ p.r += 3.5*dt; if(p.r>22)p.r=22; }
+      }
+    },
+    stormOwl: function(dt){
+      S.t += dt;
+      S.owlT = (S.owlT||0) - dt;
+      if (S.owlT <= 0) {
+        S.owlT = 3.0;
+        const base = Math.random()*TAU;
+        for(let i=0;i<5;i++) emit({shape:'feather', x:W/2, y:H/2, vx:Math.cos(base+i*TAU/5)*200, vy:Math.sin(base+i*TAU/5)*200, r:7, color:'#8f9aee', life:2.8});
+      }
+      // 落雷网格：2 行 5 列依次放电
+      S.gridT = (S.gridT||0) - dt;
+      if (S.gridT <= 0) {
+        S.gridT = 7.0;
+        for(let r=0;r<2;r++) for(let c=0;c<5;c++){
+          S.ground.push({type:'bolt', x:120+c*170, y:70+r*150, t:0.9, max:0.9, delay:r*5*0.5 + c*0.5});
+        }
+      }
+      for(const g of S.ground){
+        if(g.type==='bolt'){
+          if(g.delay>0){ g.delay-=dt; continue; }
+          g.t -= dt;
+          if(g.t<=0 && !g.done){
+            g.done = true;
+            for(let i=0;i<6;i++) emit({shape:'feather', x:g.x, y:g.y, vx:Math.cos(i*TAU/6)*160, vy:Math.sin(i*TAU/6)*160, r:5, color:'#cfe4ff', life:1.6});
+          }
+        }
+      }
+      S.ground = S.ground.filter(g=>!g.done);
+    },
+    abyssMother: function(dt){
+      S.t += dt;
+      S.abyssT = (S.abyssT||0) - dt;
+      if (S.abyssT <= 0) {
+        S.abyssT = 2.6;
+        const base = Math.random()*TAU;
+        for(let i=0;i<5;i++) emit({shape:'eye', x:W/2, y:H/2, vx:Math.cos(base+i*TAU/5)*150, vy:Math.sin(base+i*TAU/5)*150, r:8, color:'#a05a6e', life:4, turn:1.2});
+      }
+      // 酸池
+      S.acidT = (S.acidT||0) - dt;
+      if (S.acidT <= 0) {
+        S.acidT = 5.5;
+        S.ground.push({type:'pool', x:150+Math.random()*(W-300), y:90+Math.random()*(H-180), r:70, t:4.5, max:4.5, remain:4.5});
+      }
+      // 眼睛微追踪（仅挑战模式）
+      for(const p of S.particles){
+        if(p.shape==='eye' && p.turn && S.mode==='play'){
+          const a = Math.atan2(S.py-p.y, S.px-p.x);
+          const cur = Math.atan2(p.vy,p.vx);
+          let d = a-cur; while(d>Math.PI)d-=TAU; while(d<-Math.PI)d+=TAU;
+          const turn = Math.max(-p.turn*dt, Math.min(p.turn*dt, d));
+          p.vx = Math.cos(cur+turn)*Math.hypot(p.vx,p.vy);
+          p.vy = Math.sin(cur+turn)*Math.hypot(p.vx,p.vy);
+        }
+      }
+    },
+    finalEclipse: function(dt){
+      S.t += dt;
+      // 蚀相轮转：每 8s 换相
+      const ph = Math.floor(S.t/8) % 3;       // 0满相 1渐蚀 2全蚀
+      if(ph !== S.finalPhase){ S.finalPhase = ph; S.charged = 1; }
+      S.charged = Math.max(0, (S.charged||0)-dt);
+      if(ph===0){
+        S.finalT = (S.finalT||0) - dt;
+        if(S.finalT<=0){
+          S.finalT = 1.8;
+          const base = Math.random()*TAU;
+          for(let i=0;i<7;i++) emit({shape:'eclip', x:W/2, y:H/2, vx:Math.cos(base+i*TAU/7)*150, vy:Math.sin(base+i*TAU/7)*150, r:12, color:'#ffb84d', gap:Math.random()*TAU, life:3.4});
+        }
+      } else if(ph===1){
+        S.rainT = (S.rainT||0) - dt;
+        if(S.rainT<=0){
+          S.rainT = 0.5;
+          emit({shape:'drop', x:60+Math.random()*(W-120), y:-20, vx:0, vy:170+Math.random()*80, r:6, color:'#e06a5a', life:4});
+        }
+      } else {
+        S.darkT = (S.darkT||0) - dt;
+        if(S.darkT<=0){
+          S.darkT = 3.2;
+          const base = Math.random()*TAU;
+          for(let i=0;i<8;i++) emit({shape:'eclip', x:W/2, y:H/2, vx:Math.cos(base+i*TAU/8)*90, vy:Math.sin(base+i*TAU/8)*90, r:10, color:'#4a3a6a', gap:Math.random()*TAU, alpha:0.45, life:4.5});
+        }
+      }
+    },
+  };
+
+  /* ---------- 碰撞 ---------- */
+  function hitTest(){
+    const pr = 9; // 玩家半径
+    for(const p of S.particles){
+      if(p.dead) continue;
+      const rr = p.shape==='spoke' ? p.r*1.4 : (p.shape==='blade' ? p.r*0.9 : p.r);
+      const dx = p.x-S.px, dy = p.y-S.py;
+      if (dx*dx+dy*dy < (rr+pr)*(rr+pr)) return true;
+    }
+    for(const g of S.ground){
+      if(g.type==='track' && g.remain>0 && Math.abs(S.py-g.y)<16) return true;
+      if(g.type==='pool'){
+        const r = g.r * (1 + 0.12*Math.sin(S.t*1.3+g.x));
+        const dx=S.px-g.x, dy=S.py-g.y;
+        if (dx*dx+dy*dy < (r+10)*(r+10)) return true;
+      }
+      // 落雷仅在放电阶段判碰撞（delay 预警期不判，避免「预警即判死」）
+      if(g.type==='bolt' && g.delay<=0 && g.t>0 && Math.abs(S.px-g.x)<20 && Math.abs(S.py-g.y)<20) return true;
+    }
+    return false;
+  }
+
+  /* ---------- 主循环 ---------- */
+  function frame(dt){
+    dt = Math.min(dt, 0.05);
+    if(S.mode==='play' && !S.over){
+      S.timerT = (S.timerT||0) + dt;
+    }
+    const emitFn = EMITTERS[boss];
+    if(emitFn) emitFn(dt);
+
+    // 更新粒子
+    for(const p of S.particles){
+      p.x += p.vx*dt; p.y += p.vy*dt;
+      p.rot = (p.rot||0) + (p.vrot||0)*dt;
+      p.life -= dt;
+      p.alpha = p.life < 0.5 ? p.life/0.5 : (p.alpha!==undefined?p.alpha:1);
+      if(p.life<=0) p.dead=true;
+      if(p.x<-60||p.x>W+60||p.y<-60||p.y>H+60) p.dead=true;
+    }
+    S.particles = S.particles.filter(p=>!p.dead);
+
+    // 地面元素生命周期（轨道/酸池不再无限累积）
+    for(const g of S.ground){
+      if(g.remain!==undefined){ g.remain -= dt; if(g.remain<=0) g.dead=true; }
+    }
+    S.ground = S.ground.filter(g=>!g.dead && !g.done);
+
+    // 玩家移动
+    if(S.mode==='play' && !S.over){
+      S.invuln = Math.max(0, (S.invuln||0) - dt);
+      if(S.target){
+        // 指数插值：快速平滑跟随鼠标（修复原版速度过慢「跟不上」）
+        const k = Math.min(1, 20*dt);
+        S.px += (S.target.x-S.px)*k;
+        S.py += (S.target.y-S.py)*k;
+      }
+      const ks = 430*dt;
+      if(KEY.left) S.px-=ks; if(KEY.right) S.px+=ks; if(KEY.up) S.py-=ks; if(KEY.down) S.py+=ks;
+      S.px = Math.max(14, Math.min(W-14, S.px));
+      S.py = Math.max(14, Math.min(H-14, S.py));
+      if(hitTest() && !S.invuln){
+        S.lives--;
+        S.flash = 0.5; S.shake = 8;
+        if(S.lives<=0){
+          S.over = true;
+          S.lives = 0;
+        }
+      }
+    }
+    S.flash = Math.max(0, S.flash-dt);
+    S.shake = Math.max(0, S.shake-dt*0.6);
+
+    render();
+  }
+
+  /* ---------- 渲染 ---------- */
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    ctx.save();
+    if(S.shake>0) ctx.translate((Math.random()-0.5)*S.shake, (Math.random()-0.5)*S.shake);
+    if(boss==='finalEclipse' && S.finalPhase===2){ // 全蚀变暗
+      ctx.fillStyle='rgba(6,8,16,0.55)'; ctx.fillRect(0,0,W,H);
+    }
+    // 地面元素
+    for(const g of S.ground){
+      if(g.type==='nest'){
+        const k = Math.max(0, g.t/g.max);
+        ctx.fillStyle = k<0.35 ? '#ff6a5a' : '#6fa8a0';
+        ctx.beginPath(); ctx.ellipse(g.x,g.y,10+8*k,14+10*k,0,0,TAU); ctx.fill();
+        ctx.strokeStyle='rgba(255,106,90,.7)'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(g.x,g.y,20+16*(1-k),0,TAU); ctx.stroke();
+      }
+      if(g.type==='track'){
+        ctx.fillStyle='rgba(224,106,90,.25)';
+        ctx.fillRect(0,g.y-14,W,28);
+        ctx.fillStyle='rgba(255,157,107,.5)';
+        ctx.fillRect(0,g.y-3,W,6);
+      }
+      if(g.type==='pool'){
+        const r = g.r * (1 + 0.12*Math.sin(S.t*1.3+g.x));
+        const grd = ctx.createRadialGradient(g.x,g.y,0,g.x,g.y,r);
+        grd.addColorStop(0,'rgba(122,201,150,.4)'); grd.addColorStop(1,'rgba(122,201,150,.08)');
+        ctx.fillStyle=grd;
+        ctx.beginPath();
+        for(let i=0;i<=28;i++){ const a=i/28*TAU; const rr=r*(1+0.14*Math.sin(a*3+S.t*2+g.x*0.01)); const px=g.x+Math.cos(a)*rr, py=g.y+Math.sin(a)*rr; i===0?ctx.moveTo(px,py):ctx.lineTo(px,py); }
+        ctx.closePath(); ctx.fill();
+      }
+      if(g.type==='bolt'){
+        if(g.delay>0){
+          ctx.fillStyle='rgba(109,143,214,.25)';
+          ctx.fillRect(g.x-18,g.y-18,36,36);
+          ctx.strokeStyle='rgba(143,154,238,.9)'; ctx.lineWidth=2;
+          ctx.strokeRect(g.x-18,g.y-18,36,36);
+        } else if(g.t>0){
+          const k = Math.max(0,g.t/g.max);
+          ctx.strokeStyle=`rgba(143,154,238,${0.4+0.6*(1-k)})`; ctx.lineWidth=3;
+          ctx.strokeRect(g.x-18,g.y-18,36,36);
+          ctx.fillStyle=`rgba(200,230,255,${0.3*(1-k)})`;
+          ctx.fillRect(g.x-18,g.y-18,36,36);
+        }
+      }
+    }
+    // 粒子
+    for(const p of S.particles) drawShape(ctx, p);
+    // 玩家（挑战模式）
+    if(S.mode==='play' && !S.over){
+      ctx.save(); ctx.translate(S.px,S.py);
+      if(S.invuln>0 && Math.floor(S.t*10)%2===0) ctx.globalAlpha = 0.45;
+      ctx.fillStyle=S.flash>0?'rgba(224,106,90,.9)':'#eec97a';
+      ctx.beginPath(); ctx.arc(0,0,9,0,TAU); ctx.arc(4,0,7,0,TAU,true); ctx.fill();
+      ctx.strokeStyle=S.invuln>0?'rgba(255,255,255,.9)':'rgba(238,201,122,.7)';
+      ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(0,0,17+Math.sin(S.t*5)*2,0,TAU); ctx.stroke();
+      ctx.restore();
+    }
+    // 终焉相位提示
+    if(boss==='finalEclipse'){
+      const names=['满相 · 蚀月环','渐蚀 · 血月雨','全蚀 · 黑暗降临'];
+      ctx.fillStyle='rgba(238,201,122,.9)'; ctx.font='14px "Noto Serif SC",serif';
+      ctx.fillText(names[S.finalPhase||0], 14, 24);
+    }
+    ctx.restore();
+  }
+
+  /* ---------- 生命周期 ---------- */
+  let last=0, raf=0, running=false;
+  function loop(ts){
+    if(!running) return;
+    const dt = last ? (ts-last)/1000 : 0.016;
+    last = ts;
+    frame(dt);
+    raf = requestAnimationFrame(loop);
+  }
+  function start(){ if(!running){ running=true; last=0; raf=requestAnimationFrame(loop); } }
+  function stop(){ running=false; cancelAnimationFrame(raf); }
+  function reset(){
+    S.particles=[]; S.ground=[]; S.lives=3; S.over=false; S.t=0; S.timerT=0;
+    // 出生点移到左下安全区（弹幕从画布中心发射，中心出生 = 出生即中弹）
+    S.px=90; S.py=H-40; S.target=null; S.flash=0; S.shake=0; S.finalPhase=-1; S.invuln=0;
+    S.behemothT=S.tideT=S.eggT=S.chariotT=S.trackT=S.lordT=S.wraithT=S.orbT=undefined;
+    S.swordT=S.swordSeq=S.dragonT=S.owlT=S.gridT=S.abyssT=S.acidT=S.finalT=S.rainT=S.darkT=undefined;
+  }
+  function setMode(m){
+    reset();
+    S.mode = m;
+    if(m==='play') S.invuln = 1.2;   // 进挑战 1.2s 无敌（弹幕还没飞到位，防出生即中弹）
+    const hud = canvas.parentElement.querySelector('.sim-hud');
+    const livesEl = hud.querySelector('.lives b');
+    const timerEl = hud.querySelector('.timer b');
+    hud.querySelector('.hint').textContent = m==='play' ? '鼠标/方向键控制月牙 · 3 次命中出局 · 开局 1.2s 无敌' : '自动演示弹幕形态';
+    const buttons = canvas.parentElement.querySelectorAll('.sim-mode button');
+    buttons.forEach(b=>b.classList.toggle('on', b.dataset.mode===m));
+    if(m==='play'){ livesEl.textContent='●●●'; timerEl.textContent='0.0'; }
+  }
+  // HUD 更新
+  const _frame = frame;
+  frame = function(dt){
+    _frame(dt);
+    if(S.mode==='play'){
+      const hud = canvas.parentElement.querySelector('.sim-hud');
+      const livesEl = hud.querySelector('.lives b');
+      const timerEl = hud.querySelector('.timer b');
+      const dots = ['','●','●●','●●●','●●●●'][Math.min(4,S.lives)] || '';
+      livesEl.textContent = dots + (S.over?' · 出局':'');
+      timerEl.textContent = S.timerT.toFixed(1);
+    }
+  };
+  // 按钮绑定
+  canvas.parentElement.querySelectorAll('.sim-mode button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(btn.dataset.mode==='reset'){ setMode(S.mode); return; }
+      setMode(btn.dataset.mode);
+    });
+  });
+  setMode('demo');
+
+  /* 视口内才跑 */
+  const io = new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){ start(); } else { stop(); }
+  }), {rootMargin:'200px'});
+  io.observe(canvas);
+}
+
+/* 初始化全部模拟器 */
+document.querySelectorAll('.sim-canvas').forEach(c=>makeSim(c));
+
+/* 导航 + 入场 */
+(function(){
+  const secs=[['s1','四维语言'],['s2','弹幕工坊'],['s3','语言矩阵']];
+  const toc=document.getElementById('toc');
+  secs.forEach(([id,lab])=>{const a=document.createElement('a');a.href='#'+id;
+    a.innerHTML='<span class="dot"></span><span class="lab">'+lab+'</span>';toc.appendChild(a);});
+  const links=[...toc.querySelectorAll('a')];
+  const map={};secs.forEach(([id],i)=>{const el=document.getElementById(id);if(el)map[el.offsetTop]=links[i];});
+  const tops=Object.keys(map).map(Number).sort((a,b)=>a-b);
+  function onScroll(){const y=window.scrollY+window.innerHeight*0.35;let cur=null;
+    for(const t of tops){if(y>=t)cur=map[t];else break}
+    links.forEach(l=>l.classList.remove('active'));if(cur)cur.classList.add('active');}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+})();
+(function(){const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.05});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));})();
+</script>
+</body>
+</html>
