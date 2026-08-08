@@ -153,7 +153,9 @@ function updateWeaponCds(): void {
   const bar = $('weapon-bar') as WeaponBarEl;
   const slots = bar.children as unknown as HTMLCollectionOf<WeaponSlotEl>;
   const wDmg: Record<string, number> = sSt().runStats.wDmg || {};
-  const wTotal = Object.keys(wDmg).reduce((s, k) => s + wDmg[k], 0);
+  // for..in 累加：避免 Object.keys().reduce() 每帧分配键数组（GC 压力点）
+  let wTotal = 0;
+  for (const k in wDmg) wTotal += wDmg[k];
   const itemDmg = sumItemDmg(p);
   const total = wTotal + itemDmg;   // 武器 + 道具 = 100%
   let liqSig = '';

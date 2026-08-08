@@ -10,7 +10,7 @@ import { EventBus } from '../../../engine/core/event_bus.js';
 import { clamp } from '../../../engine/util/utils.js';
 import { AudioEngine } from '../../../platform/audio/engine.js';
 import { $, html } from '../hud_utils.js';
-import { renderStatGroupsInto } from '../shop/index.js';
+import { renderStatGroupsInto } from '../shop/panel.js';
 
 const pSt = () => playerState.state;
 const gSt = () => stageState.state;

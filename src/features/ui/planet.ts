@@ -4,9 +4,6 @@
    可拓印月痕（导出 JSON）、唤回月痕（导入 JSON）、
    或经由星海驿站（WebDAV）让月光在两轮月亮间往返。
    ========================================================= */
-import { STATE, sm } from '../../engine/core/states.js';
-import { EVENTS } from '../../engine/core/events.js';
-import { EventBus } from '../../engine/core/event_bus.js';
 import { AudioEngine } from '../../platform/audio/engine.js';
 import { $, toast } from './hud_utils.js';
 import { exportFullSave, importFullSave, parseArchive, localExportedAt } from '../../infra/persistence/archive.js';
@@ -160,19 +157,11 @@ function handleConflict(cfg: WebdavConfig, r: SyncResult): void {
   }
 }
 
-/* ---------- 星球按钮可见性：与首页月轮同步，仅主菜单显形 ---------- */
-function setPlanetVisible(visible: boolean): void {
-  $(PLANET_BTN).classList.toggle('planet-hidden', !visible);
-}
-
-/* ---------- 事件绑定 ---------- */
+/* ---------- 事件绑定 ----------
+ * 仅绑定面板相关事件。残月按钮的「主菜单显形」状态联动已上移至 main.ts
+ * （该联动是启动期常驻逻辑，不能随本模块懒加载，否则首帧前残月可见性会失联）。
+ */
 export function initPlanetUI(): void {
-  // 入场：若当前在主菜单，残月自角落升起；否则保持隐藏
-  const inMenuNow = sm.is(STATE.MENU);
-  setTimeout(() => {
-    if (sm.is(STATE.MENU)) setPlanetVisible(true);
-  }, inMenuNow ? 600 : 0);
-
   $(PLANET_BTN).onclick = () => openPlanet();
   $('btn-planet-close').onclick = () => closePlanet();
 
@@ -199,16 +188,8 @@ export function initPlanetUI(): void {
     });
   };
 
-  // 蚀月与主菜单同生共死：只在 MENU 状态显形，战斗/升级/商店/结算/暂停一律隐去
-  sm.onEnter(STATE.MENU, () => setPlanetVisible(true));
-  [STATE.PLAYING, STATE.LEVELUP, STATE.SHOP, STATE.CURSE, STATE.RESULT].forEach((s) => {
-    sm.onEnter(s, () => setPlanetVisible(false));
-  });
-  EventBus.on(EVENTS.PAUSE_OPEN, () => setPlanetVisible(false));
-  EventBus.on(EVENTS.PAUSE_CLOSE, () => {
-    // 从暂停返回，只有回到主菜单才重新显形（sm 状态会经 PLAYING 触发隐藏）
-    setPlanetVisible(false);
-  });
+  // 蚀月与主菜单同生共死：只在 MENU 状态显形 —— 该联动已在 main.ts 常驻注册，
+  // 此处不再重复（避免模块懒加载后状态机钩子缺失，也避免重复注册）。
 
   // 清空驿站配置的入口（长按不可行，提供右键清除）
   $('sync-url').addEventListener('contextmenu', (e) => {

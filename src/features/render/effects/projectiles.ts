@@ -10,6 +10,9 @@ import { shapeCache } from '../shape_cache.js';
 
 const TAU = Math.PI * 2;
 
+/** 共享空虚线数组：setLineDash 每次传新 [] 会分配数组，热路径复用常量 */
+const NO_DASH: number[] = [];
+
 /** 需要实时动画的弹头类型（使用 pr.t 做旋转/动画，不适合缓存） */
 const ANIMATED_PROJECTILE_HEADS = new Set(['nova', 'shadow', 'storm']);
 
@@ -202,7 +205,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.shadowColor = PALETTE.hot; ctx.shadowBlur = 22;
     ctx.beginPath(); ctx.arc(0, 0, 10 + pr.t * 30, 0, TAU); ctx.stroke();
     ctx.restore();
-    ctx.setLineDash([]);
+    ctx.setLineDash(NO_DASH);
     // 内焰
     ctx.fillStyle = 'rgba(255,107,107,.2)';
     ctx.beginPath(); ctx.arc(0, 0, 8 + pr.t * 26, 0, TAU); ctx.fill();
@@ -225,7 +228,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.shadowColor = PALETTE.tide; ctx.shadowBlur = 20;
     ctx.beginPath(); ctx.arc(0, 0, 10 + pr.t * 30, 0, TAU); ctx.stroke();
     ctx.restore();
-    ctx.setLineDash([]);
+    ctx.setLineDash(NO_DASH);
     // 2. 深潮涡心
     ctx.fillStyle = 'rgba(44,93,104,.28)';
     ctx.beginPath(); ctx.arc(0, 0, 8 + pr.t * 26, 0, TAU); ctx.fill();
@@ -267,7 +270,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.shadowBlur = 0;
     ctx.beginPath(); ctx.arc(0, 0, 17 + pr.t * 34, 0, TAU); ctx.stroke();
     ctx.restore();
-    ctx.setLineDash([]);
+    ctx.setLineDash(NO_DASH);
     // 2. 圣辉涡心
     ctx.fillStyle = 'rgba(233,201,135,.22)';
     ctx.beginPath(); ctx.arc(0, 0, 8 + pr.t * 26, 0, TAU); ctx.fill();
@@ -614,7 +617,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
       ctx.setLineDash([8, 6]);
       ctx.lineDashOffset = -pr.t * 40;
       ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
-      ctx.setLineDash([]);
+      ctx.setLineDash(NO_DASH);
       // 内部电光
       ctx.fillStyle = 'rgba(168,216,255,.15)';
       ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.8, 0, TAU); ctx.fill();
