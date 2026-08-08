@@ -61,15 +61,18 @@ export function openResult(win: boolean): void {
 export function closeOverlay(id: string): void { $(id).classList.add('hidden'); }
 
 /* ---------- 界面切换 ---------- */
-export function enterGame(): void {
+export function enterGame(stage?: number): void {
   clearRun();
   ['result', 'pause', 'levelup', 'shop', 'levelselect'].forEach(id => closeOverlay(id));
-  startRun();
+  startRun(stage);
   showScreen('game');
   const curse = gSt().curse;
   if (curse) { showCurseBanner(curse); AudioEngine.playSfx('curse'); }
   showStageBanner(gSt().stageName, false);
-  toast('第 1 夜 · ' + STAGE_NAMES[0] + ' —— 撑住！');
+  // god 模式：整备商店把 stage 摆到 目标夜-1，toast 直接读「下一夜」；
+  // 正式模式恒为第 1 夜。
+  const devTarget = isDevMode() ? gSt().stage + 1 : 1;
+  toast('第 ' + devTarget + ' 夜 · ' + STAGE_NAMES[devTarget - 1] + ' —— 撑住！');
 }
 
 /* ---------- 追忆月痕：读档继续远征 ---------- */
@@ -161,9 +164,10 @@ export function bindUI(): void {
   sm.onExit(STATE.PLAYING, () => hideMobileActionBar());
 
   // 监听 GateScreen 的选择事件
-  window.addEventListener('gate:selected', () => {
+  window.addEventListener('gate:selected', (e: Event) => {
     refreshMenuDepth();
-    enterGame();
+    const detail = (e as CustomEvent<{ depth?: number; stage?: number }>).detail;
+    enterGame(detail?.stage || 1);
   });
 
   $('btn-start').onclick = () => { AudioEngine.playSfx('click'); if (gSt().unlocked > 0) openGate(); else { stageState.set('depth', 0); enterGame(); } };

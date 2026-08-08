@@ -77,6 +77,63 @@ describe('startRun', () => {
   });
 });
 
+/* ========== god 模式：任选起始夜 ========== */
+
+describe('god 模式起始夜选择', () => {
+  it('god 模式 startRun(7) 整备到第 6 夜商店（下一夜 → 第 7 夜）', () => {
+    enableDevMode();
+    stageState.set('depth', 0);
+    startRun(7);
+    expect(sm.is(STATE.SHOP)).toBe(true);
+    expect(gSt().stage).toBe(6);
+  });
+
+  it('god 模式直达第 20 夜前的整备（终焉），且整备出发即落夜名', () => {
+    enableDevMode();
+    stageState.set('depth', 0);
+    startRun(20);
+    expect(sm.is(STATE.SHOP)).toBe(true);
+    expect(gSt().stage).toBe(19);
+    // 模拟商店「出发」（scheduler goNext 的核心两行）
+    installPlayer();
+    stageState.set('stage', gSt().stage + 1);
+    startStage(gSt().stage);
+    expect(gSt().stage).toBe(20);
+    expect(gSt().stageName).toBe('终焉虚空');
+    expect(gSt().boss).not.toBeNull(); // 终焉夜出 Boss
+  });
+
+  it('god 模式越界参数收敛到合法夜区间（0 → 第 1 夜，99 → 第 20 夜）', () => {
+    enableDevMode();
+    stageState.set('depth', 0);
+    startRun(0);
+    expect(sm.is(STATE.SHOP)).toBe(true);
+    expect(gSt().stage).toBe(0); // 第 1 夜的整备 = 第 0 夜
+    sm.reset(); // 回到 MENU，允许再次开夜（SHOP 只能转 PLAYING）
+    startRun(99);
+    expect(gSt().stage).toBe(19); // 第 20 夜的整备 = 第 19 夜
+  });
+
+  it('非 god 模式 startRun(7) 忽略起始夜参数，仍从第 1 夜开始', () => {
+    stageState.set('depth', 0);
+    startRun(7);
+    expect(sm.is(STATE.PLAYING)).toBe(true);
+    expect(gSt().stage).toBe(1);
+  });
+
+  it('god 模式深度 ≥1：立契后整备商店直达所选夜（不丢目标）', () => {
+    enableDevMode();
+    stageState.set('depth', 1);
+    startRun(12);
+    expect(sm.is(STATE.CURSE)).toBe(true); // 仍先过蚀潮索价
+    const picked = [CURSES[0]];
+    const options = [...picked, CURSES[1], CURSES[2]];
+    expect(confirmCurses(picked, options)).toBe(true);
+    expect(sm.is(STATE.SHOP)).toBe(true);
+    expect(gSt().stage).toBe(11); // 第 12 夜的整备 = 第 11 夜
+  });
+});
+
 /* ========== 开始一夜 ========== */
 
 describe('startStage', () => {

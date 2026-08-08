@@ -10,6 +10,7 @@ import { $, html, toast } from '../hud_utils.js';
 import { pSt } from '../../../state/accessors.js';
 import {
   spinWheelTake, sieveTake, enhanceBlessingCmd, swapBlessingCmd, castMoonWheelCmd, currentMoonPacts,
+  resumeAfterLevelUp,
 } from '../../../commands/index.js';
 import {
   buildWheel, spinWheel, blessingById, sieveCandidates, doubleDescNums, enhanceNoteFor,
@@ -134,6 +135,9 @@ export class LevelUpPanel extends Component<Player> {
   _close(): void {
     $('levelup').classList.add('hidden');
     this.mode = 'idle';
+    /* 面板真正关闭才切回 PLAYING：结果展示期间世界保持 LEVELUP 冻结，
+       避免「选完轮盘怪物已行动一会」（resumeAfterLevelUp 幂等：队列未清空/非 LEVELUP 不切） */
+    resumeAfterLevelUp();
   }
 
   /* ---------- 渲染轮盘 SVG 扇区 ---------- */

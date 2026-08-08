@@ -51,7 +51,7 @@ describe('操作 1 · 随机拨动', () => {
     expect(r.kind).toBe('blank');
   });
 
-  it('队列清空时：+1 月契、递减队列、切回 PLAYING', () => {
+  it('队列清空时：+1 月契、递减队列（切回 PLAYING 由面板关闭时执行）', () => {
     statsState.set('levelQueue', 1);
     const p = playerState.state.player!;
     const before = p.maxHp;
@@ -60,7 +60,7 @@ describe('操作 1 · 随机拨动', () => {
     expect(r.spinPacts).toBe(1);
     expect(currentMoonPacts()).toBe(1);
     expect(statsState.get('levelQueue')).toBe(0);
-    expect(sm.is(STATE.PLAYING)).toBe(true);
+    expect(sm.is(STATE.PLAYING)).toBe(false); // 世界冻结保持 LEVELUP，面板关闭才恢复
     /* 拨动必然获得祝福或蚀格补偿之一；若命中祝福，属性应变化 */
     void before;
   });

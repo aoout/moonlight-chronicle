@@ -24,6 +24,18 @@ import { getSysMan } from '../systems/index.js';
 import { loadRunMeta } from '../infra/persistence/save.js';
 import type { CurseDef } from '../types/core.d.ts';
 
+/* ---------- god 模式：本局目标起始夜 ----------
+   仅开发者模式使用：玩家在远征之门任选第 1~20 夜作为起点。
+   整备商店把 stage 摆到 target-1（"第 N-1 夜已渡"），
+   点击出发（goNext 的 stage+1）即直达所选夜。
+   非 god 模式恒为 1（参数被忽略，防止绕过解锁进度）。 */
+let godStartStage = 1;
+
+function clampStage(n: number): number {
+  if (!Number.isFinite(n)) return 1;
+  return Math.max(1, Math.min(CONFIG.STAGES, Math.floor(n)));
+}
+
 /* ---------- 开始一夜 ---------- */
 export function startStage(n: number): void {
   stageState.patch({
@@ -64,7 +76,8 @@ export function startStage(n: number): void {
 }
 
 /* ---------- 开始一局 ---------- */
-export function startRun(): void {
+export function startRun(atStage?: number): void {
+  godStartStage = isDevMode() ? clampStage(atStage ?? 1) : 1;
   initAchievements();
   stageState.set('stage', 1);
   statsState.patch({
@@ -99,8 +112,8 @@ export function startRun(): void {
     // 深度 ≥1：先进蚀潮索价（诅咒抉择），确认后由 confirmCurses 推进
     sm.transition(STATE.CURSE);
   } else if (isDevMode()) {
-    // god 模式：进入第一夜前的「第 0 夜商店」整备（下一夜 → 第 1 夜）
-    stageState.set('stage', 0);
+    // god 模式：进入目标夜前的「第 N-1 夜商店」整备（下一夜 → 所选夜）
+    stageState.set('stage', godStartStage - 1);
     sm.transition(STATE.SHOP);
   } else {
     sm.transition(STATE.PLAYING);
@@ -121,7 +134,7 @@ export function confirmCurses(picked: CurseDef[], options: CurseDef[]): boolean 
   stageState.set('curse', picked[0] || null);
   if (p) computeDerived(p);
   if (isDevMode()) {
-    stageState.set('stage', 0);
+    stageState.set('stage', godStartStage - 1);
     sm.transition(STATE.SHOP);
   } else {
     sm.transition(STATE.PLAYING);

@@ -196,6 +196,36 @@
 .gate-foot { margin-top: 18px; }
 @media (max-width: 760px) { .gate-grid { grid-template-columns: repeat(3, 1fr); } }
 
+/* ===== 远征之门 · god 模式起始夜选择（DEV） ===== */
+.gate-night {
+  width: min(840px, 92vw); margin-top: 14px; padding: 12px 14px 14px;
+  border-radius: 12px;
+  background: var(--glass-bg-frost);
+  backdrop-filter: blur(var(--glass-blur-frost));
+  border: 1px dashed var(--gold);
+  box-shadow: var(--glass-edge-inset), 0 0 14px var(--eclipse-glow-mid);
+}
+.gate-night-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+.gn-title { font-family: var(--font-title); font-size: 13px; letter-spacing: .18em; color: var(--gold); }
+.gn-sub { font-size: 10px; letter-spacing: .12em; color: rgba(var(--moon-rgb), .55); }
+.gate-night-name { font-size: 11px; letter-spacing: .1em; color: var(--moon); margin-bottom: 8px; min-height: 1.3em; }
+.gate-night-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; }
+.gn-btn {
+  cursor: pointer; padding: 6px 0; border-radius: 8px; text-align: center;
+  font-family: var(--font-body); font-size: 12px; color: var(--moon);
+  background: rgba(var(--moon-rgb), .06);
+  border: 1px solid rgba(var(--moon-rgb), .18);
+  transition: all .18s cubic-bezier(.22,1,.36,1);
+}
+.gn-btn:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-1px); }
+.gn-btn.sel {
+  border-color: var(--gold); color: var(--gold);
+  background: rgba(var(--gold-rgb), .12);
+  box-shadow: 0 0 10px var(--eclipse-glow-mid);
+}
+@media (max-width: 760px) { .gate-night-grid { grid-template-columns: repeat(5, 1fr); } }
+@media (max-width: 380px) { .gate-night-grid { grid-template-columns: repeat(4, 1fr); } }
+
 /* 移动端菜单适配（横屏优先，兼顾高度受限场景） */
 @media (pointer: coarse) and (orientation: landscape),
        (max-width: 900px) and (orientation: landscape),

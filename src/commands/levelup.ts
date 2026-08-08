@@ -14,14 +14,21 @@ export interface BlessingResult {
   hasMore: boolean;
 }
 
-/** 收尾公共逻辑：递减升级队列 + 重算派生属性 + 队列清空后切回 PLAYING */
+/** 收尾公共逻辑：递减升级队列 + 重算派生属性。
+    注意：不在此处切回 PLAYING —— 升级面板关闭前世界保持 LEVELUP 冻结，
+    否则选完轮盘、结果展示的 1.4s 里怪物会继续行动（玩家措手不及）。
+    切回由 resumeAfterLevelUp()（升级面板关闭时）执行。 */
 export function resolvePick(p: Player): BlessingResult {
   if (!p) return { ok: false, hasMore: false };
   statsState.set('levelQueue', statsState.get('levelQueue') - 1);
   computeDerived(p);
   const hasMore = statsState.get('levelQueue') > 0;
-  if (!hasMore) sm.transition(STATE.PLAYING);
   return { ok: true, hasMore };
+}
+
+/** 升级面板关闭时调用：队列已清空且仍在 LEVELUP → 切回 PLAYING（世界恢复行动） */
+export function resumeAfterLevelUp(): void {
+  if (statsState.get('levelQueue') <= 0 && sm.is(STATE.LEVELUP)) sm.transition(STATE.PLAYING);
 }
 
 /** 施加祝福并处理升级队列 */

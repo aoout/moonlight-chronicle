@@ -3,17 +3,69 @@
    ========================================================= */
 import { EVENTS } from '../../../engine/core/events.js';
 import { clamp } from '../../../engine/util/utils.js';
-import { SHOP_ITEMS, WEAPONS, STATS } from '../../../config/index.js';
+import { SHOP_ITEMS, WEAPONS, STATS, WEAPON_UPGRADE_COST, inflationRate } from '../../../config/index.js';
 import { $, el, html } from '../hud_utils.js';
 import { iconSVG, ICONS } from '../../../assets/icons.js';
 import { showWeaponDetail } from './weapon_detail.js';
 import { showItemDetail } from './item_detail.js';
 import { EventBus } from '../../../engine/core/event_bus.js';
+import { shopState } from '../../../state/shop.js';
+import { stageState } from '../../../state/stage.js';
+import { statsState } from '../../../state/stats.js';
+import { playerState } from '../../../state/player.js';
+import { refillCost } from '../../../domain/shop_offers.js';
+import { isDevMode } from '../../../engine/env.js';
 
-/* 局部刷新入口：由详情页等同级模块通过事件触发，避免反向 import 形成环 */
+const sSt = () => statsState.state;
+const gSt = () => stageState.state;
+const pSt = () => playerState.state.player;
+
+/* 局部刷新入口：由详情页等同级模块通过事件触发，避免反向 import 形成环。
+   出售武器/购买道具等改变余额的操作 emit 本事件 → 重渲染铭牌 + 整架重评估买得起标记 */
 EventBus.on(EVENTS.SHOP_PANEL_REFRESH, (d: any) => {
-  if (d?.player) renderShopPanel(d.player);
+  if (d?.player) {
+    renderShopPanel(d.player);
+    refreshShopAfford();
+  }
 });
+
+/** 整面货架重新评估「金币不足」标记 + 金币徽章不足提示。
+    价格读 .card-price[data-price]（渲染时写入）；已售罄卡跳过。
+    任何改变余额的操作（购买 / 出售 / 补货）后调用。 */
+export function refreshShopAfford(): void {
+  const p = pSt();
+  const gold = sSt().gold;
+  /* 1) 每张未售卡：买不起 → cant-afford 标记 */
+  document.querySelectorAll('#shop-cards .card:not(.sold)').forEach(card => {
+    const priceEl = card.querySelector<HTMLElement>('.card-price');
+    if (!priceEl) return;
+    const price = parseFloat(priceEl.dataset.price || 'Infinity');
+    card.classList.toggle('cant-afford', !isDevMode() && gold < price);
+  });
+  /* 2) 金币徽章：买不起任何未售品且补不起货 → poor 转红 */
+  let coin: HTMLElement | null = null;
+  const g = document.getElementById('shop-gold');
+  if (g) coin = g.parentElement;
+  if (!p || !coin) return;
+  const refill = refillCost(p, shopState.state.refills + 1);
+  let min = Infinity;
+  for (const s of shopState.state.slots) {
+    if (s.sold) continue;
+    const inflate = inflationRate(gSt().stage);
+    if (s.kind === 'weapon') {
+      const def = WEAPONS[s.id];
+      const w = p.weapons.find((x: any) => x.id === s.id);
+      min = Math.min(min, w
+        ? Math.round(WEAPON_UPGRADE_COST[w.lv + 1] * (p.effects.priceMul || 1) * inflate)
+        : Math.round(16 * (p.effects.priceMul || 1) * inflate));
+    } else {
+      const it = SHOP_ITEMS.find(x => x.id === s.id);
+      if (it) min = Math.min(min, Math.round(it.price * (p.effects.priceMul || 1) * inflate));
+    }
+  }
+  const poor = !isDevMode() && Math.floor(gold) < min && Math.floor(gold) < refill;
+  coin.classList.toggle('poor', poor);
+}
 
 // 非 STATS 的隐藏机制属性展示定义
 const MECH: Record<string, { name: string; icon: string; fmt: (v: any) => string }> = {
