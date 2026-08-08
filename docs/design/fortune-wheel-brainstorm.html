@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蚀月远征 · 命运之轮与祝福系统 · 重构头脑风暴</title>
+<style>
+  :root {
+    --bg0: #05070f;
+    --bg1: #0a0f22;
+    --bg2: #0f1735;
+    --bg3: #16204a;
+    --ink: #eae6da;
+    --ink-dim: #9aa4bd;
+    --ink-faint: #5f6b8a;
+    --gold: #d8b25c;
+    --gold-dim: #8a6f35;
+    --red: #e2574c;
+    --red-soft: rgba(226,87,76,0.14);
+    --teal: #7fd8d4;
+    --teal-soft: rgba(127,216,212,0.12);
+    --violet: #a78bfa;
+    --violet-soft: rgba(167,139,250,0.12);
+    --green: #8fd694;
+    --green-soft: rgba(143,214,148,0.12);
+    --line: rgba(234,230,218,0.09);
+    --line-strong: rgba(234,230,218,0.18);
+    --serif: "Palatino Linotype", "Songti SC", "Noto Serif SC", "STSong", "SimSun", serif;
+    --sans: "Inter", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    --mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    --radius: 14px;
+    --shadow: 0 10px 40px rgba(0,0,0,0.45);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(167,139,250,0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(127,216,212,0.07), transparent 55%),
+      linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 40%, var(--bg0) 100%);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.75;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .6; }
+  .stars i {
+    position: absolute; display: block; width: 2px; height: 2px; border-radius: 50%;
+    background: #eae6da; opacity: var(--o, .4); animation: twinkle var(--d, 4s) ease-in-out infinite;
+  }
+  @keyframes twinkle { 0%,100% { opacity: var(--o,.4); } 50% { opacity: .05; } }
+
+  .wrap { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 0 28px 120px; }
+
+  /* ============ NAV ============ */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; gap: 26px;
+    padding: 14px 28px;
+    background: rgba(6,9,18,0.82);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .brand { font-family: var(--serif); font-size: 15px; letter-spacing: .12em; color: var(--gold); white-space: nowrap; }
+  nav a {
+    color: var(--ink-dim); text-decoration: none; font-size: 13.5px; letter-spacing: .06em;
+    transition: color .2s;
+  }
+  nav a:hover { color: var(--ink); }
+  nav a b { color: var(--ink); font-weight: 600; }
+  nav .spacer { flex: 1; }
+
+  /* ============ HERO ============ */
+  .hero { padding: 88px 0 56px; text-align: center; }
+  .hero .kicker {
+    display: inline-block; font-size: 12px; letter-spacing: .34em; color: var(--gold-dim);
+    border: 1px solid var(--line-strong); border-radius: 999px; padding: 6px 18px; margin-bottom: 26px;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: var(--serif); font-weight: 600; font-size: clamp(34px, 5vw, 52px); line-height: 1.25;
+    letter-spacing: .08em; color: var(--ink);
+    text-shadow: 0 0 60px rgba(216,178,92,0.25);
+  }
+  .hero h1 em { font-style: normal; color: var(--gold); }
+  .hero .sub { margin-top: 18px; color: var(--ink-dim); font-size: 15px; letter-spacing: .14em; }
+  .hero .meta { margin-top: 10px; color: var(--ink-faint); font-size: 12.5px; letter-spacing: .1em; }
+
+  .hero-moon { position: relative; width: 300px; height: 300px; margin: 34px auto 0; }
+  .hero-moon svg { width: 100%; height: 100%; }
+  .hero-moon .ring {
+    position: absolute; inset: -18px; border-radius: 50%;
+    border: 1px dashed rgba(216,178,92,0.28);
+    animation: spin 60s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ============ SECTION ============ */
+  section { margin-top: 88px; }
+  .sec-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 30px; }
+  .sec-num {
+    font-family: var(--serif); font-size: 30px; color: var(--gold); line-height: 1;
+    text-shadow: 0 0 24px rgba(216,178,92,0.35);
+  }
+  .sec-title { font-family: var(--serif); font-size: 26px; letter-spacing: .06em; }
+  .sec-sub { margin-top: 6px; color: var(--ink-dim); font-size: 14px; max-width: 720px; }
+
+  /* ============ CARDS ============ */
+  .card {
+    background: linear-gradient(160deg, rgba(22,32,74,0.5), rgba(10,15,34,0.75));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px 30px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 { font-family: var(--serif); font-size: 19px; margin-bottom: 12px; letter-spacing: .04em; }
+  .card h4 { font-size: 14px; color: var(--gold); letter-spacing: .12em; margin: 22px 0 10px; text-transform: uppercase; }
+  .card p { color: var(--ink-dim); font-size: 14.5px; margin-bottom: 10px; }
+  .card p:last-child { margin-bottom: 0; }
+
+  /* ============ TABLES ============ */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 14px 0 6px; }
+  th {
+    text-align: left; color: var(--gold); font-weight: 600; font-size: 12px;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 10px 14px; border-bottom: 1px solid var(--line-strong);
+    white-space: nowrap;
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink-dim); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(234,230,218,0.02); }
+  td.mono, .mono { font-family: var(--mono); font-size: 12.5px; color: var(--teal); }
+  td b, td strong { color: var(--ink); font-weight: 600; }
+
+  /* ============ PROPOSAL ============ */
+  .proposal { position: relative; margin-bottom: 34px; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: var(--shadow); }
+  .proposal::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .proposal.p-A::before { background: var(--gold); }
+  .proposal.p-B::before { background: var(--violet); }
+  .proposal.p-C::before { background: var(--red); }
+  .proposal.p-D::before { background: var(--teal); }
+  .proposal.p-E::before { background: var(--green); }
+  .proposal.p-F::before { background: var(--gold); }
+  .proposal.p-G::before { background: var(--violet); }
+  .proposal.p-H::before { background: linear-gradient(180deg, var(--gold), var(--red), var(--teal)); }
+
+  .p-head {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    padding: 24px 30px 16px; background: linear-gradient(120deg, rgba(22,32,74,0.65), rgba(10,15,34,0.5));
+    border-bottom: 1px solid var(--line);
+  }
+  .p-badge {
+    font-family: var(--serif); font-size: 34px; line-height: 1;
+    padding: 10px 16px; border-radius: 12px; border: 1px solid var(--line-strong);
+    background: rgba(6,9,18,0.6);
+  }
+  .p-A .p-badge { color: var(--gold); } .p-B .p-badge { color: var(--violet); }
+  .p-C .p-badge { color: var(--red); } .p-D .p-badge { color: var(--teal); }
+  .p-E .p-badge { color: var(--green); } .p-F .p-badge { color: var(--gold); }
+  .p-G .p-badge { color: var(--violet); } .p-H .p-badge { color: var(--ink); }
+  .p-title-block h2 { font-family: var(--serif); font-size: 23px; letter-spacing: .05em; }
+  .p-tagline { color: var(--ink-dim); font-size: 13.5px; margin-top: 4px; }
+  .p-tags { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag {
+    font-size: 11.5px; letter-spacing: .08em; padding: 3px 11px; border-radius: 999px;
+    border: 1px solid var(--line-strong); color: var(--ink-dim);
+  }
+  .tag.t-r { color: var(--red); border-color: rgba(226,87,76,0.4); }
+  .tag.t-g { color: var(--green); border-color: rgba(143,214,148,0.4); }
+  .tag.t-t { color: var(--teal); border-color: rgba(127,216,212,0.4); }
+  .tag.t-v { color: var(--violet); border-color: rgba(167,139,250,0.4); }
+  .tag.t-gold { color: var(--gold); border-color: rgba(216,178,92,0.4); }
+
+  .p-body { padding: 24px 30px 26px; }
+  .p-body .fh {
+    background: var(--violet-soft); border: 1px solid rgba(167,139,250,0.22);
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 18px;
+    font-size: 14.5px; color: var(--ink);
+  }
+  .p-body .fh b { color: var(--violet); font-weight: 600; }
+  .p-body .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .p-body .grid2 .box {
+    background: rgba(6,9,18,0.4); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
+  }
+  .p-body .box h5 { font-size: 12px; letter-spacing: .14em; color: var(--gold); text-transform: uppercase; margin-bottom: 10px; }
+  .p-body .box ul { list-style: none; }
+  .p-body .box li { font-size: 13.5px; color: var(--ink-dim); padding-left: 18px; position: relative; margin-bottom: 7px; }
+  .p-body .box li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 6px; height: 6px; border-radius: 2px; background: var(--line-strong); }
+  .p-body .box li b { color: var(--ink); }
+  .p-body .box li.t-r::before { background: var(--red); }
+  .p-body .box li.t-g::before { background: var(--green); }
+  .p-body .box li.t-t::before { background: var(--teal); }
+  .p-body .box li.t-gold::before { background: var(--gold); }
+
+  .fail { margin-top: 18px; }
+  .fail h5 { font-size: 12px; letter-spacing: .14em; color: var(--red); text-transform: uppercase; margin-bottom: 8px; }
+  .fail-row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; font-size: 13px; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+  .fail-row:last-child { border-bottom: none; }
+  .fail-row .sig { font-family: var(--mono); font-size: 12px; color: var(--red); }
+  .fail-row span.desc { color: var(--ink-dim); }
+
+  .lore-block {
+    margin-top: 18px; padding: 14px 18px; border-radius: 10px;
+    background: linear-gradient(120deg, rgba(216,178,92,0.07), transparent 70%);
+    border: 1px dashed rgba(216,178,92,0.3);
+    font-family: var(--serif); font-size: 14px; color: var(--ink-dim); font-style: italic;
+  }
+  .lore-block b { color: var(--gold); font-style: normal; }
+
+  details.imp {
+    margin-top: 18px; border: 1px solid var(--line); border-radius: 10px;
+    background: rgba(6,9,18,0.35);
+  }
+  details.imp summary {
+    cursor: pointer; padding: 12px 16px; font-size: 13px; color: var(--ink-dim);
+    letter-spacing: .1em; user-select: none;
+  }
+  details.imp summary:hover { color: var(--ink); }
+  details.imp[open] summary { border-bottom: 1px solid var(--line); color: var(--ink); }
+  details.imp .imp-body { padding: 14px 18px; font-size: 13.5px; color: var(--ink-dim); }
+  details.imp .imp-body .mono { display: block; margin: 6px 0; }
+
+  /* ============ ROUTEMAP ============ */
+  .phase { display: grid; grid-template-columns: 130px 1fr 170px; gap: 16px; align-items: start; padding: 18px 0; border-bottom: 1px dashed var(--line); }
+  .phase:last-child { border-bottom: none; }
+  .phase .pnum { font-family: var(--serif); font-size: 16px; color: var(--gold); letter-spacing: .05em; }
+  .phase .pnum small { display: block; color: var(--ink-faint); font-family: var(--sans); font-size: 11.5px; margin-top: 4px; }
+  .phase .pbody h4 { font-size: 15px; color: var(--ink); margin-bottom: 6px; letter-spacing: .03em; }
+  .phase .pbody p { font-size: 13.5px; color: var(--ink-dim); }
+  .phase .pgoal { font-size: 12px; color: var(--teal); text-align: right; letter-spacing: .05em; }
+
+  /* ============ CALLOUT ============ */
+  .callout {
+    border-radius: var(--radius); padding: 20px 24px; margin: 20px 0;
+    border: 1px solid rgba(216,178,92,0.25);
+    background: linear-gradient(140deg, rgba(216,178,92,0.08), rgba(10,15,34,0.4));
+  }
+  .callout .ct-label { font-size: 11px; letter-spacing: .2em; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; }
+  .callout p { font-size: 15px; color: var(--ink); font-family: var(--serif); line-height: 1.9; }
+
+  .pillar-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 18px; }
+  .pillar {
+    border: 1px solid var(--line); border-radius: 12px; padding: 16px 16px 14px;
+    background: rgba(10,15,34,0.5);
+  }
+  .pillar .pn { font-family: var(--serif); font-size: 26px; color: var(--gold); line-height: 1; }
+  .pillar h5 { font-size: 13.5px; margin: 8px 0 6px; color: var(--ink); letter-spacing: .05em; }
+  .pillar p { font-size: 12px; color: var(--ink-dim); line-height: 1.6; }
+
+  .verdict { display: flex; gap: 14px; align-items: flex-start; margin-top: 20px; }
+  .verdict .v-icon { font-family: var(--serif); font-size: 26px; color: var(--gold); line-height: 1.2; flex-shrink: 0; }
+  .verdict p { font-size: 14.5px; color: var(--ink-dim); }
+
+  /* ============ FOOTER ============ */
+  footer { margin-top: 100px; padding-top: 30px; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: 12.5px; text-align: center; letter-spacing: .08em; }
+
+  /* ============ SVG ILLUSTRATIONS ============ */
+  .fig { margin: 22px 0 10px; border: 1px solid var(--line); border-radius: 14px; background: rgba(6,9,18,0.55); padding: 20px; overflow-x: auto; }
+  .fig .cap { font-size: 12px; color: var(--ink-faint); letter-spacing: .1em; margin-top: 10px; text-align: center; }
+  .fig svg { display: block; margin: 0 auto; }
+
+  .wheel { animation: wheelShake 6s ease-in-out infinite; transform-origin: 360px 230px; }
+  @keyframes wheelShake { 0%,100% { transform: rotate(0deg);} 92% { transform: rotate(0deg);} 96% { transform: rotate(-4deg);} 98% { transform: rotate(3deg);} }
+  .wheel-peg { animation: pegGlow 3s ease-in-out infinite; }
+  @keyframes pegGlow { 0%,100% { opacity: .9; } 50% { opacity: .35; } }
+
+  @media (max-width: 860px) {
+    .pillar-row { grid-template-columns: 1fr 1fr; }
+    .p-body .grid2 { grid-template-columns: 1fr; }
+    .phase { grid-template-columns: 1fr; }
+    .phase .pgoal { text-align: left; }
+    nav { gap: 14px; overflow-x: auto; }
+    .hero { padding-top: 56px; }
+  }
+  @media (max-width: 560px) {
+    .pillar-row { grid-template-columns: 1fr; }
+    .wrap { padding: 0 16px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<nav>
+  <span class="brand">蚀月远征 · 设计档案</span>
+  <a href="#diag"><b>0</b> 现状解剖</a>
+  <a href="#matrix"><b>1</b> 提案矩阵</a>
+  <a href="#props"><b>2</b> 提案详情</a>
+  <a href="#blueprint"><b>3</b> 整合蓝图</a>
+  <a href="#appendix"><b>4</b> 附录</a>
+</nav>
+
+<div class="wrap">
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <span class="kicker">Game Design Brainstorm · v1.0 · 2026-08-08</span>
+  <h1>命运之轮与祝福系统<br><em>重构头脑风暴</em></h1>
+  <p class="sub">蚀月远征 · 类幸存者 · Canvas 2D · TypeScript</p>
+  <p class="meta">8 个提案 · 1 条整合路线 · 每数值带 rationale 与验证路径</p>
+
+  <div class="hero-moon">
+    <div class="ring"></div>
+    <svg viewBox="0 0 300 300" role="img" aria-label="被蚀的月亮">
+      <defs>
+        <radialGradient id="moonGrad" cx="40%" cy="35%">
+          <stop offset="0%" stop-color="#f2ecd9"/>
+          <stop offset="70%" stop-color="#d8cfa8"/>
+          <stop offset="100%" stop-color="#b9ac7e"/>
+        </radialGradient>
+        <radialGradient id="eclipseGrad" cx="50%" cy="50%">
+          <stop offset="0%" stop-color="#0a0f22"/>
+          <stop offset="100%" stop-color="#05070f"/>
+        </radialGradient>
+        <filter id="moonBlur"><feGaussianBlur stdDeviation="0.6"/></filter>
+      </defs>
+      <circle cx="150" cy="150" r="92" fill="url(#moonGrad)" filter="url(#moonBlur)"/>
+      <circle cx="150" cy="150" r="92" fill="none" stroke="rgba(216,178,92,0.5)" stroke-width="1"/>
+      <circle cx="192" cy="168" r="86" fill="url(#eclipseGrad)"/>
+      <circle cx="150" cy="150" r="118" fill="none" stroke="rgba(234,230,218,0.12)" stroke-width="1" stroke-dasharray="2 6"/>
+    </svg>
+  </div>
+</header>
+
+<!-- ================= EXEC SUMMARY ================= -->
+<section id="summary">
+  <div class="sec-head">
+    <span class="sec-num">§</span>
+    <div>
+      <div class="sec-title">执行摘要</div>
+      <div class="sec-sub">先给结论，再给论据。</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="ct-label">Fun Hypothesis（本报告的唯一地基）</div>
+    <p>蚀月远征好玩的升级体验 = <b style="color:var(--gold)">玩家每一次升级都在「赌命运」，而且「赌得起」</b>——运气可见、可影响、可对冲。抽卡不是惩罚，是决策。</p>
+  </div>
+
+  <div class="card">
+    <h3>现状一句话诊断</h3>
+    <p>现有升级祝福是 <span class="mono">17 张纯数值卡 3 选 1</span>（<span class="mono">blessings.json</span>，权重抽取），月相是<span class="mono">现实时间被动 buff</span>（<span class="mono">moon_phase.ts</span>）。两个系统各玩各的，<b>互相零交互</b>。祝福选择是算术不是策略，月相是天气不是资源。升级决策在单局第 10 分钟前后死亡——此后选什么不再重要，而系统没有给玩家任何干预命运的手段。</p>
+    <p style="margin-top:8px;">四条设计支柱，后续每个提案都要过这四关：</p>
+    <div class="pillar-row">
+      <div class="pillar"><div class="pn">壹</div><h5>决策完整性</h5><p>每次升级必须产出「信息完整的决策」——知道选项、代价、赌注。</p></div>
+      <div class="pillar"><div class="pn">贰</div><h5>运气代理</h5><p>运气是资源不是天气：可赚、可花、可对冲、可保底。</p></div>
+      <div class="pillar"><div class="pn">叁</div><h5>构建方向</h5><p>单局内能形成 build：羁绊 / 系别 / 赌约互相咬合。</p></div>
+      <div class="pillar"><div class="pn">肆</div><h5>跨局痕迹</h5><p>选择在跨局尺度留痕，让「这局没白打」成立。</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>推荐结论（先看这里）</h3>
+    <p>不推荐 8 个提案全上——那是一场范围膨胀的灾难。推荐走 <b>提案 H 整合蓝图</b>：以「命运之轮 v2」为骨架，按 <span class="mono">A（轮盘仪式感）→ F（幸运货币化）→ D（月相干预）→ E（纠错回响）</span> 四阶段渐进落地，每阶段独立 playtest、预定义失败信号。理由与阶段划分见下文第 3 章。</p>
+  </div>
+</section>
+
+<!-- ================= 0 DIAGNOSIS ================= -->
+<section id="diag">
+  <div class="sec-head">
+    <span class="sec-num">0</span>
+    <div>
+      <div class="sec-title">现状解剖</div>
+      <div class="sec-sub">Mechanic Biopsy——剥掉外壳，先看现有机制真正起了什么作用。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>0.1 · 祝福系统现有构成（blessings.json 全量盘点）</h3>
+    <table>
+      <thead>
+        <tr><th>档位</th><th>数量</th><th>权重区间</th><th>构成</th><th>典型代表</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b>common 寻常</b></td><td>8</td><td>12 → 6</td><td>7 纯数值 + 1 复合</td><td>月髓 +12 生命 / 锋芒 +2 攻击 / 财源 +20% 金币</td></tr>
+        <tr><td><b>epic 非凡</b></td><td>8</td><td>5 → 3</td><td>6 纯数值 + 2 百分比</td><td>裂痕 +25% 暴伤 / 余影 +1 投射物 / 时弦 +4% 冷却</td></tr>
+        <tr><td><b>legend 命运</b></td><td>1</td><td>2</td><td>双属性</td><td>命运之契：幸运 +30%、攻速 +10%</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:8px;">三个结构性事实：<b>没有任何负面词缀</b>（零风险）、<b>没有任何祝福间联动</b>（零构建）、<b>幸运只有一条祝福产出且用途感知极弱</b>（本应是命运货币，现在只是隐性概率）。</p>
+  </div>
+
+  <div class="card">
+    <h3>0.2 · 月相系统现有构成</h3>
+    <table>
+      <thead><tr><th>相</th><th>效果</th><th>性质</th></tr></thead>
+      <tbody>
+        <tr><td><b>新月</b></td><td>闪避 +25%</td><td rowspan="8">全局被动 buff，按现实时间（朔望月 29.53 天）自动轮转，玩家零干预。</td></tr>
+        <tr><td><b>娥眉</b></td><td>攻击 +15%、经验 +15%</td></tr>
+        <tr><td><b>上弦</b></td><td>暴击率 +12%、攻速 +12%</td></tr>
+        <tr><td><b>盈凸</b></td><td>攻击 +10%、范围 +10%、投射物 +1</td></tr>
+        <tr><td><b>满月</b></td><td>攻击 +25%、暴伤 +25%</td></tr>
+        <tr><td><b>亏凸</b></td><td>生命 +15%、伤害转化护盾</td></tr>
+        <tr><td><b>下弦</b></td><td>冷却 -15%、受击生成护盾</td></tr>
+        <tr><td><b>残月</b></td><td>暴伤 +25%、击杀计数必爆</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:8px;">这个系统的存在感问题是致命伤：<b>玩家不知道、不关心、不围绕它构建</b>。它却是全项目世界观契合度最高的机制——「守月人守护的月亮」——现状等于把最好的主题素材做成了天气。</p>
+  </div>
+
+  <div class="card">
+    <h3>0.3 · 问题清单（按严重度排序）</h3>
+    <table>
+      <thead><tr><th>级别</th><th>问题</th><th>证据 / 推演</th></tr></thead>
+      <tbody>
+        <tr><td><b style="color:var(--red)">P0</b></td><td><b>决策死亡</b></td><td>3 选 1 无联动无取舍，纯数值比较。玩家第 3 次升级起进入肌肉记忆，第 10 分钟起「选什么」不再重要。</td></tr>
+        <tr><td><b style="color:var(--red)">P0</b></td><td><b>运气零代理</b></td><td>权重抽取纯随机：无 reroll、无倾向、无保底、无补偿。抽到传说 = 中彩票，抽不到 = 罚站。玩家对命运零控制权。</td></tr>
+        <tr><td><b style="color:var(--gold)">P1</b></td><td><b>系统孤岛</b></td><td>blessings / moon_phase / luck / 金币四条线互不咬合。一个「月辉祝福只在满月夜权重翻倍」的规则都不存在。</td></tr>
+        <tr><td><b style="color:var(--gold)">P1</b></td><td><b>月相浪费</b></td><td>现实月相是稀缺主题资产，却做成纯天气。它本该是「命运之轮」最好的实体化身。</td></tr>
+        <tr><td><b style="color:var(--teal)">P2</b></td><td><b>无长线目标</b></td><td>没有构建方向、没有羁绊、没有跨局记忆。升级选择不构成「我的 build」，肉鸽的「这一把」没有指纹。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= 1 MATRIX ================= -->
+<section id="matrix">
+  <div class="sec-head">
+    <span class="sec-num">1</span>
+    <div>
+      <div class="sec-title">提案总览矩阵</div>
+      <div class="sec-sub">8 个提案从「仪式感增强」到「系统级重构」，按野心与工期排列。每提案都只回答一个问题：它制造了什么新玩家决策。</div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:18px 22px;">
+    <table>
+      <thead><tr><th>提案</th><th>一句话</th><th>核心新决策</th><th>主要风险</th><th>工期</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">A 命运轮盘</td><td>升级从「三张卡」变「可拨动的蚀月轮盘」</td><td>转 or 锁？月契花在哪？</td><td>仪式感 ≠ 深度，可能只是花架子</td><td class="mono">S</td></tr>
+        <tr><td class="mono">B 祝福羁绊</td><td>六系盟约，集齐出套装</td><td>定向追系 or 分散补强？</td><td>羁绊数值表爆炸</td><td class="mono">M</td></tr>
+        <tr><td class="mono">C 命运赌约</td><td>带诅咒的超模祝福</td><td>接不接这个赌？现在还是以后？</td><td>惩罚过重 → 负反馈</td><td class="mono">M</td></tr>
+        <tr><td class="mono">D 月相干预</td><td>现实月相变成可拨动的策略资源</td><td>这一夜拨到哪一相？为保命还是为 build？</td><td>破坏「现实联动」的浪漫</td><td class="mono">M</td></tr>
+        <tr><td class="mono">E 命运回响</td><td>重塑 / 升格 / 拆解，给 build 纠错</td><td>投资纠错 or 带着烂 build 打完？</td><td>纠错太便宜 → 决策失去后果</td><td class="mono">S-M</td></tr>
+        <tr><td class="mono">F 福运经济</td><td>幸运从隐性概率变成命运货币</td><td>攒着拉稀有度 or 花掉保底 reroll？</td><td>通胀失控</td><td class="mono">M</td></tr>
+        <tr><td class="mono">G 命运记忆</td><td>跨局纹章，选择留痕</td><td>这局要不要为下局投注？</td><td>稀释单局体验</td><td class="mono">S-M</td></tr>
+        <tr><td class="mono">H 整合蓝图</td><td>命运之轮 v2：A+F+D+E 组合拳，分阶段落地</td><td>——（见第 3 章路线图）</td><td>范围膨胀</td><td class="mono">L</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:10px; font-size:12.5px; color:var(--ink-faint);">工期：S = 1-2 周（UI/数据层为主）· M = 2-4 周（含新资源与经济模型）· L = 4-8 周（多阶段）。均为单人开发估算，不含 playtest 迭代。</p>
+  </div>
+
+  <div class="fig">
+    <svg viewBox="0 0 980 200" width="100%" style="max-width:980px" role="img" aria-label="提案定位图">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#5f6b8a"/>
+        </marker>
+      </defs>
+      <line x1="60" y1="170" x2="930" y2="170" stroke="#3a4464" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="60" y1="170" x2="60" y2="20" stroke="#3a4464" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="960" y="175" fill="#5f6b8a" font-size="11" letter-spacing="1">改动面 →</text>
+      <text x="34" y="40" fill="#5f6b8a" font-size="11" letter-spacing="1" transform="rotate(-90 34 40)">决策深度 ↑</text>
+      <g font-size="12.5" text-anchor="middle">
+        <circle cx="150" cy="120" r="26" fill="#0f1735" stroke="#d8b25c" stroke-width="1.5"/><text x="150" y="125" fill="#d8b25c" font-family="Georgia,serif" font-size="14">A</text>
+        <circle cx="250" cy="78" r="26" fill="#0f1735" stroke="#8fd694" stroke-width="1.5"/><text x="250" y="83" fill="#8fd694" font-family="Georgia,serif" font-size="14">E</text>
+        <circle cx="360" cy="60" r="26" fill="#0f1735" stroke="#a78bfa" stroke-width="1.5"/><text x="360" y="65" fill="#a78bfa" font-family="Georgia,serif" font-size="14">B</text>
+        <circle cx="470" cy="95" r="26" fill="#0f1735" stroke="#e2574c" stroke-width="1.5"/><text x="470" y="100" fill="#e2574c" font-family="Georgia,serif" font-size="14">C</text>
+        <circle cx="580" cy="70" r="26" fill="#0f1735" stroke="#7fd8d4" stroke-width="1.5"/><text x="580" y="75" fill="#7fd8d4" font-family="Georgia,serif" font-size="14">D</text>
+        <circle cx="690" cy="55" r="26" fill="#0f1735" stroke="#d8b25c" stroke-width="1.5"/><text x="690" y="60" fill="#d8b25c" font-family="Georgia,serif" font-size="14">F</text>
+        <circle cx="800" cy="95" r="26" fill="#0f1735" stroke="#a78bfa" stroke-width="1.5"/><text x="800" y="100" fill="#a78bfa" font-family="Georgia,serif" font-size="14">G</text>
+        <circle cx="890" cy="140" r="30" fill="#16204a" stroke="#d8b25c" stroke-width="2" stroke-dasharray="4 3"/><text x="890" y="138" fill="#d8b25c" font-family="Georgia,serif" font-size="13">H</text><text x="890" y="152" fill="#5f6b8a" font-size="8.5" letter-spacing="1">蓝图</text>
+      </g>
+    </svg>
+    <div class="cap">提案定位：横轴改动面，纵轴决策深度。H 是整合层，不在坐标系内。</div>
+  </div>
+</section>
+
+<!-- ================= 2 PROPOSALS ================= -->
+<section id="props">
+  <div class="sec-head">
+    <span class="sec-num">2</span>
+    <div>
+      <div class="sec-title">提案详情</div>
+      <div class="sec-sub">每个提案给出：Fun Hypothesis、核心机制、玩家新决策、数值示例（带 rationale，未测一律 [PLACEHOLDER]）、世界观咬合、失败信号、实现影响。</div>
+    </div>
+  </div>
+
+  <!-- ===== PROPOSAL A ===== -->
+  <article class="proposal p-A" id="prop-a">
+    <div class="p-head">
+      <div class="p-badge">A</div>
+      <div class="p-title-block">
+        <h2>命运轮盘</h2>
+        <div class="p-tagline">升级从「三张卡」变成「亲手拨动的蚀月轮盘」+ 月契对冲经济</div>
+      </div>
+      <div class="p-tags">
+        <span class="tag t-gold">已实现 · 2026-08-08</span><span class="tag t-gold">仪式感</span><span class="tag t-t">运气对冲</span><span class="tag">UI 层为主</span>
+      </div>
+    </div>
+    <div class="p-body">
+      <div class="fh"><b>Fun Hypothesis：</b>升级的爽点 = 亲手转动命运轮的仪式感 + 用月契对冲坏运气的掌控感。抽卡从「被审判」变成「我下注」。</div>
+      <p style="font-size:12.5px; color:var(--teal); margin-bottom:14px;">实现注记：本提案已按用户定制版落地（feat/fortune-wheel 分支）。差异：轮盘 12 格 = 11 祝福（18 选 11，权重 + 幸运修正）+ 1 蚀格；新命运祝福「蚀月壁垒」（+18 生命 +2 护甲）；命运之契攻速 18%、裂痕暴伤 30%；幸运不再影响金币/经验，改为修正 epic/legend 权重；四操作 = 拨动(+1 月契)/强化(2)/踢格(3)/月轮(5，10×攻击固定伤害+回血至 80%)。</p>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>核心机制</h5>
+          <ul>
+            <li>升级弹出 <b>12 格蚀月轮盘</b>：<span class="t-gold">common ×6 / epic ×3 / legend ×2 / 蚀格 ×1</span>（蚀格 = 空转，获得少量金币补偿而非祝福）。</li>
+            <li><b>拨动</b>（默认）：随机落点，权重仍受 luck 修正（见提案 F）。</li>
+            <li><b>锁格</b>：花 1 枚月契，把当前停驻格子的祝福钉住，下次转动必落该格。锁 legend 格是核心赌注——锁了就不能再转。</li>
+            <li><b>偷看</b>：花 2 枚月契，预览下一轮盘的 3 个落点（信息博弈，可据此决定锁不锁）。</li>
+            <li><b>清蚀</b>：花 2 枚月契移除本轮蚀格，代价是本轮不再产出金币补偿。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>月契经济（Sources / Sinks）</h5>
+          <ul>
+            <li class="t-g"><b>产出</b>：精英击杀 +1 · 宝箱 +1 · 完成赌约 +2（提案 C 联动）· 金币购买 50g/枚，每夜限 2 枚。</li>
+            <li class="t-r"><b>消耗</b>：锁格 1 · 偷看 2 · 清蚀 2 · 回响台费用之一（提案 E 联动）。</li>
+            <li class="t-gold"><b>预期平衡</b>：单局月契收入 4-6 枚，支出弹性 2-5 枚——<b>永远不够花，永远够赌一次</b>。[PLACEHOLDER · 依据：按 20 分钟单局、2-3 个精英波次估算；若实测精英密度翻倍，产出砍半]</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fig">
+        <svg viewBox="0 0 720 460" width="100%" style="max-width:720px" role="img" aria-label="蚀月轮盘示意">
+          <defs>
+            <linearGradient id="wGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#d8b25c"/><stop offset="100%" stop-color="#8a6f35"/></linearGradient>
+            <linearGradient id="wViolet" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#6d5bb8"/></linearGradient>
+            <linearGradient id="wRed" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e2574c"/><stop offset="100%" stop-color="#8f2f28"/></linearGradient>
+          </defs>
+          <g class="wheel">
+            <circle cx="360" cy="230" r="170" fill="#0a0f22" stroke="#2a3457" stroke-width="2"/>
+            <g font-size="11" fill="#eae6da" text-anchor="middle" font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+              <!-- common x6 -->
+              <path d="M360,230 L260,107 A170,170 0 0 1 360,60 Z" fill="#1a2450" stroke="#2a3457" stroke-width="2"/>
+              <text x="273" y="128" fill="#9aa4bd">月髓</text>
+              <path d="M360,230 L360,60 A170,170 0 0 1 460,107 Z" fill="#1c2757" stroke="#2a3457" stroke-width="2"/>
+              <text x="428" y="105" fill="#9aa4bd">锋芒</text>
+              <path d="M360,230 L460,107 A170,170 0 0 1 511,230 Z" fill="#1a2450" stroke="#2a3457" stroke-width="2"/>
+              <text x="492" y="196" fill="#9aa4bd">疾行</text>
+              <path d="M360,230 L511,230 A170,170 0 0 1 460,353 Z" fill="#1c2757" stroke="#2a3457" stroke-width="2"/>
+              <text x="493" y="277" fill="#9aa4bd">鹰眼</text>
+              <path d="M360,230 L460,353 A170,170 0 0 1 360,400 Z" fill="#1a2450" stroke="#2a3457" stroke-width="2"/>
+              <text x="433" y="355" fill="#9aa4bd">砺甲</text>
+              <path d="M360,230 L360,400 A170,170 0 0 1 260,353 Z" fill="#1c2757" stroke="#2a3457" stroke-width="2"/>
+              <text x="286" y="362" fill="#9aa4bd">回春</text>
+              <!-- epic x3 -->
+              <path d="M360,230 L260,353 A170,170 0 0 1 209,230 Z" fill="#2a2150" stroke="#3a3470" stroke-width="2"/>
+              <text x="218" y="277" fill="#a78bfa">裂痕</text>
+              <path d="M360,230 L209,230 A170,170 0 0 1 260,107 Z" fill="#2d2457" stroke="#3a3470" stroke-width="2"/>
+              <text x="226" y="160" fill="#a78bfa">余影</text>
+              <path d="M360,230 L360,60 A170,170 0 0 1 355,60 Z" fill="#2a2150" stroke="#3a3470" stroke-width="2"/>
+              <text x="318" y="95" fill="#a78bfa">时弦</text>
+              <!-- legend x2 -->
+              <path d="M360,230 L355,60 A170,170 0 0 1 260,107 Z" fill="#3a2e12" stroke="#8a6f35" stroke-width="2"/>
+              <text x="302" y="118" fill="#d8b25c">命运之契</text>
+              <path d="M360,230 L260,353 A170,170 0 0 1 355,400 Z" fill="#3a2e12" stroke="#8a6f35" stroke-width="2"/>
+              <text x="300" y="352" fill="#d8b25c">不朽之脉</text>
+              <!-- 蚀格 x1 -->
+              <path d="M360,230 L355,400 A170,170 0 0 1 360,400 Z" fill="#3a1014" stroke="#8f2f28" stroke-width="2"/>
+              <text x="382" y="362" fill="#e2574c">蚀</text>
+            </g>
+            <circle cx="360" cy="230" r="46" fill="#0a0f22" stroke="#d8b25c" stroke-width="2"/>
+            <text x="360" y="226" fill="#d8b25c" font-size="13" text-anchor="middle" font-family="'PingFang SC',sans-serif">月契</text>
+            <text x="360" y="244" fill="#eae6da" font-size="13" text-anchor="middle" font-family="'PingFang SC',sans-serif">×2</text>
+            <g class="wheel-peg">
+              <path d="M360,230 L375,60 L345,60 Z" fill="#d8b25c"/>
+              <circle cx="360" cy="60" r="6" fill="#f2ecd9"/>
+            </g>
+          </g>
+          <g transform="translate(560,70)" font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+            <rect x="0" y="0" width="150" height="320" rx="10" fill="#0f1735" stroke="#2a3457"/>
+            <text x="75" y="30" fill="#d8b25c" font-size="13" text-anchor="middle" letter-spacing="2">月契操作</text>
+            <g font-size="12" fill="#9aa4bd">
+              <rect x="14" y="50" width="10" height="10" rx="2" fill="#d8b25c"/><text x="32" y="60">锁格　1 枚</text>
+              <rect x="14" y="86" width="10" height="10" rx="2" fill="#a78bfa"/><text x="32" y="96">偷看　2 枚</text>
+              <rect x="14" y="122" width="10" height="10" rx="2" fill="#e2574c"/><text x="32" y="132">清蚀　2 枚</text>
+              <text x="14" y="170" fill="#5f6b8a">产出：</text>
+              <text x="14" y="190">精英 +1 · 宝箱 +1</text>
+              <text x="14" y="210">赌约 +2 · 50g 购 1</text>
+              <text x="14" y="248" fill="#5f6b8a">预期：</text>
+              <text x="14" y="268">单局入 4-6 枚</text>
+              <text x="14" y="288">永远够赌一次</text>
+            </g>
+          </g>
+        </svg>
+        <div class="cap">图 A-1 · 蚀月轮盘示意（12 格）+ 月契操作清单。格色：深蓝=common / 紫=epic / 金=legend / 红=蚀格。</div>
+      </div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>玩家新决策</h5>
+          <ul>
+            <li>这轮 <b>转 or 锁</b>？锁了 legend 就放弃了轮盘的其他可能。</li>
+            <li>月契 <b>花在哪</b>：锁格保底 vs 偷看信息 vs 清蚀避险——资源永远不够，取舍即策略。</li>
+            <li>轮盘停在不想要的格子时：<b>认了</b>（省月契）还是 <b>清蚀重转</b>（烧月契）？</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>世界观咬合（记手录联动）</h5>
+          <ul>
+            <li class="t-gold">轮盘文案：「蚀月之下没有免费的命运。第一个守月人偷看过一次轮盘，从此轮盘记住了他的手。」</li>
+            <li>累计转动 10 次解锁深层 lore：轮盘侧面的蚀刻其实是一张星图，指向银湾。</li>
+            <li>蚀格补偿文案：「月亮收走了祝福，留下几枚铜钱。」</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fail">
+        <h5>失败信号（playtest 前定义，测前先立）</h5>
+        <div class="fail-row"><span class="sig">A-1</span><span class="desc">玩家整局不消费月契（经济死亡：资源无价值）→ 调 sink 定价或产出节奏。</span></div>
+        <div class="fail-row"><span class="sig">A-2</span><span class="desc">玩家永远只锁 legend（对冲过头，惊喜消失，轮盘退化成商店）→ 锁格加次数上限或锁格后轮盘难度上调。</span></div>
+        <div class="fail-row"><span class="sig">A-3</span><span class="desc">测试者狂点跳过转动动画（仪式感失败）→ 动画压到 0.8s 以内或允许跳过但给「快转」音效补偿。</span></div>
+      </div>
+
+      <details class="imp">
+        <summary>实现影响（点开）</summary>
+        <div class="imp-body">
+          LevelUpPanel 重构成轮盘视图；新增月契资源（persistence 扩展）；<span class="mono">CONFIG.RNG_LEVERS</span> 集中轮盘权重；祝福数据复用现有 blessings.json。风险：动画帧与暂停逻辑耦合，需防卡死（轮盘转动期间锁输入）。
+        </div>
+      </details>
+    </div>
+  </article>
+
+  <!-- ===== PROPOSAL B ===== -->
+  <article class="proposal p-B" id="prop-b">
+    <div class="p-head">
+      <div class="p-badge">B</div>
+      <div class="p-title-block">
+        <h2>祝福羁绊 · 六系盟约</h2>
+        <div class="p-tagline">升级从「一张张捡」变成「凑一套」——同系 2/3/4 件解锁套装效果</div>
+      </div>
+      <div class="p-tags">
+        <span class="tag t-v">构建方向</span><span class="tag t-gold">升格进化</span><span class="tag">数据层为主</span>
+      </div>
+    </div>
+    <div class="p-body">
+      <div class="fh"><b>Fun Hypothesis：</b>升级的爽点 = 「我在凑一套，不是在一张张捡」。羁绊成型的那一瞬间，之前所有单张的选择都有了意义。</div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>核心机制</h5>
+          <ul>
+            <li>17 个祝福打上 <b>六系标签</b>（月之民六约）：月辉（攻/暴击）· 蚀影（生存/吸血）· 星火（投射物/范围）· 霜华（减速/控制，需新增控制祝福）· 流金（金币/经验）· 命脉（回血/护甲）。</li>
+            <li>同系集齐 <b>2/3/4 件</b> 解锁羁绊。示例（月辉系）：<span class="mono">2 件</span> 攻速 +8% → <span class="mono">3 件</span> 弹道 +1 → <span class="mono">4 件</span> 「月辉连击：暴击后下一次攻击必爆」[PLACEHOLDER]。满羁绊给的是机制不是数值。</li>
+            <li><b>升格进化</b>：同系集齐 3 件时，低阶祝福免费升格（b_atk → b_atk2，锋芒 → 破晓之锋）。</li>
+            <li><b>权重偏移</b>：选定某系 1 件后，同系祝福出现权重 ×1.35 [PLACEHOLDER · 依据：Hades duo boon 的定向手感；若偏移过大玩家会锁死单系，需下调]。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>数值设计（羁绊表草案）</h5>
+          <table>
+            <thead><tr><th>系</th><th>2 件</th><th>3 件</th><th>4 件</th></tr></thead>
+            <tbody>
+              <tr><td><b>月辉</b></td><td>攻速 +8%</td><td>弹道 +1</td><td>暴击后下击必爆</td></tr>
+              <tr><td><b>蚀影</b></td><td>吸血 +3%</td><td>濒死时 3s 无敌</td><td>击杀回复 5% 生命</td></tr>
+              <tr><td><b>星火</b></td><td>范围 +8%</td><td>投射物 +1</td><td>弹射 +1 次</td></tr>
+              <tr><td><b>霜华</b></td><td>减速效果 +20%</td><td>减速敌人受击 +15%</td><td>冻结 1.5s</td></tr>
+              <tr><td><b>流金</b></td><td>金币 +25%</td><td>精英必掉宝箱</td><td>商店 8 折</td></tr>
+              <tr><td><b>命脉</b></td><td>生命上限 +8%</td><td>护甲 +3</td><td>每秒回血 +1% 上限</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:12px; margin-top:6px; color:var(--ink-faint);">全部 [PLACEHOLDER]，数值档位遵循「2 件数值 / 3 件机制化 / 4 件质变」原则——质变不堆数值，否则数值爆炸。</p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>玩家新决策</h5>
+          <ul>
+            <li><b>追系 or 分系</b>：专注月辉冲 4 件质变，还是撒网等什么来什么？</li>
+            <li><b>成型窗口</b>：羁绊成型前是数值真空期——你愿意为质变忍受几轮弱选择？</li>
+            <li><b>拆系成本</b>：选了 2 件月辉后再看到传说蚀影，拆不拆？</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>世界观咬合</h5>
+          <ul>
+            <li class="t-v">六系 = 蚀理院失传的《六约残卷》：辉约、影约、火约、霜约、金约、生约——图鉴新增一页「盟约进度」。</li>
+            <li>升格文案：「同一条盟约下的两种誓词，本就该是同一句话。」</li>
+            <li>与记手录联动：满羁绊次数计入「相伴」，解锁深层 lore。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fail">
+        <h5>失败信号</h5>
+        <div class="fail-row"><span class="sig">B-1</span><span class="desc">所有人只追月辉/星火（系间失衡）→ 逐系比对 DPS 贡献，弱势系给机制补偿。</span></div>
+        <div class="fail-row"><span class="sig">B-2</span><span class="desc">羁绊触发无感（数值太低或反馈缺失）→ 触发时加音效 + 飘字 + 屏幕边缘辉光。</span></div>
+        <div class="fail-row"><span class="sig">B-3</span><span class="desc">4 件羁绊太远没人凑（节奏错误）→ 单局 20 分钟内应可稳定达成 1 个 3 件羁绊，这是节奏锚点。</span></div>
+      </div>
+
+      <details class="imp">
+        <summary>实现影响（点开）</summary>
+        <div class="imp-body">
+          blessings.json 增加 <span class="mono">"tag"</span> 字段；新增羁绊配置表 <span class="mono">src/config/bonds.ts</span>；升格逻辑挂在 apply 之后；权重偏移改 pickBlessings 的采样权重。注意：羁绊触发依赖事件总线（击/暴/濒死），需核对现有事件覆盖。
+        </div>
+      </details>
+    </div>
+  </article>
+
+  <!-- ===== PROPOSAL C ===== -->
+  <article class="proposal p-C" id="prop-c">
+    <div class="p-head">
+      <div class="p-badge">C</div>
+      <div class="p-title-block">
+        <h2>命运赌约</h2>
+        <div class="p-tagline">带诅咒的超模祝福 + 倒计时猎杀令——拿未来换现在</div>
+      </div>
+      <div class="p-tags">
+        <span class="tag t-r">风险回报</span><span class="tag t-gold">传说补偿</span><span class="tag">新祝福类型</span>
+      </div>
+    </div>
+    <div class="p-body">
+      <div class="fh"><b>Fun Hypothesis：</b>升级的爽点 = 「我拿未来换现在」。赌赢了很爽，赌输了也是故事——它把失败从挫败变成叙事。</div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>核心机制</h5>
+          <ul>
+            <li>新祝福类型 <b>赌约</b>（curse）：负面诅咒 + 超模正面。
+              <ul style="list-style:none; padding-left:14px; margin-top:6px;">
+                <li class="t-r" style="padding-left:0;">· 月蚀之约：攻速 +40%，但每 10s 损失 2% 最大生命 [PLACEHOLDER]</li>
+                <li class="t-r" style="padding-left:0;">· 饮鸩之契：攻击 +50%，吸血 -100% [PLACEHOLDER]</li>
+                <li class="t-r" style="padding-left:0;">· 渎月之誓：经验 +60%，但升级不再恢复生命 [PLACEHOLDER]</li>
+              </ul>
+            </li>
+            <li><b>倒计时赌约（猎杀令）</b>：接令后 90s 内击杀 300 蚀物 → 成：获传说祝福；败：失去下一次升级 [PLACEHOLDER]。</li>
+            <li>赌约祝福<b>必出 legend 级数值</b>（正面是普通祝福的 1.8-2.5 倍），否则没人接。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>设计红线（这条提案最怕什么）</h5>
+          <ul>
+            <li class="t-r"><b>惩罚必须可见可算</b>：诅咒写在卡面上，玩家在接之前知道全部代价——决策完整性是支柱一。</li>
+            <li class="t-r"><b>不允许即死</b>：赌约负面只能制造压力，不能制造「无法预防的暴毙」。2% 生命流失可被回春/吸血对冲，这是可解构的，不是天罚。</li>
+            <li class="t-g"><b>必留解约出口</b>：回响台（提案 E）可支付月契解除诅咒——「赌徒永远有再赌一次的权利」。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>玩家新决策</h5>
+          <ul>
+            <li><b>接不接</b>？月蚀之约对吸血 build 是白赚，对无回复 build 是慢性死亡——构建相容性成为决策。</li>
+            <li><b>现在接还是等 build 成型再接</b>？猎杀令接早必输，接晚白接。</li>
+            <li><b>用什么对冲</b>：诅咒可被祝福/道具/月相（亏凸护盾）抵消——围绕诅咒构建也是构建。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>世界观咬合</h5>
+          <ul>
+            <li class="t-r">赌约 = 蚀月与守月人的买卖：「月亮从不免费，蚀物是利息。」</li>
+            <li>猎杀令文案：「蚀潮欠了你九百条命，现在它们来还。」</li>
+            <li>赌约胜负计入命运记忆（提案 G）：「你赢过月亮的赌，月亮记着。」</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fail">
+        <h5>失败信号</h5>
+        <div class="fail-row"><span class="sig">C-1</span><span class="desc">赌约无人接（回报/风险失衡）→ 调正面倍率；先做纸面模拟再上 build。</span></div>
+        <div class="fail-row"><span class="sig">C-2</span><span class="desc">接了必输（猎杀令数值不可达）→ 用历史击杀数据校准 90s/300 蚀物。</span></div>
+        <div class="fail-row"><span class="sig">C-3</span><span class="desc">惩罚导致直接暴毙（负反馈过重）→ 所有诅咒加「解除窗口」：代价可被后续操作对冲。</span></div>
+      </div>
+
+      <details class="imp">
+        <summary>实现影响（点开）</summary>
+        <div class="imp-body">
+          blessings.json 增加 <span class="mono">"curse"</span> 与 <span class="mono">"timer"</span> 字段；新增猎杀令任务追踪（复用成就系统的计数管道）；失败惩罚 = 跳过下次升级的 hook。风险：诅咒 tick 与战斗暂停逻辑需统一时钟。
+        </div>
+      </details>
+    </div>
+  </article>
+
+  <!-- ===== PROPOSAL D ===== -->
+  <article class="proposal p-D" id="prop-d">
+    <div class="p-head">
+      <div class="p-badge">D</div>
+      <div class="p-title-block">
+        <h2>月相干预</h2>
+        <div class="p-tagline">把现实月相从「天气」变成「策略资源」——守月人第一次骗过月亮</div>
+      </div>
+      <div class="p-tags">
+        <span class="tag t-t">世界观爆点</span><span class="tag t-gold">月尘资源</span><span class="tag">利用现有基建</span>
+      </div>
+    </div>
+    <div class="p-body">
+      <div class="fh"><b>Fun Hypothesis：</b>月相从被动天气变成可拨动的策略资源——玩家第一次对月亮有话语权，而「骗过月亮」本身就是世界观里最大的禁忌。</div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>核心机制</h5>
+          <ul>
+            <li>新资源 <b>月尘</b>：BOSS 击杀 +3 · 通关奖励 +2 · 精英波次稀有掉落 +1 [PLACEHOLDER]。</li>
+            <li><b>拨月</b>：花 2 月尘，把当前月相推进或回退 1/8（方向自选）——为下一个 BOSS 夜调到想要的相位。</li>
+            <li><b>月蚀之夜（主动）</b>：花 5 月尘，人为制造新月（闪避 +25% 保命相），代价：该夜蚀物强度 +15% [PLACEHOLDER]。</li>
+            <li><b>月相倾向祝福</b>：祝福带相位标签，特定相位下出现权重 ×2（如满月夜「裂痕」暴伤权重翻倍）——月相从此影响 build 走向。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>玩家新决策</h5>
+          <ul>
+            <li><b>这一夜拨到哪一相</b>：为保命（新月/亏凸）还是为 build（满月）还是为清怪（娥眉）？</li>
+            <li><b>月尘攒着</b>（等满月 boss 战）<b>还是花掉</b>（每夜微调保命）？</li>
+            <li>主动制造月蚀之夜：<b>用强度换闪避</b>，赌自己走位值不值？</li>
+            <li class="t-t">月相与祝福联动后：<b>等相位还是改相位</b>？——顺命运者等，逆命运者拨。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fig">
+        <svg viewBox="0 0 880 150" width="100%" style="max-width:880px" role="img" aria-label="月相八相与拨月示意">
+          <defs>
+            <radialGradient id="phaseGrad" cx="40%" cy="35%">
+              <stop offset="0%" stop-color="#f2ecd9"/><stop offset="100%" stop-color="#b9ac7e"/>
+            </radialGradient>
+            <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#7fd8d4"/>
+            </marker>
+          </defs>
+          <g>
+            <g transform="translate(60,75)">
+              <circle r="40" fill="#0a0f22" stroke="#3a4464" stroke-width="1.5"/>
+              <circle r="40" fill="url(#phaseGrad)" opacity="0"/>
+              <circle cx="8" cy="0" r="40" fill="url(#phaseGrad)"/>
+            </g>
+            <g transform="translate(165,75)">
+              <circle r="40" fill="#0a0f22" stroke="#3a4464" stroke-width="1.5"/>
+              <circle cx="10" cy="0" r="40" fill="url(#phaseGrad)"/>
+              <circle cx="14" cy="0" r="40" fill="#0a0f22"/>
+            </g>
+            <g transform="translate(270,75)">
+              <circle r="40" fill="#0a0f22" stroke="#3a4464" stroke-width="1.5"/>
+              <circle cx="0" cy="0" r="40" fill="url(#phaseGrad)"/>
+              <circle cx="20" cy="0" r="40" fill="#0a0f22"/>
+            </g>
+            <g transform="translate(375,75)">
+              <circle r="40" fill="#0a0f22" stroke="#3a4464" stroke-width="1.5"/>
+              <circle cx="-6" cy="0" r="40" fill="url(#phaseGrad)"/>
+              <circle cx="16" cy="0" r="40" fill="#0a0f22"/>
+            </g>
+            <g transform="translate(480,75)">
+              <circle r="40" fill="#0a0f22" stroke="#d8b25c" stroke-width="2"/>
+              <circle r="38" fill="url(#phaseGrad)"/>
+            </g>
+            <g transform="translate(585,75)">
+              <circle r="40" fill="#0a0f22" stroke="#3a4464" stroke-width="1.5"/>
+              <circle cx="6" cy="0" r="40" fill="url(#phaseGrad)"/>
+              <circle cx="-16" cy="0" r="40" fill="#0a0f22"/>
+            </g>
+            <g transform="translate(690,75)">
+              <circle r="40" fill="#0a0f22" stroke="#3a4464" stroke-width="1.5"/>
+              <circle r="40" fill="url(#phaseGrad)"/>
+              <circle cx="-20" cy="0" r="40" fill="#0a0f22"/>
+            </g>
+            <g transform="translate(795,75)">
+              <circle r="40" fill="#0a0f22" stroke="#e2574c" stroke-width="1.5"/>
+              <circle cx="-10" cy="0" r="40" fill="url(#phaseGrad)"/>
+              <circle cx="-14" cy="0" r="40" fill="#0a0f22"/>
+            </g>
+            <g font-size="11" fill="#5f6b8a" text-anchor="middle" font-family="'PingFang SC',sans-serif">
+              <text x="60" y="140">新月</text><text x="165" y="140">娥眉</text><text x="270" y="140">上弦</text>
+              <text x="375" y="140">盈凸</text><text x="480" y="140" fill="#d8b25c">满月</text>
+              <text x="585" y="140">亏凸</text><text x="690" y="140">下弦</text><text x="795" y="140" fill="#e2574c">残月</text>
+            </g>
+            <g font-size="12" fill="#7fd8d4" font-family="'PingFang SC',sans-serif">
+              <path d="M480,15 C480,-20 540,-20 540,5" fill="none" stroke="#7fd8d4" stroke-width="1.5" marker-end="url(#arr2)"/>
+              <text x="510" y="-18" text-anchor="middle">拨月 ×2 月尘</text>
+            </g>
+          </g>
+        </svg>
+        <div class="cap">图 D-1 · 现实月相八相。满月（金框）与残月（红框）是「月相倾向祝福」的锚点相位。</div>
+      </div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>世界观咬合（核心卖点）</h5>
+          <ul>
+            <li class="t-t">守月人誓词里的禁忌：「月亮可以生病，但不能被骗。」<b>拨月 = 打破誓词</b>——系统本身就是叙事。</li>
+            <li>拨月动画：星图上的月亮被手指推回一格，星轨发出断裂声。</li>
+            <li>月蚀之夜文案：「今晚没有月亮。今晚只有你。」</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>风险与取舍（设计师自辩）</h5>
+          <ul>
+            <li class="t-r"><b>破坏浪漫</b>：现实月相联动是「你的月亮」的浪漫设定。干预会让玩家永久无视现实时间。</li>
+            <li class="t-g"><b>折中方案</b>：拨月<b>只能单向推进</b>（时间是单行道），回退需要双倍月尘——保留「现实流逝」的质感，干预有限度。</li>
+            <li class="t-gold"><b>数据护栏</b>：月相倾向祝福只做「权重 ×2」不做「仅此相位出现」——玩家错过也不至于彻底失去。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fail">
+        <h5>失败信号</h5>
+        <div class="fail-row"><span class="sig">D-1</span><span class="desc">月尘囤着不用（资源无价值）→ 调 sink 定价，或给月尘加「过期作废」制造消费压力。</span></div>
+        <div class="fail-row"><span class="sig">D-2</span><span class="desc">所有人只调满月（相位不平衡）→ 满月权重下调，弱势相位给机制补偿。</span></div>
+        <div class="fail-row"><span class="sig">D-3</span><span class="desc">现实月相存在感归零 → 拨月成本提高到「不能每夜都拨」，现实相位仍是默认态。</span></div>
+      </div>
+
+      <details class="imp">
+        <summary>实现影响（点开）</summary>
+        <div class="imp-body">
+          moon_phase.ts 加干预层（当前相位偏移量）；新增月尘资源；祝福表加 <span class="mono">"phaseBoost"</span> 字段；拨月 UI 复用商店面板。现有 moon_phase 是纯函数，改动面可控。
+        </div>
+      </details>
+    </div>
+  </article>
+
+  <!-- ===== PROPOSAL E ===== -->
+  <article class="proposal p-E" id="prop-e">
+    <div class="p-head">
+      <div class="p-badge">E</div>
+      <div class="p-title-block">
+        <h2>命运回响</h2>
+        <div class="p-tagline">重塑 / 升格 / 拆解——给中期走歪的 build 一次「重铸命运」的机会</div>
+      </div>
+      <div class="p-tags">
+        <span class="tag t-g">纠错机制</span><span class="tag t-gold">记手录联动</span><span class="tag">商店扩展</span>
+      </div>
+    </div>
+    <div class="p-body">
+      <div class="fh"><b>Fun Hypothesis：</b>中期发现 build 走歪了，玩家要的不是「这把废了」，而是一面可以砸掉重来的回响台——纠错能力本身就是深度。</div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>核心机制（回响台，商店子功能）</h5>
+          <ul>
+            <li><b>升格</b>：低阶 → 同系高阶（b_atk → b_atk2），50g + 1 月契 [PLACEHOLDER]。把前期投入保留下滑。</li>
+            <li><b>变异</b>：随机换成同稀有度另一祝福，30g（赌——命运主题的一致性）。</li>
+            <li><b>拆解</b>：传奇祝福 → 2 个普通祝福 + 1 月契（回收：传奇不适合当前 build 时的退出通道）。</li>
+            <li><b>解约</b>：支付 2 月契解除赌约诅咒（提案 C 的出口，设计上必须存在）。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>价格 rationale（纠错的成本哲学）</h5>
+          <ul>
+            <li class="t-g"><b>纠错必须贵</b>：比「重新选对」贵，但比「重开一局」便宜。50g ≈ 2 个普通宝箱的产出 [PLACEHOLDER]。</li>
+            <li class="t-r"><b>纠错不能无限</b>：每次使用回响台，该局价格 ×1.5（2 次后封顶）——「命运可以重来，但不能反复无常」。</li>
+            <li class="t-gold">目的：让纠错成为<b>一次性的战略决策</b>，而不是随意重 roll 的后悔药。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>玩家新决策</h5>
+          <ul>
+            <li><b>投资纠错 vs 带着烂 build 打完</b>——金币花在纠错还是花在商店装备？</li>
+            <li><b>拆传奇值不值</b>：拆掉不合适的传说换 2 个普通 + 月契，还是硬着头皮围绕它转型？</li>
+            <li>什么时候用掉「唯一一次免费升格」？</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>世界观咬合</h5>
+          <ul>
+            <li class="t-g">记手录联动：<b>重塑第 10 次解锁深层 lore</b>——「器识其主，也识其悔。」</li>
+            <li>回响台文案：「月亮听过你所有的选择，包括你反悔的那几次。」</li>
+            <li>拆解动画：传奇祝福碎成月光，重新凝成两粒微尘。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fail">
+        <h5>失败信号</h5>
+        <div class="fail-row"><span class="sig">E-1</span><span class="desc">重塑永远不值得（数值错误）→ 用 3 局试玩收集「用与不用」的使用率，低于 30% 即降价。</span></div>
+        <div class="fail-row"><span class="sig">E-2</span><span class="desc">玩家频繁重 roll（决策失去后果）→ 强化价格递增，让「重来」成为昂贵动作。</span></div>
+      </div>
+
+      <details class="imp">
+        <summary>实现影响（点开）</summary>
+        <div class="imp-body">
+          商店新增回响台 Tab；升格/拆解复用 blessings apply/remove（需新增 remove 语义，当前 apply 无逆操作，注意状态回滚）；价格递增状态存 run 级。
+        </div>
+      </details>
+    </div>
+  </article>
+
+  <!-- ===== PROPOSAL F ===== -->
+  <article class="proposal p-F" id="prop-f">
+    <div class="p-head">
+      <div class="p-badge">F</div>
+      <div class="p-title-block">
+        <h2>福运经济</h2>
+        <div class="p-tagline">幸运从隐性概率变成「命运的存款」——可攒可花，双用途货币</div>
+      </div>
+      <div class="p-tags">
+        <span class="tag t-gold">货币化重构</span><span class="tag t-t">通胀治理</span><span class="tag">系统级</span>
+      </div>
+    </div>
+    <div class="p-body">
+      <div class="fh"><b>Fun Hypothesis：</b>幸运不是属性，是存款。攒着拉高稀有度是复利，花掉保底 reroll 是保险——「命运的复利」第一次可操作。</div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>核心机制</h5>
+          <ul>
+            <li><b>命运值可视化</b>：HUD 显示当前 luck 换算的「命运值」（1% luck = 1 点命运值 [PLACEHOLDER]）。</li>
+            <li><b>被动用途</b>：命运值越高，祝福稀有度权重越高（每 +10 点，legend 权重 ×1.5 [PLACEHOLDER · 依据：指数衰减采样；需 Monte Carlo 验证对「每局 legend 期望数」的影响]）。</li>
+            <li><b>主动消费</b>：<span class="mono">5 点</span> = 1 次 reroll（换一批 3 选 1）· <span class="mono">8 点</span> = 1 次锁卡 [PLACEHOLDER]。</li>
+            <li><b>获取</b>：b_luck 祝福（+15 点）、b_legend（+30 点）、月相上弦、道具、商店 100g 购 +5 命运值。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>经济模型（Sources / Sinks / 通胀护栏）</h5>
+          <table>
+            <thead><tr><th>项</th><th>数值</th></tr></thead>
+            <tbody>
+              <tr><td>单局命运值产出预期</td><td class="mono">≈ 30-45 点</td></tr>
+              <tr><td>reroll / 锁卡单次</td><td class="mono">5 / 8 点</td></tr>
+              <tr><td>通胀检测指标</td><td class="mono">命运值/分钟 &gt; 2.5 触发平衡 pass [PLACEHOLDER]</td></tr>
+              <tr><td>legend 权重修正</td><td class="mono">×1.5 / 每 10 点，上限 ×4 [PLACEHOLDER]</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:12px; margin-top:6px; color:var(--ink-faint);">通胀定义：命运值/分钟持续超过阈值 → 全员 legend 满配，稀有度失去意义。这是本系统的「坏掉长什么样」。</p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>玩家新决策</h5>
+          <ul>
+            <li><b>攒 vs 花</b>：攒着拉高全局稀有度（复利）还是花掉保底单次（保险）？</li>
+            <li>命运值的两种消费（reroll 换广度 vs 锁卡换确定性）在不同 build 阶段价值不同。</li>
+            <li class="t-gold">与提案 A 联动：轮盘的「偷看/锁格」也可用命运值支付——两条经济线互为备胎。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>世界观咬合</h5>
+          <ul>
+            <li class="t-gold">HUD 命运值图标 = 一枚缓缓转动的古币，正面刻月，背面刻蚀。</li>
+            <li>文案：「月背的老人们说，运气是存得下来的。存到满月那天，够买一场好梦。」</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fail">
+        <h5>失败信号</h5>
+        <div class="fail-row"><span class="sig">F-1</span><span class="desc">命运值通胀（后期人人 legend 满配）→ 通胀指标 > 2.5 点/分钟时下调产出或上调 sink。</span></div>
+        <div class="fail-row"><span class="sig">F-2</span><span class="desc">命运值太贵无人消费 → reroll 使用率低于 25% 时降价。</span></div>
+        <div class="fail-row"><span class="sig">F-3</span><span class="desc">数值显示与体感不符 → luck 的底层语义与 HUD 展示必须同一来源（stats.ts 已集中），避免两套真相。</span></div>
+      </div>
+
+      <details class="imp">
+        <summary>实现影响（点开）</summary>
+        <div class="imp-body">
+          luck 语义扩展 + HUD 命运值组件；稀有度采样权重接入 luck 修正；消费 hook 挂在 pickBlessings 层。风险：luck 现被掉落率复用，需确认 luck 的既有消费点，避免双语义打架。
+        </div>
+      </details>
+    </div>
+  </article>
+
+  <!-- ===== PROPOSAL G ===== -->
+  <article class="proposal p-G" id="prop-g">
+    <div class="p-head">
+      <div class="p-badge">G</div>
+      <div class="p-title-block">
+        <h2>命运记忆</h2>
+        <div class="p-tagline">跨局纹章 + 命运残响——月背记得你每一次选择，包括你没选的</div>
+      </div>
+      <div class="p-tags">
+        <span class="tag t-v">肉鸽 meta</span><span class="tag t-gold">选择留痕</span><span class="tag">持久化扩展</span>
+      </div>
+    </div>
+    <div class="p-body">
+      <div class="fh"><b>Fun Hypothesis：</b>「这局没白打」——单局的选择在跨局尺度留下痕迹，肉鸽的每一把都有指纹。</div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>核心机制</h5>
+          <ul>
+            <li>单局结算记录<b>命运轨迹</b>：祝福系别分布、赌约胜负（提案 C）、拨月次数（提案 D）。</li>
+            <li>生成 <b>命运纹章</b>（1 枚）：下局开局小 buff。如「上局月辉系 ≥3 件 → 开局攻速 +5%」「上局猎杀令失败 → 本局猎杀令时限 +15s」[PLACEHOLDER]。</li>
+            <li>纹章最多叠 <b>3 层</b>，同纹章不叠加（防刷，防「为了叠纹章故意摆烂」）。</li>
+            <li><b>命运残响</b>：本局未选中的祝福，下局出现率 +15% [PLACEHOLDER]——「你拒绝过的命运还会回来敲门」。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>玩家新决策</h5>
+          <ul>
+            <li><b>这局要不要为下局投注</b>？追一个不完整的系，赌它产出纹章？</li>
+            <li>纹章与残响制造跨局连续性：连续三局围绕同一系构建 = 一条「命运弧线」。</li>
+            <li class="t-v">风险自辩：跨局设计有稀释单局体验的风险——纹章 buff 必须弱（≤5%），它的价值在「痕迹感」不在「强度」。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="box">
+          <h5>世界观咬合</h5>
+          <ul>
+            <li class="t-v">记手录机制的直接延伸——「月背记得你每一次选择。它甚至记得你没选的。」</li>
+            <li>纹章在结算界面以「月面刻痕」形式显示，随局数累积成一面碑。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h5>与现有系统的咬合</h5>
+          <ul>
+            <li>成就系统已有跨局计数基建（a_kill_100 等）——命运轨迹复用同一管道。</li>
+            <li>「残响池」防垃圾循环：残响只加出现率，不加权重——垃圾祝福不会滚雪球（权重仍是主控）。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fail">
+        <h5>失败信号</h5>
+        <div class="fail-row"><span class="sig">G-1</span><span class="desc">纹章 buff 无感 → 结算界面纹章反馈不足；先强化「展示」再谈数值。</span></div>
+        <div class="fail-row"><span class="sig">G-2</span><span class="desc">玩家为叠纹章故意摆烂 → 纹章叠加衰减（第 2/3 层效果减半）或加次数上限。</span></div>
+        <div class="fail-row"><span class="sig">G-3</span><span class="desc">残响导致垃圾祝福越滚越多 → 残响只对「同系 ≥2 件」的系生效，不全局生效。</span></div>
+      </div>
+
+      <details class="imp">
+        <summary>实现影响（点开）</summary>
+        <div class="imp-body">
+          结算记录 → 持久化（复用 hands.ts 的 localStorage 模式）；纹章 buff 注入开局 Player；残响池进 pickBlessings 权重修正。跨局状态独立于单局状态，架构上低风险。
+        </div>
+      </details>
+    </div>
+  </article>
+
+  <!-- ===== PROPOSAL H ===== -->
+  <article class="proposal p-H" id="prop-h">
+    <div class="p-head">
+      <div class="p-badge">H</div>
+      <div class="p-title-block">
+        <h2>整合蓝图：命运之轮 v2</h2>
+        <div class="p-tagline">推荐路线——A+F+D+E 组合拳，四阶段渐进落地，每阶段独立 playtest</div>
+      </div>
+      <div class="p-tags">
+        <span class="tag t-gold">推荐</span><span class="tag t-t">分阶段</span><span class="tag t-v">完整系统</span>
+      </div>
+    </div>
+    <div class="p-body">
+      <div class="fh"><b>Fun Hypothesis（整合版）：</b>升级体验 = 拨动命运轮盘（仪式感）× 用命运值干预概率（运气代理）× 把月相调成自己的主场（策略纵深）——三层的「命运」互相咬合，每次升级都是完整决策。</div>
+
+      <div class="verdict">
+        <div class="v-icon">为什么</div>
+        <p>8 个提案全上 = 范围膨胀灾难。H 只取四个核心：<b>A 解决最痛的「决策死亡 + 运气零代理」</b>（UI 层为主，改动面最小）；<b>F 让 luck 变成真资源</b>（系统级但风险可控）；<b>D 吃满世界观红利</b>（复用 moon_phase 现有基建）；<b>E 提供纠错出口</b>（让前三个系统的冒险「赌得起」）。B/C/G 作为后续可选扩展，不阻塞主线。</p>
+      </div>
+
+      <h4 style="color:var(--gold); letter-spacing:.12em; font-size:12px; text-transform:uppercase; margin:26px 0 12px;">四阶段路线图</h4>
+      <div class="phase">
+        <div class="pnum">阶段 1<small>1-2 周</small></div>
+        <div class="pbody">
+          <h4>轮盘 UI + 月契经济（提案 A 核心）</h4>
+          <p>把 3 选 1 换成 12 格轮盘；月契产出/消费全链路；保留现有 blessings 数值不动（先换壳，再换核）。</p>
+        </div>
+        <div class="pgoal">验收：玩家整局消费月契 ≥2 枚<br>且轮盘动画不被跳过</div>
+      </div>
+      <div class="phase">
+        <div class="pnum">阶段 2<small>2-3 周</small></div>
+        <div class="pbody">
+          <h4>幸运货币化（提案 F）</h4>
+          <p>luck → 命运值可视化；稀有度权重修正；reroll / 锁卡消费。轮盘权重接入 luck。</p>
+        </div>
+        <div class="pgoal">验收：命运值/分钟 &lt; 2.5<br>reroll 使用率 &gt; 25%</div>
+      </div>
+      <div class="phase">
+        <div class="pnum">阶段 3<small>2-3 周</small></div>
+        <div class="pbody">
+          <h4>月相干预精简版（提案 D，只做「拨月」）</h4>
+          <p>月尘资源 + 单向拨月 + 月相倾向祝福。月蚀之夜（主动负面）留到数据验证后再加。</p>
+        </div>
+        <div class="pgoal">验收：月尘消费率 &gt; 70%<br>现实月相仍被感知</div>
+      </div>
+      <div class="phase">
+        <div class="pnum">阶段 4<small>看数据</small></div>
+        <div class="pbody">
+          <h4>回响台（提案 E）+ 羁绊标签先行（提案 B 的 tag 字段）</h4>
+          <p>给赌注兜底；六系标签先打上（不加羁绊效果），为后续 B 全量铺路。</p>
+        </div>
+        <div class="pgoal">验收：纠错使用率 30-70%<br>（过低=太贵，过高=没后果）</div>
+      </div>
+
+      <div class="fail">
+        <h5>整系统失败信号（最高优先级的三个）</h5>
+        <div class="fail-row"><span class="sig">H-1</span><span class="desc">决策完整性崩塌：玩家「不知道代价」就点下去 → 所有数值与规则必须可见（支柱一）。</span></div>
+        <div class="fail-row"><span class="sig">H-2</span><span class="desc">经济通胀：命运值/月契超阈值 → 稀有度失去意义，系统整体平庸化。</span></div>
+        <div class="fail-row"><span class="sig">H-3</span><span class="desc">仪式感 > 内容：轮盘转得漂亮但选什么都不重要 → 说明深层机制没接上，回去补 B 或 C。</span></div>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ================= 3 BLUEPRINT / 4 APPENDIX ================= -->
+<section id="blueprint">
+  <div class="sec-head">
+    <span class="sec-num">3</span>
+    <div>
+      <div class="sec-title">系统交互矩阵</div>
+      <div class="sec-sub">新系统两两交互的定性判定——intended / acceptable / bug 三档，提前暴露系统打架风险。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead><tr><th>系统 × 系统</th><th>交互</th><th>判定</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><b>轮盘 × 命运值</b></td><td>偷看/锁格可用命运值支付</td><td><span class="mono" style="color:var(--green)">intended</span></td><td>双经济线互为备胎，消费场景重叠是设计意图。</td></tr>
+        <tr><td><b>轮盘 × 月相</b></td><td>月相倾向祝福在轮盘权重 ×2</td><td><span class="mono" style="color:var(--green)">intended</span></td><td>月相从天气变成 build 导向，这是 D 的核心价值。</td></tr>
+        <tr><td><b>赌约 × 回响台</b></td><td>解约 = 赌约的退出通道</td><td><span class="mono" style="color:var(--green)">intended</span></td><td>「赌徒永远有再赌一次的权利」——必须存在，否则赌约是陷阱不是决策。</td></tr>
+        <tr><td><b>月契 × 命运值</b></td><td>两套货币都可干预轮盘</td><td><span class="mono" style="color:var(--gold)">acceptable</span></td><td>注意总干预次数上限（每局锁格 ≤3 次），防「全保底无随机」。</td></tr>
+        <tr><td><b>羁绊 × 月相</b></td><td>系别祝福受相位权重影响</td><td><span class="mono" style="color:var(--gold)">acceptable</span></td><td>追系 + 等相位叠加会过度窄化选择池——相位偏移量设上限。</td></tr>
+        <tr><td><b>命运记忆 × 残响池</b></td><td>纹章 + 残响同时生效</td><td><span class="mono" style="color:var(--gold)">acceptable</span></td><td>叠满 3 层纹章 + 残响 = 跨局同系过强，第 2/3 层衰减即可。</td></tr>
+        <tr><td><b>轮盘 × 蚀格</b></td><td>蚀格补偿金币与金币经济重叠</td><td><span class="mono" style="color:var(--red)">bug</span></td><td>若金币通胀敏感，蚀格补偿可能成为刷币口子——蚀格补偿改发月契碎片或干脆不发。</td></tr>
+        <tr><td><b>赌约 × 成就</b></td><td>猎杀令计数与击杀成就共用管道</td><td><span class="mono" style="color:var(--red)">bug</span></td><td>避免猎杀令目标被成就目标「顺手完成」导致无感；计时器目标独立结算。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="appendix">
+  <div class="sec-head">
+    <span class="sec-num">4</span>
+    <div>
+      <div class="sec-title">附录 · 设计纪律</div>
+      <div class="sec-sub">没有这两条，上面所有提案都是空谈。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>数值三分类纪律</h3>
+    <table>
+      <thead><tr><th>类别</th><th>含义</th><th>处理</th></tr></thead>
+      <tbody>
+        <tr><td><b>有 rationale</b></td><td>数值来自机制推导（如「50g ≈ 2 宝箱产出」）</td><td>写进 GDD，可解释</td></tr>
+        <tr><td><b class="mono" style="color:var(--gold)">[PLACEHOLDER]</b></td><td>有假设但未 playtest</td><td>附验证路径（本报告全部新数值均为此类）</td></tr>
+        <tr><td><b>待验证</b></td><td>依赖数据校准（如猎杀令 90s/300 蚀物）</td><td>先采集历史数据再定标</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:10px;">红线：未经 playtest 的数值不写死进配置；tuning spreadsheet 与 GDD 同步建立，不事后补。</p>
+  </div>
+
+  <div class="card">
+    <h3>Playtest 失败信号模板（测前必填）</h3>
+    <p>每个系统开测前先填三行，没填就不许开测：</p>
+    <table>
+      <thead><tr><th>信号</th><th>怎么写</th><th>示例（提案 A）</th></tr></thead>
+      <tbody>
+        <tr><td><b>A 类：功能死了</b></td><td>「玩家不使用 X」</td><td>整局月契消费 0 枚</td></tr>
+        <tr><td><b>B 类：数值失衡</b></td><td>「玩家只选 X」</td><td>锁格使用率 &gt; 80%</td></tr>
+        <tr><td><b>C 类：体验破裂</b></td><td>「玩家跳过 X」</td><td>轮盘动画被连续跳过 3 次</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>已知假设（会连坐整条曲线的假设，变了要重画）</h3>
+    <p style="font-size:13.5px; color:var(--ink-dim);">① 平均单局 20 分钟，精英波次 2-3 个——月契产出预期基于此，实测 35 分钟则产出表重画。<br>
+    ② 单局升级次数 12-18 次（对应 level 15 左右）——轮盘/羁绊节奏锚点基于此。<br>
+    ③ luck 当前语义为掉落率修正——提案 F 若改语义，需先审计掉落率消费者的依赖。<br>
+    ④ 玩家能接受「升级偶尔空转」（蚀格）——这是审美判断，纸面原型阶段就要测，不能留到 build 里测。</p>
+  </div>
+
+  <div class="callout" style="margin-top:30px;">
+    <div class="ct-label">一句话收尾</div>
+    <p>现在的升级系统不是「不够丰富」，是<b style="color:var(--gold)">玩家对命运没有任何代理权</b>。先给代理权（A+F），再给纵深（D），最后给兜底（E）——丰富是手段，代理权才是那枚月亮。</p>
+  </div>
+</section>
+
+<footer>
+  蚀月远征 · 命运之轮与祝福系统重构头脑风暴 v1.0<br>
+  游戏设计档案 · 2026-08-08 · 所有新数值均为 [PLACEHOLDER]，playtest 后校准
+</footer>
+
+</div>
+
+<script>
+  // 星空背景
+  (function () {
+    var s = document.getElementById('stars');
+    var n = 90;
+    for (var i = 0; i < n; i++) {
+      var d = document.createElement('i');
+      d.style.left = (Math.random() * 100) + '%';
+      d.style.top = (Math.random() * 100) + '%';
+      d.style.setProperty('--o', (0.15 + Math.random() * 0.55).toFixed(2));
+      d.style.setProperty('--d', (3 + Math.random() * 5).toFixed(1) + 's');
+      d.style.width = d.style.height = (Math.random() < 0.15 ? 3 : 2) + 'px';
+      s.appendChild(d);
+    }
+  })();
+
+  // 提案间键盘跳转
+  document.addEventListener('keydown', function (e) {
+    if (e.target && e.target.tagName === 'INPUT') return;
+    var map = { a: 'prop-a', b: 'prop-b', c: 'prop-c', d: 'prop-d', e: 'prop-e', f: 'prop-f', g: 'prop-g', h: 'prop-h' };
+    var k = e.key.toLowerCase();
+    if (e.altKey && map[k]) {
+      var el = document.getElementById(map[k]);
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+  });
+</script>
+
+</body>
+</html>

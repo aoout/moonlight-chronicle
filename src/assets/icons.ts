@@ -38,6 +38,20 @@ export const ICONS: Record<string, string> = {
   book: IC.wrap('<path d="M5 3.5h11a2 2 0 0 1 2 2V21H7a2 2 0 0 1-2-2V3.5Z"/><path d="M5 3.5a2 2 0 0 0 2 2h11"/>'),
   moon: IC.wrap('<path d="M20 13.2A8.5 8.5 0 1 1 10.8 4 7 7 0 0 0 20 13.2Z"/>'),
   moonFull: IC.wrap('<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5c4.7 0 8.5 3.8 8.5 8.5s-3.8 8.5-8.5 8.5"/>'),
+
+  /* ---------- 祝福 · 专属图腾（每祝福一图标，保证盘面区分度） ---------- */
+  /* 四叶草：福运 */
+  clover: IC.wrap('<path d="M12 4.6c2.6 0 3.3 2.3 0 4.5-3.3-2.2-2.6-4.5 0-4.5Z"/><path d="M4.6 12c0-2.6 2.3-3.3 4.5 0-2.2 3.3-4.5 2.6-4.5 0Z"/><path d="M19.4 12c0-2.6-2.3-3.3-4.5 0 2.2 3.3 4.5 2.6 4.5 0Z"/><path d="M12 19.4c2.6 0 3.3-2.3 0-4.5-3.3 2.2-2.6 4.5 0 4.5Z"/><path d="M12 12v5.6"/>'),
+  /* 叶子：回春（生命恢复） */
+  leaf: IC.wrap('<path d="M20 4C11 4 5 10 5 19c9 0 15-6 15-15Z"/><path d="M5 19c3.5-6 8-10 14-13"/>'),
+  /* 血滴：血契（吸血） */
+  bloodDrop: IC.wrap('<path d="M12 3c3.1 3.9 5.4 6.5 5.4 9.3a5.4 5.4 0 0 1-10.8 0C6.6 9.5 8.9 6.9 12 3Z"/><circle cx="10" cy="14.8" r="1.1" fill="currentColor" stroke="none"/>'),
+  /* 脉搏：不朽之脉（生命上限 %） */
+  pulse: IC.wrap('<path d="M3 12h4l2.5-7 5 14 2.5-7H21"/>'),
+  /* 月盾：蚀月壁垒（生命 + 护甲） */
+  moonShield: IC.wrap('<path d="M12 3l7.5 2.6v5.1c0 4.7-3.1 8.6-7.5 10.3-4.4-1.7-7.5-5.6-7.5-10.3V5.6L12 3Z"/><path d="M15 9a4 4 0 1 1-4 4 3.3 3.3 0 1 0 4-4Z"/>'),
+  /* 皇冠：命运之契（legend）——复用 UI/结算区 crown */
+
   /* 月蚀之仪 · 调校齿轮（齿冠 + 月眼） */
   gear: IC.wrap('<circle cx="12" cy="12" r="3.1"/><path d="M12 2.7v2.6M12 18.7v2.6M2.7 12h2.6M18.7 12h2.6M5.3 5.3l1.9 1.9M16.8 16.8l1.9 1.9M18.7 5.3l-1.9 1.9M7.2 16.8l-1.9 1.9"/><circle cx="12" cy="12" r="7.4" stroke-dasharray="2.4 2"/>'),
 
@@ -213,6 +227,8 @@ export const ICONS: Record<string, string> = {
   tideGrowth: IC.wrap('<circle cx="12" cy="8.4" r="1.5" fill="currentColor" stroke="none"/><path d="M12 11.4v-1.5" stroke-width="1.2" stroke-dasharray="1.3 1.5"/><path d="M3.5 15.4h3.1l1.4 1.9 1.4-1.9 1.4 1.9 1.4-1.9H20.5"/><path d="M3.5 19.4h3.1l1.4 1.9 1.4-1.9 1.4 1.9 1.4-1.9H20.5" stroke-width="1.2" stroke-opacity=".45"/>'),
   /* 退潮拾贝：张开的贝 + 内珠 + 退潮浪（潮退白捡） */
   tideGift: IC.wrap('<path d="M4.8 17.2c-.6-3 1.5-6.6 5.4-7.8 3.9-1.2 8 .6 9.2 4.2.4 1.2.3 2.4-.3 3.6H4.8Z"/><circle cx="12" cy="12.6" r="1.8" fill="currentColor" stroke="none"/><path d="M7.6 12.4c1.5-.6 2.8-1.5 4-2.6M9.9 14.4c1.7-.6 3.2-1.4 4.4-2.6" stroke-width="1.1" stroke-opacity=".5"/><path d="M3.5 20.4h3.1l1.4-1.9 1.4 1.9 1.4-1.9 1.4 1.9H20.5" stroke-width="1.2" stroke-opacity=".45"/>'),
+  /* 月契币：命运轮盘资源——月牙币，正面刻月，背面蚀刻 */
+  oathCoin: IC.wrap('<circle cx="12" cy="12" r="9"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17Z"/><path d="M12 7a5 5 0 0 1 0 10Z" stroke-width="1.2" stroke-opacity=".55"/><path d="M16.5 8.5c-1 1.4-1.2 3-1 4.6" stroke-width="1" stroke-opacity=".4" stroke-dasharray="1.4 1.6"/>'),
 };
 
 /* 取图标 SVG；带类名重载 */

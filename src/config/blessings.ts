@@ -20,7 +20,7 @@ const APPLY_FN: Record<string, (p: Player) => void> = {
   b_atkspd:   p => { p.atkSpd += 0.08; },
   b_regen:    p => { p.regen += 0.4; },
   b_luck:     p => { p.luck += 0.15; },
-  b_critdmg:  p => { p.critDmg += 0.25; },
+  b_critdmg:  p => { p.critDmg += 0.30; },
   b_lifesteal: p => { p.lifesteal += 0.04; },
   b_proj:     p => { p.projCount += 1; },
   b_area:     p => { p.area += 0.1; },
@@ -28,7 +28,8 @@ const APPLY_FN: Record<string, (p: Player) => void> = {
   b_xp:       p => { p.xpGain += 0.15; },
   b_hp2:      p => { p.maxHp = Math.round(p.maxHp * 1.1); },
   b_atk2:     p => { p.atk = Math.round(p.atk * 1.08); },
-  b_legend:   p => { p.luck += 0.3; p.atkSpd += 0.1; },
+  b_legend:   p => { p.luck += 0.3; p.atkSpd += 0.18; },
+  b_moonwall: p => { p.maxHp += 18; p.hp += 18; p.armor += 2; },
   b_gold:     p => { p.goldGain += 0.2; },
 };
 
@@ -53,15 +54,36 @@ for (const data of Object.values(blessingsData)) {
 
 export { BLESSINGS };
 
-export function pickBlessings(n: number, excludeIds?: string[]): BlessingDef[] {
-  const ex = excludeIds || [];
+/**
+ * 幸运对祝福权重的修正（luck 重构后的唯一消费点）：
+ * - common 不变
+ * - epic ×(1 + luck)
+ * - legend ×(1 + luck×2)
+ * 理由：命运祝福权重基数最低（1），需要更长的杠杆才能被「福运」感知；
+ * 非凡用线性即可。[PLACEHOLDER · 验证：luck=1.3 时 epic 权重 ×1.3、legend ×1.6，
+ * 观察「每局 legend 期望数」是否仍低于 1.5，防止稀有度通胀]
+ */
+export function luckWeight(weight: number, tier: string, luck: number): number {
+  const l = Math.max(0, luck || 1);
+  if (tier === 'legend') return weight * (1 + l * 2);
+  if (tier === 'epic') return weight * (1 + l);
+  return weight;
+}
+
+/** 按权重抽取 n 个祝福；可选排除项 + 幸运修正（config 层保持纯函数，不读 state） */
+export function pickBlessings(n: number, opts?: { excludeIds?: string[]; luck?: number }): BlessingDef[] {
+  const ex = (opts && opts.excludeIds) || [];
+  const luck = (opts && opts.luck) || 1;
   const pool = BLESSINGS.filter(b => !ex.includes(b.id));
   const chosen: BlessingDef[] = [];
   while (chosen.length < n && pool.length) {
-    const total = pool.reduce((s, b) => s + b.weight, 0);
+    const total = pool.reduce((s, b) => s + luckWeight(b.weight, b.tier, luck), 0);
     let r = Math.random() * total;
     let idx = 0;
-    for (let i = 0; i < pool.length; i++) { r -= pool[i].weight; if (r <= 0) { idx = i; break; } }
+    for (let i = 0; i < pool.length; i++) {
+      r -= luckWeight(pool[i].weight, pool[i].tier, luck);
+      if (r <= 0) { idx = i; break; }
+    }
     chosen.push(pool.splice(idx, 1)[0]);
   }
   return chosen;

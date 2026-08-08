@@ -100,12 +100,12 @@ describe('computeDerived', () => {
     expect(p.effSpeed).toBe(200 + 40 * 0.5);
   });
 
-  it('luckToGold 只对「超出 1 的幸运」生效', () => {
+  it('luck 重构后：幸运不再转化为金币（effGold = goldGain）', () => {
     const base = makePlayer({ luck: 1, goldGain: 1, luckToGold: 2 });
     expect(base.effGold).toBe(1);
 
     const lucky = makePlayer({ luck: 3, goldGain: 1, luckToGold: 2 });
-    expect(lucky.effGold).toBe(1 + 2 * 2);
+    expect(lucky.effGold).toBe(1); /* luckToGold 保留字段但不再被消费 */
   });
 
   it('返回的是同一个对象（原地写回，调用方持有的引用会看到新值）', () => {

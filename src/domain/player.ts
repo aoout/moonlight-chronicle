@@ -31,7 +31,7 @@ export function computeDerived(p: Player): Player {
              + (stageState.state.stage - 1) * p.scaleStage;
   p.effCrit  = Math.min(CRIT_CAP, p.critRate + p.speed * p.speedToCrit / 100);
   p.effSpeed = p.speed + p.atk * p.atkToSpd;
-  p.effGold  = p.goldGain + (p.luck - 1) * p.luckToGold;
+  p.effGold  = p.goldGain;   // luck 重构（2026-08-08）：幸运不再转化为金币，luckToGold 保留字段不再消费
   p.effAtkSpd = p.atkSpd;   // 攻速 = 基础攻速（已移除暴击率→攻速隐藏联动，防负暴击穿透）
   return p;
 }

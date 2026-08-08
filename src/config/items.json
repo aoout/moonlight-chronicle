@@ -210,7 +210,7 @@
     "icon": "greedBox",
     "rarity": "epic",
     "price": 34,
-    "desc": "幸运转化为金币：每 1 点幸运 <span class=\"stat-conv\">+8%</span> 金币获取。"
+    "desc": "金币获取 <span class=\"stat-up\">+25%</span>。"
   },
   "scaleLv": {
     "id": "scaleLv",

@@ -52,7 +52,7 @@ function getItemEffectRows(it: ShopItemDef, p: Player): (string | number)[][] | 
       ['暴击率', (p.critRate * 100).toFixed(0) + '%', '150%', (p.critRate * 1.5 * p.effAtk).toFixed(1) + ' 攻击力'],
     ],
     luckGold: [
-      ['幸运', (p.luck * 100).toFixed(0) + '%', '每点 +8%', '金币获取'],
+      ['金币获取', (p.goldGain * 100).toFixed(0) + '%', '+25%', '金币获取'],
     ],
   };
   return map[it.id] || null;

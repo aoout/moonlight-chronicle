@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="css/settings.css">
   <link rel="stylesheet" href="css/planet.css">
   <link rel="stylesheet" href="css/curse.css">
+  <link rel="stylesheet" href="css/fortune.css">
   <link rel="stylesheet" href="css/gamepad.css">
 </head>
 <body>
@@ -325,6 +326,7 @@
         </div>
         <div class="hud-right">
           <div class="coin eclipse-glass-ghost eclipse-glass--frosted"><span class="ic" data-ic="coin"></span><span id="gold-text">0</span></div>
+          <div class="coin pacts eclipse-glass-ghost eclipse-glass--frosted" title="月契 · 蚀月轮盘的赌注"><span class="ic" data-ic="oathCoin"></span><span id="pacts-text">0</span></div>
           <div class="killcount eclipse-glass-ghost eclipse-glass--frosted"><span class="ic" data-ic="skull"></span><span id="kill-text">0</span></div>
         </div>
       </div>
@@ -343,11 +345,109 @@
       <!-- 伤害数字层 -->
       <div class="fx-layer" id="fx-layer"></div>
 
-      <!-- 升级选择 -->
+      <!-- 升级选择 · 蚀月轮盘 -->
       <div id="levelup" class="overlay hidden">
-        <div class="overlay-title">命运之轮转动</div>
-        <div class="overlay-sub">选择一项祝福</div>
-        <div class="cards" id="levelup-cards"></div>
+        <div class="overlay-title">蚀月轮盘</div>
+        <div class="overlay-sub wheel-sub">
+          拨动命运，或掷出月契
+        </div>
+        <div class="wheel-stage">
+          <div class="wheel-wrap">
+            <svg id="wheel-svg" viewBox="0 0 400 400" role="img" aria-label="蚀月轮盘">
+              <defs>
+                <!-- 扇区宝石质感：内亮外暗的径向渐变（守月人视角，月光自中心洒落） -->
+                <radialGradient id="segCommon" cx="50%" cy="38%" r="72%">
+                  <stop offset="0%" stop-color="#33416f"/>
+                  <stop offset="52%" stop-color="#242f56"/>
+                  <stop offset="100%" stop-color="#141a36"/>
+                </radialGradient>
+                <radialGradient id="segEpic" cx="50%" cy="38%" r="72%">
+                  <stop offset="0%" stop-color="#4a3f7e"/>
+                  <stop offset="52%" stop-color="#332a63"/>
+                  <stop offset="100%" stop-color="#1d1740"/>
+                </radialGradient>
+                <radialGradient id="segLegend" cx="50%" cy="38%" r="72%">
+                  <stop offset="0%" stop-color="#6b5525"/>
+                  <stop offset="52%" stop-color="#4a3a14"/>
+                  <stop offset="100%" stop-color="#241c0a"/>
+                </radialGradient>
+                <radialGradient id="segBlank" cx="50%" cy="38%" r="72%">
+                  <stop offset="0%" stop-color="#6e2530"/>
+                  <stop offset="52%" stop-color="#45181c"/>
+                  <stop offset="100%" stop-color="#23090d"/>
+                </radialGradient>
+                <!-- 月契核心 -->
+                <radialGradient id="hubCore" cx="50%" cy="38%" r="72%">
+                  <stop offset="0%" stop-color="#1d2448"/>
+                  <stop offset="100%" stop-color="#0a0c1c"/>
+                </radialGradient>
+                <radialGradient id="hubGlow" cx="50%" cy="45%">
+                  <stop offset="0%" stop-color="rgba(233,201,135,.55)"/>
+                  <stop offset="100%" stop-color="rgba(233,201,135,0)"/>
+                </radialGradient>
+                <!-- 蚀月之针：白金渐变 -->
+                <radialGradient id="pointerGrad" cx="50%" cy="18%" r="95%">
+                  <stop offset="0%" stop-color="#fff6df"/>
+                  <stop offset="45%" stop-color="#e9c987"/>
+                  <stop offset="100%" stop-color="#8a6a2f"/>
+                </radialGradient>
+              </defs>
+
+              <!-- 蚀环：外圈符文环 + 精刻环（仪式法器之感） -->
+              <circle cx="200" cy="200" r="190" fill="none" stroke="rgba(233,201,135,.20)" stroke-width="1.5" stroke-dasharray="2 9"/>
+              <circle cx="200" cy="200" r="181.5" fill="none" stroke="rgba(233,201,135,.26)" stroke-width="1"/>
+              <!-- 四向蚀星点（东西南北，蚀月仪轨方位） -->
+              <circle class="wheel-orb" cx="200" cy="11.5" r="2.6" fill="#e9c987"/>
+              <circle class="wheel-orb" cx="200" cy="388.5" r="2.6" fill="#e9c987"/>
+              <circle class="wheel-orb" cx="11.5" cy="200" r="2.6" fill="#e9c987"/>
+              <circle class="wheel-orb" cx="388.5" cy="200" r="2.6" fill="#e9c987"/>
+
+              <!-- 扇区盘（由 LevelUpPanel 渲染） -->
+              <g id="wheel-disk"></g>
+
+              <!-- 内缘蚀刻环：圈住扇区内侧，强化盘面层次 -->
+              <circle cx="200" cy="200" r="173.5" fill="none" stroke="rgba(10,12,28,.6)" stroke-width="2.5"/>
+              <circle cx="200" cy="200" r="171.8" fill="none" stroke="rgba(233,201,135,.10)" stroke-width="1"/>
+
+              <!-- 蚀月之针：不随盘面旋转，悬于 12 点方向 -->
+              <g id="wheel-pointer-g" class="wheel-pointer-g" aria-hidden="true">
+                <path d="M200 7 L208.5 33 L200 75 L191.5 33 Z" fill="url(#pointerGrad)" stroke="rgba(233,201,135,.9)" stroke-width="1"/>
+                <path d="M200 15 L200 70" stroke="rgba(255,255,255,.30)" stroke-width="1" stroke-linecap="round"/>
+                <circle cx="200" cy="10" r="4" fill="#fbf4dd" stroke="#e9c987" stroke-width="1.2"/>
+                <circle class="ptr-gem" cx="200" cy="8.5" r="1.6" fill="#fff" opacity=".9"/>
+              </g>
+
+              <!-- 月契核心：半月金币徽记（与副标题同款月契图腾）+ 月契数 -->
+              <g id="wheel-hub">
+                <circle cx="200" cy="200" r="46.5" fill="none" stroke="rgba(233,201,135,.28)" stroke-width="1" stroke-dasharray="2 4"/>
+                <circle cx="200" cy="200" r="43" fill="url(#hubCore)" stroke="rgba(233,201,135,.45)" stroke-width="1.5"/>
+                <circle class="hub-breathe" cx="200" cy="200" r="37" fill="url(#hubGlow)"/>
+                <!-- 月契徽记：oathCoin 同款（金币 + 半月），gold 描边 -->
+                <g class="hub-mark" transform="translate(200 184) translate(-12 -12) scale(.86)" fill="none" stroke="#e9c987" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity=".95">
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M12 3.5a8.5 8.5 0 0 1 0 17Z"/>
+                  <path d="M12 7a5 5 0 0 1 0 10Z" stroke-width="1.2" stroke-opacity=".55"/>
+                  <path d="M16.5 8.5c-1 1.4-1.2 3-1 4.6" stroke-width="1" stroke-opacity=".4" stroke-dasharray="1.4 1.6"/>
+                </g>
+                <text id="wheel-pacts-hub" x="200" y="230" text-anchor="middle">0</text>
+              </g>
+            </svg>
+          </div>
+          <!-- 命运之台：预览 / 结果 / 三选一 共用一个常驻玻璃显示框 -->
+          <div id="wheel-console" class="wheel-console eclipse-glass-deep eclipse-glass--frosted" aria-live="polite">
+            <div id="wheel-console-body" class="wheel-console-body">
+              <span class="wd-hint">悬停轮盘扇区 · 查看祝福效果</span>
+            </div>
+          </div>
+        </div>
+        <div class="wheel-actions" id="wheel-actions">
+          <button class="wheel-action primary" id="wa-spin"><span class="wa-ic" data-ic="moonFull"></span><span class="wa-txt">随机拨动</span><small>附赠 1 月契</small></button>
+          <button class="wheel-action sieve" id="wa-sieve"><span class="wa-ic" data-ic="target"></span><span class="wa-txt">命运筛选</span><small>三选一 · 免费</small></button>
+          <button class="wheel-action" id="wa-enhance"><span class="wa-ic" data-ic="star"></span><span class="wa-txt">强化</span><small>2 月契</small></button>
+          <button class="wheel-action" id="wa-swap"><span class="wa-ic" data-ic="exchange"></span><span class="wa-txt">踢格替代</span><small>3 月契</small></button>
+          <button class="wheel-action danger" id="wa-moon"><span class="wa-ic" data-ic="meteor"></span><span class="wa-txt">月轮</span><small>5 月契</small></button>
+        </div>
+        <div id="wheel-tip" class="wheel-tip"></div>
       </div>
 
       <!-- 商店 -->

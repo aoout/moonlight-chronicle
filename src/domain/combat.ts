@@ -14,7 +14,7 @@ import { renderState } from '../state/render.js';
 import { gameState } from '../state/flow.js';
 import { EventBus } from '../engine/core/event_bus.js';
 import { RNG, dist, rand } from '../engine/util/utils.js';
-import { ENEMIES, BOSSES, CONFIG } from '../config/index.js';
+import { ENEMIES, CONFIG } from '../config/index.js';
 import { queryRadius } from '../engine/spatial/SpatialSystem.js';
 import { world } from '../engine/ecs/World.js';
 import { endStage, playerDeath } from '../engine/core/states.js';
@@ -22,6 +22,8 @@ import { achievements } from './ports/achievements.js';
 import { shakeScreen } from '../state/render.js';
 import { spawnEnemy } from './spawn.js';
 import { Position, Velocity } from '../engine/ecs/entity_factories.js';
+import { addGold } from './player.js';
+import { addMoonPacts } from '../state/fortune.js';
 import type { EnemyInstance, Player } from '../types/core.d.ts';
 
 import { sSt, gSt, eSt, pSt, rSt, gmSt } from '../state/accessors.js';
@@ -73,10 +75,21 @@ const MOON_WAX_SHIELD_RATE = 0.05;  // 月影壁垒：受击生成 5% 最大生�
 const MOON_WAX_CD = 8;              // 月影壁垒冷却（秒）
 const GOLD_DROP_MIN = 0.6;          // 金币掉落浮动下限
 const GOLD_DROP_RANGE = 0.8;        // 金币掉落浮动区间宽度
-const LUCK_EXTRA_RATE = 0.15;       // 幸运额外掉落加成系数
 const HUNT_TIMER = 3;               // 狩猎层数持续时长（秒）
 const HUNT_MAX_STACKS = 8;          // 狩猎层数上限
 const MOON_KILL_TRIGGER = 3;        // 残月：每击杀 3 敌蓄满必爆
+
+/* ---------- 蚀月领主赏金 ----------
+   战胜 6/12/18 夜蚀月领主 → 固定金币 + 月契（替代自身掉落物）。
+   rationale：赏金随夜数线性增长（金币 +50/档、月契 +1/档），
+   与商店补货通胀（幂增长）相比是温和的稳定注入，中期金币水位不至于断供；
+   月契 1/2/3 恰好等于一次强化的成本递增梯度，形成「打领主 = 攒一次强化的赌注」。
+   [PLACEHOLDER · 验证：观察 12/18 夜后金币是否溢出（应少于一次商店大采购的 30%）] */
+const BOSS_REWARDS: Record<number, { gold: number; pacts: number }> = {
+  6:  { gold: 50,  pacts: 1 },
+  12: { gold: 100, pacts: 2 },
+  18: { gold: 150, pacts: 3 },
+};
 
 /** 范围溅射：对半径内除目标外的敌人造成比例伤害（暴月之眼 / 破晓溅射共用） */
 function aoeSplash(e: EnemyInstance, radius: number, dmg: number, ratio: number, p: Player, itemId: string, killSrc: string): void {
@@ -169,14 +182,17 @@ export function killEnemy(e: EnemyInstance, srcType?: string): void {
   const p = pSt().player;
   if (!p) return;
   const type = e.type || '';
-  const gDef = ENEMIES[type] || {};
-  const xpAmt = e.boss ? BOSSES[type].xp : (gDef.xp || 1);
-  let goldAmt = e.boss ? BOSSES[type].gold : (gDef.gold || 1);
-  if (p.effects.goldMeteor && RNG() < p.effects.goldMeteor) { const extraGold = goldAmt; goldAmt *= 2; trackItemExtraGold(p, 'goldMeteor', extraGold); EventBus.emit(EVENTS.UI_SPAWN_TEXT, { x: e.x, y: e.y - 20, text: '金币流星', color: PALETTE.goldPale }); }
-  const luckMul = 1 + Math.max(0, (p.luck || 1) - 1) * LUCK_EXTRA_RATE;
-  spawnDrop(e.x, e.y, 'xp', Math.round(xpAmt * luckMul));
-  spawnDrop(e.x, e.y, 'gold', Math.round(goldAmt * (e.boss ? 1 : GOLD_DROP_MIN + RNG() * GOLD_DROP_RANGE) * luckMul));
-  if (p.effects.devour) spawnDrop(e.x, e.y, 'xp', p.effects.devour);
+  /* 蚀月领主不产生掉落物（xp/gold 光点全部去除），其收益改为固定赏金（见 BOSS_REWARDS）；
+     小怪照常掉落，道具触发的额外掉落（吞噬之月/金币流星）仅对小怪生效 */
+  if (!e.boss) {
+    const gDef = ENEMIES[type] || {};
+    const xpAmt = gDef.xp || 1;
+    let goldAmt = gDef.gold || 1;
+    if (p.effects.goldMeteor && RNG() < p.effects.goldMeteor) { const extraGold = goldAmt; goldAmt *= 2; trackItemExtraGold(p, 'goldMeteor', extraGold); EventBus.emit(EVENTS.UI_SPAWN_TEXT, { x: e.x, y: e.y - 20, text: '金币流星', color: PALETTE.goldPale }); }
+    spawnDrop(e.x, e.y, 'xp', Math.round(xpAmt));
+    spawnDrop(e.x, e.y, 'gold', Math.round(goldAmt * (GOLD_DROP_MIN + RNG() * GOLD_DROP_RANGE)));
+    if (p.effects.devour) spawnDrop(e.x, e.y, 'xp', p.effects.devour);
+  }
   if (p.effects.hunt) { p.effects.huntTimer = HUNT_TIMER; p.effects.huntStacks = Math.min(HUNT_MAX_STACKS, (p.effects.huntStacks || 0) + 1); }
   if (p.onKillHp > 0) healPlayer(p.onKillHp);
   /* 残月·将熄之勇：每击杀 3 个敌人，下一次攻击必定暴击且暴伤额外 +50% */
@@ -208,6 +224,16 @@ export function killEnemy(e: EnemyInstance, srcType?: string): void {
     const rs = { ...sSt().runStats, bossKills: sSt().runStats.bossKills + 1 };
     stageState.set('boss', null);
     EventBus.emit(EVENTS.BOSS_KILLED, { type: e.type || '', stage: gs.stage });
+    /* 领主赏金：固定金币 + 月契，直接进账（金币走 effGold 倍率，与全局金币经济一致） */
+    const reward = BOSS_REWARDS[gs.stage];
+    if (reward) {
+      addGold(reward.gold);
+      addMoonPacts(reward.pacts);
+      EventBus.emit(EVENTS.UI_SPAWN_TEXT, {
+        x: e.x, y: e.y - 34, color: PALETTE.gold,
+        text: `领主赏金 · 金币 +${Math.round(reward.gold * Math.max(0.1, p.effGold))} · 月契 +${reward.pacts}`,
+      });
+    }
     if (sm.current === STATE.PLAYING) {
       if (gs.stage === CONFIG.FINAL_STAGE) {
         rs.win = true;

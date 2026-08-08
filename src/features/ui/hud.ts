@@ -5,6 +5,7 @@
 import { PALETTE } from '../../assets/palette.js';
 import { $, el, html } from './hud_utils.js';
 import { pSt, sSt, gSt } from '../../state/accessors.js';
+import { fortuneState } from '../../state/fortune.js';
 import { clamp } from '../../engine/util/utils.js';
 import { CONFIG, WEAPONS } from '../../config/index.js';
 import { iconSVG } from '../../assets/icons.js';
@@ -54,6 +55,12 @@ export function uiTick(): void {
         mr.title = MOON_NAMES[ph] + '，月面照明 ' + ill + '%。你的月亮效果随现实月相流转。';
       }
     }
+  }
+  // 月契（蚀月轮盘资源）：惰性刷新
+  const pt = $('pacts-text');
+  if (pt) {
+    const n = fortuneState.get('moonPacts');
+    if (pt.textContent !== String(n)) pt.textContent = String(n);
   }
   // 武器栏（帧级冷却动画 + 惰性重建）
   renderWeaponBar();

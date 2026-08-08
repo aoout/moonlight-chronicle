@@ -81,7 +81,8 @@ function getActiveContext(): FocusContext {
       return { key, items: [...cards, ...(close ? [close] : [])] };
     }
     case 'levelup':
-      return { key, items: _collect('#levelup-cards .card') };
+      /* 蚀月轮盘：手柄导航聚焦四个操作按钮；选择模式（强化/踢格）用指针点格子 */
+      return { key, items: _collect('#wheel-actions .wheel-action:not(.disabled)') };
     case 'shop': {
       const cards = _collect('#shop-cards .card');
       const weapons = _collect('#shop-weapons .pw-item');
