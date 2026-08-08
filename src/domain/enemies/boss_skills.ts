@@ -112,12 +112,12 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     spawnStreak(e.x, e.y, 0, 60, 3, PALETTE.ice, 0.4);
     const base = RNG() * TAU;
     // 潮汐呼吸：涨潮(breath>1)推快 / 退潮(<1)滞涩——节奏随 attT 相位波动
-    const breath = 1 + 0.45 * Math.sin(e.attT * 2.4);
+    const breath = 1 + 0.36 * Math.sin(e.attT * 2.4);
     // 浪花弧片双层（错位消除间隙）+ 快层推挤
-    ringLayerShot(e, 12, 210 * breath, PALETTE.ice, { offset: base, r: 6, dmgMul: 0.45, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3, phase: RNG() * TAU });
-    ringLayerShot(e, 12, 300 * breath, PALETTE.skyDark, { offset: base + 0.2, r: 6, dmgMul: 0.4, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3, phase: RNG() * TAU });
+    ringLayerShot(e, 12, 193 * breath, PALETTE.ice, { offset: base, r: 6, dmgMul: 0.45, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3, phase: RNG() * TAU });
+    ringLayerShot(e, 12, 276 * breath, PALETTE.skyDark, { offset: base + 0.2, r: 6, dmgMul: 0.4, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3, phase: RNG() * TAU });
     // 螺旋潮圈（持续漩涡压迫）
-    spiralBurst(e, 2, 10, 260 * breath, '#7fc4d8', { r: 5, dmgMul: 0.35, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3, phase: RNG() * TAU });
+    spiralBurst(e, 2, 10, 239 * breath, '#7fc4d8', { r: 5, dmgMul: 0.35, life: 3, mark: 'wave', wId: 'enemy_wave', arc: (RNG() - 0.5) * 0.3, phase: RNG() * TAU });
     // 追踪潮球（绕圈甩）
     trackBalls(e, 2, 211, 60, PALETTE.skyDark, { dmgMul: 0.53, life: 3.5, ...HOMING_TUNE.tidalWave });
   },
@@ -138,19 +138,19 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     // 产卵时也不忘压制：卵囊弹（母体孕育，飞散中挣出幼体）+ 三角幼体 + 追踪泡
     for (let i = 0; i < 6; i++) {
       const a = (i / 6) * TAU + RNG() * 0.5;
-      shot(e, a, 150, PALETTE.teal, { r: 7, dmgMul: 0.5, life: 3, wId: 'enemy_egg', splitAt: 1.1 });
+      shot(e, a, 142, PALETTE.teal, { r: 7, dmgMul: 0.5, life: 3, wId: 'enemy_egg', splitAt: 1.1 });
     }
-    for (let i = 0; i < 5; i++) {
-      const a = (i / 5) * TAU + RNG() * 0.6;
-      shot(e, a, 240, PALETTE.paleGreen, { r: 5, dmgMul: 0.45, life: 2.6, wId: 'enemy_tri' });
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * TAU + RNG() * 0.6;
+      shot(e, a, 222, PALETTE.paleGreen, { r: 5, dmgMul: 0.45, life: 2.6, wId: 'enemy_tri' });
     }
-    trackBalls(e, 2, 194, 50, PALETTE.teal, { dmgMul: 0.53, ...HOMING_TUNE.spawnTide });
+    trackBalls(e, 2, 180, 42, PALETTE.teal, { dmgMul: 0.53, ...HOMING_TUNE.spawnTide });
   },
-  /* 蚀壳战车：连续冲撞（转向追踪）×3 + 撞击震地 */
+  /* 蚀壳战车：连续冲撞（转向追踪）×2 + 撞击震地 */
   ram(e: EnemyInstance) {
     spawnRing(e.x, e.y, PALETTE.slate, 0.4, 70, 3);
     spawnBurst(e.x, e.y, PALETTE.steel, 12);
-    e.dashCount = 3;
+    e.dashCount = 2;    // 连段 3→2：总追击时长下降，玩家有喘息窗口
     bossDash(e);
     // 轮辐弹：旋转十字辐条凌空碾过（车轮意象）
     ringShot(e, 6, 170, PALETTE.steel, { r: 6, dmgMul: 0.55, life: 3, wId: 'enemy_spoke' });
@@ -316,12 +316,18 @@ export function bossTick(e: EnemyInstance, dt: number): void {
     e.y += e.vy * dt;
     e.stateT -= dt;
     if (e.stateT <= 0) {
-      // 连续冲撞：剩余次数内重新瞄准玩家，形成追击压制
+      // 连续冲撞：剩余次数内重新瞄准玩家（转弯限幅：弧形追击可预判、可侧甩）
       if ((e.dashCount || 0) > 0) {
         e.dashCount = (e.dashCount || 0) - 1;
         const da = angTo(e, p);
-        e.vx = Math.cos(da) * 460; e.vy = Math.sin(da) * 460;
-        e.stateT = 0.5;
+        // 转弯限幅：从当前方向最多转 1.6 rad（≈92°）——第二撞是「折返」而非「瞬移追」
+        const cur = Math.atan2(e.vy || 0, e.vx || 0);
+        let diff = da - cur;
+        while (diff > Math.PI) diff -= TAU;
+        while (diff < -Math.PI) diff += TAU;
+        const na = cur + Math.max(-1.6, Math.min(1.6, diff));
+        e.vx = Math.cos(na) * 430; e.vy = Math.sin(na) * 430;
+        e.stateT = 0.75;   // 冲撞间隔 0.5→0.75s：玩家躲完一撞后有走位窗口
         eSt().projectiles.push(PROJECTILE_POOL.addWith({ ground: true, x: e.x, y: e.y, t: 0, delay: 0.45, r: 110, dmg: e.dmg * 0.79, color: PALETTE.slate }));
         shakeScreen(6);
       } else {
@@ -377,6 +383,6 @@ export function bossDash(e: EnemyInstance): void {
   spawnBurst(e.x, e.y, PALETTE.steel, 10);
   spawnRing(e.x, e.y, PALETTE.steel, 0.3, 45, 2.4);
   spawnStreak(e.x, e.y, a, 50, 2.5, '#c8ced8', 0.35);
-  e.vx = Math.cos(a) * 460; e.vy = Math.sin(a) * 460;
-  e.state = 'dashMove'; e.stateT = 0.5;
+  e.vx = Math.cos(a) * 430; e.vy = Math.sin(a) * 430;
+  e.state = 'dashMove'; e.stateT = 0.75;
 }
