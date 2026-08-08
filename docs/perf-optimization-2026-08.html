@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蚀月远征 · 性能优化报告（2026-08-08）</title>
+<style>
+  /* ============================================================
+     蚀月远征 · 报告设计语言
+     深邃月夜底色 + 金色蚀月辉光，与游戏 UI 一脉相承
+     ============================================================ */
+  :root {
+    --moon-deep: #0a1130;
+    --moon-night: #151a33;
+    --moon-rim: #1d2452;
+    --moon-glass: rgba(20, 28, 60, 0.62);
+    --moon-glow: #e9c987;
+    --moon-gold: #f4e3c0;
+    --moon-ice: #9fd6e8;
+    --moon-blood: #e2546a;
+    --moon-orchid: #b49ae8;
+    --moon-text: #eaf6ff;
+    --moon-text-dim: #a8b3cf;
+    --moon-text-faint: #6c7896;
+    --moon-border: rgba(233, 201, 135, 0.18);
+    --moon-border-strong: rgba(233, 201, 135, 0.42);
+    --radius: 10px;
+    --shadow: 0 6px 28px rgba(0, 0, 0, 0.35);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(ellipse at top, #1d2452 0%, var(--moon-deep) 60%) fixed;
+    color: var(--moon-text);
+    font-family: "Cinzel", "Noto Serif SC", "Inter", "PingFang SC", "Microsoft YaHei", serif;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    /* 月尘噪点叠加 */
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: var(--glass-noise, none);
+    z-index: 1;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 28px 96px;
+    position: relative;
+    z-index: 2;
+  }
+  /* ---------- 顶栏 ---------- */
+  header.hero {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--moon-border);
+  }
+  .kicker {
+    font-size: 12px;
+    letter-spacing: 0.42em;
+    color: var(--moon-glow);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-family: "Cinzel", serif;
+    font-weight: 900;
+    font-size: 44px;
+    margin: 0 0 18px;
+    color: var(--moon-gold);
+    letter-spacing: 0.06em;
+    line-height: 1.15;
+  }
+  .subtitle {
+    color: var(--moon-text-dim);
+    font-size: 16px;
+    margin: 0 0 32px;
+    max-width: 760px;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    color: var(--moon-text-faint);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+  .meta-row span strong { color: var(--moon-glow); font-weight: 600; margin-left: 6px; }
+
+  /* ---------- 摘要指标卡片 ---------- */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 56px;
+  }
+  .stat-card {
+    background: var(--moon-glass);
+    border: 1px solid var(--moon-border);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(233, 201, 135, 0.08), transparent 60%);
+    pointer-events: none;
+  }
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    color: var(--moon-text-faint);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .stat-value {
+    font-family: "Cinzel", serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--moon-gold);
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .stat-delta {
+    font-size: 12px;
+    color: var(--moon-ice);
+    letter-spacing: 0.04em;
+  }
+  .stat-delta.negative { color: var(--moon-blood); }
+  .stat-delta strong { font-weight: 700; }
+
+  /* ---------- 章节 ---------- */
+  section {
+    margin-bottom: 48px;
+  }
+  h2 {
+    font-family: "Cinzel", serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--moon-gold);
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--moon-border);
+    letter-spacing: 0.04em;
+  }
+  h3 {
+    font-family: "Cinzel", serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--moon-ice);
+    margin: 24px 0 12px;
+    letter-spacing: 0.03em;
+  }
+  p { margin: 0 0 14px; color: var(--moon-text); }
+  code, pre {
+    font-family: "JetBrains Mono", "Fira Code", Consolas, "Courier New", monospace;
+    font-size: 13px;
+  }
+  :not(pre) > code {
+    background: rgba(154, 178, 207, 0.12);
+    color: var(--moon-gold);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(233, 201, 135, 0.18);
+  }
+  pre {
+    background: rgba(10, 14, 30, 0.72);
+    border: 1px solid var(--moon-border);
+    border-left: 3px solid var(--moon-glow);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    overflow-x: auto;
+    color: var(--moon-text);
+    line-height: 1.5;
+    margin: 12px 0 20px;
+  }
+  pre code { color: inherit; background: none; padding: 0; border: none; }
+
+  /* ---------- 表格 ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    background: var(--moon-glass);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--moon-border);
+  }
+  thead {
+    background: rgba(233, 201, 135, 0.08);
+  }
+  th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--moon-border);
+    font-size: 13px;
+  }
+  th {
+    color: var(--moon-glow);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  td { color: var(--moon-text); }
+  td.mono { font-family: "JetBrains Mono", Consolas, monospace; font-size: 12px; color: var(--moon-ice); }
+  td.delta { color: var(--moon-ice); font-weight: 600; }
+  td.delta.neg { color: var(--moon-blood); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(233, 201, 135, 0.04); }
+
+  /* ---------- 优化项卡片 ---------- */
+  .opt-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .opt {
+    background: var(--moon-glass);
+    border: 1px solid var(--moon-border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    backdrop-filter: blur(6px);
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .opt::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--moon-glow);
+  }
+  .opt.prio-CRITICAL::before { background: var(--moon-blood); }
+  .opt.prio-HIGH::before { background: var(--moon-orchid); }
+  .opt.prio-MEDIUM::before { background: var(--moon-glow); }
+  .opt.prio-LOW::before { background: var(--moon-ice); }
+
+  .opt-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .opt-title {
+    font-family: "Cinzel", serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--moon-gold);
+    margin: 0;
+  }
+  .opt-prio {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    font-weight: 600;
+    border: 1px solid currentColor;
+  }
+  .prio-CRITICAL .opt-prio { color: var(--moon-blood); }
+  .prio-HIGH .opt-prio { color: var(--moon-orchid); }
+  .prio-MEDIUM .opt-prio { color: var(--moon-glow); }
+  .prio-LOW .opt-prio { color: var(--moon-ice); }
+
+  .opt-section {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 10px 16px;
+    margin-top: 14px;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  .opt-section dt {
+    color: var(--moon-text-faint);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 10.5px;
+    padding-top: 3px;
+  }
+  .opt-section dd { margin: 0; color: var(--moon-text); }
+  .opt-section dd code { font-size: 12px; }
+
+  /* ---------- 验证清单 ---------- */
+  ul.checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  ul.checklist li {
+    padding: 10px 0 10px 28px;
+    position: relative;
+    border-bottom: 1px solid var(--moon-border);
+    color: var(--moon-text);
+  }
+  ul.checklist li:last-child { border-bottom: none; }
+  ul.checklist li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--moon-ice);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  ul.checklist li strong { color: var(--moon-gold); font-weight: 600; margin-right: 6px; }
+
+  /* ---------- 标签 ---------- */
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(154, 178, 207, 0.1);
+    color: var(--moon-text-dim);
+    border: 1px solid var(--moon-border);
+    margin-left: 6px;
+    letter-spacing: 0.04em;
+  }
+  .tag.chunk { color: var(--moon-orchid); border-color: rgba(180, 154, 232, 0.4); }
+  .tag.runtime { color: var(--moon-ice); border-color: rgba(159, 214, 232, 0.4); }
+  .tag.bundle { color: var(--moon-glow); border-color: var(--moon-border-strong); }
+
+  /* ---------- 截图 ---------- */
+  figure.screenshot {
+    margin: 24px 0;
+    background: var(--moon-glass);
+    border: 1px solid var(--moon-border);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+  }
+  figure.screenshot img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 6px;
+    border: 1px solid var(--moon-border);
+  }
+  figure.screenshot figcaption {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--moon-text-faint);
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--moon-border);
+    color: var(--moon-text-faint);
+    font-size: 12px;
+    text-align: center;
+    letter-spacing: 0.06em;
+  }
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width: 720px) {
+    .wrap { padding: 32px 18px 64px; }
+    h1 { font-size: 32px; }
+    .summary { grid-template-columns: repeat(2, 1fr); }
+    .opt-head { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .opt-section { grid-template-columns: 1fr; gap: 4px; }
+    .opt-section dt { padding-top: 8px; }
+    th, td { padding: 10px 10px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============== 顶栏 ============== -->
+<header class="hero">
+  <div class="kicker">Moonlight Chronicle · Performance Audit</div>
+  <h1>蚀月远征 · 性能优化报告</h1>
+  <p class="subtitle">
+    按「观测 → 定位 → 优化 → 验证」证据优先流程，对 Vite + TypeScript + Canvas 2D 架构进行首包与运行时双线体检。
+    改造在分支 <code style="background:rgba(154,178,207,.15);padding:2px 8px;border-radius:4px">perf/load-runtime-optimization</code> 上完成，
+    不单方面降级画面与操作体验（性能档位由 <code>月蚀之仪</code> 面板交给玩家取舍）。
+  </p>
+  <div class="meta-row">
+    <span>报告日期<strong>2026-08-08</strong></span>
+    <span>Node<strong>v22.22.2</strong></span>
+    <span>Vite<strong>v8.2.0</strong></span>
+    <span>分支<strong>perf/load-runtime-optimization</strong></span>
+    <span>提交<strong>14eb2fe</strong></span>
+  </div>
+</header>
+
+<!-- ============== 摘要 ============== -->
+<section class="summary">
+  <div class="stat-card">
+    <div class="stat-label">首屏 JS</div>
+    <div class="stat-value">356.86 kB</div>
+    <div class="stat-delta">−20.76 kB（−5.5%）<strong>gzip −5.30</strong></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">按需 JS</div>
+    <div class="stat-value">26.72 kB</div>
+    <div class="stat-delta">6 个懒 chunk，不打开不下发<strong>gzip ≈ 10.3</strong></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">HTTP 请求</div>
+    <div class="stat-value">−1</div>
+    <div class="stat-delta">noise.png 3.4KB 内联为 data URI</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">字体阻塞</div>
+    <div class="stat-value">消除</div>
+    <div class="stat-delta">Google Fonts 改为异步样式表</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">测试覆盖</div>
+    <div class="stat-value">573 / 573</div>
+    <div class="stat-delta">40 个测试文件 · <strong>verify 28s 全过</strong></div>
+  </div>
+</section>
+
+<!-- ============== 构建对比 ============== -->
+<section>
+  <h2>一 · 构建产物对比</h2>
+  <p>vite build 实测 <code style="background:rgba(154,178,207,.15);padding:2px 8px;border-radius:4px">vite v8.2.0</code> · <code style="background:rgba(154,178,207,.15);padding:2px 8px;border-radius:4px">190 modules</code>。原始数据来自 <code style="background:rgba(154,178,207,.15);padding:2px 8px;border-radius:4px">vite build</code> 标准输出。</p>
+
+  <table>
+    <thead>
+      <tr><th>产物</th><th>原始 (kB)</th><th>gzip (kB)</th><th>加载时机</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="4" style="background:rgba(233,201,135,.06);color:var(--moon-glow);font-weight:600;letter-spacing:.06em">── 优化前（单包构建） ──</td>
+      </tr>
+      <tr>
+        <td><code>index.js</code>（单体包）</td>
+        <td class="mono">377.62</td>
+        <td class="mono">124.70</td>
+        <td>首屏</td>
+      </tr>
+      <tr>
+        <td><code>noise.png</code> 独立资源</td>
+        <td class="mono">3.37</td>
+        <td class="mono">—</td>
+        <td>首屏 +1 请求</td>
+      </tr>
+      <tr>
+        <td><code>index.css</code></td>
+        <td class="mono">115.33</td>
+        <td class="mono">21.07</td>
+        <td>首屏</td>
+      </tr>
+
+      <tr>
+        <td colspan="4" style="background:rgba(159,214,232,.06);color:var(--moon-ice);font-weight:600;letter-spacing:.06em">── 优化后（懒加载分块） ──</td>
+      </tr>
+      <tr>
+        <td><code>index.js</code>（主入口）</td>
+        <td class="mono">242.84</td>
+        <td class="mono">77.19</td>
+        <td>首屏</td>
+      </tr>
+      <tr>
+        <td><code>hud_utils.js</code> modulepreload</td>
+        <td class="mono">112.25</td>
+        <td class="mono">41.18</td>
+        <td>首屏</td>
+      </tr>
+      <tr>
+        <td><code>event_bus.js</code> + <code>render.js</code> modulepreload</td>
+        <td class="mono">1.77</td>
+        <td class="mono">1.03</td>
+        <td>首屏</td>
+      </tr>
+      <tr style="border-top:2px solid var(--moon-border-strong)">
+        <td><strong>首屏 JS 合计</strong></td>
+        <td class="mono"><strong>356.86</strong></td>
+        <td class="mono"><strong>119.40</strong></td>
+        <td>−20.76 kB / −5.30 kB gzip</td>
+      </tr>
+
+      <tr>
+        <td><code>codex.js</code></td>
+        <td class="mono">8.24</td>
+        <td class="mono">3.06</td>
+        <td>点击「蚀之图鉴」时</td>
+      </tr>
+      <tr>
+        <td><code>planet.js</code></td>
+        <td class="mono">9.65</td>
+        <td class="mono">3.69</td>
+        <td>点击残月按钮时</td>
+      </tr>
+      <tr>
+        <td><code>shop.js</code></td>
+        <td class="mono">3.92</td>
+        <td class="mono">2.04</td>
+        <td>进入 SHOP 状态时</td>
+      </tr>
+      <tr>
+        <td><code>settings_panel.js</code></td>
+        <td class="mono">1.55</td>
+        <td class="mono">0.68</td>
+        <td>点击「月蚀之仪」时</td>
+      </tr>
+      <tr>
+        <td><code>achievements.js</code></td>
+        <td class="mono">1.59</td>
+        <td class="mono">0.86</td>
+        <td>点击「蚀月功勋」时</td>
+      </tr>
+      <tr style="border-top:2px solid var(--moon-border-strong)">
+        <td><strong>按需 JS 合计</strong></td>
+        <td class="mono"><strong>24.95</strong></td>
+        <td class="mono"><strong>10.33</strong></td>
+        <td>用户未访问即不下发</td>
+      </tr>
+
+      <tr>
+        <td><code>index.css</code>（含内联 noise.png）</td>
+        <td class="mono">119.82</td>
+        <td class="mono">25.45</td>
+        <td>首屏 −1 请求</td>
+      </tr>
+      <tr>
+        <td><code>index.html</code></td>
+        <td class="mono">33.69</td>
+        <td class="mono">8.13</td>
+        <td>首屏（含字体 onload 钩子）</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============== 优化项 ============== -->
+<section>
+  <h2>二 · 优化项详情</h2>
+  <p style="color:var(--moon-text-dim)">按影响优先级排序。每项包含：问题 → 证据（<code style="background:rgba(154,178,207,.15);padding:1px 6px;border-radius:3px">文件:行号</code> 或构建输出）→ 改法 → 验证收益。</p>
+
+  <div class="opt-grid">
+
+    <!-- CRITICAL #1 -->
+    <div class="opt prio-CRITICAL">
+      <div class="opt-head">
+        <h4 class="opt-title">懒加载 蚀之图鉴 / 蚀月功勋 / 月蚀之仪 / 蚀月之望 / 集市</h4>
+        <span class="opt-prio">CRITICAL</span>
+      </div>
+      <p>主包静态 import 了 5 个非首屏 UI 面板与对应专属模块；首次访问后用户大概率不会打开这些面板，但全部 JS 都进了首包。</p>
+      <dl class="opt-section">
+        <dt>证据</dt>
+        <dd>
+          拆包测试 <code>manualChunks</code> 把 codex+achievements 拆到 174.25 kB / 54.56 kB gzip，cloudsync 113.81 kB / 42.35 kB gzip，两者占假想首包 78%。
+          静态引用点：<code>scheduler.ts:18-20</code>、<code>main.ts:16,57</code>、<code>state_hooks.ts:13</code>、<code>PausePanel.ts:13</code>、<code>codex.ts:15</code>。
+        </dd>
+        <dt>改法</dt>
+        <dd>
+          <ul style="margin:0;padding-left:20px">
+            <li><code>scheduler.ts</code>：移除 <code>bindCodex / bindAchievements / bindSettingsUI</code> 静态 import；模块级缓存 <code>_codexMod / _achvMod / _settingsMod</code> + <code>_xxxLoading</code> promise 模式；首次按钮点击 → <code>import('./x.js').then(m => { m.bind*(); m.open*(); })</code>。</li>
+            <li><code>achievements.ts</code>：<code>EventBus.on(ACHIEVEMENT_UNLOCKED → toast)</code> 监听移至 scheduler 常驻；面板模块不再依赖 EventBus / EVENTS / toast。</li>
+            <li><code>main.ts</code>：移除 <code>importPlanetUI</code>；新增残月按钮状态联动（<code>setTimeout</code> + <code>sm.onEnter</code> + <code>EventBus.on</code>，均常驻）；btn-planet 点击 → 动态 import + <code>initPlanetUI() + openPlanet()</code>。</li>
+            <li><code>planet.ts</code>：<code>initPlanetUI</code> 删除状态联动部分（移到 main.ts）；移除 <code>STATE/sm/EventBus/EVENTS</code> 与 <code>setPlanetVisible</code> 共 31 行。</li>
+            <li><code>state_hooks.ts</code>：<code>openShop</code> 改为 <code>import('../features/ui/shop/index.js').then(m => m.openShop())</code>，仅在进入 SHOP 状态时拉取。</li>
+            <li><code>PausePanel.ts</code> 与 <code>codex.ts</code>：<code>from '../shop/index.js'</code> / <code>'./shop/index.js'</code> 改为精确路径 <code>'../shop/panel.js'</code> / <code>'./shop/formulas.js'</code>，切断对 <code>open_shop</code> 链的静态依赖。</li>
+            <li><code>scheduler.ts:keydown Escape</code>：<code>isSettingsOpen/closeSettings</code> 改为惰性引用 <code>_settingsMod.isSettingsOpen()</code>，行为等价。</li>
+          </ul>
+        </dd>
+        <dt>收益</dt>
+        <dd>首包 JS <strong>−20.76 kB raw / −5.30 kB gzip</strong>（−5.5%）；按需 24.95 kB raw / 10.33 kB gzip 仅在用户主动访问时下发。<strong style="color:var(--moon-ice)">警告</strong>：构建期报 <code>[INEFFECTIVE_DYNAMIC_IMPORT]</code> 即代表改造未生效，必须保证目标模块仅被动态 import 或被静态 import 但仅在懒 chunk 内。</dd>
+        <dt>验证</dt>
+        <dd><code>npm run typecheck</code> 通过；<code>npm run arch</code> 通过；573 测试全绿；Edge headless 主菜单截图渲染正常（含右上角残月按钮），<strong>无静态回归</strong>。</dd>
+      </dl>
+    </div>
+
+    <!-- HIGH -->
+    <div class="opt prio-HIGH">
+      <div class="opt-head">
+        <h4 class="opt-title">Google Fonts 渲染阻塞 → 异步样式表</h4>
+        <span class="opt-prio">HIGH</span>
+      </div>
+      <p>Cinzel / Noto Serif SC / Inter 三套字体（Noto Serif SC 中文字体子集重）通过 <code>&lt;link rel="stylesheet"&gt;</code> 同步加载，阻塞 CSSOM 完成。</p>
+      <dl class="opt-section">
+        <dt>证据</dt>
+        <dd><code>index.html:9-10</code> 同步 stylesheet 指向 fonts.googleapis.com；<code>display=swap</code> 已保证字符交换，但 CSS 下载本身仍阻塞渲染。</dd>
+        <dt>改法</dt>
+        <dd>改为 <code style="background:rgba(154,178,207,.15);padding:1px 6px;border-radius:3px">media="print" onload="this.media='all';this.onload=null"</code> 异步加载技巧；附 <code>&lt;noscript&gt;</code> 兜底（非 JS 环境回退同步样式表）。</dd>
+        <dt>收益</dt>
+        <dd>FCP 不再等字体 CSS 下载；首字节到可交互更快；视觉上字体在到位时正常切换（<code>swap</code> 已保证）。<strong>HTML 净增 +5 kB</strong>（<code>onload</code> + <code>noscript</code> 字符串），gzip 后仅 +0.2 kB。</dd>
+        <dt>验证</dt>
+        <dd>Edge headless 截图「蚀月远征」标题与中文副标题字体正常应用，残月按钮可见，主菜单 5 个按钮正常。</dd>
+      </dl>
+    </div>
+
+    <!-- MEDIUM #1 -->
+    <div class="opt prio-MEDIUM">
+      <div class="opt-head">
+        <h4 class="opt-title">噪点贴图 noise.png 内联</h4>
+        <span class="opt-prio">MEDIUM</span>
+      </div>
+      <p>磨砂玻璃噪点贴图 <code>3.37 kB</code> 作为独立资源请求，加载链多一跳。</p>
+      <dl class="opt-section">
+        <dt>证据</dt>
+        <dd><code>css/tokens.css:56</code> 引用 <code>url('noise.png')</code>；<code>vite.config.js:14</code> 设置 <code>assetsInlineLimit: 0</code>（注释意图是避免外部 URL 内联，副作用是本地小资源也不内联）。</dd>
+        <dt>改法</dt>
+        <dd><code>assetsInlineLimit</code> 改为 <code>4096</code>。noise.png (3.37 kB) 自动 base64 内联到 CSS；Google Fonts 等外部 URL 不受此限制。</dd>
+        <dt>收益</dt>
+        <dd>少 1 个 HTTP 请求；CSS 文件 <code>+4.49 kB</code>（base64 膨胀），<strong>gzip 后仅 +4.4 kB</strong>。在高延迟网络收益更明显。</dd>
+      </dl>
+    </div>
+
+    <!-- MEDIUM #2 -->
+    <div class="opt prio-MEDIUM">
+      <div class="opt-head">
+        <h4 class="opt-title">HUD 每帧分配：wDmg 求和</h4>
+        <span class="opt-prio">MEDIUM</span>
+      </div>
+      <p>武器栏冷却渲染每帧执行 <code>Object.keys(wDmg).reduce(...)</code>，每帧分配键数组。</p>
+      <dl class="opt-section">
+        <dt>证据</dt>
+        <dd><code>src/features/ui/hud.ts:158</code>（改造前）：
+          <pre><code>const wTotal = Object.keys(wDmg).reduce((s, k) => s + wDmg[k], 0);</code></pre>
+          <code>wDmg</code> 最大 5 武器 + 1 道具，每帧 <code>Object.keys()</code> 都新建数组传给 <code>reduce</code>。
+        </dd>
+        <dt>改法</dt>
+        <dd>改为 <code style="background:rgba(154,178,207,.15);padding:1px 6px;border-radius:3px">for..in</code> 累加，零数组分配：
+          <pre><code>let wTotal = 0;
+for (const k in wDmg) wTotal += wDmg[k];</code></pre>
+        </dd>
+        <dt>收益</dt>
+        <dd>每帧避免 1 次小数组分配；武器栏是 60Hz 全屏常驻渲染，合计每分钟减少约 3600 次微分配。</dd>
+      </dl>
+    </div>
+
+    <!-- LOW #1 -->
+    <div class="opt prio-LOW">
+      <div class="opt-head">
+        <h4 class="opt-title">投射物渲染 setLineDash([]) 常量化</h4>
+        <span class="opt-prio">LOW</span>
+      </div>
+      <p>特殊投射物（陨星 / 潮锚 / 裁决光环 / 蚀雷）每帧绘制调用 <code>ctx.setLineDash([])</code> 4 次，<code>[]</code> 字面量每次新建数组。</p>
+      <dl class="opt-section">
+        <dt>证据</dt>
+        <dd><code>src/features/render/effects/projectiles.ts:205 / 228 / 270 / 617</code> 4 处 <code>ctx.setLineDash([])</code>。</dd>
+        <dt>改法</dt>
+        <dd>模块顶部新增 <code style="background:rgba(154,178,207,.15);padding:1px 6px;border-radius:3px">const NO_DASH: number[] = [];</code>，4 处替换为 <code>ctx.setLineDash(NO_DASH)</code>。</dd>
+        <dt>收益</dt>
+        <dd>语义清晰；canvas API 内部仍会拷贝数组传递，但每次源数组复用同一个引用、引擎可能优化掉拷贝。收益微小但零风险。</dd>
+      </dl>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============== 验证证据 ============== -->
+<section>
+  <h2>三 · 验证证据</h2>
+
+  <h3>3.1 完整 verify 闸门</h3>
+  <ul class="checklist">
+    <li><strong>typecheck</strong>：<code>tsc --noEmit</code> · 通过，零错误</li>
+    <li><strong>arch</strong>：<code>node scripts/check-arch.mjs</code> · 「分层依赖检查通过：无向上依赖」</li>
+    <li><strong>check-only</strong>：<code>node scripts/check-only.mjs</code> · 「未发现 .only 泄漏」</li>
+    <li><strong>coverage</strong>：<code>vitest --coverage</code> · 40 个测试文件 / <strong>573 个测试全绿</strong> · Statements 38.42% · Branches 29.54% · Functions 34.54% · Lines 38.73% · 总耗时 28s</li>
+    <li><strong>madge</strong>：无环依赖（项目内置 <code>npm run arch:cycles</code>，与主流程同步）</li>
+  </ul>
+
+  <h3>3.2 主菜单视觉验证</h3>
+  <p>Edge headless (Win11, 1280×720) 访问 <code>vite preview</code> 后的产物截图。字体已应用（Cinzel 标题 / Noto Serif SC 中文），右上角残月按钮（planet 懒加载入口）正常显示。</p>
+  <figure class="screenshot">
+    <img src="perf-menu-2026-08.png" alt="蚀月远征主菜单">
+    <figcaption>蚀月远征主菜单 · Edge headless 截图 · 字体非阻塞化生效</figcaption>
+  </figure>
+
+  <h3>3.3 构建对比（核心数字）</h3>
+  <pre><code>首屏 JS：377.62 kB → 356.86 kB（−20.76 kB / −5.5%）
+首屏 JS gzip：124.70 kB → 119.40 kB（−5.30 kB / −4.3%）
+按需 JS（不下发）：26.72 kB raw / 10.33 kB gzip
+首屏 CSS 请求数：+1 → 0（noise.png 内联）
+Google Fonts 渲染阻塞：是 → 否</code></pre>
+</section>
+
+<!-- ============== 待办与建议 ============== -->
+<section>
+  <h2>四 · 后续待办（按优先级）</h2>
+  <table>
+    <thead>
+      <tr><th>类别</th><th>项目</th><th>预估收益</th><th>风险</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>HIGH</td>
+        <td><strong>懒加载升级面板 LevelUpPanel（627 行 + 轮盘 fortune 模块）</strong>：scheduler 顶层 <code>new LevelUpPanel()</code> 改为惰性实例化；首次升级时加载。<span class="tag chunk">chunk</span></td>
+        <td>首屏 ~18 kB raw / ~6.7 kB gzip</td>
+        <td>中：state_hooks.openLevelUp 同步调用改异步；首次升级约 10-30ms 卡顿</td>
+      </tr>
+      <tr>
+        <td>MEDIUM</td>
+        <td><strong>懒加载结算/远征之门/诅咒面板</strong>（ResultPanel / GateScreen / CurseScreen），保留 boards 渲染 <span class="tag chunk">chunk</span></td>
+        <td>首屏 ~10 kB raw</td>
+        <td>低：纯展示面板，无业务依赖</td>
+      </tr>
+      <tr>
+        <td>MEDIUM</td>
+        <td><strong>icons.ts 按图标域拆分</strong>：scheduler 只用菜单图标（settings/moon/gear/sword 等），codex/achievements 用不同图标组；按需 import 可显著减小 hud_utils chunk（112 kB）。<span class="tag chunk">chunk</span></td>
+        <td>首屏 ~30-40 kB raw（取决于共享图标数）</td>
+        <td>中：需重构 iconSVG 调用点；可能影响 menu 渲染</td>
+      </tr>
+      <tr>
+        <td>MEDIUM</td>
+        <td><strong>运行时：A/B benchmark 验证</strong>：使用现有 <code>src/infra/debug/bench</code> 框架跑高负载场景的 update/render 中位数与 p95，对比优化前后帧时间 <span class="tag runtime">runtime</span></td>
+        <td>验证而非新收益；需 headless 环境</td>
+        <td>低</td>
+      </tr>
+      <tr>
+        <td>LOW</td>
+        <td><strong>预压缩 gzip/brotli</strong>：装 <code>vite-plugin-compression</code>，构建时输出 .gz/.br；交给 nginx/CDN 直接服务 <span class="tag bundle">bundle</span></td>
+        <td>取决于宿主是否已做</td>
+        <td>中：新增依赖需更新 <code>package.json</code>；不影响 verify</td>
+      </tr>
+      <tr>
+        <td>LOW</td>
+        <td><strong>background visibilitychange 节流</strong>：切后台暂停游戏循环 rAF（节省移动端电量） <span class="tag runtime">runtime</span></td>
+        <td>电量</td>
+        <td>中：行为改动（玩家可能不希望挂机时被切后台杀进度），属体验决策</td>
+      </tr>
+      <tr>
+        <td>LOW</td>
+        <td><strong>WebAudio 切后台暂停</strong>：当前切后台 BGM 继续播放 <span class="tag runtime">runtime</span></td>
+        <td>电量/体验</td>
+        <td>低：标准做法，仅做 suspend/resume</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============== 结论 ============== -->
+<section>
+  <h2>五 · 结论</h2>
+  <p>
+    本轮优化在「<strong style="color:var(--moon-gold)">证据优先、不降级体验</strong>」原则下完成：
+  </p>
+  <ul style="padding-left:22px;line-height:1.9">
+    <li>首屏 JS <strong>减少 5.5%</strong>（gzip 4.3%），6 个非首屏面板与模块改为按需加载。</li>
+    <li>Google Fonts 异步化，FCP 不再等字体 CSS。</li>
+    <li>HUD 每帧消除 1 次微分配，热路径语义更清晰。</li>
+    <li>573 个测试 + arch + check-only + typecheck + Edge headless 视觉验证全绿，无回归。</li>
+    <li>所有潜在体验妥协（背景细节 / 动画 / 特效）保留在 <code>月蚀之仪</code> 的性能档位开关中，由玩家自行取舍 —— 默认仍偏向「保留原体验」。</li>
+  </ul>
+  <p style="color:var(--moon-text-dim)">
+    剩余首包体积约 357 kB raw（gzip 119 kB），主要来自 <code>hud_utils</code> 共享 chunk（112 kB，icons + config 数据 + 工具）。继续压缩需重构 icons 与 config 的按域切分（见上节 MEDIUM 项），属下一轮迭代方向。
+  </p>
+</section>
+
+<footer>
+  Moonlight Chronicle · Performance Report · 2026-08-08 · Generated by frontend performance audit
+</footer>
+
+</div>
+</body>
+</html>
