@@ -33,7 +33,8 @@ const APPLY_FN: Record<string, (p: Player) => void> = {
   lowHp:      p => { p.lowHpDmg += 0.55; },
   fullCrit:   p => { p.fullHpCrit += 0.2; },
   autoPick:   p => { p.autoPick = 1; p.xpGain += 0.25; },
-  luckGold:   p => { p.luckToGold += 0.08; },
+  /* luck 重构（2026-08-08）：幸运不再转化为金币，贪婪之匣改为直接金币获取 +25% */
+  luckGold:   p => { p.goldGain += 0.25; },
   scaleLv:    p => { p.scaleLevel += 1; },
   scaleStage: p => { p.scaleStage += 2; },
   echo:       p => { p.echo += 0.25; },

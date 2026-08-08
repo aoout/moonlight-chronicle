@@ -1,0 +1,480 @@
+/* =========================================================
+   蚀月远征 · 蚀月轮盘（升级祝福）
+   世界观：守月人在蚀月之下拨动命运——轮盘上的每一格都是
+   一次「被看见的赌博」。月契是蚀月与守月人的赌注。
+
+   视觉语言：轮盘 = 蚀月之仪的法器
+   - 扇区 = 宝石质感的月蚀刻面（径向渐变，月光自中心洒落）
+   - 指针 = 蚀月之针（白金渐变 + 尖端金珠 + 针底月牙）
+   - 中心 = 月契核心（蚀月半月 + 呼吸辉光）
+   - 外环 = 蚀环符文 + 四向蚀星点
+   ========================================================= */
+
+/* ---------- 顶部副标（引导语；月契显示已并入轮盘中央核心） ---------- */
+.wheel-sub {
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px;
+}
+.wheel-sub .ws-hint { font-size: 12px; letter-spacing: .14em; color: rgba(var(--moon-rgb), .42); }
+
+/* ---------- 舞台：轮盘 + 命运之台 + 操作（固定尺寸，防跳动） ----------
+   原则：同一断点内全部写死宽高，命运之台按最大内容高度（三选一）预占，
+   模式切换不改变布局尺寸 —— 消除一切跳动源。 */
+.wheel-stage {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  width: 400px;
+}
+.wheel-wrap {
+  position: relative; width: 400px; height: 400px; flex: none;
+}
+#wheel-svg {
+  width: 400px; height: 400px; display: block;
+  filter: drop-shadow(0 14px 50px rgba(0, 0, 0, .6)) drop-shadow(0 0 30px rgba(var(--gold-rgb), .10));
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 关键修复：<g id="wheel-disk"> 的 CSS transform 默认绕 SVG 原点 (0,0) 旋转，
+   必须显式指定 transform-box + transform-origin，让 rotate() 绕轮盘中心 (200,200) 自转 */
+#wheel-disk {
+  transform-box: view-box;
+  transform-origin: 200px 200px;
+  will-change: transform;
+}
+#wheel-svg.selecting { cursor: pointer; }
+
+/* ---------- 蚀环装饰（SVG 内圆环与星点） ---------- */
+.wheel-orb { filter: drop-shadow(0 0 5px rgba(var(--gold-rgb), .8)); }
+
+/* ---------- 蚀月之针 ---------- */
+.wheel-pointer-g { pointer-events: none; }
+.wheel-pointer-g .ptr-gem { filter: drop-shadow(0 0 4px rgba(255, 255, 255, .9)); }
+.wheel-pointer-g.hit { animation: ptrHit .8s var(--ease-out-expo) both; }
+@keyframes ptrHit {
+  0%   { filter: drop-shadow(0 0 0 rgba(255, 243, 214, 0)); }
+  22%  { filter: drop-shadow(0 0 22px rgba(255, 243, 214, .95)); }
+  100% { filter: drop-shadow(0 0 7px rgba(var(--gold-rgb), .45)); }
+}
+
+/* ---------- 月契核心 ---------- */
+#wheel-hub { pointer-events: none; }
+.hub-breathe { animation: hubBreathe 3.2s ease-in-out infinite; }
+@keyframes hubBreathe {
+  0%, 100% { opacity: .55; }
+  50%      { opacity: .9; }
+}
+.hub-mark { filter: drop-shadow(0 0 8px rgba(var(--gold-rgb), .55)); }
+/* 中央月契数：继承原副标题数字样式——月华金渐变标题字 + 辉光 */
+#wheel-pacts-hub {
+  font-family: var(--font-title);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  fill: var(--gold);
+  filter: drop-shadow(0 0 10px rgba(var(--gold-rgb), .55));
+}
+#wheel-pacts-hub.pop { animation: numPop .45s var(--ease-out-expo); }
+#wheel-svg.spinning .hub-breathe { animation-duration: 1.1s; }
+
+/* ---------- 轮盘扇区交互 ---------- */
+#wheel-disk path {
+  transition: filter .18s ease, stroke .18s ease, stroke-width .18s ease;
+}
+#wheel-svg.selecting #wheel-disk path { cursor: pointer; }
+#wheel-svg.mode-enhance #wheel-disk path:hover {
+  filter: brightness(1.5) saturate(1.1) drop-shadow(0 0 10px rgba(var(--gold-rgb), .5));
+}
+#wheel-svg.mode-swap #wheel-disk path:hover {
+  filter: brightness(1.4) saturate(1.5) drop-shadow(0 0 10px rgba(var(--blood-rgb), .55));
+  stroke: var(--blood);
+}
+
+/* 转动时禁用一切交互 */
+#wheel-svg.spinning { pointer-events: none; }
+
+/* 命运筛选：候选扇区高亮（金色描边 + 呼吸） */
+#wheel-disk path.sieve-hi {
+  stroke: var(--gold);
+  stroke-width: 3.5;
+  filter: brightness(1.4) saturate(1.15) drop-shadow(0 0 10px rgba(var(--gold-rgb), .5));
+  cursor: pointer;
+}
+
+/* 落点命中：金色脉冲（转动停止瞬间由 LevelUpPanel 加上 .hit） */
+#wheel-disk path.hit {
+  stroke: #fff3d6;
+  stroke-width: 3.5;
+  filter: brightness(1.55) saturate(1.2) drop-shadow(0 0 14px rgba(var(--gold-rgb), .85));
+  animation: segHit .95s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes segHit {
+  0%   { filter: brightness(1.95) drop-shadow(0 0 24px rgba(255, 243, 214, .95)); }
+  100% { filter: brightness(1.45) saturate(1.15) drop-shadow(0 0 12px rgba(var(--gold-rgb), .5)); }
+}
+
+/* ---------- 扇区内容：图标 + 品质色点 ---------- */
+#wheel-disk .seg-icon,
+#wheel-disk .seg-blank-cr {
+  pointer-events: none;
+  transition: filter .18s ease;
+}
+/* hover 扇区时联动点亮相邻图腾（path 与图标在盘面内相邻渲染） */
+#wheel-disk > path:hover + .seg-icon,
+#wheel-disk > path:hover + .seg-blank-cr {
+  filter: brightness(1.45) drop-shadow(0 0 6px currentColor);
+}
+#wheel-disk .seg-icon path,
+#wheel-disk .seg-icon circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+#wheel-disk .seg-dot { filter: drop-shadow(0 0 4px currentColor); }
+#wheel-disk .seg-blank-cr { filter: drop-shadow(0 0 8px rgba(var(--blood-rgb), .6)); }
+
+/* 轮盘中央月契徽记（SVG 内 text 已处理） */
+#wheel-svg text { pointer-events: none; }
+
+/* ---------- 命运筛选 · 命牌（三选一）
+   与盘面同源：品质色图标圆片 + 名称徽记 + 效果；tier 色由 --sc-rgb/--sc-color 驱动
+   （common=冰蓝 · epic=紫 · legend=金 · blank=血红） ---------- */
+.sieve-pick { width: 100%; display: flex; flex-direction: column; }
+.sieve-title {
+  text-align: center; font-size: 11.5px; letter-spacing: .06em;
+  color: rgba(var(--moon-rgb), .68); margin-bottom: 6px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sieve-title b {
+  color: var(--gold); font-family: var(--font-title); font-weight: 700;
+  letter-spacing: .04em;
+}
+.sieve-cards { display: flex; gap: 8px; justify-content: center; align-items: stretch; }
+.sieve-card {
+  --tilt: 0deg;
+  --sc-rgb: var(--ice-rgb);
+  --sc-color: var(--ice);
+  flex: 1; min-width: 0;
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  padding: 5px 4px 4px;
+  background: linear-gradient(165deg, rgba(var(--sc-rgb), .10), rgba(8, 10, 26, .42) 55%);
+  border: 1px solid rgba(var(--sc-rgb), .34);
+  border-radius: 10px;
+  cursor: pointer;
+  transform: rotate(var(--tilt));
+  transition: transform .24s var(--ease-out-expo), border-color .24s ease, box-shadow .24s ease;
+  animation: cardTilt .4s var(--ease-out-expo) both;
+}
+.sieve-card::before {   /* 顶部品质色线 */
+  content: ''; position: absolute; top: 0; left: 22%; right: 22%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--sc-color), transparent);
+  opacity: .55; pointer-events: none; transition: opacity .24s ease;
+}
+.sieve-card:nth-child(1) { --tilt: -1.6deg; animation-delay: .04s; }
+.sieve-card:nth-child(3) { --tilt: 1.6deg; animation-delay: .1s; }
+@keyframes cardTilt {
+  from { opacity: 0; transform: rotate(calc(var(--tilt) + 7deg)) translateY(14px) scale(.92); }
+  to   { opacity: 1; transform: rotate(var(--tilt)) translateY(0) scale(1); }
+}
+.sieve-card:hover {
+  transform: rotate(var(--tilt)) translateY(-4px);
+  border-color: var(--sc-color);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45), 0 0 18px rgba(var(--sc-rgb), .28);
+}
+.sieve-card:hover::before { opacity: 1; }
+.sieve-card.land {   /* 落点：品质色满描边 + 辉光 */
+  border-color: var(--sc-color);
+  box-shadow: 0 0 24px rgba(var(--sc-rgb), .30), inset 0 0 22px rgba(var(--sc-rgb), .07);
+}
+.sieve-card.land::before { opacity: 1; }
+/* 命牌图标圆片：品质色玻璃底座 + 专属图腾 */
+.sieve-card .sc-ic {
+  width: 30px; height: 30px; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  color: var(--sc-color);
+  background: radial-gradient(circle at 35% 30%, rgba(var(--sc-rgb), .28), rgba(8, 10, 26, .55));
+  border: 1px solid rgba(var(--sc-rgb), .5);
+  box-shadow: var(--glass-edge-inset), inset 0 0 12px rgba(0, 0, 0, .35), 0 0 12px rgba(var(--sc-rgb), .2);
+  filter: drop-shadow(0 0 5px rgba(var(--sc-rgb), .35));
+  transition: transform .24s var(--ease-out-expo), box-shadow .24s ease;
+}
+.sieve-card:hover .sc-ic {
+  transform: scale(1.12);
+  box-shadow: var(--glass-edge-inset), inset 0 0 12px rgba(0, 0, 0, .35), 0 0 18px rgba(var(--sc-rgb), .45);
+}
+.sieve-card .sc-ic svg { width: 17px; height: 17px; }
+.sc-name {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--font-title); font-size: 12px; letter-spacing: .05em;
+  color: var(--moon); white-space: nowrap;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.sc-tier {   /* 品质徽记 */
+  flex: none;
+  font-size: 8.5px; letter-spacing: .16em; font-weight: 800;
+  color: var(--sc-color);
+  border: 1px solid rgba(var(--sc-rgb), .4); border-radius: 999px;
+  padding: 0 4px; line-height: 1.5;
+}
+.sc-desc {
+  font-size: 9.5px; line-height: 1.45;
+  color: rgba(var(--moon-rgb), .72); text-align: center;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  max-width: 100%;
+}
+.sc-desc .stat-up { color: var(--gold); font-weight: 700; }
+.sc-desc .stat-down { color: var(--blood); font-weight: 700; }
+
+/* ---------- 命运之台（常驻玻璃显示框）：预览 / 结果 / 三选一 共用一个组件 ----------
+   高度按三选一（最高内容）预占固定，模式切换只换内容不换尺寸 —— 零跳动 */
+.wheel-console {
+  position: relative;
+  width: 400px;
+  height: 118px;
+  display: flex; align-items: center;
+  padding: 12px 18px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.wheel-console::before {   /* 顶部蚀痕金线 */
+  content: ''; position: absolute; top: 0; left: 14%; right: 14%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(var(--gold-rgb), .6), transparent);
+  opacity: .5; pointer-events: none;
+}
+.wheel-console::after {    /* 顶部柔光 */
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(85% 60% at 50% 0%, rgba(var(--gold-rgb), .05), transparent 62%);
+  pointer-events: none;
+}
+.wheel-console-body {
+  position: relative; z-index: 1;
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column; justify-content: center;
+}
+
+/* 预览模式：横向流式布局（tier / name / desc）
+   注意：必须显式 flex-direction: row —— 覆盖 .wheel-console-body 的 column 默认值，
+   align-content 保证多行（desc 换行）时整体垂直居中 */
+.wheel-console.preview .wheel-console-body {
+  display: flex; flex-direction: row; flex-wrap: wrap;
+  align-items: center; align-content: center; justify-content: center; gap: 3px 14px;
+}
+.wheel-console .wd-hint {
+  margin: 0 auto; color: rgba(var(--moon-rgb), .45);
+  font-size: 12.5px; letter-spacing: .14em;
+}
+.wd-tier {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10px; letter-spacing: .3em; font-weight: 800; color: var(--ice);
+  text-transform: uppercase; white-space: nowrap;
+}
+.wd-tier::before {   /* 品质色点 */
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; box-shadow: 0 0 6px currentColor;
+}
+.wd-tier.common { color: var(--ice); }
+.wd-tier.epic { color: var(--violet); }
+.wd-tier.legend { color: var(--gold); }
+.wd-tier.blank { color: var(--blood); }
+/* 操作仪轨预览（悬停操作按钮 → 命运之台）的语义色 */
+.wd-tier.op-spin { color: var(--gold); }
+.wd-tier.op-sieve { color: var(--jade); }
+.wd-tier.op-enhance { color: var(--violet); }
+.wd-tier.op-swap { color: var(--violet); }
+.wd-tier.op-moon { color: var(--blood); }
+.wd-name {
+  font-family: var(--font-title); font-size: 15px; letter-spacing: .1em;
+  color: var(--moon); white-space: nowrap;
+}
+.wd-enh {
+  font-size: 10px; letter-spacing: .14em; color: var(--gold);
+  border: 1px solid rgba(var(--gold-rgb), .5); border-radius: 999px;
+  padding: 1px 8px; white-space: nowrap;
+  background: rgba(var(--gold-rgb), .06);
+}
+.wd-desc {
+  flex: 1 1 100%; text-align: center;
+  font-size: 12.5px; line-height: 1.6;
+  color: rgba(var(--moon-rgb), .76);
+  border-top: 1px dashed rgba(var(--gold-rgb), .16); padding-top: 6px; margin-top: 2px;
+}
+.wd-desc .stat-up { color: var(--gold); font-weight: 700; }
+.wd-desc .stat-down { color: var(--blood); font-weight: 700; }
+.wd-enh-note {
+  display: block; margin-top: 4px;
+  font-size: 11.5px; letter-spacing: .06em; color: var(--violet);
+}
+.wd-enh-note::before { content: '✦ '; color: var(--gold); }
+
+/* 结果模式（玻璃容器内纯文字流，边框由容器承担） */
+.wheel-result-box {
+  text-align: center; font-size: 14px; color: var(--moon);
+  animation: cardIn .35s cubic-bezier(.22, 1, .36, 1) both;
+}
+.wheel-result-box b { color: var(--gold); font-family: var(--font-title); letter-spacing: .08em; }
+.wr-desc {
+  display: inline-block; margin-left: 6px;
+  color: rgba(var(--moon-rgb), .85); font-size: 13px;
+}
+.wr-desc .stat-up { color: var(--gold); font-weight: 700; }
+.wr-desc .stat-down { color: var(--blood); font-weight: 700; }
+.wheel-result-box small { display: block; margin-top: 4px; color: rgba(var(--moon-rgb), .55); font-size: 12px; }
+.wheel-result-box.blank b { color: var(--blood); }
+.wheel-result-box.moon b { color: var(--ice); }
+.wheel-result-box.enh b { color: var(--violet); }
+.wr-chain { margin-top: 6px; font-size: 12.5px; color: var(--violet); }
+
+/* ---------- 操作按钮（一行五枚，等宽均分，与轮盘同宽）
+   结构：图标圆片 + 主文字 + 成本说明，纵向排布 */
+.wheel-actions {
+  display: flex; gap: 8px; flex-wrap: nowrap;
+  width: 400px; height: 56px;
+}
+.wheel-action {
+  position: relative;
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  padding: 5px 2px;
+  font-family: var(--font-title); font-size: 13px; letter-spacing: .08em; color: var(--moon);
+  background: var(--glass-bg-frost);
+  backdrop-filter: blur(var(--glass-blur-frost));
+  border: 1px solid var(--glass-border-frost);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: var(--glass-edge-inset), 0 4px 20px rgba(0, 0, 0, .4), 0 0 var(--eclipse-glow-spread) var(--eclipse-glow-soft);
+  transition: all .25s cubic-bezier(.22, 1, .36, 1);
+  overflow: hidden;
+}
+.wheel-action::before {   /* 顶部金线（默认微光，hover 点亮） */
+  content: ''; position: absolute; top: 0; left: 22%; right: 22%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(var(--gold-rgb), .5), transparent);
+  opacity: .3; transition: opacity .25s ease;
+}
+.wheel-action .wa-ic {
+  width: 24px; height: 24px; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  color: var(--moon);
+  background: radial-gradient(circle at 35% 30%, rgba(var(--moon-rgb), .10), rgba(8, 10, 26, .5));
+  border: 1px solid rgba(var(--gold-rgb), .24);
+  box-shadow: var(--glass-edge-inset);
+  transition: all .25s var(--ease-out-expo);
+}
+.wheel-action .wa-ic svg { width: 14px; height: 14px; }
+.wheel-action .wa-txt { font-size: 12.5px; line-height: 1.1; white-space: nowrap; }
+.wheel-action small {
+  font-family: var(--font-body); font-size: 8.5px; letter-spacing: .02em;
+  color: rgba(var(--moon-rgb), .5); font-weight: 400;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
+}
+.wheel-action:hover:not(.disabled) {
+  transform: translateY(-3px);
+  border-color: var(--gold);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 0 28px var(--eclipse-glow-mid);
+}
+.wheel-action:hover:not(.disabled)::before { opacity: 1; }
+.wheel-action:hover:not(.disabled) .wa-ic {
+  transform: scale(1.12);
+  border-color: var(--gold);
+  box-shadow: var(--glass-edge-inset), 0 0 16px rgba(var(--gold-rgb), .35);
+}
+.wheel-action:active:not(.disabled) { transform: translateY(-1px) scale(.97); }
+.wheel-action.primary {
+  border-color: rgba(var(--gold-rgb), .6);
+  background: linear-gradient(160deg, rgba(var(--gold-rgb), .18), rgba(var(--gold-rgb), .04));
+}
+.wheel-action.primary .wa-ic {
+  border-color: rgba(var(--gold-rgb), .55);
+  background: radial-gradient(circle at 35% 30%, rgba(var(--gold-rgb), .30), rgba(8, 10, 26, .5));
+  color: var(--gold);
+  filter: drop-shadow(0 0 8px rgba(var(--gold-rgb), .35));
+}
+.wheel-action.primary::before { opacity: .8; }
+.wheel-action.danger { border-color: rgba(var(--blood-rgb), .38); }
+.wheel-action.danger .wa-ic {
+  color: var(--blood);
+  border-color: rgba(var(--blood-rgb), .4);
+  background: radial-gradient(circle at 35% 30%, rgba(var(--blood-rgb), .18), rgba(8, 10, 26, .5));
+  filter: drop-shadow(0 0 8px rgba(var(--blood-rgb), .4));
+}
+.wheel-action.danger:hover:not(.disabled) { border-color: var(--blood); box-shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 0 28px rgba(var(--blood-rgb), .3); }
+.wheel-action.sieve { border-color: rgba(var(--teal-rgb, 127, 216, 212), .38); }
+.wheel-action.sieve .wa-ic {
+  color: var(--jade);
+  border-color: rgba(var(--jade-rgb), .4);
+  background: radial-gradient(circle at 35% 30%, rgba(var(--jade-rgb), .16), rgba(8, 10, 26, .5));
+  filter: drop-shadow(0 0 8px rgba(var(--jade-rgb), .4));
+}
+.wheel-action.sieve:hover:not(.disabled) { border-color: var(--jade); box-shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 0 28px rgba(var(--jade-rgb), .3); }
+.wheel-action.disabled { opacity: .38; cursor: not-allowed; filter: saturate(.4); }
+.wheel-action.disabled .wa-ic { filter: grayscale(1); }
+
+/* ---------- 提示条（固定高度防跳动） ---------- */
+.wheel-tip {
+  margin-top: 8px; height: 18px; line-height: 18px;
+  font-size: 12.5px; letter-spacing: .1em; color: rgba(var(--violet-rgb), .9);
+  text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 400px;
+}
+
+/* ---------- 月轮清屏辉光 ---------- */
+#levelup.moonwheel-flash::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 5; pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(var(--ice-rgb), .34), rgba(var(--ice-rgb), .06) 55%, transparent 75%);
+  animation: moonwheelFlash .9s ease-out both;
+}
+@keyframes moonwheelFlash {
+  0% { opacity: 0; }
+  18% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---------- HUD 月契徽章 ---------- */
+.coin.pacts {
+  color: var(--gold);
+  border-color: rgba(var(--gold-rgb), .34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07), 0 0 18px rgba(var(--gold-rgb), .12);
+}
+.coin.pacts .ic { color: var(--gold); filter: drop-shadow(0 0 6px rgba(var(--gold-rgb), .5)); }
+
+/* ---------- 移动端（横屏优先）：固定尺寸分级，与桌面同一套防跳动原则 ---------- */
+@media (pointer: coarse) and (orientation: landscape),
+       (max-width: 1080px) and (orientation: landscape),
+       (max-height: 560px) {
+  .wheel-stage { width: 300px; gap: 8px; }
+  .wheel-wrap { width: 300px; height: 300px; }
+  #wheel-svg { width: 300px; height: 300px; }
+  .wheel-console { width: 300px; height: 104px; padding: 8px 12px; }
+  .wheel-actions { width: 300px; height: 50px; gap: 6px; }
+  .wheel-action { font-size: 12px; }
+  .wheel-action .wa-ic { width: 21px; height: 21px; }
+  .wheel-action .wa-ic svg { width: 12.5px; height: 12.5px; }
+  .wheel-action .wa-txt { font-size: 11.5px; }
+  .wheel-action small { font-size: 8px; }
+  .wheel-result-box { font-size: 12.5px; }
+  .sieve-card { padding: 4px 3px 3px; gap: 2px; }
+  .sieve-card .sc-ic { width: 26px; height: 26px; }
+  .sieve-card .sc-ic svg { width: 15px; height: 15px; }
+  .sc-name { font-size: 11px; }
+  .sc-tier { font-size: 7.5px; padding: 0 3px; }
+  .sc-desc { font-size: 8.5px; }
+  .wd-name { font-size: 13px; }
+  .wd-desc { font-size: 11px; padding-top: 4px; }
+  .wheel-tip { max-width: 300px; font-size: 11.5px; }
+  .overlay-title { font-size: 24px; letter-spacing: .26em; margin-bottom: 4px; }
+  .wheel-sub { margin-bottom: 8px; font-size: 12px; }
+}
+
+@media (pointer: coarse) and (orientation: portrait) {
+  .wheel-stage { width: 320px; }
+  .wheel-wrap { width: 320px; height: 320px; }
+  #wheel-svg { width: 320px; height: 320px; }
+  .wheel-console { width: 320px; }
+  .wheel-actions { width: 320px; }
+  .wheel-tip { max-width: 320px; }
+}

@@ -19,6 +19,7 @@ import { buildSpatialGrid } from '../../engine/spatial/SpatialSystem.js';
 import { entityState } from '../../state/entities.js';
 import { statsState } from '../../state/stats.js';
 import { stageState } from '../../state/stage.js';
+import { fortuneState } from '../../state/fortune.js';
 import { STATE, sm } from '../../engine/core/states.js';
 import type { Player } from '../../types/core.d.ts';
 
@@ -364,6 +365,83 @@ describe('killEnemy', () => {
     expect(runStats().bossKills).toBe(1);
     expect(stageState.state.boss).toBeNull();
     expect(log.last).toMatchObject({ type: 'behemoth' });
+  });
+
+  /* ===== 蚀月领主赏金（2026-08-08）：boss 不掉落物，改发固定金币 + 月契 ===== */
+  it('Boss 击杀不再产生任何掉落物（xp/gold 光点全去除）', () => {
+    installPlayer();
+    const boss = makeBoss({ type: 'behemoth' });
+    stageState.set('stage', 6);
+    stageState.set('boss', boss);
+
+    killEnemy(boss);
+
+    expect(entityState.state.drops).toHaveLength(0);
+  });
+
+  it('第 6 夜 Boss 赏金：+50 金币（吃 effGold 倍率）+1 月契', () => {
+    installPlayer();
+    const boss = makeBoss({ type: 'behemoth' });
+    stageState.set('stage', 6);
+    stageState.set('boss', boss);
+    const goldBefore = statsState.state.gold;
+
+    killEnemy(boss);
+
+    expect(statsState.state.gold).toBe(goldBefore + 50);
+    expect(fortuneState.state.moonPacts).toBe(1);
+  });
+
+  it('第 12 夜 Boss 赏金：+100 金币 +2 月契', () => {
+    installPlayer();
+    const boss = makeBoss({ type: 'behemoth' });
+    stageState.set('stage', 12);
+    stageState.set('boss', boss);
+    const goldBefore = statsState.state.gold;
+
+    killEnemy(boss);
+
+    expect(statsState.state.gold).toBe(goldBefore + 100);
+    expect(fortuneState.state.moonPacts).toBe(2);
+  });
+
+  it('第 18 夜 Boss 赏金：+150 金币 +3 月契', () => {
+    installPlayer();
+    const boss = makeBoss({ type: 'behemoth' });
+    stageState.set('stage', 18);
+    stageState.set('boss', boss);
+    const goldBefore = statsState.state.gold;
+
+    killEnemy(boss);
+
+    expect(statsState.state.gold).toBe(goldBefore + 150);
+    expect(fortuneState.state.moonPacts).toBe(3);
+  });
+
+  it('非赏金夜（如终焉 20 夜）Boss 击杀无固定奖励，也不掉物', () => {
+    installPlayer();
+    const boss = makeBoss({ type: 'behemoth' });
+    stageState.set('stage', 20);
+    stageState.set('boss', boss);
+    const goldBefore = statsState.state.gold;
+
+    killEnemy(boss);
+
+    expect(statsState.state.gold).toBe(goldBefore);
+    expect(fortuneState.state.moonPacts).toBe(0);
+    expect(entityState.state.drops).toHaveLength(0);
+  });
+
+  it('Boss 赏金金币吃 effGold 倍率（金币获取 +20% → 第 6 夜 60 金）', () => {
+    installPlayer({ goldGain: 1.2 });
+    const boss = makeBoss({ type: 'behemoth' });
+    stageState.set('stage', 6);
+    stageState.set('boss', boss);
+    const goldBefore = statsState.state.gold;
+
+    killEnemy(boss);
+
+    expect(statsState.state.gold).toBe(goldBefore + 60); /* 50 × 1.2 */
   });
 
   it('无玩家时只记击杀数，不做后续结算', () => {
