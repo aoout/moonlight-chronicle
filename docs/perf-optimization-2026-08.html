@@ -544,6 +544,41 @@
       </tr>
     </tbody>
   </table>
+
+  <h3>传输预压缩（brotli / gzip 静态文件）</h3>
+  <p><code>vite-plugin-compression2</code> 构建时生成 <code>.br</code>（brotli，主）与 <code>.gz</code>（gzip，兜底）双份静态文件，阈值 ≥1KB。由静态托管 / CDN / nginx 优先服务，浏览器无需等待服务器实时压缩。实测对比（vite build 输出）：</p>
+  <table>
+    <thead>
+      <tr><th>产物（原始 kB）</th><th>brotli .br (kB)</th><th>gzip .gz (kB)</th><th>brotli 相对 gzip</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>index.js</code>（242.84）</td>
+        <td class="mono">63.91</td>
+        <td class="mono">76.54</td>
+        <td class="delta">−16.5%</td>
+      </tr>
+      <tr>
+        <td><code>hud_utils.js</code>（112.25）</td>
+        <td class="mono">33.84</td>
+        <td class="mono">40.91</td>
+        <td class="delta">−17.3%</td>
+      </tr>
+      <tr>
+        <td><code>index.css</code>（119.82）</td>
+        <td class="mono">21.19</td>
+        <td class="mono">25.08</td>
+        <td class="delta">−15.5%</td>
+      </tr>
+      <tr style="border-top:2px solid var(--moon-border-strong)">
+        <td><strong>首屏 JS+CSS 合计（356.91 raw）</strong></td>
+        <td class="mono"><strong>119.14</strong></td>
+        <td class="mono"><strong>142.53</strong></td>
+        <td class="delta"><strong>−16.4%</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="color:var(--moon-text-dim)">首屏传输体积：356.86 kB（未压缩）→ 142.53 kB（gzip 静态）→ 119.14 kB（brotli 静态），整体压缩 <strong>66.6%</strong>。低于 1 kB 的小文件（favicon、render 辅助 chunk）不压，避免浪费。</p>
 </section>
 
 <!-- ============== 优化项 ============== -->
@@ -725,10 +760,10 @@ Google Fonts 渲染阻塞：是 → 否</code></pre>
         <td>低</td>
       </tr>
       <tr>
-        <td>LOW</td>
-        <td><strong>预压缩 gzip/brotli</strong>：装 <code>vite-plugin-compression</code>，构建时输出 .gz/.br；交给 nginx/CDN 直接服务 <span class="tag bundle">bundle</span></td>
-        <td>取决于宿主是否已做</td>
-        <td>中：新增依赖需更新 <code>package.json</code>；不影响 verify</td>
+        <td><del style="opacity:.45">LOW</del> <span class="tag bundle" style="background:rgba(159,214,232,.12)">✓ 已完成</span></td>
+        <td><strong>预压缩 brotli + gzip</strong>：<code>vite-plugin-compression2</code> 已接入，构建生成 <code>.br</code> / <code>.gz</code> 静态文件（阈值 1KB）；部署到支持静态压缩文件优先服务的宿主（nginx <code>brotli_static</code> / GitHub Pages / Cloudflare Pages 等）后自动生效。<span class="tag bundle">bundle</span></td>
+        <td>首屏 brotli 119.14 kB（相对原始 −66.6%）</td>
+        <td>低：仅构建时多两份静态文件</td>
       </tr>
       <tr>
         <td>LOW</td>
