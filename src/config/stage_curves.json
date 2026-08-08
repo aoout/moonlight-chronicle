@@ -1,6 +1,6 @@
 {
   "inflationRate": "1 + 2 * pow((stage - 1) / 18, 2)",
   "stageSpawnRate": "1.1 + stage * 0.18",
-  "enemyHpScale": "(1 + (stage - 1) * (0.32 + depth * 0.02) + pow(stage - 1, 2) * 0.012) * (1 + depth * 0.05)",
+  "enemyHpScale": "(1 + (stage - 1) * (0.32 + depth * 0.04) + pow(stage - 1, 2) * 0.012) * (1 + depth * 0.05)",
   "enemyDmgScale": "(1 + (stage - 1) * (0.12 + depth * 0.01)) * (1 + depth * 0.03)"
 }
