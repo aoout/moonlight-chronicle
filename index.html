@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="css/codex.css">
   <link rel="stylesheet" href="css/achievements.css">
   <link rel="stylesheet" href="css/settings.css">
+  <link rel="stylesheet" href="css/planet.css">
   <link rel="stylesheet" href="css/gamepad.css">
 </head>
 <body>
@@ -27,6 +28,11 @@
     <div class="starfield" id="starfield"></div>
     <div class="aurora" id="aurora"></div>
     <div class="vignette"></div>
+
+    <!-- ===== 蚀月之望 · 右上角残月（同步入口） ===== -->
+    <button id="btn-planet" class="planet-hidden" title="蚀月之望 · 让月光跨越星海" aria-label="蚀月之望（存档同步）">
+      <div class="planet-moon" aria-hidden="true"></div>
+    </button>
 
     <!-- ===== 主菜单 ===== -->
     <div id="menu" class="screen active">
@@ -49,56 +55,58 @@
         <button id="btn-settings" class="menu-btn ghost"><span class="ic" data-ic="gear"></span> 月蚀之仪</button>
       </div>
       <div class="menu-hint">WASD / 方向键移动 · 武器自动攻击</div>
-      <div id="howto" class="howto hidden">
-        <div class="set-panel eclipse-glass-deep howto-panel">
-          <div class="eclipse-edge-top"></div>
-          <div class="eclipse-top-glow"></div>
-          <div class="set-head">
-            <div class="set-emblem"><span class="ic" data-ic="expeditionBook"></span></div>
-            <div class="set-title">作战手记</div>
-            <div class="set-sub">守月人的月下战斗要诀</div>
+    </div>
+
+    <!-- ===== 作战手记（独立于菜单层叠上下文，保证遮罩盖住全局 fixed 元素） ===== -->
+    <div id="howto" class="howto hidden">
+      <div class="set-panel eclipse-glass-deep howto-panel">
+        <div class="eclipse-edge-top"></div>
+        <div class="eclipse-top-glow"></div>
+        <div class="set-head">
+          <div class="set-emblem"><span class="ic" data-ic="expeditionBook"></span></div>
+          <div class="set-title">作战手记</div>
+          <div class="set-sub">守月人的月下战斗要诀</div>
+        </div>
+        <div class="set-body">
+          <div class="set-group">
+            <div class="set-group-head">
+              <span class="sg-name">征程 · 二十夜</span>
+              <span class="sg-sub">月夜之途</span>
+            </div>
+            <p class="howto-item">共 20 关，每关 30 秒，关间踏入<b>月幕集市</b>采购补给。</p>
           </div>
-          <div class="set-body">
-            <div class="set-group">
-              <div class="set-group-head">
-                <span class="sg-name">征程 · 二十夜</span>
-                <span class="sg-sub">月夜之途</span>
-              </div>
-              <p class="howto-item">共 20 关，每关 30 秒，关间踏入<b>月幕集市</b>采购补给。</p>
+          <div class="set-group">
+            <div class="set-group-head">
+              <span class="sg-name">兵刃 · 武器</span>
+              <span class="sg-sub">自动索敌</span>
             </div>
-            <div class="set-group">
-              <div class="set-group-head">
-                <span class="sg-name">兵刃 · 武器</span>
-                <span class="sg-sub">自动索敌</span>
-              </div>
-              <p class="howto-item">最多同时佩戴 5 件武器，自动索敌攻击，各有独特的<b>倍率构成</b>。</p>
-            </div>
-            <div class="set-group">
-              <div class="set-group-head">
-                <span class="sg-name">命运 · 升级</span>
-                <span class="sg-sub">月华结晶</span>
-              </div>
-              <p class="howto-item">吸收月华结晶积累经验，升级可从三张<b>命运卡</b>中选择其一。</p>
-            </div>
-            <div class="set-group">
-              <div class="set-group-head">
-                <span class="sg-name">强敌 · 蚀潮领主</span>
-                <span class="sg-sub">月蚀之敌</span>
-              </div>
-              <p class="howto-item">第 6 / 12 / 18 关遭遇<b>蚀潮领主</b>；第 20 关迎战强化终焉。</p>
-            </div>
-            <div class="set-group">
-              <div class="set-group-head">
-                <span class="sg-name">集市 · 道具</span>
-                <span class="sg-sub">流派之源</span>
-              </div>
-              <p class="howto-item">不止数值加减——<b>转模、连锁、血统、神恩</b>……创造你的流派。</p>
-            </div>
+            <p class="howto-item">最多同时佩戴 5 件武器，自动索敌攻击，各有独特的<b>倍率构成</b>。</p>
           </div>
-          <div class="set-foot">
-            <div class="set-note">月光铸刃，蚀潮难侵</div>
-            <button id="btn-close-how" class="menu-btn ghost small">明白了</button>
+          <div class="set-group">
+            <div class="set-group-head">
+              <span class="sg-name">命运 · 升级</span>
+              <span class="sg-sub">月华结晶</span>
+            </div>
+            <p class="howto-item">吸收月华结晶积累经验，升级可从三张<b>命运卡</b>中选择其一。</p>
           </div>
+          <div class="set-group">
+            <div class="set-group-head">
+              <span class="sg-name">强敌 · 蚀潮领主</span>
+              <span class="sg-sub">月蚀之敌</span>
+            </div>
+            <p class="howto-item">第 6 / 12 / 18 关遭遇<b>蚀潮领主</b>；第 20 关迎战强化终焉。</p>
+          </div>
+          <div class="set-group">
+            <div class="set-group-head">
+              <span class="sg-name">集市 · 道具</span>
+              <span class="sg-sub">流派之源</span>
+            </div>
+            <p class="howto-item">不止数值加减——<b>转模、连锁、血统、神恩</b>……创造你的流派。</p>
+          </div>
+        </div>
+        <div class="set-foot">
+          <div class="set-note">月光铸刃，蚀潮难侵</div>
+          <button id="btn-close-how" class="menu-btn ghost small">明白了</button>
         </div>
       </div>
     </div>
@@ -407,6 +415,89 @@
     </div>
 
     <div id="toast" class="toast-wrap"></div>
+
+    <!-- ===== 蚀月之望 · 同步面板 ===== -->
+    <div id="planet-panel" class="overlay hidden">
+      <div class="set-panel eclipse-glass-deep">
+        <div class="eclipse-edge-top"></div>
+        <div class="eclipse-top-glow"></div>
+        <div class="set-head">
+          <div class="set-emblem"><span class="ic" data-ic="moonFull"></span></div>
+          <div class="set-title">蚀月之望</div>
+          <div class="set-sub">让月光烙记跨越星海 · 在另一轮月亮上相认</div>
+        </div>
+        <div class="set-body">
+          <div class="planet-hero">
+            <div class="planet-hero-core"></div>
+            <div class="planet-hero-text">
+              <div class="planet-hero-title">蚀月从不以全貌示人</div>
+              <div class="planet-hero-desc">你的远征烙在月背上，如月光烙在纸上。<br>将月光拓印成卷，寄往星海驿站；或从驿站唤回，让另一轮月亮承接你的远征。</div>
+            </div>
+          </div>
+
+          <div id="planet-status" class="planet-status">
+            <span class="planet-status-dot"></span>
+            <span id="planet-status-text">蚀月静悬，尚未望见星海</span>
+          </div>
+
+          <!-- 拓印 / 唤醒 -->
+          <div class="planet-group">
+            <div class="planet-group-head">
+              <span class="planet-group-title">拓印 · 唤回</span>
+              <span class="planet-group-sub">残卷随身，不假外物</span>
+            </div>
+            <div class="planet-row">
+              <div class="planet-row-info">
+                <div class="planet-row-name">拓印月痕</div>
+                <div class="planet-row-desc">将完整存档写入一卷 JSON 残卷，携往他处</div>
+              </div>
+              <button id="btn-export-save" class="planet-btn">拓印下载</button>
+            </div>
+            <div class="planet-row">
+              <div class="planet-row-info">
+                <div class="planet-row-name">唤回月痕</div>
+                <div class="planet-row-desc">从 JSON 残卷唤回月光，覆写本地存档</div>
+              </div>
+              <button id="btn-import-save" class="planet-btn secondary">选择残卷</button>
+              <input type="file" id="file-import-save" accept=".json,application/json">
+            </div>
+          </div>
+
+          <!-- 星海驿站 · WebDAV -->
+          <div class="planet-group">
+            <div class="planet-group-head">
+              <span class="planet-group-title">星海驿站</span>
+              <span class="planet-group-sub">WebDAV · 月光寄寓之处</span>
+            </div>
+            <div class="planet-form">
+              <div class="planet-field">
+                <label for="sync-url">驿站</label>
+                <input type="url" id="sync-url" placeholder="https://dav.example.com/eclipse/" autocomplete="off" spellcheck="false">
+              </div>
+              <div class="planet-field">
+                <label for="sync-user">信使</label>
+                <input type="text" id="sync-user" placeholder="用户名" autocomplete="username" spellcheck="false">
+              </div>
+              <div class="planet-field">
+                <label for="sync-pass">密语</label>
+                <input type="password" id="sync-pass" placeholder="应用专用密码" autocomplete="current-password">
+              </div>
+            </div>
+            <div class="planet-actions">
+              <button id="btn-sync-tide" class="planet-btn">潮汐 · 自动同步</button>
+              <button id="btn-sync-push" class="planet-btn">寄月 · 上传</button>
+              <button id="btn-sync-pull" class="planet-btn">收月 · 下载</button>
+              <button id="btn-sync-probe" class="planet-btn secondary">望驿 · 测试连接</button>
+            </div>
+            <div class="planet-note">驿站地址须以 / 结尾；建议使用应用专用密码而非账号主密码。月光以残卷之名 <em>eclipse_save.json</em> 寄存驿站。</div>
+          </div>
+        </div>
+        <div class="set-foot">
+          <div class="set-note">潮汐往返之间，月光不改其芒</div>
+          <button id="btn-planet-close" class="menu-btn ghost small">回到月台</button>
+        </div>
+      </div>
+    </div>
 
     <!-- ===== 横屏提示（移动端竖屏时显示） ===== -->
     <div id="orientation-lock" class="orientation-lock">
