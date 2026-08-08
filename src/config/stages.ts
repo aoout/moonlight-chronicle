@@ -80,8 +80,14 @@ export function stageSpawnRate(stage: number): number {
   return CURVES.stageSpawnRate({ stage });
 }
 
-export function enemyScale(stage: number): { hp: number; dmg: number } {
-  const hp = CURVES.enemyHpScale({ stage });
-  const dmg = CURVES.enemyDmgScale({ stage });
+/**
+ * 敌人随夜数（stage）与月蚀深度（depth）的双维缩放曲线。
+ * depth 缺省为 0：退化为纯夜数曲线（投射物等只吃夜数的调用方使用）。
+ * depth ≥ 1 时：基础加成（伤害 +3%/层、生命 +5%/层，乘法）
+ *   + 每夜自然成长绝对提升（伤害 +1%/层/夜、生命 +2%/层/夜，加法进成长率）。
+ */
+export function enemyScale(stage: number, depth = 0): { hp: number; dmg: number } {
+  const hp = CURVES.enemyHpScale({ stage, depth });
+  const dmg = CURVES.enemyDmgScale({ stage, depth });
   return { hp, dmg };
 }

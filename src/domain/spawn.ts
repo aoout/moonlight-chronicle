@@ -5,7 +5,7 @@
 import { PALETTE } from '../assets/palette.js';
 import { stageState } from '../state/stage.js';
 import { RNG, rand, TAU } from '../engine/util/utils.js';
-import { ENEMIES, BOSSES, enemyScale, levelEnemyScale } from '../config/index.js';
+import { ENEMIES, BOSSES, enemyScale } from '../config/index.js';
 import { world } from '../engine/ecs/World.js';
 import { PROJECTILE_POOL } from '../engine/ecs/entity_pool.js';
 import { codexAdd } from '../infra/persistence/codex.js';
@@ -20,8 +20,7 @@ export function spawnEnemy(type: string, opts?: { hpMul?: number }): EnemyInstan
   const gs = gSt();
   const rs = rSt();
   codexAdd('enemies', type);
-  const sc = enemyScale(gs.stage);
-  const ls = levelEnemyScale(gs.depth);
+  const sc = enemyScale(gs.stage, gs.depth);
   const p = pSt().player;
   const m = 30;
   const side = Math.floor(RNG() * 4);
@@ -30,8 +29,8 @@ export function spawnEnemy(type: string, opts?: { hpMul?: number }): EnemyInstan
   else if (side === 1) { x = rand(-m, rs.width + m); y = rs.height + m; }
   else if (side === 2) { x = -m; y = rand(-m, rs.height + m); }
   else { x = rs.width + m; y = rand(-m, rs.height + m); }
-  const hp = def.hp * sc.hp * (opts && opts.hpMul ? opts.hpMul : 1) * ls.hp * (p && p.effects.enemyHpMul ? p.effects.enemyHpMul : 1);
-  const dmg = def.dmg * sc.dmg * ls.dmg * (p && p.effects.enemyDmgMul ? p.effects.enemyDmgMul : 1);
+  const hp = def.hp * sc.hp * (opts && opts.hpMul ? opts.hpMul : 1) * (p && p.effects.enemyHpMul ? p.effects.enemyHpMul : 1);
+  const dmg = def.dmg * sc.dmg * (p && p.effects.enemyDmgMul ? p.effects.enemyDmgMul : 1);
   const e = world.add('enemies', {
     ...Position(x, y),
     ...Health(hp),
@@ -57,11 +56,10 @@ export function spawnBoss(type: string): EnemyInstance {
   const gs = gSt();
   const rs = rSt();
   codexAdd('bosses', type);
-  const sc = enemyScale(gs.stage);
-  const ls = levelEnemyScale(gs.depth);
+  const sc = enemyScale(gs.stage, gs.depth);
   const p = pSt().player;
-  const hp = def.hp * (type === 'final' ? 1.35 : 1) * (1 + (gs.stage - 1) * 0.02) * ls.hp * (p && p.effects.enemyHpMul ? p.effects.enemyHpMul : 1);
-  const dmg = def.dmg * sc.dmg * ls.dmg * (p && p.effects.enemyDmgMul ? p.effects.enemyDmgMul : 1);
+  const hp = def.hp * (type === 'final' ? 1.35 : 1) * (1 + (gs.stage - 1) * 0.02) * sc.hp * (p && p.effects.enemyHpMul ? p.effects.enemyHpMul : 1);
+  const dmg = def.dmg * sc.dmg * (p && p.effects.enemyDmgMul ? p.effects.enemyDmgMul : 1);
   const e = world.add('enemies', {
     ...Position(rs.width / 2, -70),
     ...Health(hp),
