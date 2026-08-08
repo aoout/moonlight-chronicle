@@ -15,6 +15,14 @@
               box-shadow .2s var(--ease-out-expo);
 }
 
+/* 轮盘扇区聚焦：SVG path 不用 outline（矩形框难看），改金色描边 + 辉光 */
+#wheel-disk > path.gamepad-focus {
+  outline: none;
+  stroke: var(--gold);
+  stroke-width: 3;
+  filter: brightness(1.45) saturate(1.15) drop-shadow(0 0 10px rgba(var(--gold-rgb), .7));
+}
+
 /* =========================================================
    通用提示条（hint-bar）—— 手柄提示、移动操作栏等复用
    ========================================================= */

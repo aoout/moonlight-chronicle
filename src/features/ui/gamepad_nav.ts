@@ -33,6 +33,8 @@ export function getActiveContextKey(): string {
   if (ach && !ach.classList.contains('hidden')) return 'achievements';
   const gate = document.getElementById('levelselect');
   if (gate && !gate.classList.contains('hidden')) return 'gate';
+  const curse = document.getElementById('curse');
+  if (curse && !curse.classList.contains('hidden')) return 'curse';
   const lu = document.getElementById('levelup');
   if (lu && !lu.classList.contains('hidden')) return 'levelup';
   const shop = document.getElementById('shop');
@@ -80,10 +82,35 @@ function getActiveContext(): FocusContext {
       const close = document.getElementById('btn-gate-close');
       return { key, items: [...cards, ...(close ? [close] : [])] };
     }
+    case 'curse': {
+      /* 蚀潮索价：三张诅咒契可聚焦切换选中；确认按钮选够后出现 */
+      const cards = _collect('#curse-cards .curse-card');
+      const confirm = document.getElementById('btn-curse-confirm') as HTMLButtonElement | null;
+      const items = [...cards];
+      if (confirm && !confirm.disabled) items.push(confirm);
+      return { key, items };
+    }
     case 'levelup':
-      /* 蚀月轮盘：手柄导航聚焦四个操作按钮；选择模式（强化/踢格）用指针点格子 */
-      return { key, items: _collect('#wheel-actions .wheel-action:not(.disabled)') };
+      /* 蚀月轮盘：上下文随阶段切换
+         1) 三选一 → 三张命牌；2) 强化/踢格选择模式 → 轮盘可选扇区；
+         3) 默认 → 五个操作按钮 */
+      {
+        const sieve = _collect('.sieve-card');
+        if (sieve.length) return { key, items: sieve };
+        const svg = document.getElementById('wheel-svg');
+        if (svg && svg.classList.contains('mode-enhance')) {
+          return {
+            key,
+            items: Array.from(document.querySelectorAll<HTMLElement>('#wheel-disk > path.sel-ok')),
+          };
+        }
+        if (svg && svg.classList.contains('mode-swap')) {
+          return { key, items: Array.from(document.querySelectorAll<HTMLElement>('#wheel-disk > path')) };
+        }
+        return { key, items: _collect('#wheel-actions .wheel-action:not(.disabled)') };
+      }
     case 'shop': {
+      const refill = document.getElementById('btn-shop-refill');
       const cards = _collect('#shop-cards .card');
       const weapons = _collect('#shop-weapons .pw-item');
       const items = _collect('#shop-items .si-item');
@@ -102,6 +129,7 @@ function getActiveContext(): FocusContext {
         key,
         items: [
           ...cards,
+          ...(refill ? [refill] : []),
           ...weapons,
           ...items,
           ...mechToggle,
@@ -131,11 +159,17 @@ function getActiveContext(): FocusContext {
 /* ---------- 焦点渲染 ---------- */
 
 function renderFocus(ctx: FocusContext): void {
-  document.querySelectorAll('.gamepad-focus').forEach(el => el.classList.remove('gamepad-focus'));
+  // 先清旧焦点：移除 class + 派发 mouseleave，复原 hover 语义（如命运之台操作预览复位）
+  document.querySelectorAll('.gamepad-focus').forEach(el => {
+    el.classList.remove('gamepad-focus');
+    el.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+  });
   if (!inputState.get('gamepad').connected) return;
   const el = ctx.items[_focusIndex];
   if (!el) return;
   el.classList.add('gamepad-focus');
+  // 聚焦即派发 mouseenter：手柄无悬停，用聚焦语义驱动命运之台操作预览
+  el.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
   // 在可滚动容器内聚焦时，滚到可见区（而非整页滚动）
   let parent: HTMLElement | null = el.parentElement;
   while (parent) {
@@ -279,6 +313,7 @@ function switchCodexTab(delta: number): void {
 type ShopSection = 'cards' | 'weapons' | 'items' | 'stats' | 'detail' | 'next';
 
 function getShopSection(el: HTMLElement): ShopSection {
+  if (el.id === 'btn-shop-refill') return 'cards';   // 涨潮补货：货架头部，归集市货架区
   if (el.closest('#shop-cards')) return 'cards';
   if (el.closest('#shop-weapons') || el.id === 'pwd-close' || el.id === 'pwd-sell') return 'weapons';
   if (el.closest('#shop-items') || el.id === 'sid-close') return 'items';

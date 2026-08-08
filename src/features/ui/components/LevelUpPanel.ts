@@ -209,6 +209,15 @@ export class LevelUpPanel extends Component<Player> {
       }
     });
     disk.innerHTML += marks.join('');
+
+    /* 扇区独立点击：手柄聚焦确认 / 直接命中走 data-i → onSectorClick（不依赖鼠标坐标） */
+    disk.querySelectorAll(':scope > path').forEach((p, i) => {
+      (p as HTMLElement).onclick = (e: MouseEvent) => {
+        e.stopPropagation();
+        this.onSectorClick(i);
+      };
+    });
+    this.updateSelPaths();
   }
 
   private slotW(slot: WheelSlot): number {
@@ -301,6 +310,38 @@ export class LevelUpPanel extends Component<Player> {
         }
       }
     }, SPIN_MS);
+  }
+
+  /* ---------- 扇区统一操作入口（鼠标 / 触摸 / 手柄聚焦确认共用） ----------
+     筛选候选阶段 → 选命牌；强化模式 → 选中未强化祝福；踢格模式 → 踢任意格 */
+  private onSectorClick(idx: number): void {
+    if (this.spinning) return;
+    if (this.sieveActive) {
+      const k = this.sieveIdx.indexOf(idx);
+      if (k >= 0) this.chooseSieve(k);
+      return;
+    }
+    if (this.mode === 'idle') return;
+    const slot = this.slots[idx];
+    if (!slot) return;
+    if (this.mode === 'enhance') {
+      if (slot.kind === 'blank' || isEnhanced(slot.blessingId!)) return;
+      this.tryEnhance(slot.blessingId!);
+    } else if (this.mode === 'swap') {
+      this.trySwap(slot.kind === 'blank' ? 'blank' : slot.blessingId!);
+    }
+  }
+
+  /* ---------- 可选扇区标记（手柄聚焦收集用）：
+     强化模式仅未强化的祝福格可选；踢格模式全部格可选（含蚀格） ---------- */
+  private updateSelPaths(): void {
+    document.querySelectorAll('#wheel-disk > path').forEach((p, i) => {
+      const slot = this.slots[i];
+      let ok = false;
+      if (this.mode === 'enhance') ok = slot.kind === 'blessing' && !!slot.blessingId && !isEnhanced(slot.blessingId);
+      else if (this.mode === 'swap') ok = true;
+      p.classList.toggle('sel-ok', ok);
+    });
   }
 
   /* ---------- 命运筛选 · 候选展示（轮盘高亮 + 三张命牌） ---------- */
@@ -492,6 +533,7 @@ export class LevelUpPanel extends Component<Player> {
     svg.classList.toggle('selecting', this.mode !== 'idle');
     svg.classList.toggle('mode-enhance', this.mode === 'enhance');
     svg.classList.toggle('mode-swap', this.mode === 'swap');
+    this.updateSelPaths();
   }
 
   /* ---------- 事件绑定（open 时挂一次） ---------- */
@@ -526,7 +568,8 @@ export class LevelUpPanel extends Component<Player> {
       };
     });
 
-    /* 轮盘点击（选择模式 / 踢格 / 筛选候选） */
+    /* 轮盘点击（选择模式 / 踢格 / 筛选候选）：统一收口到 onSectorClick
+       鼠标走 polarAt 极角判定；手柄/直接命中走 path 自身的 onclick（见 renderWheel） */
     const svg = $('wheel-svg');
     svg.onclick = (e: MouseEvent) => {
       if (this.spinning) return;
@@ -534,20 +577,7 @@ export class LevelUpPanel extends Component<Player> {
       if (!pt) return;
       const idx = this.segAt(pt.deg);
       if (idx < 0) return;
-      /* 筛选候选阶段：点击高亮扇区直接选中 */
-      if (this.sieveActive) {
-        const k = this.sieveIdx.indexOf(idx);
-        if (k >= 0) { this.chooseSieve(k); return; }
-        return;
-      }
-      if (this.mode === 'idle') return;
-      const slot = this.slots[idx];
-      if (this.mode === 'enhance') {
-        if (slot.kind === 'blank' || isEnhanced(slot.blessingId!)) return;
-        this.tryEnhance(slot.blessingId!);
-      } else if (this.mode === 'swap') {
-        this.trySwap(slot.kind === 'blank' ? 'blank' : slot.blessingId!);
-      }
+      this.onSectorClick(idx);
     };
 
     /* 详情浮层：悬停 / 点按扇区 → 显示祝福效果（鼠标 + 触摸统一走 polarAt） */
