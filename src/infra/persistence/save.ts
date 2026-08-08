@@ -35,6 +35,7 @@ export function saveRun(): void {
       stage: gSt().stage,
       depth: gSt().depth,
       curseId: gSt().curse ? gSt().curse!.id : null,
+      curseIds: gSt().curses.map(c => c.id),
       gold: sSt().gold,
       kills: sSt().kills,
       time: gSt().time,

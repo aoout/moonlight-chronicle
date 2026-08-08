@@ -408,6 +408,9 @@ export interface CurseDef {
   icon: string;
   desc: string;
   apply: (p: Player) => void;
+  /** 蚀之回响（精通恩惠）：该诅咒未被抽中且通关计数 ≥5 时，自动获得的反向减半加成 */
+  graceDesc?: string;
+  grace?: (p: Player) => void;
 }
 
 /* ---------- 关卡 ---------- */

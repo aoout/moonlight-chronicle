@@ -13,6 +13,7 @@ export const DOMAIN_KEYS = [
   'eclipse_hands_save',        // 记手录
   'eclipse_codex_save',        // 蚀之图鉴
   'eclipse_settings_v1',       // 辉光调校（月蚀之仪）
+  'eclipse_curse_records_save',// 蚀之账本（诅咒通关计数）
 ] as const;
 
 export const ARCHIVE_APP = 'moonlight-chronicle';

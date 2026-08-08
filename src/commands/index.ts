@@ -4,3 +4,4 @@
    ========================================================= */
 export { purchaseWeapon, upgradeWeaponCmd, purchaseItem, sellWeapon, weaponSellPrice, refillShop } from './shop.js';
 export { applyBlessing } from './levelup.js';
+export { confirmCurses } from './run.js';

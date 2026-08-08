@@ -65,7 +65,7 @@ requestAnimationFrame(gameLoop);
 
 // 摇杆可见性：进入 PLAYING 时显示，离开 PLAYING 时隐藏
 sm.onEnter(STATE.PLAYING, () => showJoystick());
-[STATE.MENU, STATE.LEVELUP, STATE.SHOP, STATE.RESULT].forEach(s => {
+[STATE.MENU, STATE.LEVELUP, STATE.SHOP, STATE.CURSE, STATE.RESULT].forEach(s => {
   sm.onEnter(s, () => hideJoystick());
 });
 

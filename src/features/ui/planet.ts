@@ -201,7 +201,7 @@ export function initPlanetUI(): void {
 
   // 蚀月与主菜单同生共死：只在 MENU 状态显形，战斗/升级/商店/结算/暂停一律隐去
   sm.onEnter(STATE.MENU, () => setPlanetVisible(true));
-  [STATE.PLAYING, STATE.LEVELUP, STATE.SHOP, STATE.RESULT].forEach((s) => {
+  [STATE.PLAYING, STATE.LEVELUP, STATE.SHOP, STATE.CURSE, STATE.RESULT].forEach((s) => {
     sm.onEnter(s, () => setPlanetVisible(false));
   });
   EventBus.on(EVENTS.PAUSE_OPEN, () => setPlanetVisible(false));

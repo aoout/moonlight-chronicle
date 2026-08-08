@@ -12,6 +12,7 @@ export const STATE = {
   PLAYING: 'playing',
   LEVELUP: 'levelup',
   SHOP: 'shop',
+  CURSE: 'curse',
   OVER: 'over',
   WIN: 'win',
   RESULT: 'result',
@@ -21,10 +22,11 @@ export const STATE = {
 export const sm = new StateMachine({
   initial: STATE.MENU,
   states: {
-    [STATE.MENU]:     { transitions: [STATE.PLAYING] },
+    [STATE.MENU]:     { transitions: [STATE.PLAYING, STATE.CURSE, STATE.SHOP] },
     [STATE.PLAYING]:  { transitions: [STATE.LEVELUP, STATE.SHOP, STATE.OVER, STATE.WIN, STATE.MENU] },
     [STATE.LEVELUP]:  { transitions: [STATE.PLAYING] },
     [STATE.SHOP]:     { transitions: [STATE.PLAYING] },
+    [STATE.CURSE]:    { transitions: [STATE.PLAYING, STATE.SHOP] },
     [STATE.OVER]:     { transitions: [STATE.RESULT] },
     [STATE.WIN]:      { transitions: [STATE.RESULT] },
     [STATE.RESULT]:   { transitions: [STATE.MENU, STATE.PLAYING] },

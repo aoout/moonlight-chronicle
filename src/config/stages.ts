@@ -30,16 +30,26 @@ export const LEVELS: LevelDef[] = [
 ];
 
 export const CURSES: CurseDef[] = [
-  { id:'curse_price',   name:'蚀雾弥漫', icon:ICONS.coin,   desc:'集市货价 +30%',          apply:p=>{ p.effects.priceMul = 1.3; } },
-  { id:'curse_xp',      name:'月华黯淡', icon:ICONS.spark,  desc:'经验获取 -25%',          apply:p=>{ p.xpGain *= 0.75; } },
-  { id:'curse_gold',    name:'财源枯竭', icon:ICONS.gem,    desc:'金币获取 -25%',          apply:p=>{ p.goldGain *= 0.75; } },
-  { id:'curse_hp',      name:'蚀毒侵蚀', icon:ICONS.heart,  desc:'生命上限 -40',           apply:p=>{ p.maxHp -= 40; p.hp = p.maxHp; } },
-  { id:'curse_atk',     name:'月刃钝蚀', icon:ICONS.sword,  desc:'攻击力 -4',              apply:p=>{ p.atk -= 4; } },
-  { id:'curse_spd',     name:'月尘滞重', icon:ICONS.arrow,  desc:'移速 -40',               apply:p=>{ p.speed -= 40; } },
-  { id:'curse_regen',   name:'月华干涸', icon:ICONS.plus,   desc:'生命恢复 -0.4/s',        apply:p=>{ p.regen -= 0.4; } },
-  { id:'curse_crit',    name:'月运晦暗', icon:ICONS.diamond,desc:'暴击率 -10%',            apply:p=>{ p.critRate -= 0.10; } },
-  { id:'curse_ehp',     name:'蚀潮沸腾', icon:ICONS.triUp,  desc:'敌人生命 +25%',          apply:p=>{ p.effects.enemyHpMul = 1.25; } },
-  { id:'curse_edmg',    name:'蚀牙锋利', icon:ICONS.flame,  desc:'敌人伤害 +15%',          apply:p=>{ p.effects.enemyDmgMul = 1.15; } },
+  { id:'curse_price',   name:'蚀雾弥漫', icon:ICONS.coin,   desc:'集市货价 +30%',          apply:p=>{ p.effects.priceMul = 1.3; },
+    graceDesc:'集市货价 -15%', grace:p=>{ p.effects.priceMul = 0.85; } },
+  { id:'curse_xp',      name:'月华黯淡', icon:ICONS.spark,  desc:'经验获取 -25%',          apply:p=>{ p.xpGain *= 0.75; },
+    graceDesc:'经验获取 +12.5%', grace:p=>{ p.xpGain *= 1.125; } },
+  { id:'curse_gold',    name:'财源枯竭', icon:ICONS.gem,    desc:'金币获取 -25%',          apply:p=>{ p.goldGain *= 0.75; },
+    graceDesc:'金币获取 +12.5%', grace:p=>{ p.goldGain *= 1.125; } },
+  { id:'curse_hp',      name:'蚀毒侵蚀', icon:ICONS.heart,  desc:'生命上限 -40',           apply:p=>{ p.maxHp -= 40; p.hp = p.maxHp; },
+    graceDesc:'生命上限 +20', grace:p=>{ p.maxHp += 20; p.hp = Math.min(p.maxHp, p.hp + 20); } },
+  { id:'curse_atk',     name:'月刃钝蚀', icon:ICONS.sword,  desc:'攻击力 -4',              apply:p=>{ p.atk -= 4; },
+    graceDesc:'攻击力 +2', grace:p=>{ p.atk += 2; } },
+  { id:'curse_spd',     name:'月尘滞重', icon:ICONS.arrow,  desc:'移速 -40',               apply:p=>{ p.speed -= 40; },
+    graceDesc:'移速 +20', grace:p=>{ p.speed += 20; } },
+  { id:'curse_regen',   name:'月华干涸', icon:ICONS.plus,   desc:'生命恢复 -0.4/s',        apply:p=>{ p.regen -= 0.4; },
+    graceDesc:'生命恢复 +0.2/s', grace:p=>{ p.regen += 0.2; } },
+  { id:'curse_crit',    name:'月运晦暗', icon:ICONS.diamond,desc:'暴击率 -10%',            apply:p=>{ p.critRate -= 0.10; },
+    graceDesc:'暴击率 +5%', grace:p=>{ p.critRate += 0.05; } },
+  { id:'curse_ehp',     name:'蚀潮沸腾', icon:ICONS.triUp,  desc:'敌人生命 +25%',          apply:p=>{ p.effects.enemyHpMul = 1.25; },
+    graceDesc:'敌人生命 -12.5%', grace:p=>{ p.effects.enemyHpMul = 0.875; } },
+  { id:'curse_edmg',    name:'蚀牙锋利', icon:ICONS.flame,  desc:'敌人伤害 +15%',          apply:p=>{ p.effects.enemyDmgMul = 1.15; },
+    graceDesc:'敌人伤害 -7.5%', grace:p=>{ p.effects.enemyDmgMul = 0.925; } },
 ];
 
 export const STAGE_NAMES: string[] = [

@@ -23,6 +23,7 @@ import { isDevMode } from '../../engine/env.js';
 import { LevelUpPanel } from './components/LevelUpPanel.js';
 import { ResultPanel } from './components/ResultPanel.js';
 import { GateScreen } from './components/GateScreen.js';
+import { CurseScreen } from './curse/index.js';
 import { pausePanel, togglePause } from './pause_control.js';
 import { initMobileActionBar, showMobileActionBar, hideMobileActionBar } from './mobile_action_bar.js';
 import type { CurseDef } from '../../types/core.d.ts';
@@ -33,6 +34,7 @@ import { pSt, gSt, gmSt, iSt } from '../../state/accessors.js';
 export const levelUpPanel = new LevelUpPanel();
 export const resultPanel = new ResultPanel();
 export const gateScreen = new GateScreen();
+export const curseScreen = new CurseScreen();
 
 /* 兼容再导出：暂停控制已下沉到 pause_control.ts */
 export { pausePanel, togglePause };
