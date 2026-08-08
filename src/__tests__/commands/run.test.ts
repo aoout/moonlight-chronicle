@@ -15,7 +15,7 @@
    直接 `sSt().gold = x` 只改到副本上，是无效写入（绿灯是假的）。
    ========================================================= */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { startRun, startStage, resumeRun } from '../../commands/run.js';
+import { startRun, startStage, resumeRun, confirmCurses } from '../../commands/run.js';
 import { saveRun } from '../../infra/persistence/save.js';
 import { STATE, sm } from '../../engine/core/states.js';
 import { CONFIG, CURSES } from '../../config/index.js';
@@ -59,16 +59,18 @@ describe('startRun', () => {
     expect(log.last.depth).toBe(0);
   });
 
-  it('深度 ≥1 时随机施加一个蚀之诅咒并登记到 stageState', () => {
+  it('深度 ≥1 时先进蚀潮索价（CURSE 状态），诅咒待立契', () => {
     expect(CURSES.length).toBeGreaterThan(0);
     stageState.set('depth', 1); // 注意：gSt() === stageState
     startRun();
-    expect(gSt().curse).not.toBeNull();
-    expect(gSt().curse!.id).toBeTruthy();
+    expect(sm.is(STATE.CURSE)).toBe(true);
+    expect(gSt().curse).toBeNull();    // 尚未立契
+    expect(gSt().curses).toEqual([]);
   });
 
   it('开发者模式走第 0 夜商店整备路径（不进第一夜）', () => {
     enableDevMode();
+    stageState.set('depth', 0); // 深度 0 不触发蚀潮索价
     startRun();
     expect(sm.is(STATE.SHOP)).toBe(true);
     expect(gSt().stage).toBe(0);
@@ -143,6 +145,7 @@ describe('resumeRun', () => {
     stageState.set('time', 55.5);
     const curse = CURSES[0];
     stageState.set('curse', curse);
+    stageState.set('curses', [curse]);
 
     saveRun(); // 写入月光烙记
 
@@ -175,5 +178,102 @@ describe('resumeRun', () => {
   it('存档存在但缺少玩家字段时返回 false', () => {
     localStorage.setItem('eclipse_run_save_v1', JSON.stringify({ stage: 1, gold: 5 }));
     expect(resumeRun()).toBe(false);
+  });
+});
+
+/* ========== 诅咒数值语义（固定值削弱，开局可感知） ========== */
+
+describe('诅咒数值语义', () => {
+  const curse = (id: string) => CURSES.find(c => c.id === id)!;
+
+  it('月运晦暗：暴击率 -10pp（开局 5% → 负值，永不暴击）', () => {
+    installPlayer();
+    const p = pSt().player!;
+    const before = p.critRate;
+    curse('curse_crit').apply(p);
+    expect(p.critRate).toBeCloseTo(before - 0.10);
+  });
+
+  it('月刃钝蚀：攻击力 -4（固定值）', () => {
+    installPlayer();
+    const p = pSt().player!;
+    const before = p.atk;
+    curse('curse_atk').apply(p);
+    expect(p.atk).toBe(before - 4);
+  });
+
+  it('月尘滞重：移速 -40（固定值）', () => {
+    installPlayer();
+    const p = pSt().player!;
+    const before = p.speed;
+    curse('curse_spd').apply(p);
+    expect(p.speed).toBe(before - 40);
+  });
+
+  it('月华干涸：生命恢复 -0.4/s（固定值，开局归零）', () => {
+    installPlayer();
+    const p = pSt().player!;
+    const before = p.regen;
+    curse('curse_regen').apply(p);
+    expect(p.regen).toBeCloseTo(before - 0.4);
+  });
+
+  it('蚀毒侵蚀：生命上限 -40 并回满到新上限', () => {
+    installPlayer();
+    const p = pSt().player!;
+    curse('curse_hp').apply(p);
+    expect(p.maxHp).toBe(p.hp);
+  });
+
+  it('乘数型诅咒保持明确语义（价格/敌人不受基础值影响）', () => {
+    installPlayer();
+    const p = pSt().player!;
+    curse('curse_price').apply(p);
+    curse('curse_ehp').apply(p);
+    curse('curse_edmg').apply(p);
+    expect(p.effects.priceMul).toBe(1.3);
+    expect(p.effects.enemyHpMul).toBe(1.25);
+    expect(p.effects.enemyDmgMul).toBe(1.15);
+  });
+});
+
+/* ========== 蚀潮索价：立契 ========== */
+
+describe('confirmCurses（蚀潮索价立契）', () => {
+  const curse = (id: string) => CURSES.find(c => c.id === id)!;
+
+  it('立契：应用所选诅咒、登记到 stageState、推进到 PLAYING', () => {
+    stageState.set('depth', 1);
+    startRun();
+    const p = pSt().player!;
+    const atk0 = p.atk;
+    const picked = [curse('curse_atk')];
+    const options = [curse('curse_atk'), curse('curse_hp'), curse('curse_gold')];
+    expect(confirmCurses(picked, options)).toBe(true);
+    expect(sm.is(STATE.PLAYING)).toBe(true);
+    expect(gSt().curses.map(c => c.id)).toEqual(['curse_atk']);
+    expect(gSt().curse!.id).toBe('curse_atk');
+    expect(p.atk).toBe(atk0 - 4);
+  });
+
+  it('深度 ≥5 时可立双契', () => {
+    stageState.set('depth', 5);
+    startRun();
+    const picked = [curse('curse_atk'), curse('curse_crit')];
+    const options = [...picked, curse('curse_hp')];
+    confirmCurses(picked, options);
+    expect(gSt().curses).toHaveLength(2);
+    expect(gSt().curses.map(c => c.id).sort()).toEqual(['curse_atk', 'curse_crit']);
+  });
+
+  it('未抽中且已精通的诅咒给予蚀之回响（恩惠）', () => {
+    stageState.set('depth', 1);
+    startRun();
+    localStorage.setItem('eclipse_curse_records_save', JSON.stringify({ curse_crit: 5 }));
+    const p = pSt().player!;
+    const crit0 = p.critRate;
+    const options = [curse('curse_atk'), curse('curse_hp'), curse('curse_gold')]; // 未含 curse_crit
+    confirmCurses([options[0]], options);
+    expect(p.critRate).toBeCloseTo(crit0 + 0.05); // 蚀之回响：月运晦暗暴击 +5%
   });
 });

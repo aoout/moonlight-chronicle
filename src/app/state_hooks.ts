@@ -9,8 +9,9 @@ import { gameState } from '../state/flow.js';
 import { stageState } from '../state/stage.js';
 import { statsState } from '../state/stats.js';
 import { startRun, startStage } from '../commands/run.js';
-import { openLevelUp, openResult } from '../features/ui/scheduler.js';
+import { openLevelUp, openResult, curseScreen, showCurseBanner } from '../features/ui/scheduler.js';
 import { openShop } from '../features/ui/shop/index.js';
+import { curseRecordInc } from '../infra/persistence/curse_records.js';
 import { EventBus } from '../engine/core/event_bus.js';
 
 /**
@@ -44,6 +45,17 @@ export function initStateHooks(): void {
     gameState.set('shopOpen', false);
   });
 
+  // ----- 进入 CURSE 时打开蚀潮索价（诅咒抉择） -----
+  sm.onEnter(STATE.CURSE, () => {
+    curseScreen.open();
+  });
+
+  // ----- 离开 CURSE：立契完成，展示所选诅咒横幅 -----
+  sm.onExit(STATE.CURSE, () => {
+    curseScreen.close();
+    stageState.state.curses.forEach(c => showCurseBanner(c));
+  });
+
   // ----- 从 PLAYING 进入 OVER 时打开结算并进入 RESULT 态 -----
   sm.onTransition(STATE.PLAYING, STATE.OVER, () => {
     const gs = stageState.state;
@@ -60,6 +72,8 @@ export function initStateHooks(): void {
   // ----- 从 PLAYING 进入 WIN 时打开结算并进入 RESULT 态 -----
   sm.onTransition(STATE.PLAYING, STATE.WIN, () => {
     const gs = stageState.state;
+    // 蚀之账本：携带的诅咒通关计数 +1（蚀潮认得债主）
+    gs.curses.forEach(c => curseRecordInc(c.id));
     EventBus.emit(EVENTS.GAME_RUN_END, {
       win: true,
       stage: gs.stage,

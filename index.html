@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="css/achievements.css">
   <link rel="stylesheet" href="css/settings.css">
   <link rel="stylesheet" href="css/planet.css">
+  <link rel="stylesheet" href="css/curse.css">
   <link rel="stylesheet" href="css/gamepad.css">
 </head>
 <body>
@@ -118,6 +119,20 @@
       <div class="gate-grid" id="gate-grid"></div>
       <div class="gate-foot">
         <button id="btn-gate-close" class="menu-btn ghost small">返回</button>
+      </div>
+    </div>
+
+    <!-- ===== 蚀潮索价：诅咒抉择（深度 ≥1 开局） ===== -->
+    <div id="curse" class="overlay hidden">
+      <div class="overlay-bg"></div>
+      <div class="panel curse-panel">
+        <div class="panel-title curse-title">蚀潮索价</div>
+        <div class="curse-sub" id="curse-sub">蚀潮自深海中伸手，向守月人索求代价</div>
+        <div class="curse-cards" id="curse-cards"></div>
+        <div class="curse-grace" id="curse-grace"></div>
+        <div class="curse-foot">
+          <button id="btn-curse-confirm" class="menu-btn primary" disabled>立契</button>
+        </div>
       </div>
     </div>
 
@@ -343,7 +358,9 @@
         </div>
         <div class="shop-body">
           <div class="shop-bazaar">
-            <div class="bazaar-label"><span class="ic" data-ic="coin"></span> 集市货架</div>
+            <div class="bazaar-label"><span class="ic" data-ic="coin"></span> 集市货架
+              <button id="btn-shop-refill" class="btn-refill" title="刷新全部货物 · 逐次涨价 · 每夜重置">涨潮补货 · 2 金</button>
+            </div>
             <div class="cards shop-cards" id="shop-cards"></div>
           </div>
           <aside class="shop-panel">

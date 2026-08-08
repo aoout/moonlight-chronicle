@@ -10,6 +10,8 @@ import { EventBus } from '../engine/core/event_bus.js';
 import { pick } from '../engine/util/utils.js';
 import { isDevMode } from '../engine/env.js';
 import { CONFIG, STAGE_NAMES, BOSS_POOLS, CURSES } from '../config/index.js';
+import { resolveCurses } from '../domain/curse_pick.js';
+import { isCurseMastered } from '../infra/persistence/curse_records.js';
 import { stageState } from '../state/stage.js';
 import { statsState } from '../state/stats.js';
 import { playerState } from '../state/player.js';
@@ -20,6 +22,7 @@ import { spawnBoss, spawnEnemy } from '../domain/spawn.js';
 import { initAchievements, achSessionStart } from '../systems/AchievementSystem.js';
 import { getSysMan } from '../systems/index.js';
 import { loadRunMeta } from '../infra/persistence/save.js';
+import type { CurseDef } from '../types/core.d.ts';
 
 /* ---------- 开始一夜 ---------- */
 export function startStage(n: number): void {
@@ -63,7 +66,6 @@ export function startStage(n: number): void {
 /* ---------- 开始一局 ---------- */
 export function startRun(): void {
   initAchievements();
-  sm.transition(STATE.PLAYING);
   stageState.set('stage', 1);
   statsState.patch({
     level: 1,
@@ -86,22 +88,46 @@ export function startRun(): void {
   gameState.set('levelUpOpen', false);
   gameState.set('shopOpen', false);
   achSessionStart(gSt().depth || 0);
-  // 蚀月深度 ≥1：随机施加一个蚀之诅咒
-  stageState.set('curse', gSt().depth >= 1 ? pick(CURSES) : null);
+  // 蚀之诅咒：开局由蚀潮索价（深度 ≥1），确认前为空
+  stageState.set('curses', []);
+  stageState.set('curse', null);
   playerState.set('player', createPlayer());
   const p = pSt().player;
-  const curse = gSt().curse;
-  if (curse && p) curse.apply(p);
   addWeapon('moonRing');
   if (p) computeDerived(p);
-  if (isDevMode()) {
+  if (gSt().depth >= 1) {
+    // 深度 ≥1：先进蚀潮索价（诅咒抉择），确认后由 confirmCurses 推进
+    sm.transition(STATE.CURSE);
+  } else if (isDevMode()) {
     // god 模式：进入第一夜前的「第 0 夜商店」整备（下一夜 → 第 1 夜）
     stageState.set('stage', 0);
     sm.transition(STATE.SHOP);
   } else {
+    sm.transition(STATE.PLAYING);
     startStage(1);
   }
   EventBus.emit(EVENTS.GAME_RUN_START, { depth: gSt().depth, curse: gSt().curse });
+}
+
+/* ---------- 蚀潮索价：立契（确认所选诅咒） ----------
+   UI 在 CURSE 状态完成抉择后调用：应用选中诅咒（惩罚）与
+   未抽中且精通的诅咒之蚀之回响（恩惠），再推进正式流程。 */
+export function confirmCurses(picked: CurseDef[], options: CurseDef[]): boolean {
+  const p = pSt().player;
+  if (!p) return false;
+  const masteredIds = new Set(CURSES.filter(c => isCurseMastered(c.id)).map(c => c.id));
+  resolveCurses(p, picked, options, masteredIds);
+  stageState.set('curses', picked);
+  stageState.set('curse', picked[0] || null);
+  if (p) computeDerived(p);
+  if (isDevMode()) {
+    stageState.set('stage', 0);
+    sm.transition(STATE.SHOP);
+  } else {
+    sm.transition(STATE.PLAYING);
+    startStage(1);
+  }
+  return true;
 }
 
 /* ---------- 从月光烙记续局 ----------
@@ -121,7 +147,15 @@ export function resumeRun(): boolean {
     statsState.set('xpNeeded', d.xpNeeded);
     statsState.set('level', d.player.level);
     statsState.set('runStats', d.runStats || { totalDmg: 0, bossKills: 0, win: false, wDmg: {} });
-    stageState.set('curse', d.curseId ? (CURSES.find(c => c.id === d.curseId) || null) : null);
+    // 诅咒恢复：优先 curseIds（新）；空数组或缺失时回退旧 curseId（单值兼容）
+    const curseIds: string[] = (d.curseIds && d.curseIds.length)
+      ? d.curseIds
+      : (d.curseId ? [d.curseId] : []);
+    const curses = curseIds
+      .map(id => CURSES.find(c => c.id === id))
+      .filter(Boolean) as CurseDef[];
+    stageState.set('curses', curses);
+    stageState.set('curse', curses[0] || null);
     // 重置会话状态（防残留）
     statsState.set('levelQueue', 0);
     gameState.set('levelUpOpen', false);

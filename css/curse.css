@@ -1,0 +1,101 @@
+/* 蚀月远征 · 蚀潮索价（诅咒抉择）
+   蚀色暗红玻璃 · 血债金契 —— 选中的契以蚀光加冕 */
+#curse { display: flex; align-items: center; justify-content: center; }
+.curse-panel {
+  position: relative;
+  width: min(880px, 94vw);
+  border-radius: 16px;
+  background: var(--glass-bg-frost);
+  backdrop-filter: blur(var(--glass-blur-frost));
+  border: 1px solid rgba(var(--blood-rgb), .45);
+  box-shadow:
+    var(--glass-edge-inset),
+    0 6px 40px rgba(0, 0, 0, .6),
+    0 0 var(--eclipse-glow-spread) rgba(var(--blood-rgb), .5),
+    inset 0 0 60px rgba(var(--blood-rgb), .06);
+  padding: 26px 30px 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  overflow: hidden;
+}
+.curse-panel::before {
+  content: ''; position: absolute; top: 0; left: 12%; right: 12%; height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(var(--blood-rgb), .9), transparent);
+  pointer-events: none;
+}
+.curse-title { color: var(--blood); letter-spacing: .5em; font-size: 18px; }
+.curse-sub {
+  font-size: 12px; letter-spacing: .22em; color: rgba(255, 255, 255, .55);
+  text-align: center;
+}
+
+/* ---------- 诅咒契卡 ---------- */
+.curse-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  width: 100%;
+}
+.curse-card {
+  position: relative;
+  border-radius: 12px;
+  background: linear-gradient(165deg, rgba(var(--blood-rgb), .14), rgba(var(--blood-rgb), .04) 55%, rgba(6, 8, 20, .6));
+  border: 1px solid rgba(var(--blood-rgb), .35);
+  padding: 16px 14px 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer;
+  transition: transform .18s, border-color .18s, box-shadow .18s;
+  animation: curseCardIn .45s cubic-bezier(.2, .7, .3, 1) both;
+}
+@keyframes curseCardIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.curse-card:hover { transform: translateY(-4px); border-color: rgba(var(--blood-rgb), .7); }
+.curse-card-ic {
+  font-size: 30px; color: var(--blood);
+  filter: drop-shadow(0 0 10px rgba(var(--blood-rgb), .55));
+  line-height: 1;
+}
+.curse-card-name {
+  font-family: var(--font-title); font-size: 14px; letter-spacing: .28em;
+  color: #f5d8c8;
+}
+.curse-card-desc {
+  font-size: 12px; color: rgba(255, 255, 255, .6); line-height: 1.55;
+  text-align: center; min-height: 56px;
+}
+.curse-card-mark {
+  font-size: 10px; letter-spacing: .18em; color: rgba(255, 255, 255, .35);
+  margin-top: auto;
+}
+/* 选中：金契加冕（与血债对比） */
+.curse-card.picked {
+  border-color: var(--gold);
+  background: linear-gradient(165deg, rgba(var(--gold-rgb), .16), rgba(var(--blood-rgb), .08) 60%, rgba(6, 8, 20, .7));
+  box-shadow: 0 0 24px rgba(var(--gold-rgb), .35), inset 0 0 22px rgba(var(--gold-rgb), .08);
+  transform: translateY(-4px);
+}
+.curse-card.picked .curse-card-ic { color: var(--gold); filter: drop-shadow(0 0 12px rgba(var(--gold-rgb), .8)); }
+.curse-card.picked .curse-card-name { color: var(--gold); }
+.curse-card.picked .curse-card-mark { color: rgba(var(--gold-rgb), .8); }
+
+/* ---------- 蚀之回响（恩惠） ---------- */
+.curse-grace {
+  width: 100%;
+  border-radius: 10px;
+  background: rgba(6, 8, 20, .55);
+  border: 1px solid rgba(var(--gold-rgb), .18);
+  padding: 10px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.curse-grace-title {
+  font-size: 11px; letter-spacing: .3em; color: rgba(var(--gold-rgb), .65);
+  font-weight: 800;
+}
+.curse-grace-row {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px;
+}
+.curse-grace-row .cg-ic { color: var(--gold); font-size: 15px; }
+.curse-grace-row .cg-name { color: rgba(255, 255, 255, .8); font-weight: 600; letter-spacing: .12em; }
+.curse-grace-row .cg-desc { color: var(--gold); margin-left: auto; }
+
+.curse-foot { margin-top: 2px; }

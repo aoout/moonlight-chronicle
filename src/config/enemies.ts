@@ -35,7 +35,3 @@ for (const [key, data] of Object.entries(enemiesData)) {
 }
 
 export { ENEMIES };
-
-export function levelEnemyScale(level: number): { hp: number; dmg: number } {
-  return { hp: 1 + level * 0.25, dmg: 1 + level * 0.08 };
-}

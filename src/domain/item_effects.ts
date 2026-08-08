@@ -63,6 +63,10 @@ const APPLY_FN: Record<string, (p: Player) => void> = {
   horde:      p => { p.effects.horde = 0.05; },
   echoSlow:   p => { p.effects.echoSlow = 1; },
   coinHeal:   p => { p.effects.coinHeal = 0.5; },
+  /* 集市三契 */
+  tideDiscount: p => { p.effects.refillDiscount = 0.5; },
+  tideGrowth:   p => { p.effects.tideGrowth = 1; },
+  tideGift:     p => { p.effects.nextRefillFree = (p.effects.nextRefillFree || 0) + 1; },
   yourMoon:   p => { p.effects.yourMoon = 1; p.effects.moonPhase = currentMoonPhase(); applyMoonEffects(p, p.effects.moonPhase); },
 };
 

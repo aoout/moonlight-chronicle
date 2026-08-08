@@ -60,6 +60,10 @@ export interface PlayerEffects {
   echoTimer?: number;
   coinHeal?: number;
   curseTimer?: number;
+  /* 集市三契：落潮之契（补货 -50%）/ 潮生之珠（每次补货成长）/ 退潮拾贝（下次补货免费次数） */
+  refillDiscount?: number;
+  tideGrowth?: number;
+  nextRefillFree?: number;
   boughtItems?: Record<string, number>;
   /* 时停激活层 */
   tsActive?: number;
@@ -404,6 +408,9 @@ export interface CurseDef {
   icon: string;
   desc: string;
   apply: (p: Player) => void;
+  /** 蚀之回响（精通恩惠）：该诅咒未被抽中且通关计数 ≥5 时，自动获得的反向减半加成 */
+  graceDesc?: string;
+  grace?: (p: Player) => void;
 }
 
 /* ---------- 关卡 ---------- */

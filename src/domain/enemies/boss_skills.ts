@@ -8,6 +8,7 @@ import { EVENTS } from '../../engine/core/events.js';
 import { shakeScreen } from '../../state/render.js';
 import { RNG, rand, angTo, pick } from '../../engine/util/utils.js';
 import { PROJECTILE_POOL } from '../../engine/ecs/entity_pool.js';
+import { HOMING_TUNE } from '../../config/homing_tune.js';
 import { spawnBurst, spawnRing, spawnSpark, spawnStar, spawnShard, spawnStreak, spawnGlow } from '../../platform/fx/fx.js';
 import { EventBus } from '../../engine/core/event_bus.js';
 import { AudioEngine } from '../../platform/audio/engine.js';
@@ -69,7 +70,9 @@ function crossShot(e: any, n: number, spread: number, speed: number, color: stri
   }
 }
 
-/** 追踪球（accel 越追越快，玩家难以甩脱） */
+/** 追踪球（accel 越追越快；turnRate/speedMax/lockT 由 HOMING_TUNE 差异化调校——
+    每个 Boss 的追踪弹都可被走位应对，只是手法不同。漏传时兜底为可甩默认值，
+    绝不允许退回"瞬时转向+无限锁定"的必中税） */
 function trackBalls(e: any, n: number, speed: number, accel: number, color: string, opts: any = {}): void {
   const p = pSt().player; if (!p) return;
   for (let i = 0; i < n; i++) {
@@ -78,7 +81,7 @@ function trackBalls(e: any, n: number, speed: number, accel: number, color: stri
       homing: true, x: e.x, y: e.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
       target: p, speed, accel, r: opts.r ?? 8, dmg: e.dmg * (opts.dmgMul ?? 0.8),
       color, hit: new Set(), enemy: true, t: 0, life: opts.life ?? 4, orb: true,
-      speedMax: opts.speedMax, turnRate: opts.turnRate, lockT: opts.lockT,
+      speedMax: opts.speedMax ?? 340, turnRate: opts.turnRate ?? 3.0, lockT: opts.lockT ?? 2.8,
     }));
   }
 }
@@ -111,8 +114,8 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     ringLayerShot(e, 12, 300, PALETTE.skyDark, { offset: base + 0.2, r: 5, dmgMul: 0.4, life: 3, mark: 'wave' });
     // 螺旋潮圈（持续漩涡压迫）
     spiralBurst(e, 2, 10, 260, '#7fc4d8', { r: 4, dmgMul: 0.35, life: 3, mark: 'wave' });
-    // 追踪潮球
-    trackBalls(e, 2, 211, 60, PALETTE.skyDark, { dmgMul: 0.53, life: 3.5 });
+    // 追踪潮球（绕圈甩）
+    trackBalls(e, 2, 211, 60, PALETTE.skyDark, { dmgMul: 0.53, life: 3.5, ...HOMING_TUNE.tidalWave });
   },
   /* 潮噬之母：产卵孵化 + 全向压制弹 + 追踪 */
   spawnTide(e: EnemyInstance) {
@@ -128,9 +131,9 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
       spawnRing(m.x, m.y, PALETTE.teal, 0.22, 16, 1.4);
       spawnBurst(m.x, m.y, PALETTE.teal, 4);
     }
-    // 产卵时也不忘压制：全向翠弹 + 追踪泡
+    // 产卵时也不忘压制：全向翠弹 + 追踪泡（直线拖）
     ringShot(e, 12, 240, PALETTE.tideDark, { r: 5, dmgMul: 0.5, life: 2.5, mark: 'wave' });
-    trackBalls(e, 2, 194, 50, PALETTE.teal, { dmgMul: 0.53 });
+    trackBalls(e, 2, 194, 50, PALETTE.teal, { dmgMul: 0.53, ...HOMING_TUNE.spawnTide });
   },
   /* 蚀壳战车：连续冲撞（转向追踪）×3 + 撞击震地 */
   ram(e: EnemyInstance) {
@@ -155,7 +158,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     }
     // X 形弹网（封锁斜向走位）
     crossShot(e, 3, 0.7, 300, '#c9b8f0', { r: 6, dmgMul: 0.6, life: 1.8, mark: 'moonblade' });
-    trackBalls(e, 2, 220, 70, PALETTE.violet, { dmgMul: 0.53 });
+    trackBalls(e, 2, 220, 70, PALETTE.violet, { dmgMul: 0.53, ...HOMING_TUNE.moonSlash });
   },
   /* 月影巫王：加速追踪球 ×5（两组错时）+ 全向弹 + 诅咒 */
   shadowOrb(e: EnemyInstance) {
@@ -165,8 +168,8 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     spawnBurst(e.x, e.y, PALETTE.violetDark, 12);
     spawnSpark(e.x, e.y, PALETTE.violet, 8, 140);
     // 快球先行 + 慢球后发（前后夹击；转向受限可被急转甩开）
-    trackBalls(e, 3, 210, 55, PALETTE.orchid, { dmgMul: 0.7, life: 4, speedMax: 300, turnRate: 2.4, lockT: 2.6 });
-    trackBalls(e, 2, 150, 35, PALETTE.violet, { dmgMul: 0.62, life: 4.5, speedMax: 235, turnRate: 1.9, lockT: 3.2 });
+    trackBalls(e, 3, 210, 55, PALETTE.orchid, { dmgMul: 0.7, life: 4, ...HOMING_TUNE.shadowOrbF });
+    trackBalls(e, 2, 150, 35, PALETTE.violet, { dmgMul: 0.62, life: 4.5, ...HOMING_TUNE.shadowOrbS });
     ringShot(e, 12, 230, PALETTE.violetDark, { r: 6, dmgMul: 0.55, life: 3, mark: 'wave' });
     p.effects.curseTimer = Math.max(p.effects.curseTimer || 0, 3);
     EventBus.emit(EVENTS.UI_SPAWN_TEXT, { x: p.x, y: p.y - 40, text: '蚀咒', color: PALETTE.orchid });
@@ -188,7 +191,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
         fanShot(e, wa + da, 3, 0.5, 300, PALETTE.lavender, { r: 5, dmgMul: 0.5, life: 1.7, mark: 'moonblade' });
       }
     }
-    trackBalls(e, 2, 229, 80, PALETTE.periwinkle, { dmgMul: 0.53 });
+    trackBalls(e, 2, 229, 80, PALETTE.periwinkle, { dmgMul: 0.53, ...HOMING_TUNE.triSlash });
   },
   /* 裂空魔龙：烈焰吐息 + 双侧绕后扇形 + 追踪火球 */
   breath(e: EnemyInstance) {
@@ -204,7 +207,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     for (const side of [-1, 1]) {
       fanShot(e, a + side * 1.9, 5, 1.2, 300, PALETTE.ember, { r: 6, dmgMul: 0.55, life: 2, mark: 'ember' });
     }
-    trackBalls(e, 3, 202, 70, PALETTE.fire, { dmgMul: 0.62 });
+    trackBalls(e, 3, 202, 70, PALETTE.fire, { dmgMul: 0.62, ...HOMING_TUNE.breath });
   },
   /* 蚀雷巨枭：五道落雷（快速交错）+ 全向电弹 + 追踪 */
   lightning(e: EnemyInstance) {
@@ -216,7 +219,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     groundStrike(e, 5, 68, 0.8, PALETTE.periwinkleBright, { stagger: 0.12, spread: 120, dmgMul: 0.9, lightning: true });
     // 全向电弹（逼迫玩家在落雷间隙中走位）
     ringShot(e, 16, 250, PALETTE.periwinkleBright, { r: 5, dmgMul: 0.6, life: 2.5, mark: 'pulse' });
-    trackBalls(e, 2, 211, 80, PALETTE.sky, { dmgMul: 0.53 });
+    trackBalls(e, 2, 211, 80, PALETTE.sky, { dmgMul: 0.53, ...HOMING_TUNE.lightning });
   },
   /* 深渊巢母：酸雾 + 扇形酸弹 + 追踪 */
   acidMist(e: EnemyInstance) {
@@ -228,7 +231,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     eSt().projectiles.push(PROJECTILE_POOL.addWith({ aoe: true, x: e.x, y: e.y, r: 0, maxR: 360, dmg: e.dmg * 0.2, color: PALETTE.green, t: 0, slow: 0.5, enemy: true, hit: new Set(), mist: true }));
     // 酸弹扇形（毒雾掩护下的齐射）
     fanShot(e, angTo(e, p), 12, 2.0, 240, PALETTE.green, { r: 6, dmgMul: 0.55, life: 2.2, mark: 'acid' });
-    trackBalls(e, 2, 176, 60, PALETTE.paleGreen, { dmgMul: 0.53 });
+    trackBalls(e, 2, 176, 60, PALETTE.paleGreen, { dmgMul: 0.53, ...HOMING_TUNE.acidMist });
   },
   /* 蚀月终焉：双层全向 + 螺旋 + 追踪 + 地面封锁（终焉级弹幕） */
   eclipsePulse(e: EnemyInstance) {
@@ -243,8 +246,8 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     ringLayerShot(e, 12, 330, PALETTE.fireBright, { r: 5, dmgMul: 0.5, life: 3, mark: 'pulse' });
     // 螺旋金芒
     spiralBurst(e, 2, 10, 280, PALETTE.goldVivid, { r: 5, dmgMul: 0.45, life: 3, mark: 'pulse' });
-    // 追踪蚀球
-    trackBalls(e, 4, 220, 100, PALETTE.ember, { dmgMul: 0.62 });
+    // 追踪蚀球（终焉级：难甩但撑过 lockT 即失锁）
+    trackBalls(e, 4, 220, 100, PALETTE.ember, { dmgMul: 0.62, ...HOMING_TUNE.eclipse });
     // 地面封锁（落点切割走位路线）
     groundStrike(e, 4, 78, 1.0, PALETTE.ember, { stagger: 0.18, spread: 160, dmgMul: 0.7 });
   },
@@ -304,8 +307,8 @@ export function bossWave(e: any): void {
   // 双排扇形（错位加密，横向位移无法全躲）
   fanShot(e, a, 8, 1.1, 170, PALETTE.heavy, { r: 7, dmgMul: 0.7, life: 3, mark: 'ember' });
   fanShot(e, a + 0.07, 7, 1.0, 260, PALETTE.ember, { r: 6, dmgMul: 0.6, life: 3, mark: 'ember' });
-  // 尾随追踪火球
-  trackBalls(e, 1, 211, 70, PALETTE.heavy, { dmgMul: 0.53 });
+  // 尾随追踪火球（通用波：中规中矩）
+  trackBalls(e, 1, 211, 70, PALETTE.heavy, { dmgMul: 0.53, ...HOMING_TUNE.wave });
   shakeScreen(4);
 }
 export function bossMinions(e: EnemyInstance): void {
@@ -318,7 +321,7 @@ export function bossMinions(e: EnemyInstance): void {
   spawnSpark(e.x, e.y, PALETTE.fireBright, 8, 150);
   // 召唤间隙的全向压制
   ringShot(e, 10, 220, PALETTE.gold, { r: 5, dmgMul: 0.5, life: 2.6, mark: 'pulse' });
-  trackBalls(e, 1, 202, 70, PALETTE.violet, { dmgMul: 0.53 });
+  trackBalls(e, 1, 202, 70, PALETTE.violet, { dmgMul: 0.53, ...HOMING_TUNE.minions });
 }
 export function bossDash(e: EnemyInstance): void {
   const p = pSt().player; if (!p) return;

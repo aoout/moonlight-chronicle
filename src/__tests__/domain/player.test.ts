@@ -51,7 +51,14 @@ describe('computeDerived', () => {
     expect(p.effCrit).toBe(0.1);
     expect(p.effSpeed).toBe(50);
     expect(p.effGold).toBe(1);
-    expect(p.effAtkSpd).toBeCloseTo(1 * (1 + 0.1 * 0.3));
+    expect(p.effAtkSpd).toBeCloseTo(1);   // 攻速 = 基础攻速（暴击率联动已移除）
+  });
+
+  it('攻速不再受暴击率影响（负暴击不拖累攻速）', () => {
+    const p = makePlayer({ atkSpd: 1.2, critRate: -0.05 });
+    expect(p.effAtkSpd).toBeCloseTo(1.2);
+    const q = makePlayer({ atkSpd: 1.2, critRate: 0.5 });
+    expect(q.effAtkSpd).toBeCloseTo(1.2);
   });
 
   it('五路转模全部计入 effAtk', () => {

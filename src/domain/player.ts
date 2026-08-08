@@ -21,7 +21,6 @@ import { pSt, sSt, rSt, gSt } from '../state/accessors.js';
 
 /* ===== 玩家机制参数（魔法数字具名化） ===== */
 const CRIT_CAP = 0.9;              // 暴击率上限
-const CRIT_ATKSPD_BONUS = 0.3;     // 暴击率 → 攻速加成系数
 const PLAYER_RADIUS = 16;          // 玩家碰撞半径
 const MIN_GOLD_RATE = 0.1;         // 金币倍率下限（防负收益）
 
@@ -33,7 +32,7 @@ export function computeDerived(p: Player): Player {
   p.effCrit  = Math.min(CRIT_CAP, p.critRate + p.speed * p.speedToCrit / 100);
   p.effSpeed = p.speed + p.atk * p.atkToSpd;
   p.effGold  = p.goldGain + (p.luck - 1) * p.luckToGold;
-  p.effAtkSpd = p.atkSpd * (1 + p.critRate * CRIT_ATKSPD_BONUS);
+  p.effAtkSpd = p.atkSpd;   // 攻速 = 基础攻速（已移除暴击率→攻速隐藏联动，防负暴击穿透）
   return p;
 }
 

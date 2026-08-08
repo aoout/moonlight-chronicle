@@ -205,6 +205,14 @@ export const ICONS: Record<string, string> = {
   starCharm: IC.wrap('<circle cx="12" cy="12" r="7.4"/><path d="M12 8.2l1.2 3.1 3.1 1.2-3.1 1.2L12 16.8l-1.2-3.1-3.1-1.2 3.1-1.2 1.2-3.1Z"/><path d="M12 3.6v1.8M12 18.6v1.8"/>'),
   /* 你的月亮：现实月相 · 弦月之镜 + 星缀 */
   yourMoon: IC.wrap('<circle cx="12" cy="12" r="7.6"/><path d="M12 4.4a7.6 7.6 0 0 1 0 15.2v-15.2Z" fill="currentColor" stroke="none"/><path d="M4 16.4l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1Z"/>'),
+
+  /* ---------- 集市三契 · 潮汐系（落潮之契 / 潮生之珠 / 退潮拾贝） ---------- */
+  /* 落潮之契：方孔铜钱 + 退潮浪（潮落价落） */
+  tideDiscount: IC.wrap('<circle cx="12" cy="7.8" r="4.7"/><rect x="10.45" y="6.25" width="3.1" height="3.1" rx="1" transform="rotate(45 12 7.8)"/><path d="M3.5 15.4h3.1l1.4-1.9 1.4 1.9 1.4-1.9 1.4 1.9H20.5"/><path d="M3.5 19.4h3.1l1.4-1.9 1.4 1.9 1.4-1.9 1.4 1.9H20.5" stroke-width="1.2" stroke-opacity=".45"/>'),
+  /* 潮生之珠：潮中升起一粒月珠（每次涨潮凝一枚） */
+  tideGrowth: IC.wrap('<circle cx="12" cy="8.4" r="1.5" fill="currentColor" stroke="none"/><path d="M12 11.4v-1.5" stroke-width="1.2" stroke-dasharray="1.3 1.5"/><path d="M3.5 15.4h3.1l1.4 1.9 1.4-1.9 1.4 1.9 1.4-1.9H20.5"/><path d="M3.5 19.4h3.1l1.4 1.9 1.4-1.9 1.4 1.9 1.4-1.9H20.5" stroke-width="1.2" stroke-opacity=".45"/>'),
+  /* 退潮拾贝：张开的贝 + 内珠 + 退潮浪（潮退白捡） */
+  tideGift: IC.wrap('<path d="M4.8 17.2c-.6-3 1.5-6.6 5.4-7.8 3.9-1.2 8 .6 9.2 4.2.4 1.2.3 2.4-.3 3.6H4.8Z"/><circle cx="12" cy="12.6" r="1.8" fill="currentColor" stroke="none"/><path d="M7.6 12.4c1.5-.6 2.8-1.5 4-2.6M9.9 14.4c1.7-.6 3.2-1.4 4.4-2.6" stroke-width="1.1" stroke-opacity=".5"/><path d="M3.5 20.4h3.1l1.4-1.9 1.4 1.9 1.4-1.9 1.4 1.9H20.5" stroke-width="1.2" stroke-opacity=".45"/>'),
 };
 
 /* 取图标 SVG；带类名重载 */

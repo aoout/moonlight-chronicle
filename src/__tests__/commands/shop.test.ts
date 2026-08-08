@@ -10,13 +10,15 @@
    ========================================================= */
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  purchaseWeapon, upgradeWeaponCmd, purchaseItem, sellWeapon, weaponSellPrice,
+  purchaseWeapon, upgradeWeaponCmd, purchaseItem, sellWeapon, weaponSellPrice, refillShop,
 } from '../../commands/shop.js';
 import { addWeapon } from '../../domain/player.js';
 import { SHOP_ITEMS } from '../../config/index.js';
-import { CONFIG } from '../../config/index.js';
+import { CONFIG, refillPrice } from '../../config/index.js';
 import { playerState } from '../../state/player.js';
 import { statsState } from '../../state/stats.js';
+import { shopState } from '../../state/shop.js';
+import { generateShopSlots } from '../../domain/shop_offers.js';
 import { installPlayer, enableDevMode } from '../_harness/index.js';
 
 const player = () => playerState.state.player!;
@@ -212,6 +214,112 @@ describe('sellWeapon', () => {
   });
 });
 
+/* ========== 涨潮补货 ========== */
+
+describe('refillShop（涨潮补货 = 全量刷新）', () => {
+  it('金币不足时失败，不扣款不计数', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    statsState.set('gold', 1);
+    const r = refillShop();
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe('金币不足');
+    expect(gold()).toBe(1);
+    expect(shopState.state.refills).toBe(0);
+  });
+
+  it('成功刷新：扣基础价 2、计数 +1、全部槽位恢复在售', () => {
+    const slots = generateShopSlots(player());
+    slots[0].sold = true; // 有售罄槽
+    shopState.set('slots', slots);
+    shopState.set('refills', 0);
+    const r = refillShop();
+    expect(r.ok).toBe(true);
+    expect(r.price).toBe(2);
+    expect(gold()).toBe(8); // 10 - 2
+    expect(shopState.state.refills).toBe(1);
+    expect(shopState.state.slots.every(s => s.sold === false)).toBe(true);
+    expect(shopState.state.slots).toHaveLength(6);
+  });
+
+  it('货架未买任何东西也能刷新（全量换新）', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    const r = refillShop();
+    expect(r.ok).toBe(true);
+    expect(r.price).toBe(2);
+    expect(shopState.state.refills).toBe(1);
+  });
+
+  it('第二次刷新涨价：refillPrice(2) = 6', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 1);
+    const r = refillShop();
+    expect(r.price).toBe(refillPrice(2));
+    expect(shopState.state.refills).toBe(2);
+    expect(gold()).toBe(10 - 6);
+  });
+
+  it('刷新价不受通货膨胀与加价诅咒影响（纯 refillPrice）', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    const p = player();
+    p.effects.priceMul = 1.3;          // 蚀雾弥漫诅咒
+    const r = refillShop();
+    expect(r.price).toBe(refillPrice(1)); // 仍是 2，未 ×1.3 也未 ×inflation
+  });
+});
+
+/* ========== 集市三契 × 涨潮补货 ========== */
+
+describe('集市三契与涨潮补货联动', () => {
+  it('落潮之契：第 1 次刷新价减半 2→1', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    player().effects.refillDiscount = 0.5;
+    const r = refillShop();
+    expect(r.price).toBe(1);
+    expect(gold()).toBe(9); // 10 - 1
+  });
+
+  it('退潮拾贝：下一次刷新免费（不扣款）且计数照加，之后恢复原价', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    player().effects.nextRefillFree = 1;
+    const r1 = refillShop();
+    expect(r1.price).toBe(0);
+    expect(gold()).toBe(10);              // 免费，未扣款
+    expect(shopState.state.refills).toBe(1);
+    expect(player().effects.nextRefillFree).toBe(0); // 次数已消耗
+    const r2 = refillShop();
+    expect(r2.price).toBe(refillPrice(2)); // 恢复原价 6
+    expect(gold()).toBe(4);
+  });
+
+  it('退潮拾贝可累积：买 2 次 = 2 次免费', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    player().effects.nextRefillFree = 2;
+    expect(refillShop().price).toBe(0);
+    expect(refillShop().price).toBe(0);
+    expect(refillShop().price).toBe(refillPrice(3)); // 第 3 次恢复
+  });
+
+  it('潮生之珠：每次刷新 +1 生命上限、+1% 暴伤', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    const p = player();
+    p.effects.tideGrowth = 1;
+    const hp0 = p.maxHp;
+    const crit0 = p.critDmg;
+    refillShop();
+    expect(p.maxHp).toBe(hp0 + 1);
+    expect(p.critDmg).toBeCloseTo(crit0 + 0.01);
+    refillShop();
+    expect(p.maxHp).toBe(hp0 + 2);
+  });
+});
+
 /* ========== god 模式 ========== */
 
 describe('god 模式（?dev=1）：无限金币', () => {
@@ -239,5 +347,16 @@ describe('god 模式（?dev=1）：无限金币', () => {
   it('免费不等于无视规则：满级武器仍不能再升', () => {
     for (let i = 0; i < 9; i++) upgradeWeaponCmd('moonRing', 9999);
     expect(upgradeWeaponCmd('moonRing', 9999).ok).toBe(false);
+  });
+
+  it('god 模式补货不扣款但计数照加', () => {
+    const slots = generateShopSlots(player());
+    slots[0].sold = true;
+    shopState.set('slots', slots);
+    shopState.set('refills', 0);
+    const r = refillShop();
+    expect(r.ok).toBe(true);
+    expect(gold()).toBe(10); // 不扣款
+    expect(shopState.state.refills).toBe(1);
   });
 });

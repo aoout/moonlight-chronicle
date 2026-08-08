@@ -15,6 +15,9 @@ export interface StageState {
   spawnAcc: number;
   boss: EnemyInstance | null;
   depth: number;
+  /** 当前局生效的蚀之诅咒（开局选择，深度 ≥5 时 2 个；真相源） */
+  curses: CurseDef[];
+  /** 兼容字段：curses 的第一个（旧存档 / 旧 UI 引用） */
   curse: CurseDef | null;
   unlocked: number;
   paused: boolean;
@@ -29,6 +32,7 @@ const INITIAL: StageState = {
   spawnAcc: 0,
   boss: null,
   depth: 0,
+  curses: [],
   curse: null,
   unlocked: 0,
   paused: false,
