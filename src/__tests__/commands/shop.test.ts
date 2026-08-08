@@ -10,13 +10,15 @@
    ========================================================= */
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  purchaseWeapon, upgradeWeaponCmd, purchaseItem, sellWeapon, weaponSellPrice,
+  purchaseWeapon, upgradeWeaponCmd, purchaseItem, sellWeapon, weaponSellPrice, refillShop,
 } from '../../commands/shop.js';
 import { addWeapon } from '../../domain/player.js';
 import { SHOP_ITEMS } from '../../config/index.js';
-import { CONFIG } from '../../config/index.js';
+import { CONFIG, refillPrice } from '../../config/index.js';
 import { playerState } from '../../state/player.js';
 import { statsState } from '../../state/stats.js';
+import { shopState } from '../../state/shop.js';
+import { generateShopSlots } from '../../domain/shop_offers.js';
 import { installPlayer, enableDevMode } from '../_harness/index.js';
 
 const player = () => playerState.state.player!;
@@ -212,6 +214,70 @@ describe('sellWeapon', () => {
   });
 });
 
+/* ========== 涨潮补货 ========== */
+
+describe('refillShop（涨潮补货）', () => {
+  /** 构造含 1 个空位的货架 */
+  const withSoldSlot = () => {
+    const slots = generateShopSlots(player());
+    slots[0].sold = true;
+    shopState.set('slots', slots);
+    shopState.set('refills', 0);
+  };
+
+  it('货架无空位时失败', () => {
+    shopState.set('slots', generateShopSlots(player()));
+    shopState.set('refills', 0);
+    const r = refillShop();
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe('货架已满，无需补货');
+  });
+
+  it('金币不足时失败，不扣款不计数', () => {
+    withSoldSlot();
+    statsState.set('gold', 1);
+    const r = refillShop();
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe('金币不足');
+    expect(gold()).toBe(1);
+    expect(shopState.state.refills).toBe(0);
+    expect(shopState.state.slots.some(s => s.sold)).toBe(true);
+  });
+
+  it('成功补货：扣基础价 2、计数 +1、空槽补满且未售槽保留', () => {
+    withSoldSlot();
+    const kept = { ...shopState.state.slots[1] };
+    const r = refillShop();
+    expect(r.ok).toBe(true);
+    expect(r.price).toBe(2);
+    expect(gold()).toBe(8); // 10 - 2
+    expect(shopState.state.refills).toBe(1);
+    expect(shopState.state.slots.some(s => s.sold)).toBe(false);
+    expect(shopState.state.slots[1]).toEqual(kept); // 未售槽原样
+  });
+
+  it('第二次补货涨价：refillPrice(2) = 6', () => {
+    withSoldSlot();
+    refillShop();
+    // 再制造一个空位后补第二次
+    const slots = shopState.state.slots.map(s => ({ ...s }));
+    slots[0].sold = true;
+    shopState.set('slots', slots);
+    const r = refillShop();
+    expect(r.price).toBe(refillPrice(2));
+    expect(shopState.state.refills).toBe(2);
+    expect(gold()).toBe(8 - 6);
+  });
+
+  it('补货价不受通货膨胀与加价诅咒影响（纯 refillPrice）', () => {
+    withSoldSlot();
+    const p = player();
+    p.effects.priceMul = 1.3;          // 蚀雾弥漫诅咒
+    const r = refillShop();
+    expect(r.price).toBe(refillPrice(1)); // 仍是 2，未 ×1.3 也未 ×inflation
+  });
+});
+
 /* ========== god 模式 ========== */
 
 describe('god 模式（?dev=1）：无限金币', () => {
@@ -239,5 +305,16 @@ describe('god 模式（?dev=1）：无限金币', () => {
   it('免费不等于无视规则：满级武器仍不能再升', () => {
     for (let i = 0; i < 9; i++) upgradeWeaponCmd('moonRing', 9999);
     expect(upgradeWeaponCmd('moonRing', 9999).ok).toBe(false);
+  });
+
+  it('god 模式补货不扣款但计数照加', () => {
+    const slots = generateShopSlots(player());
+    slots[0].sold = true;
+    shopState.set('slots', slots);
+    shopState.set('refills', 0);
+    const r = refillShop();
+    expect(r.ok).toBe(true);
+    expect(gold()).toBe(10); // 不扣款
+    expect(shopState.state.refills).toBe(1);
   });
 });

@@ -9,5 +9,5 @@ export { ENEMIES } from './enemies.js';
 export { BOSSES, BOSS_POOLS } from './bosses.js';
 export {
   CONFIG, LEVELS, CURSES, STAGE_NAMES,
-  stageEnemyPool, inflationRate, stageSpawnRate, enemyScale,
+  stageEnemyPool, inflationRate, stageSpawnRate, enemyScale, refillPrice,
 } from './stages.js';

@@ -25,6 +25,47 @@
   padding-left: 6px; flex: none;
 }
 .bazaar-label .ic { color: var(--gold); }
+
+/* ---------- 涨潮补货按钮 ---------- */
+.btn-refill {
+  margin-left: auto;
+  font-family: var(--font-title); font-size: 12px; letter-spacing: .18em;
+  color: var(--gold);
+  background: linear-gradient(160deg, rgba(var(--gold-rgb), .16), rgba(var(--gold-rgb), .05));
+  border: 1px solid rgba(var(--gold-rgb), .5);
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: filter .2s, transform .1s;
+}
+.btn-refill:hover:not(:disabled) {
+  filter: brightness(1.35);
+  box-shadow: 0 0 18px rgba(var(--gold-rgb), .35);
+}
+.btn-refill:active:not(:disabled) { transform: scale(.97); }
+.btn-refill:disabled {
+  color: rgba(var(--gold-rgb), .3);
+  border-color: rgba(var(--gold-rgb), .18);
+  cursor: not-allowed;
+}
+
+/* ---------- 已售罄空位卡 ---------- */
+.card.sold {
+  filter: grayscale(.9) brightness(.55);
+  cursor: default;
+  border-color: rgba(255, 255, 255, .06);
+  box-shadow: none;
+}
+.card.sold:hover { transform: none; border-color: rgba(255, 255, 255, .06); box-shadow: none; }
+.card.sold .card-name { color: rgba(255, 255, 255, .28); }
+.card.sold .card-ic { opacity: .25; filter: none; }
+.card.sold .card-desc { color: rgba(255, 255, 255, .2); }
+.sold-tag {
+  font-family: var(--font-title); font-size: 12px; letter-spacing: .3em;
+  color: rgba(255, 255, 255, .3);
+  display: flex; align-items: center; justify-content: center;
+  flex: 1; min-height: 42px;
+}
 .shop-cards { max-width: none; padding: 0; justify-content: flex-start; }
 
 /* ---------- 铭牌面板（凝蚀级） ---------- */

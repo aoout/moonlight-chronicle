@@ -1,19 +1,22 @@
 /* =========================================================
-   蚀月远征 · 商店：打开集市与卡牌渲染
+   蚀月远征 · 商店：打开集市与卡牌渲染（槽位驱动）
+   货架由 ShopState.slots 承载：购买置空（sold），涨潮补货只补空位，
+   未售槽位跨重渲染保留。每夜进入商店时 resetShopNight() 重建货架。
    ========================================================= */
 import { EVENTS } from '../../../engine/core/events.js';
 import { playerState } from '../../../state/player.js';
 import { stageState } from '../../../state/stage.js';
+import { shopState, resetShopNight } from '../../../state/shop.js';
 import { statsState } from '../../../state/stats.js';
 import { EventBus } from '../../../engine/core/event_bus.js';
-import { purchaseWeapon, upgradeWeaponCmd, purchaseItem } from '../../../commands/index.js';
-import { CONFIG, WEAPONS, SHOP_ITEMS, inflationRate, WEAPON_UPGRADE_COST } from '../../../config/index.js';
+import { purchaseWeapon, upgradeWeaponCmd, purchaseItem, refillShop } from '../../../commands/index.js';
+import { CONFIG, WEAPONS, SHOP_ITEMS, inflationRate, WEAPON_UPGRADE_COST, refillPrice } from '../../../config/index.js';
+import { generateShopSlots } from '../../../domain/shop_offers.js';
 import { $, el, html, toast } from '../hud_utils.js';
 import { AudioEngine } from '../../../platform/audio/engine.js';
 import { iconSVG } from '../../../assets/icons.js';
-import { weaponFormulaText, weaponRangeText, weaponFormulaBreakdown } from './formulas.js';
+import { weaponFormulaText, weaponRangeText } from './formulas.js';
 import { renderShopPanel } from './panel.js';
-import { rollErosion } from '../../../domain/erosion.js';
 import { isDevMode } from '../../../engine/env.js';
 import { currentMoonPhaseDesc } from '../../../config/moon_phase.js';
 
@@ -35,86 +38,82 @@ function fitCardContent(card: HTMLElement): void {
   }
 }
 
-type Offer =
-  | { kind: 'newWeapon' | 'upWeapon'; id: string; eroded?: boolean }
-  | { kind: 'item'; data: any };
+/** 侵蚀武器的倍率构成行（+ 月蚀深度×(x+y×L)） */
+function formulaRow(def: any, eroded: boolean): string {
+  const er = eroded && def.erosion
+    ? ' <span class="eroded-tier">+ 月蚀深度×(' + (Math.round(def.erosion.x * 100) / 100) + '+' + (Math.round(def.erosion.y * 100) / 100) + '×L)</span>'
+    : '';
+  return '<div class="upgrade-tier">倍率构成：' + weaponFormulaText(def) + er + '</div>';
+}
 
-export function openShop(): void {
+/** 刷新按钮状态与价格（每次渲染刷新） */
+function updateRefillBtn(): void {
+  const btn = $('btn-shop-refill') as HTMLButtonElement | null;
+  if (!btn) return;
+  const st = shopState.state;
+  const hasSold = st.slots.some(x => x.sold);
+  btn.disabled = !hasSold;
+  btn.textContent = '涨潮补货 · ' + refillPrice(st.refills + 1) + ' 金';
+}
+
+/** 渲染货架卡片（不清状态；购买后置 sold 再调用本函数即可） */
+function renderShop(): void {
   const p = pSt().player;
   if (!p) return;
-  AudioEngine.playSfx('open');
+  const st = shopState.state;
+  if (!st.slots.length) shopState.set('slots', generateShopSlots(p));
+  const slots = shopState.state.slots;
+
   const cards = $('shop-cards');
   cards.innerHTML = '';
   $('shop-sub').textContent = gSt().stage >= CONFIG.FINAL_STAGE ? '终焉已至，整备完毕即赴决战'
     : gSt().stage <= 0 && isDevMode() ? '月蚀神启 · 踏入第一夜前的整备'
     : '第 ' + gSt().stage + ' 夜已渡，购置武装以御下一夜';
 
-  // 1) 武器购买 / 升级卡：池 = 未拥有 + 未满级(Lv.5)的已拥有武器，
-  //    抽到已拥有的即升级，价格随等级递增
-  const pool = Object.keys(WEAPONS).filter(id => {
-    const w = p.weapons.find((x: any) => x.id === id);
-    return !w || w.lv < 10;
-  });
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
-  const offers: Offer[] = [];
-  for (let i = 0; i < CONFIG.SHOP_WEAPON_OFFERS; i++) {
-    if (!shuffled.length) break;
-    const id = shuffled.shift()!;
-    offers.push(p.weapons.find((x: any) => x.id === id)
-      ? { kind: 'upWeapon', id, eroded: !!p.weapons.find((x: any) => x.id === id)?.eroded }
-      : { kind: 'newWeapon', id, eroded: rollErosion(gSt().depth) });
-  }
-
-  // 2) 道具卡
-  p.effects.boughtItems = p.effects.boughtItems || {};
-  const boughtItems = p.effects.boughtItems;
-  const itemPool = SHOP_ITEMS.filter(it => !it.max || (boughtItems[it.id] || 0) < it.max);
-  const nItems = 4;
-  const itemOffers: any[] = [];
-  while (itemOffers.length < nItems && itemPool.length) {
-    itemOffers.push(itemPool.splice(Math.floor(Math.random() * itemPool.length), 1)[0]);
-  }
-
-  const all: Offer[] = [...offers, ...itemOffers.map(o => ({ kind: 'item' as const, data: o }))];
-  all.sort(() => Math.random() - 0.5).forEach((o: any, i: number) => {
+  slots.forEach((slot, i) => {
     const c = el('div', 'card');
     c.style.animationDelay = (i * 0.06) + 's';
+
+    // 已售罄：空位卡
+    if (slot.sold) {
+      c.classList.add('sold');
+      c.innerHTML = '<div class="sold-tag">已售罄</div>';
+      cards.appendChild(c);
+      return;
+    }
+
     let title: string, icon: string, desc: string, price: number, rarity = 'common', tag = '';
-    let def: any = null, it: any = null;
-    // 侵蚀武器：倍率构成内联合并月蚀倍率（+ 月蚀深度×(x+y×L)）
-    const formulaRow = (d: any, eroded: boolean) => {
-      const er = eroded && d.erosion
-        ? ' <span class="eroded-tier">+ 月蚀深度×(' + (Math.round(d.erosion.x * 100) / 100) + '+' + (Math.round(d.erosion.y * 100) / 100) + '×L)</span>'
-        : '';
-      return '<div class="upgrade-tier">倍率构成：' + weaponFormulaText(d) + er + '</div>';
-    };
-    if (o.kind === 'newWeapon') {
-      def = WEAPONS[o.id];
-      rarity = 'legend'; title = def.name + (o.eroded ? '·侵蚀' : ''); icon = def.icon; tag = def.tag;
-      desc = '<span class="stat-conv">新武器</span> · ' + def.desc +
-        formulaRow(def, !!o.eroded) +
+    let def: any = null;
+    if (slot.kind === 'weapon') {
+      def = WEAPONS[slot.id];
+      const w = p.weapons.find((x: any) => x.id === slot.id);
+      const isUp = !!w;
+      rarity = isUp ? 'epic' : 'legend';
+      title = def.name + (slot.eroded ? '·侵蚀' : '') + (isUp ? ' 强化' : '');
+      icon = def.icon;
+      tag = isUp ? '强化' : def.tag;
+      desc = (isUp
+        ? '升至 <span class="stat-up">Lv.' + (w!.lv + 1) + '</span>，伤害与形态进一步提升。'
+        : '<span class="stat-conv">新武器</span> · ' + def.desc) +
+        formulaRow(def, !!slot.eroded) +
         '<div class="upgrade-tier range">⟡ ' + (weaponRangeText(def) || '—') + (def.pierce !== undefined ? ' · 穿透 ' + (def.pierce === Infinity ? '∞' : def.pierce) : '') + '</div>';
       const inflate = inflationRate(gSt().stage);
-      price = Math.round(16 * (p.effects.priceMul || 1) * inflate);
-    } else if (o.kind === 'upWeapon') {
-      const w = p.weapons.find((x: any) => x.id === o.id);
-      if (!w) return;
-      def = WEAPONS[o.id];
-      rarity = 'epic'; title = def.name + ' 强化' + (o.eroded ? '·侵蚀' : ''); icon = def.icon; tag = '强化';
-      desc = '升至 <span class="stat-up">Lv.' + (w.lv + 1) + '</span>，伤害与形态进一步提升。' +
-        formulaRow(def, !!o.eroded) +
-        '<div class="upgrade-tier range">⟡ ' + (weaponRangeText(def) || '—') + (def.pierce !== undefined ? ' · 穿透 ' + (def.pierce === Infinity ? '∞' : def.pierce) : '') + '</div>';
-      const inflate = inflationRate(gSt().stage);
-      price = Math.round(WEAPON_UPGRADE_COST[w.lv + 1] * (p.effects.priceMul || 1) * inflate);
+      price = isUp
+        ? Math.round(WEAPON_UPGRADE_COST[w!.lv + 1] * (p.effects.priceMul || 1) * inflate)
+        : Math.round(16 * (p.effects.priceMul || 1) * inflate);
     } else {
-      it = o.data;
-      rarity = it.rarity; title = it.name; icon = it.icon; tag = it.tag || (it.rarity === 'legend' ? '神恩' : it.rarity === 'epic' ? '非凡' : '寻常');
+      const it = SHOP_ITEMS.find(x => x.id === slot.id)!;
+      rarity = it.rarity;
+      title = it.name;
+      icon = it.icon;
+      tag = it.tag || (it.rarity === 'legend' ? '神恩' : it.rarity === 'epic' ? '非凡' : '寻常');
       desc = it.id === 'yourMoon' ? currentMoonPhaseDesc() : it.desc;
       const inflate = inflationRate(gSt().stage);
       price = Math.round(it.price * (p.effects.priceMul || 1) * inflate);
     }
+
     c.classList.add('rarity-' + rarity, 'weapon-card');
-    if (o.eroded) c.classList.add('eroded');
+    if (slot.eroded) c.classList.add('eroded');
     const iconColor = def ? ` style="color:${def.color};filter:drop-shadow(0 0 10px ${def.color}88)"` : '';
     c.innerHTML = html`
       <div class="card-inner">
@@ -128,26 +127,55 @@ export function openShop(): void {
     if (!isDevMode() && sSt().gold < price) c.classList.add('cant-afford');
     c.onclick = () => {
       let r: { ok: boolean; reason?: string };
-      if (o.kind === 'newWeapon') r = purchaseWeapon(o.id, price, o.eroded);
-      else if (o.kind === 'upWeapon') r = upgradeWeaponCmd(o.id, price);
-      else r = purchaseItem(it, price);
+      if (slot.kind === 'weapon') {
+        const w = p.weapons.find((x: any) => x.id === slot.id);
+        r = w ? upgradeWeaponCmd(slot.id, price) : purchaseWeapon(slot.id, price, slot.eroded);
+      } else {
+        const it = SHOP_ITEMS.find(x => x.id === slot.id)!;
+        r = purchaseItem(it, price);
+      }
       if (!r.ok) { if (r.reason) toast(r.reason); return; }
       AudioEngine.playSfx('buy');
-      if (o.kind === 'newWeapon') { if (def) toast(def.name + ' 已佩戴'); }
-      else if (o.kind === 'upWeapon') { toast(title + ' 完成'); }
-      else {
-        const cnt = p.effects.boughtItems?.[it.id];
-        toast(title + ' 已生效' + (cnt && cnt > 1 ? ' x' + cnt : ''));
-      }
-      openShop();
+      if (slot.kind === 'weapon') toast(def.name + (p.weapons.some((x: any) => x.id === slot.id && x.lv > 1) ? ' 强化完成' : ' 已佩戴'));
+      else toast(title + ' 已生效');
+      // 标记该槽售罄（复制后替换，确保 Store 感知）
+      const next = shopState.state.slots.map(x => ({ ...x }));
+      next[i].sold = true;
+      shopState.set('slots', next);
+      renderShop();
     };
     cards.appendChild(c);
   });
+
   requestAnimationFrame(() => {
     Array.from(cards.children).forEach(child => fitCardContent(child as HTMLElement));
   });
+  updateRefillBtn();
   $('shop-gold').textContent = String(Math.floor(sSt().gold));
   renderShopPanel(p);
   $('shop').classList.remove('hidden');
   EventBus.emit(EVENTS.SHOP_OPEN, { stage: gSt().stage, gold: sSt().gold });
+}
+
+/** 绑定涨潮补货按钮（按钮是静态 DOM，绑定一次即可） */
+function bindRefill(): void {
+  const btn = $('btn-shop-refill') as HTMLButtonElement | null;
+  if (!btn) return;
+  btn.onclick = () => {
+    const r = refillShop();
+    if (!r.ok) { if (r.reason) toast(r.reason); return; }
+    AudioEngine.playSfx('buy');
+    toast('涨潮补货 · ' + r.price + ' 金');
+    renderShop();
+  };
+}
+
+/** 每夜进入商店：重置货架与刷新计数后渲染 */
+export function openShop(): void {
+  const p = pSt().player;
+  if (!p) return;
+  AudioEngine.playSfx('open');
+  resetShopNight();
+  bindRefill();
+  renderShop();
 }

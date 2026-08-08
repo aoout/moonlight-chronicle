@@ -92,3 +92,16 @@ export function enemyScale(stage: number, depth = 0): { hp: number; dmg: number 
   const dmg = CURVES.enemyDmgScale({ stage, depth });
   return { hp, dmg };
 }
+
+/* ========== 商店补货曲线 ========== */
+
+/**
+ * 集市补货（涨潮补货）价格：P(n) = 2 × n^1.5，四舍五入。
+ * - n = 本夜第 n 次补货（首次 2 金）
+ * - 幂 1.5：比线性快、比指数慢，前 3 次温和（2/6/10），此后加速逼玩家克制
+ * - 刻意不含 inflationRate 与 priceMul：补货价不受通货膨胀与蚀雾弥漫诅咒影响
+ * - 每夜重置（n 归零）由 shopState.refills 归零承载
+ */
+export function refillPrice(n: number): number {
+  return Math.round(2 * Math.pow(Math.max(1, n), 1.5));
+}
