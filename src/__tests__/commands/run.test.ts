@@ -177,3 +177,59 @@ describe('resumeRun', () => {
     expect(resumeRun()).toBe(false);
   });
 });
+
+/* ========== 诅咒数值语义（固定值削弱，开局可感知） ========== */
+
+describe('诅咒数值语义', () => {
+  const curse = (id: string) => CURSES.find(c => c.id === id)!;
+
+  it('月运晦暗：暴击率 -10pp（开局 5% → 负值，永不暴击）', () => {
+    installPlayer();
+    const p = pSt().player!;
+    const before = p.critRate;
+    curse('curse_crit').apply(p);
+    expect(p.critRate).toBeCloseTo(before - 0.10);
+  });
+
+  it('月刃钝蚀：攻击力 -4（固定值）', () => {
+    installPlayer();
+    const p = pSt().player!;
+    const before = p.atk;
+    curse('curse_atk').apply(p);
+    expect(p.atk).toBe(before - 4);
+  });
+
+  it('月尘滞重：移速 -40（固定值）', () => {
+    installPlayer();
+    const p = pSt().player!;
+    const before = p.speed;
+    curse('curse_spd').apply(p);
+    expect(p.speed).toBe(before - 40);
+  });
+
+  it('月华干涸：生命恢复 -0.4/s（固定值，开局归零）', () => {
+    installPlayer();
+    const p = pSt().player!;
+    const before = p.regen;
+    curse('curse_regen').apply(p);
+    expect(p.regen).toBeCloseTo(before - 0.4);
+  });
+
+  it('蚀毒侵蚀：生命上限 -40 并回满到新上限', () => {
+    installPlayer();
+    const p = pSt().player!;
+    curse('curse_hp').apply(p);
+    expect(p.maxHp).toBe(p.hp);
+  });
+
+  it('乘数型诅咒保持明确语义（价格/敌人不受基础值影响）', () => {
+    installPlayer();
+    const p = pSt().player!;
+    curse('curse_price').apply(p);
+    curse('curse_ehp').apply(p);
+    curse('curse_edmg').apply(p);
+    expect(p.effects.priceMul).toBe(1.3);
+    expect(p.effects.enemyHpMul).toBe(1.25);
+    expect(p.effects.enemyDmgMul).toBe(1.15);
+  });
+});
