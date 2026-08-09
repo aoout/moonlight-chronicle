@@ -92,7 +92,13 @@ export function drawEnemies(rc: RenderContext): void {
     const cacheSize = Math.ceil(s * 4) + 40;
     const drawBody = (bctx: CanvasRenderingContext2D) => {
       bctx.translate(cacheSize / 2, cacheSize / 2);
-      bctx.shadowColor = e.color || PALETTE.white; bctx.shadowBlur = e.boss ? 18 : 8;
+      // 体积光晕（径向渐变替代 shadowBlur，避免每次缓存刷新触发 GPU 降级路径）
+      const glowR = s * (e.boss ? 2.5 : 2.0);
+      const g = bctx.createRadialGradient(0, 0, 0, 0, 0, glowR);
+      g.addColorStop(0, e.color || PALETTE.white);
+      g.addColorStop(1, 'transparent');
+      bctx.fillStyle = g;
+      bctx.beginPath(); bctx.arc(0, 0, glowR, 0, TAU); bctx.fill();
       if (e.boss) drawBossBody(bctx, e, s, 0, 0, t, rc.time);
       else drawEnemyBody(bctx, e, s, 0, 0, t, 0, rc.time);
     };

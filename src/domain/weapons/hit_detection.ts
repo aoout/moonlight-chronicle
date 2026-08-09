@@ -32,11 +32,12 @@ export const HIT_DETECTION: Record<string, (pr: Projectile, dt: number, p: Playe
     // 玩家投射物：检测敌人
     const candidates = neighborEnemies(pr.x, pr.y, pr.r + 60);
     const hits = [];
+    const hitSet = pr.hit ??= new Set();
     for (const e of candidates) {
-      if (e.dead || pr.hit!.has(e)) continue;
+      if (e.dead || hitSet.has(e)) continue;
       if (distSq(pr, e) < (pr.r + e.size * 0.75) ** 2) {
         hits.push({ target: e, isPlayer: false });
-        pr.hit!.add(e);
+        hitSet.add(e);
       }
     }
     return hits;
@@ -46,13 +47,14 @@ export const HIT_DETECTION: Record<string, (pr: Projectile, dt: number, p: Playe
   radius(pr, dt, _p) {
     if ((pr as any).benchNoHit) return [];
     const hits = [];
-    const candidates = neighborEnemies(pr.x, pr.y, pr.maxR || pr.r);
+    const hitSet = pr.hit ??= new Set();
+    const candidates = neighborEnemies(pr.x, pr.y, pr.maxR ?? pr.r);
     for (const e of candidates) {
-      if (e.dead || pr.hit!.has(e)) continue;
-      const r = pr.r || pr.maxR || 200;
+      if (e.dead || hitSet.has(e)) continue;
+      const r = pr.r ?? pr.maxR ?? 200;
       if (distSq(e, pr) < r * r) {
         hits.push({ target: e, isPlayer: false });
-        pr.hit!.add(e);
+        hitSet.add(e);
       }
     }
     return hits;
@@ -62,18 +64,19 @@ export const HIT_DETECTION: Record<string, (pr: Projectile, dt: number, p: Playe
   beam(pr, dt, _p) {
     if ((pr as any).benchNoHit) return [];
     const hits = [];
+    const hitSet = pr.hit ??= new Set();
     const dx = Math.cos(pr.dir), dy = Math.sin(pr.dir);
     // 吐息投射物不检测敌人（由 breath 段专门检测玩家）
     if (!pr.breath) {
       const candidates = neighborEnemies(pr.x, pr.y, pr.range || 500);
       for (const e of candidates) {
-        if (e.dead || pr.hit!.has(e)) continue;
+        if (e.dead || hitSet.has(e)) continue;
         const proj = (e.x - pr.x) * dx + (e.y - pr.y) * dy;
         if (proj > 0 && proj < (pr.range || 500)) {
           const perp = Math.abs((e.x - pr.x) * (-dy) + (e.y - pr.y) * dx);
           if (perp < (pr.width || 14) + e.size * 0.7) {
             hits.push({ target: e, isPlayer: false });
-            pr.hit!.add(e);
+            hitSet.add(e);
           }
         }
       }
@@ -98,18 +101,20 @@ export const HIT_DETECTION: Record<string, (pr: Projectile, dt: number, p: Playe
   aoe(pr, dt, _p) {
     if ((pr as any).benchNoHit) return [];
     const hits = [];
+    const hitSet = pr.hit ??= new Set();
     const p = pSt().player;
     if (!p) return [];
+    const maxR = pr.maxR ?? 200;
     // 更新半径
-    pr.r = Math.min(pr.maxR, (pr.r || 0) + (pr.maxR || 200) * dt * (pr.enemy ? 1.7 : 2.4 / (p.duration || 1)));
+    pr.r = Math.min(maxR, (pr.r ?? 0) + maxR * dt * (pr.enemy ? 1.7 : 2.4 / (p.duration ?? 1)));
     // 玩家弹：检测敌人；敌方弹（酸雾等）不得误伤己方小怪
     if (!pr.enemy) {
-      const candidates = neighborEnemies(pr.x, pr.y, pr.maxR || 200);
+      const candidates = neighborEnemies(pr.x, pr.y, maxR);
       for (const e of candidates) {
-        if (e.dead || pr.hit!.has(e)) continue;
+        if (e.dead || hitSet.has(e)) continue;
         if (distSq(e, pr) < pr.r * pr.r) {
           hits.push({ target: e, isPlayer: false });
-          pr.hit!.add(e);
+          hitSet.add(e);
         }
       }
     }
@@ -120,7 +125,7 @@ export const HIT_DETECTION: Record<string, (pr: Projectile, dt: number, p: Playe
       }
     }
     // 半径扩展到 maxR 后清除投射物，防止特效永不消失
-    if (pr.r >= (pr.maxR || 0)) {
+    if (pr.r >= maxR) {
       pr.dead = 1;
     }
     return hits;

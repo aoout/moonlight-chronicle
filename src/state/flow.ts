@@ -15,7 +15,7 @@ export interface GameStateSlice {
   _resumeState: string;
   /* 时停缩放（1=正常，0.15=时停激活） */
   _timeScale: number;
-  /* 回响减速持续时间 */
+  /* 回响减速持续时间 —— 由 effects.ts 中 echoSlow 的 update 通过 gameState.set('_echoSlowT', ...) 更新 */
   _echoSlowT: number;
 }
 
@@ -35,3 +35,8 @@ export const gmState = () => gameState.state;
 
 // 状态机同步：每次状态转换后更新 gameState.state
 sm.onTransition('*', '*', () => { gameState.set('state', sm.current); });
+
+/** 触发回响减速效果，持续 duration 秒 */
+export function setEchoSlow(duration: number): void {
+  gameState.set('_echoSlowT', duration);
+}

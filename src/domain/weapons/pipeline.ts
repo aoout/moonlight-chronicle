@@ -121,7 +121,7 @@ export function executeProjPipeline(pr: Projectile, dt: number, p: Player): void
   }
 
   // 缓存投射物类型函数引用（首次运行时初始化，消除每帧类型解析开销）
-  const meta = pr._meta!;
+  const meta = pr._meta ?? (pr._meta = {});
   if (!meta._cached) {
     const typeName = resolveProjectileType(pr);
     const typeDef = PROJECTILE_TYPES[typeName] || PROJECTILE_TYPES.linear;

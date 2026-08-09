@@ -123,7 +123,7 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
     moonCrit = (p.effects.moonCrit ?? 0) > 0;
     if (moonCrit) { p.effects.moonCrit = 0; isCrit = true; }
   }
-  if (isCrit) dmg *= p.critDmg * (moonCrit ? MOON_CRIT_BONUS : 1);
+  if (isCrit) dmg *= (p.critDmg ?? 1) * (moonCrit ? MOON_CRIT_BONUS : 1);
   if (!isSecret && p.effects.horde) {
     const hc = Math.min(HORDE_MAX_STACKS, Math.floor(eSt().enemies.length / HORDE_DIVISOR));
     if (hc > 0) dmg *= 1 + p.effects.horde * hc;
@@ -145,7 +145,7 @@ export function damageEnemy(e: EnemyInstance, dmg: number, isCrit: boolean, srcT
     EventBus.emit(EVENTS.VISUAL_SHARD, { x: e.x, y: e.y, color: PALETTE.gold, count: 4, speed: 170 });
     aoeSplash(e, SPLASH_RADIUS, dmg, SPLASH_RATIO, p, 'splash', 'splash');
   }
-  dmg = Math.max(MIN_DMG, Math.round(dmg));
+  dmg = Math.max(MIN_DMG, Math.round(dmg || 0));
   e.hp -= dmg;
   /* 亏凸·回澜之护：造成伤害的 12% 转化为护盾（上限 30，停止输出 6 秒后消散） */
   if (!isSecret && p.effects.moonWane) {
@@ -186,8 +186,8 @@ export function killEnemy(e: EnemyInstance, srcType?: string): void {
      小怪照常掉落，道具触发的额外掉落（吞噬之月/金币流星）仅对小怪生效 */
   if (!e.boss) {
     const gDef = ENEMIES[type] || {};
-    const xpAmt = gDef.xp || 1;
-    let goldAmt = gDef.gold || 1;
+    const xpAmt = gDef.xp ?? 1;
+    let goldAmt = gDef.gold ?? 1;
     if (p.effects.goldMeteor && RNG() < p.effects.goldMeteor) { const extraGold = goldAmt; goldAmt *= 2; trackItemExtraGold(p, 'goldMeteor', extraGold); EventBus.emit(EVENTS.UI_SPAWN_TEXT, { x: e.x, y: e.y - 20, text: '金币流星', color: PALETTE.goldPale }); }
     spawnDrop(e.x, e.y, 'xp', Math.round(xpAmt));
     spawnDrop(e.x, e.y, 'gold', Math.round(goldAmt * (GOLD_DROP_MIN + RNG() * GOLD_DROP_RANGE)));
@@ -330,7 +330,7 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
   EventBus.emit(EVENTS.VISUAL_BURST, { x: p.x, y: p.y, color: PALETTE.blood, count: 18 });
   EventBus.emit(EVENTS.UI_SPAWN_TEXT, { x: p.x, y: p.y - 26, text: '-' + Math.round(dmg), color: PALETTE.blood });
   if (p.effects.tideRegen && dmg > 0) p.effects.regenBuff = 2;
-  if (p.thorns > 0 && e && 'hp' in e) {
+  if (p.thorns > 0 && e && e !== p && 'hp' in e) {
     // 荆棘反伤：血色尖刺迸发
     EventBus.emit(EVENTS.VISUAL_BURST, { x: p.x, y: p.y, color: '#ff5a6a', count: 9 });
     EventBus.emit(EVENTS.VISUAL_RING, { x: p.x, y: p.y, color: PALETTE.blood, life: 0.3, radius: 42, width: 2 });
@@ -356,11 +356,11 @@ export function meleeHit(x: number, y: number, r: number, dmg: number, opts?: { 
   const p = pSt().player;
   if (!p) return;
   if (dist(p, { x, y }) < r + p.r) {
-    hurtPlayer({ x, y, dmg }, dmg * ((opts && opts.mul) || 1));
+    hurtPlayer({ x, y, dmg }, dmg * ((opts && opts.mul) ?? 1));
   }
   EventBus.emit(EVENTS.VISUAL_RING, { x, y, color: PALETTE.blood, life: 0.26, radius: r, width: 3 });
   EventBus.emit(EVENTS.VISUAL_BURST, { x, y, color: PALETTE.blood, count: 8 });
-  shakeScreen((opts && opts.shake) || 6);
+  shakeScreen((opts && opts.shake) ?? 6);
 }
 
 /* 掉落物生成 */

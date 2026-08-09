@@ -18,16 +18,16 @@ export function stormTick(dt: number): void {
   p.effects.stormCores = p.effects.stormCores || [];
   if (stormW) {
     const def = WEAPONS.storm as any;
-    const CORES = def.cores || 2;
-    const tick = (def.tick || 0.28) * (1 - p.cdr);
-    const orbitR = (def.radius || 115) * p.area;
-    const angularSpd = def.angularSpd || 3.0;
-    const projSpeed = def.speed || 390;
-    const range = def.range || projSpeed * 1.3;
-    const projLife = range / projSpeed;
-    const projR = def.projRadius || 5;
-    const color = def.color || PALETTE.swift;
-    const projPerShot = (def.proj || 1) + Math.floor(stormW.lv / 3) + Math.floor((p.projCount || 0) / 3);
+    const CORES = def.cores ?? 2;
+    const tick = (def.tick ?? 0.28) * (1 - (p.cdr ?? 0));
+    const orbitR = (def.radius ?? 115) * p.area;
+    const angularSpd = def.angularSpd ?? 3.0;
+    const projSpeed = def.speed ?? 390;
+    const range = def.range ?? projSpeed * 1.3;
+    const projLife = projSpeed > 0 ? range / projSpeed : 0;
+    const projR = def.projRadius ?? 5;
+    const color = def.color ?? PALETTE.swift;
+    const projPerShot = (def.proj ?? 1) + Math.floor(stormW.lv / 3) + Math.floor((p.projCount ?? 0) / 3);
     const dmgPerProj = weaponDmg(stormW, p);
 
     p.effects.stormCores = [];
@@ -50,12 +50,12 @@ export function stormTick(dt: number): void {
         const fireA = a + HALF_PI;
 
         for (let j = 0; j < projPerShot; j++) {
-          const spread = (j - (projPerShot - 1) / 2) * (def.spread || 0.16);
+          const spread = (j - (projPerShot - 1) / 2) * (def.spread ?? 0.16);
           const ang = fireA + spread;
           world.add('projectiles', {
             x: ox, y: oy,
             vx: Math.cos(ang) * projSpeed, vy: Math.sin(ang) * projSpeed,
-            r: projR, dmg: dmgPerProj, pierce: p.pierce + (def.pierce || 0),
+            r: projR, dmg: dmgPerProj, pierce: p.pierce + (def.pierce ?? 0),
             color, hit: new Set(), wId: 'storm',
             life: projLife, speed: projSpeed, range: range,
           });

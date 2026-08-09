@@ -37,7 +37,7 @@ export function initStateHooks(): void {
   sm.onEnter(STATE.SHOP, () => {
     gameState.set('shopOpen', true);
     // 集市面板按需加载：进入 SHOP 状态才拉取 open_shop 模块（含武器/道具详情链）
-    void import('../features/ui/shop/index.js').then(m => m.openShop());
+    void import('../features/ui/shop/index.js').then(m => m.openShop()).catch(e => console.error('shop load failed', e));
   });
 
   // ----- 离开 SHOP 时重置面板标志 -----

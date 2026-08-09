@@ -89,9 +89,10 @@ export class EnemySystem extends System {
     const stride = pool._stride;
     const off = pool._offsets;
     const views = pool._views;
-    const count = pool.count;
     let dirty = false;
-    for (let i = 0; i < count; i++) {
+    // killEnemy 仅设置 e.dead=1 不修改 pool.count，因此循环不会越界；
+    // 但每次迭代检查 pool.count 增强防御性，避免未来改动引入新问题。
+    for (let i = 0; i < pool.count; i++) {
       const base = i * stride;
       if (data[base + off.dead]) { dirty = true; continue; }
       const e = views[i];

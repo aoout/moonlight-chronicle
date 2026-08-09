@@ -65,7 +65,7 @@ function grantWheel(p: Player, slots: WheelSlot[], idx: number): WheelGrant {
     addGold(BLANK_GOLD);
     return { kind: 'blank', gold: BLANK_GOLD };
   }
-  const b = blessingById(slot.blessingId!);
+  const b = slot.blessingId ? blessingById(slot.blessingId) : undefined;
   if (!b) return { kind: 'blank' };
 
   applyWheelBlessing(p, b.id);

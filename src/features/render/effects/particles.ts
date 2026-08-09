@@ -18,11 +18,17 @@ const PARTICLE_CIRCLE_SIZE = 16;
 
 /* 预渲染星形粒子（8 角星，含阴影） */
 function drawStarShape(ctx: CanvasRenderingContext2D, s: number, color: string): void {
+  // 光晕层（径向渐变替代 shadowBlur）
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, s + 8);
+  g.addColorStop(0, color);
+  g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, s + 8, 0, Math.PI * 2); ctx.fill();
+  // 星形
   ctx.fillStyle = color;
-  ctx.shadowColor = color; ctx.shadowBlur = 14;
   ctx.beginPath();
   for (let i = 0; i < 8; i++) {
-    const a = i * HALF_PI, r = i % 2 === 0 ? s : s * 0.35;
+    const a = i * Math.PI / 4, r = i % 2 === 0 ? s : s * 0.35;
     if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
     else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
   }
@@ -31,11 +37,27 @@ function drawStarShape(ctx: CanvasRenderingContext2D, s: number, color: string):
 
 /* 预渲染碎片粒子（菱形，含阴影） */
 function drawShardShape(ctx: CanvasRenderingContext2D, s: number, color: string): void {
+  // 光晕层（径向渐变替代 shadowBlur）
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, s + 6);
+  g.addColorStop(0, color);
+  g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, s + 6, 0, Math.PI * 2); ctx.fill();
+  // 菱形
   ctx.fillStyle = color;
-  ctx.shadowColor = color; ctx.shadowBlur = 8;
   ctx.beginPath();
   ctx.moveTo(0, -s); ctx.lineTo(s * 0.72, 0); ctx.lineTo(0, s); ctx.lineTo(-s * 0.72, 0);
   ctx.closePath(); ctx.fill();
+}
+
+/* 局部径向渐变光晕（与 bosses.ts 一致） */
+function glow(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string, a: number): void {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, color); g.addColorStop(1, 'transparent');
+  ctx.globalAlpha = a;
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+  ctx.globalAlpha = 1;
 }
 
 export function drawParticles(rc: RenderContext): void {
@@ -88,8 +110,11 @@ export function drawParticles(rc: RenderContext): void {
     ctx.save();
     if (data[base + off.chain]) {
       ctx.globalAlpha = life;
+      // 发光辅助线（替代 shadowBlur）
+      ctx.strokeStyle = color; ctx.lineWidth = 8; ctx.globalAlpha = life * 0.3;
+      ctx.beginPath(); ctx.moveTo(data[base + off.x1], data[base + off.y1]); ctx.lineTo(data[base + off.x2], data[base + off.y2]); ctx.stroke();
+      ctx.globalAlpha = life;
       ctx.strokeStyle = color; ctx.lineWidth = 3;
-      ctx.shadowColor = color; ctx.shadowBlur = 14;
       ctx.beginPath(); ctx.moveTo(data[base + off.x1], data[base + off.y1]); ctx.lineTo(data[base + off.x2], data[base + off.y2]); ctx.stroke();
       // 电弧白芯
       ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1;
@@ -98,13 +123,17 @@ export function drawParticles(rc: RenderContext): void {
       const k = t / max;
       ctx.globalAlpha = life * 0.9;
       ctx.strokeStyle = color; ctx.lineWidth = Math.max(0.5, (data[base + off.lw] || 3) * (1 - k));
-      ctx.shadowColor = color; ctx.shadowBlur = 14;
-      ctx.beginPath(); ctx.arc(x, y, (data[base + off.r0] || 4) + ((data[base + off.r1] || 60) - (data[base + off.r0] || 4)) * k, 0, TAU); ctx.stroke();
+      const ringR = (data[base + off.r0] || 4) + ((data[base + off.r1] || 60) - (data[base + off.r0] || 4)) * k;
+      glow(ctx, x, y, ringR + 6, color, 0.3);
+      ctx.beginPath(); ctx.arc(x, y, ringR, 0, TAU); ctx.stroke();
     } else if (data[base + off.spark]) {
       ctx.globalAlpha = life;
-      ctx.strokeStyle = color; ctx.lineWidth = data[base + off.size] || 1.6;
       ctx.lineCap = 'round';
-      ctx.shadowColor = color; ctx.shadowBlur = 10;
+      // 发光辅助线（替代 shadowBlur）
+      ctx.strokeStyle = color; ctx.lineWidth = (data[base + off.size] || 1.6) + 4; ctx.globalAlpha = life * 0.25;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - data[base + off.vx] * 0.055, y - data[base + off.vy] * 0.055); ctx.stroke();
+      ctx.globalAlpha = life;
+      ctx.strokeStyle = color; ctx.lineWidth = data[base + off.size] || 1.6;
       ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - data[base + off.vx] * 0.055, y - data[base + off.vy] * 0.055); ctx.stroke();
     } else if (data[base + off.star]) {
       ctx.globalAlpha = life;
@@ -135,9 +164,12 @@ export function drawParticles(rc: RenderContext): void {
     } else if (data[base + off.streak]) {
       ctx.globalAlpha = life;
       ctx.translate(x, y); ctx.rotate(data[base + off.ang] || 0);
-      ctx.strokeStyle = color; ctx.lineCap = 'round';
-      ctx.shadowColor = color; ctx.shadowBlur = 10;
-      ctx.lineWidth = data[base + off.w] || 2;
+      ctx.lineCap = 'round';
+      // 发光辅助线（替代 shadowBlur）
+      ctx.strokeStyle = color; ctx.lineWidth = (data[base + off.w] || 2) + 6; ctx.globalAlpha = life * 0.25;
+      ctx.beginPath(); ctx.moveTo(-(data[base + off.len] || 26), 0); ctx.lineTo(0, 0); ctx.stroke();
+      ctx.globalAlpha = life;
+      ctx.strokeStyle = color; ctx.lineWidth = data[base + off.w] || 2;
       ctx.beginPath(); ctx.moveTo(-(data[base + off.len] || 26), 0); ctx.lineTo(0, 0); ctx.stroke();
     } else if (data[base + off.glow]) {
       const k = t / max;

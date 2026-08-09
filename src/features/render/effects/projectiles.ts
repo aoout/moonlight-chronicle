@@ -38,6 +38,17 @@ function dot(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, col
   ctx.restore();
 }
 
+/* 体积光晕：径向渐变发光圆（替代 shadowBlur 高频开销）
+   与 bosses.ts 中的 glow 函数一致，保持项目中统一的优化模式 */
+function glow(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string, a = 1): void {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, color);
+  g.addColorStop(1, 'transparent');
+  ctx.globalAlpha = a;
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+}
+
 /* =========================================================
    线性弹头（飞行方向已旋转到 x 轴）
    ========================================================= */
@@ -163,19 +174,26 @@ const PROJ_LINEAR_HEADS: Record<string, (ctx: CanvasRenderingContext2D, pr: any)
 
   /* 月影残像：月牙弹 + 残影拖尾 */
   phantom(ctx, pr) {
+    ctx.save();
     ctx.shadowColor = pr.color; ctx.shadowBlur = 14;
-    // 残影（两层虚影）
+    // 残影1（外层虚影）
+    ctx.save();
     ctx.globalAlpha = 0.25;
     ctx.fillStyle = pr.color;
     ctx.beginPath(); ctx.translate(-pr.r * 0.8, 0); ctx.arc(0, 0, pr.r, 0, TAU); ctx.arc(pr.r * 0.42, 0, pr.r * 0.72, 0, TAU, true); ctx.fill();
+    ctx.restore();
+    // 残影2（内层虚影）
+    ctx.save();
     ctx.globalAlpha = 0.5;
+    ctx.fillStyle = pr.color;
     ctx.beginPath(); ctx.translate(-pr.r * 0.4, 0); ctx.arc(0, 0, pr.r, 0, TAU); ctx.arc(pr.r * 0.42, 0, pr.r * 0.72, 0, TAU, true); ctx.fill();
-    ctx.globalAlpha = 1;
-    // 主体
+    ctx.restore();
+    // 主体（直接绘制在原点，不受 translate 影响）
     ctx.fillStyle = pr.color;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.arc(pr.r * 0.42, 0, pr.r * 0.72, 0, TAU, true); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,.75)';
     ctx.beginPath(); ctx.arc(-pr.r * 0.25, -pr.r * 0.25, pr.r * 0.3, 0, TAU); ctx.fill();
+    ctx.restore();
   },
 
   /* =========================================================
@@ -260,7 +278,7 @@ const PROJ_LINEAR_HEADS: Record<string, (ctx: CanvasRenderingContext2D, pr: any)
   enemy_spoke(ctx, pr) {
     const R = pr.r; const t = pr.t || 0;
     ctx.rotate(t * 5);
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 10;
+    glow(ctx, 0, 0, R * 3, pr.color, 0.4);
     ctx.lineCap = 'round';
     // 辐条
     ctx.strokeStyle = pr.color; ctx.lineWidth = R * 0.85;
@@ -340,11 +358,11 @@ const PROJ_LINEAR_HEADS: Record<string, (ctx: CanvasRenderingContext2D, pr: any)
     const R = pr.r; const t = pr.t || 0;
     const flick = 1 + Math.sin(t * 13) * 0.1 + Math.sin(t * 7 + 1) * 0.06;
     const RR = R * flick;
-    // 外光晕
+    // 外光晕（径向渐变 + glow 替代 shadowBlur）
+    glow(ctx, 0, 0, RR * 3.2, pr.color, 0.35);
     const g = ctx.createRadialGradient(0, 0, 0, 0, 0, RR * 2.8);
     g.addColorStop(0, 'rgba(255,157,107,.38)'); g.addColorStop(1, 'transparent');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, RR * 2.8, 0, TAU); ctx.fill();
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 12;
     // 外焰（圆头朝 +x，尖尾朝 -x）
     ctx.fillStyle = pr.color;
     ctx.beginPath();
@@ -483,8 +501,9 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.setLineDash([12, 9]);
     ctx.lineDashOffset = -pr.t * 70;
     ctx.strokeStyle = PALETTE.fire; ctx.lineWidth = 2.6;
-    ctx.shadowColor = PALETTE.hot; ctx.shadowBlur = 22;
-    ctx.beginPath(); ctx.arc(0, 0, 10 + pr.t * 30, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 10 + pr.t * 30, 0, TAU);
+    glow(ctx, 0, 0, 10 + pr.t * 30 + 8, PALETTE.hot, 0.4);
+    ctx.stroke();
     ctx.restore();
     ctx.setLineDash(NO_DASH);
     // 内焰
@@ -506,8 +525,9 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.setLineDash([11, 8]);
     ctx.lineDashOffset = -pr.t * 55;
     ctx.strokeStyle = PALETTE.tide; ctx.lineWidth = 2.4;
-    ctx.shadowColor = PALETTE.tide; ctx.shadowBlur = 20;
-    ctx.beginPath(); ctx.arc(0, 0, 10 + pr.t * 30, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 10 + pr.t * 30, 0, TAU);
+    glow(ctx, 0, 0, 10 + pr.t * 30 + 8, PALETTE.tide, 0.4);
+    ctx.stroke();
     ctx.restore();
     ctx.setLineDash(NO_DASH);
     // 2. 深潮涡心
@@ -541,8 +561,9 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.setLineDash([10, 7]);
     ctx.lineDashOffset = -pr.t * 60;
     ctx.strokeStyle = PALETTE.goldBright; ctx.lineWidth = 2.6;
-    ctx.shadowColor = PALETTE.goldBright; ctx.shadowBlur = 24;
-    ctx.beginPath(); ctx.arc(0, 0, 10 + pr.t * 30, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 10 + pr.t * 30, 0, TAU);
+    glow(ctx, 0, 0, 10 + pr.t * 30 + 8, PALETTE.goldBright, 0.4);
+    ctx.stroke();
     ctx.restore();
     ctx.save();
     ctx.setLineDash([4, 9]);
@@ -582,15 +603,17 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.translate(-pr.x, -pr.y);
     const a = Math.max(0, 1 - pr.t / pr.dur);
     const pulse = 1 + Math.sin(pr.t * 26) * 0.1;   // 脉动
-    // 外层柔光
+    // 外层柔光（径向渐变光晕替代 shadowBlur）
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    glow(ctx, pr.x, pr.y, pr.width * 2.5 * pulse + 10, pr.color, a * 0.4);
+    ctx.restore();
     ctx.globalAlpha = a * 0.4;
     ctx.strokeStyle = pr.color; ctx.lineWidth = pr.width * 2.5 * pulse;
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 30;
     ctx.beginPath(); ctx.moveTo(pr.x, pr.y); ctx.lineTo(pr.x + dx * pr.range, pr.y + dy * pr.range); ctx.stroke();
     // 主光柱
     ctx.globalAlpha = a;
     ctx.strokeStyle = pr.color; ctx.lineWidth = pr.width * pulse;
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 20;
     ctx.beginPath(); ctx.moveTo(pr.x, pr.y); ctx.lineTo(pr.x + dx * pr.range, pr.y + dy * pr.range); ctx.stroke();
     // 白炽芯
     ctx.strokeStyle = PALETTE.white; ctx.lineWidth = 3.2;
@@ -606,8 +629,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
   /* 月辉回刃：旋转月牙 + 刃光渐变 + 尾迹星尘 */
   boomerang(ctx, pr) {
     ctx.rotate(pr.spin);
-    // 光晕
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 18;
+    glow(ctx, 0, 0, pr.r * 1.5, pr.color, 0.35);
     // 渐变月牙（外白内金）
     const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, pr.r * 1.3);
     grad.addColorStop(0, 'rgba(255,255,255,.85)');
@@ -637,9 +659,10 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
       const a = i / 5 * TAU + pr.t * 0.6;
       ctx.beginPath(); ctx.arc(Math.cos(a) * pr.r * 0.55, Math.sin(a) * pr.r * 0.55, pr.r * 0.5, 0, TAU); ctx.fill();
     }
+    // 毒雾外层光晕（径向渐变替代 shadowBlur）
+    glow(ctx, 0, 0, pr.r + 10, PALETTE.green, 0.2);
     ctx.globalAlpha = 0.3 + k * 0.25;
     ctx.strokeStyle = PALETTE.paleGreen; ctx.lineWidth = 2;
-    ctx.shadowColor = PALETTE.green; ctx.shadowBlur = 12;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
     // 毒泡（上浮）
     for (let i = 0; i < 5; i++) {
@@ -660,10 +683,11 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
   /* 霜环：扩散冰环（双层环 + 冰晶散落 + 霜纹） */
   aoe(ctx, pr) {
     const fade = Math.max(0.25, 1 - pr.r / pr.maxR);
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 18;
     ctx.globalAlpha = fade;
     ctx.strokeStyle = pr.color; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU);
+    glow(ctx, 0, 0, pr.r + 8, pr.color, 0.3);
+    ctx.stroke();
     // 内层冰纹
     ctx.strokeStyle = PALETTE.white; ctx.lineWidth = 1.2; ctx.globalAlpha = fade * 0.6;
     ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.85, 0, TAU); ctx.stroke();
@@ -694,9 +718,10 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.setLineDash([10, 8]);
     ctx.lineDashOffset = -tt * 40;
     ctx.strokeStyle = 'rgba(159,214,232,0.55)'; ctx.lineWidth = 1.8;
-    ctx.shadowColor = PALETTE.tide; ctx.shadowBlur = 10;
     ctx.globalAlpha = fade;
-    ctx.beginPath(); ctx.arc(0, 0, R * 0.88, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R * 0.88, 0, TAU);
+    glow(ctx, 0, 0, R * 0.88 + 6, PALETTE.tide, 0.3);
+    ctx.stroke();
     ctx.setLineDash([5, 10]);
     ctx.lineDashOffset = tt * 26;
     ctx.strokeStyle = 'rgba(223,247,242,0.4)'; ctx.lineWidth = 1.2;
@@ -705,8 +730,9 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     // 3. 潮压涟漪（每次冲击向外扩散的亮环）
     ctx.globalAlpha = fade * (1 - phase) * 0.85;
     ctx.strokeStyle = PALETTE.iceLight; ctx.lineWidth = 2.4;
-    ctx.shadowColor = PALETTE.iceLight; ctx.shadowBlur = 12;
-    ctx.beginPath(); ctx.arc(0, 0, R * (0.25 + phase * 0.75), 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R * (0.25 + phase * 0.75), 0, TAU);
+    glow(ctx, 0, 0, R * (0.25 + phase * 0.75) + 8, PALETTE.iceLight, 0.3);
+    ctx.stroke();
     ctx.globalAlpha = fade * (1 - phase) * 0.5;
     ctx.beginPath(); ctx.arc(0, 0, R * (0.1 + phase * 0.9), 0, TAU); ctx.stroke();
     ctx.shadowBlur = 0;
@@ -734,8 +760,10 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     ctx.rotate(ang);
     const len = pr.trail ? pr.r * 5 : pr.r * 3;
     ctx.lineCap = 'round';
-    // 尾迹：外柔光 + 内亮核
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 12;
+    // 尾迹：外柔光（宽低透明度，替代 shadowBlur）+ 内亮核
+    ctx.globalAlpha = 0.12;
+    ctx.strokeStyle = pr.color; ctx.lineWidth = pr.r * 3;
+    ctx.beginPath(); ctx.moveTo(-len, 0); ctx.lineTo(0, 0); ctx.stroke();
     ctx.globalAlpha = 0.28;
     ctx.strokeStyle = pr.color; ctx.lineWidth = pr.r * 1.5;
     ctx.beginPath(); ctx.moveTo(-len, 0); ctx.lineTo(0, 0); ctx.stroke();
@@ -766,7 +794,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     if (pr.moonblade) {
       // 月牙斩/三连斩：旋转月牙刃
       ctx.save(); ctx.rotate(ang + pr.t * 6);
-      ctx.shadowColor = pr.color; ctx.shadowBlur = 14;
+      glow(ctx, 0, 0, pr.r * 2.5, pr.color, 0.4);
       ctx.fillStyle = pr.color;
       ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.arc(pr.r * 0.42, 0, pr.r * 0.7, 0, TAU, true); ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,.7)';
@@ -777,8 +805,8 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     if (pr.wave) {
       // 潮浪水弹：水泡（外环 + 波光 + 内芯 + 水尾）
       ctx.save(); ctx.rotate(ang);
+      glow(ctx, 0, 0, pr.r * 2.5, pr.color, 0.35);
       ctx.strokeStyle = pr.color; ctx.lineWidth = 1.5;
-      ctx.shadowColor = pr.color; ctx.shadowBlur = 10;
       ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
       ctx.fillStyle = 'rgba(159,214,232,.35)';
       ctx.beginPath(); ctx.arc(0, 0, pr.r * 0.72, 0, TAU); ctx.fill();
@@ -791,7 +819,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     }
     if (pr.ember) {
       // 赤潮火弹：焰心（外焰 + 白核 + 焰尾）
-      ctx.shadowColor = pr.color; ctx.shadowBlur = 14;
+      glow(ctx, 0, 0, pr.r * 2.5, pr.color, 0.4);
       ctx.fillStyle = pr.color;
       ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
       ctx.fillStyle = PALETTE.fireBright;
@@ -805,7 +833,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     if (pr.pulse) {
       // 蚀月脉冲：旋转金色星芒
       ctx.save(); ctx.rotate(pr.t * 8);
-      ctx.shadowColor = pr.color; ctx.shadowBlur = 12;
+      glow(ctx, 0, 0, pr.r * 2.5, pr.color, 0.35);
       ctx.fillStyle = pr.color;
       ctx.beginPath();
       for (let i = 0; i < 4; i++) {
@@ -821,7 +849,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     }
     if (pr.orb) {
       // 暗影追踪球：紫雾球（暗核 + 紫光 + 暗尾）
-      ctx.shadowColor = pr.color; ctx.shadowBlur = 14;
+      glow(ctx, 0, 0, pr.r * 2.5, pr.color, 0.4);
       ctx.fillStyle = '#2a1a3a';
       ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
       ctx.fillStyle = pr.color;
@@ -835,7 +863,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     // 蚀涎魔毒弹：亮绿毒涎（光晕 + 毒液滴 + 拉丝拖尾）
     if (pr.spit) {
       ctx.save(); ctx.rotate(ang);
-      ctx.shadowColor = PALETTE.jade; ctx.shadowBlur = 12;
+      glow(ctx, 0, 0, pr.r * 2.5, PALETTE.jade, 0.35);
       ctx.fillStyle = pr.color;
       ctx.beginPath(); ctx.ellipse(0, 0, pr.r * 1.2, pr.r * 0.85, 0, 0, TAU); ctx.fill();
       ctx.fillStyle = PALETTE.mistyGreen;
@@ -847,8 +875,8 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     }
     // 通用敌弹：尖刺弹
     ctx.save(); ctx.rotate(ang);
+    glow(ctx, 0, 0, pr.r * 2.5, pr.color, 0.3);
     ctx.fillStyle = pr.color;
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 8;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
     ctx.fillStyle = PALETTE.coralBright;
     ctx.beginPath(); ctx.arc(-pr.r * 0.2, -pr.r * 0.2, pr.r * 0.35, 0, TAU); ctx.fill();
@@ -873,7 +901,7 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
   acid(ctx, pr) {
     const ang = Math.atan2(pr.vy || 0, pr.vx || 0);
     ctx.save(); ctx.rotate(ang);
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 10;
+    glow(ctx, 0, 0, pr.r * 2.5, pr.color, 0.35);
     ctx.fillStyle = pr.color;
     ctx.beginPath(); ctx.ellipse(0, 0, pr.r * 1.15, pr.r * 0.8, 0, 0, TAU); ctx.fill();
     ctx.fillStyle = PALETTE.mistyGreen;
@@ -893,8 +921,8 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
     if (pr.lightning) {
       // 蚀雷落点：紫色电纹圈 + 雷云闪光
       ctx.globalAlpha = 0.3 + 0.7 * k;
+      glow(ctx, 0, 0, pr.r + 10, PALETTE.sky, 0.3);
       ctx.strokeStyle = pr.color; ctx.lineWidth = 2;
-      ctx.shadowColor = PALETTE.sky; ctx.shadowBlur = 14;
       ctx.setLineDash([8, 6]);
       ctx.lineDashOffset = -pr.t * 40;
       ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
@@ -915,8 +943,8 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
       return;
     }
     ctx.globalAlpha = 0.35 + 0.65 * k;
+    glow(ctx, 0, 0, pr.r + 10, pr.color, 0.3);
     ctx.strokeStyle = pr.color; ctx.lineWidth = 2.5;
-    ctx.shadowColor = pr.color; ctx.shadowBlur = 14;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.stroke();
     ctx.fillStyle = pr.color; ctx.globalAlpha = 0.18 + 0.3 * k;
     ctx.beginPath(); ctx.arc(0, 0, pr.r, 0, TAU); ctx.fill();
@@ -1023,12 +1051,12 @@ function drawErodeMark(ctx: CanvasRenderingContext2D, pr: any, k: number): void 
   // 1. 焦黑内芯（燃烧后的暗心）
   ctx.fillStyle = 'rgba(18,4,4,' + (0.3 + k * 0.35).toFixed(2) + ')';
   ctx.beginPath(); ctx.arc(0, 0, R * 0.55, 0, TAU); ctx.fill();
+  // 蚀火辉光（径向渐变替代 shadowBlur）
+  glow(ctx, 0, 0, R * (0.8 + k * 0.4), pr.color, 0.3 + k * 0.3);
   // 2. 不规则蚀火裂纹（锯齿状，随时间扩张、抖动）
   const edge = k > 0.72 ? PALETTE.peach : pr.color;
   ctx.strokeStyle = edge;
   ctx.lineWidth = 1.6 + k * 1.4;
-  ctx.shadowColor = pr.color;
-  ctx.shadowBlur = 8 + k * 16;
   ctx.beginPath();
   const n = 15;
   for (let i = 0; i <= n; i++) {

@@ -67,6 +67,17 @@ describe('rand / pick / RNG', () => {
     expect(pick(['a', 'b', 'c'])).toBe('c');
   });
 
+  it('pick 从空数组抛出错误', () => {
+    expect(() => pick([])).toThrow('pick from empty array');
+  });
+
+  it('pick 从非空数组正常返回元素', () => {
+    queueRandom(0);
+    expect(pick(['a', 'b', 'c'])).toBe('a');
+    queueRandom(0.5);
+    expect(pick(['x'])).toBe('x');
+  });
+
   it('RNG 引用与 Math.random 同步（确定性夹具依赖此契约）', () => {
     expect(typeof RNG).toBe('function');
     queueRandom(0.123);
@@ -130,5 +141,13 @@ describe('tickCooldown', () => {
       if (r.fired) fires.push(i);
     }
     expect(fires).toEqual([5, 10]);
+  });
+
+  it('cur=0 时视为已到点，立即触发并重置（?? 修复）', () => {
+    const r = tickCooldown(0, 10, 2);
+    // 0 ?? interval → 0（?? 不把 0 当 nullish），
+    // t = 0 - 2 = -2 ≤ 0 → fired=true, t=interval
+    expect(r.t).toBe(10);
+    expect(r.fired).toBe(true);
   });
 });

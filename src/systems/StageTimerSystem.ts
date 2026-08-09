@@ -14,7 +14,8 @@ export class StageTimerSystem extends System {
     if (!gs.boss && sm.current === STATE.PLAYING &&
         !CONFIG.BOSS_STAGES.includes(gs.stage) && gs.stage !== CONFIG.FINAL_STAGE) {
       stageState.set('stageTime', gs.stageTime + dt);
-      if (gs.stageTime >= gs.stageMax) sm.transition(STATE.SHOP);
+      // 使用 get() 读取最新值，避免 gs 快照缓存导致过期引用
+      if (stageState.get('stageTime') >= stageState.get('stageMax')) sm.transition(STATE.SHOP);
     }
   }
 }

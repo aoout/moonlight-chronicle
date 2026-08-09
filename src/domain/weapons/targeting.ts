@@ -18,7 +18,7 @@ export const TARGETING: Record<string, (p: Player, cfg: WeaponFireConfig) => Tar
 
   /** 最近敌人 */
   nearest(p, cfg) {
-    const t = nearestInGrid(p.x, p.y, cfg.range || 500);
+    const t = nearestInGrid(p.x, p.y, cfg.range ?? 500);
     if (!t) return null;
     return { target: t, x: t.x, y: t.y };
   },
@@ -28,7 +28,7 @@ export const TARGETING: Record<string, (p: Player, cfg: WeaponFireConfig) => Tar
     if (!p) return null;
     let best = null, bestScore = 0;
     const r = 160;
-    const candidates = neighborEnemies(p.x, p.y, cfg.range || 500);
+    const candidates = neighborEnemies(p.x, p.y, cfg.range ?? 500);
     for (const e of candidates) {
       if (e.dead) continue;
       let score = 0;
@@ -43,7 +43,7 @@ export const TARGETING: Record<string, (p: Player, cfg: WeaponFireConfig) => Tar
     // 密集区优先；找不到足够密集的怪群时回退到最近敌人，
     // 保证 AOE 武器在稀疏场也有目标可打（修复前 bestScore<1 直接哑火）
     if (best) return { target: best, x: best.x, y: best.y };
-    const t = nearestInGrid(p.x, p.y, cfg.range || 500);
+    const t = nearestInGrid(p.x, p.y, cfg.range ?? 500);
     if (!t) return null;
     return { target: t, x: t.x, y: t.y };
   },
@@ -51,13 +51,13 @@ export const TARGETING: Record<string, (p: Player, cfg: WeaponFireConfig) => Tar
   /** 随机方向 */
   random(p, cfg) {
     const a = Math.random() * TAU;
-    const r = cfg.range || 300;
+    const r = cfg.range ?? 300;
     return { target: null, x: p.x + Math.cos(a) * r, y: p.y + Math.sin(a) * r };
   },
 
   /** 无目标（使用玩家朝向） */
   facing(p, cfg) {
-    const r = cfg.range || 300;
+    const r = cfg.range ?? 300;
     return {
       target: null,
       x: p.x + Math.cos(p.facing) * r,

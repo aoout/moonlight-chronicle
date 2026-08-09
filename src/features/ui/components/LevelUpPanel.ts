@@ -92,6 +92,8 @@ export class LevelUpPanel extends Component<Player> {
   private lastLandIdx = 0;
   /* 命运之台（常驻玻璃显示框）当前模式：preview 预览 / result 结果 / sieve 三选一 */
   private consoleMode: 'preview' | 'result' | 'sieve' = 'preview';
+  /** 所有未清除的 setTimeout id，_close 时统一清理 */
+  private _timeoutIds: number[] = [];
 
   render(): string {
     return html`<div id="levelup" class="overlay hidden"><div class="overlay-bg"></div><div class="panel levelup-panel"></div></div>`;
@@ -132,7 +134,17 @@ export class LevelUpPanel extends Component<Player> {
     ov.classList.add('incoming');
   }
 
+  /** 跟踪 setTimeout，_close 时统一清理 */
+  private _setTimeout(fn: () => void, ms: number): number {
+    const id = window.setTimeout(fn, ms);
+    this._timeoutIds.push(id);
+    return id;
+  }
+
   _close(): void {
+    /* 清理所有未触发的 setTimeout，防止面板关闭后回调操作过期 DOM 或状态 */
+    for (const id of this._timeoutIds) window.clearTimeout(id);
+    this._timeoutIds = [];
     $('levelup').classList.add('hidden');
     this.mode = 'idle';
     /* 面板真正关闭才切回 PLAYING：结果展示期间世界保持 LEVELUP 冻结，
@@ -162,7 +174,7 @@ export class LevelUpPanel extends Component<Player> {
       const large = sweep > 180 ? 1 : 0;
       const path = `M${CX} ${CY} L${this.polar(a0, R).x} ${this.polar(a0, R).y} ` +
         `A${R} ${R} 0 ${large} 1 ${this.polar(a1, R).x} ${this.polar(a1, R).y} Z`;
-      const tier = slot.kind === 'blank' ? 'blank' : (blessingById(slot.blessingId!)?.tier || 'common');
+      const tier = slot.kind === 'blank' ? 'blank' : (slot.blessingId ? blessingById(slot.blessingId)?.tier : undefined) || 'common';
       parts.push(`<path data-i="${i}" d="${path}" fill="url(#${SEG_GRADS[tier] || 'segCommon'})" stroke="${SEG_STROKE}" stroke-width="1"/>`);
 
       /* 扇区内容：祝福 → 图标 + 品质色点；蚀格 → 蚀月符号 + 血色点
@@ -178,7 +190,7 @@ export class LevelUpPanel extends Component<Player> {
         const d = this.polar(mid, DOT_R);
         parts.push(`<circle class="seg-dot" cx="${d.x}" cy="${d.y}" r="3" fill="#e2546a" color="#e2546a"/>`);
       } else {
-        const b = blessingById(slot.blessingId!);
+        const b = slot.blessingId ? blessingById(slot.blessingId) : undefined;
         if (b) {
           const p1 = this.polar(mid, ICON_R);
           const tint = SEG_TIER_COLOR[b.tier] || SEG_TIER_COLOR.common;
@@ -226,7 +238,7 @@ export class LevelUpPanel extends Component<Player> {
 
   private slotW(slot: WheelSlot): number {
     if (slot.kind === 'blank') return 6;
-    const b = blessingById(slot.blessingId!);
+    const b = slot.blessingId ? blessingById(slot.blessingId) : undefined;
     if (!b) return 0;
     const luck = pSt().player?.luck || 1;
     return b.tier === 'legend' ? b.weight * (1 + luck * 2) : b.tier === 'epic' ? b.weight * (1 + luck) : b.weight;
@@ -289,7 +301,7 @@ export class LevelUpPanel extends Component<Player> {
     disk.style.transform = `rotate(${SPIN_TURNS * 360 - (center + 90)}deg)`;
 
     AudioEngine.playSfx('open');
-    window.setTimeout(() => {
+    this._setTimeout(() => {
       this.spinning = false;
       svg.classList.remove('spinning');
       if (mode === 'sieve') {
@@ -304,10 +316,10 @@ export class LevelUpPanel extends Component<Player> {
         this.markHit(idx);
         this.showTakeResult(r);
         if (!r.hasMore) {
-          window.setTimeout(() => this._close(), 1400);
+          this._setTimeout(() => this._close(), 1400);
         } else {
           /* 队列还有剩余：重建轮盘继续 */
-          window.setTimeout(() => {
+          this._setTimeout(() => {
             const pp = pSt().player;
             if (pp) this.open(pp);
           }, 900);
@@ -329,10 +341,10 @@ export class LevelUpPanel extends Component<Player> {
     const slot = this.slots[idx];
     if (!slot) return;
     if (this.mode === 'enhance') {
-      if (slot.kind === 'blank' || isEnhanced(slot.blessingId!)) return;
-      this.tryEnhance(slot.blessingId!);
+      if (slot.kind === 'blank' || !slot.blessingId || isEnhanced(slot.blessingId)) return;
+      this.tryEnhance(slot.blessingId);
     } else if (this.mode === 'swap') {
-      this.trySwap(slot.kind === 'blank' ? 'blank' : slot.blessingId!);
+      this.trySwap(slot.kind === 'blank' ? 'blank' : (slot.blessingId || 'blank'));
     }
   }
 
@@ -355,7 +367,7 @@ export class LevelUpPanel extends Component<Player> {
     paths.forEach((pth, i) => pth.classList.toggle('sieve-hi', this.sieveIdx.includes(i)));
 
     const landSlot = this.slots[landIdx];
-    const landName = landSlot.kind === 'blank' ? '蚀格' : (blessingById(landSlot.blessingId!)?.name || '');
+    const landName = landSlot.kind === 'blank' ? '蚀格' : (landSlot.blessingId ? blessingById(landSlot.blessingId)?.name : undefined) || '';
     /* 命牌：品质色图标圆片（复用祝福图腾）+ 名称 + tier 徽记 + 效果，与盘面视觉同源 */
     const cards = this.sieveIdx.map((ci, k) => {
       const slot = this.slots[ci];
@@ -367,7 +379,13 @@ export class LevelUpPanel extends Component<Player> {
           <span class="sc-desc">月亮收走祝福，留下 ${BLANK_GOLD} 枚铜钱</span>
         </div>`;
       }
-      const b = blessingById(slot.blessingId!)!;
+      const b = slot.blessingId ? blessingById(slot.blessingId) : undefined;
+      if (!b) {
+        return `<div class="sieve-card${isLand ? ' land' : ''}" data-k="${k}">
+          <span class="sc-name">未知祝福</span>
+          <span class="sc-desc">数据缺失</span>
+        </div>`;
+      }
       const tierName = b.tier === 'legend' ? '命运' : b.tier === 'epic' ? '非凡' : '寻常';
       let desc = b.desc;
       if (isEnhanced(b.id) && b.tier === 'common') desc = doubleDescNums(b.desc);
@@ -385,7 +403,10 @@ export class LevelUpPanel extends Component<Player> {
       <div class="sieve-cards">${cards}</div>
     </div>`);
     document.querySelectorAll('.sieve-card').forEach(c => {
-      (c as HTMLElement).onclick = () => this.chooseSieve(+(c as HTMLElement).dataset.k!);
+      (c as HTMLElement).onclick = () => {
+        const k = (c as HTMLElement).dataset.k;
+        if (k !== undefined) this.chooseSieve(+k);
+      };
     });
   }
 
@@ -402,9 +423,9 @@ export class LevelUpPanel extends Component<Player> {
     AudioEngine.playSfx('upgrade');
     this.showTakeResult(r);
     if (!r.hasMore) {
-      window.setTimeout(() => this._close(), 1400);
+      this._setTimeout(() => this._close(), 1400);
     } else {
-      window.setTimeout(() => {
+      this._setTimeout(() => {
         const p2 = pSt().player;
         if (p2) this.open(p2);
       }, 900);
@@ -417,7 +438,7 @@ export class LevelUpPanel extends Component<Player> {
     const ptr = $('wheel-pointer-g');
     pth?.classList.add('hit');
     ptr?.classList.add('hit');
-    window.setTimeout(() => {
+    this._setTimeout(() => {
       pth?.classList.remove('hit');
       ptr?.classList.remove('hit');
     }, 1300);
@@ -493,15 +514,15 @@ export class LevelUpPanel extends Component<Player> {
     const name = r.granted?.name || '';
     this.setResult(html`<div class="wheel-result-box"><b>${name}</b> 自轮盘外降临<span class="wr-desc">${gDesc}</span></div>`);
     toast(name + ' 已降临 · ' + stripTags(gDesc));
-    window.setTimeout(() => {
+    this._setTimeout(() => {
       this.spinning = false;
       $('wheel-svg').classList.remove('spinning');
       if (r.slots) this.slots = r.slots;
       if (!r.hasMore) {
-        window.setTimeout(() => this._close(), 1200);
+        this._setTimeout(() => this._close(), 1200);
       } else {
         const pp = pSt().player;
-        if (pp) window.setTimeout(() => this.open(pp), 700);
+        if (pp) this._setTimeout(() => this.open(pp), 700);
       }
     }, 800);
   }
@@ -520,8 +541,8 @@ export class LevelUpPanel extends Component<Player> {
     /* 月轮清屏视觉：全屏辉光（CSS class 由 fortune.css 提供） */
     const ov = $('levelup');
     ov.classList.add('moonwheel-flash');
-    window.setTimeout(() => ov.classList.remove('moonwheel-flash'), 900);
-    window.setTimeout(() => {
+    this._setTimeout(() => ov.classList.remove('moonwheel-flash'), 900);
+    this._setTimeout(() => {
       this.spinning = false;
       $('wheel-svg').classList.remove('spinning');
       const pp = pSt().player;
@@ -624,7 +645,7 @@ export class LevelUpPanel extends Component<Player> {
         `<span class="wd-name">蚀月空转</span>` +
         `<span class="wd-desc">月亮收走祝福，留下 ${BLANK_GOLD} 枚铜钱。</span>`;
     } else {
-      const b = blessingById(slot.blessingId!);
+      const b = slot.blessingId ? blessingById(slot.blessingId) : undefined;
       if (!b) return;
       const tierName = b.tier === 'legend' ? '命运' : b.tier === 'epic' ? '非凡' : '寻常';
       const enh = isEnhanced(b.id) ? '<span class="wd-enh">已强化</span>' : '';

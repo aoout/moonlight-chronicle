@@ -15,14 +15,20 @@ type Listener<T = any> = (value: T, old: T) => void;
  *
  * 刻意不用 structuredClone：状态里存有 canvas / ctx 等宿主对象会直接抛错。
  * 这些非纯对象保持引用正是期望行为。
+ * 使用 WeakSet 追踪已访问引用，防止循环引用导致栈溢出。
  */
-function cloneData<V>(v: V): V {
-  if (Array.isArray(v)) return v.map(cloneData) as unknown as V;
+function cloneData<V>(v: V, seen?: WeakSet<object>): V {
+  if (typeof v === 'object' && v !== null) {
+    seen = seen || new WeakSet<object>();
+    if (seen.has(v as object)) return v;  // 循环引用，保持引用不变
+    seen.add(v as object);
+  }
+  if (Array.isArray(v)) return v.map(child => cloneData(child, seen)) as unknown as V;
   if (v !== null && typeof v === 'object') {
     const proto = Object.getPrototypeOf(v);
     if (proto === Object.prototype || proto === null) {
       const out: Record<string, any> = {};
-      for (const k in v) out[k] = cloneData((v as Record<string, any>)[k]);
+      for (const k in v) out[k] = cloneData((v as Record<string, any>)[k], seen);
       return out as V;
     }
   }
@@ -77,15 +83,19 @@ export class Store<T extends Record<string, any>> {
     }
   }
 
-  /** 批量更新并触发通知 */
+  /** 批量更新并触发通知（收集所有变更后统一通知，避免中间状态暴露） */
   patch(partial: Partial<T>): void {
+    const changes: Array<{ key: string; value: any; old: any }> = [];
     for (const [key, value] of Object.entries(partial)) {
       const old = (this._state as any)[key];
       if (old !== value) {
         (this._state as any)[key] = value;
         this._snapshot = null;
-        this._notify(key, value, old);
+        changes.push({ key, value, old });
       }
+    }
+    for (const { key, value, old } of changes) {
+      this._notify(key, value, old);
     }
   }
 
@@ -105,9 +115,18 @@ export class Store<T extends Record<string, any>> {
    * 混在一起会让「重置一次后所有响应式绑定静默失效」。
    */
   reset(overrides?: Partial<T>): void {
+    const oldState = this._state;
     this._state = cloneData(this._initial);
     if (overrides) Object.assign(this._state, cloneData(overrides));
     this._snapshot = null;
+    // 对每个有变化的 key 通知监听器
+    for (const key of Object.keys(this._initial)) {
+      const old = (oldState as any)[key];
+      const cur = (this._state as any)[key];
+      if (old !== cur) {
+        this._notify(key, cur, old);
+      }
+    }
   }
 
   /** 显式移除全部订阅（销毁 / 热重载场景） */

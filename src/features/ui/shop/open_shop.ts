@@ -96,16 +96,17 @@ function renderShop(): void {
       icon = def.icon;
       tag = isUp ? '强化' : def.tag;
       desc = (isUp
-        ? '升至 <span class="stat-up">Lv.' + (w!.lv + 1) + '</span>，伤害与形态进一步提升。'
+        ? '升至 <span class="stat-up">Lv.' + ((w && w.lv + 1) || 2) + '</span>，伤害与形态进一步提升。'
         : '<span class="stat-conv">新武器</span> · ' + def.desc) +
         formulaRow(def, !!slot.eroded) +
         '<div class="upgrade-tier range">⟡ ' + (weaponRangeText(def) || '—') + (def.pierce !== undefined ? ' · 穿透 ' + (def.pierce === Infinity ? '∞' : def.pierce) : '') + '</div>';
       const inflate = inflationRate(gSt().stage);
       price = isUp
-        ? Math.round(WEAPON_UPGRADE_COST[w!.lv + 1] * (p.effects.priceMul || 1) * inflate)
+        ? Math.round(WEAPON_UPGRADE_COST[(w && w.lv + 1) || 2] * (p.effects.priceMul || 1) * inflate)
         : Math.round(16 * (p.effects.priceMul || 1) * inflate);
     } else {
-      const it = SHOP_ITEMS.find(x => x.id === slot.id)!;
+      const it = SHOP_ITEMS.find(x => x.id === slot.id);
+      if (!it) { c.remove(); return; }
       rarity = it.rarity;
       title = it.name;
       icon = it.icon;

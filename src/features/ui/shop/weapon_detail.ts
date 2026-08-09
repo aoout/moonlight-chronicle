@@ -18,6 +18,7 @@ const sSt = () => statsState.state;
 
 let _pwSelected: string | null = null;
 let _pwSellConfirm: string | number = 0;
+let _pwSellTimer = 0;
 
 export function showWeaponDetail(id: string): void {
   const p = pSt().player;
@@ -115,7 +116,8 @@ function sellWeapon(id: string): void {
     _pwSellConfirm = id;
     btn.classList.add('confirm');
     btn.innerHTML = html`确认出售 ${price} ${iconSVG('coin')}？`;
-    setTimeout(() => {
+    window.clearTimeout(_pwSellTimer);
+    _pwSellTimer = window.setTimeout(() => {
       if (_pwSellConfirm === id) {
         _pwSellConfirm = 0;
         const b2 = $('pwd-sell');

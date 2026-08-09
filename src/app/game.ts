@@ -54,7 +54,7 @@ export function gameLoop(ts: number): void {
       _accum -= FIXED_DT;
       steps++;
     }
-    if (_accum >= FIXED_DT) _accum = 0;
+    if (_accum >= FIXED_DT) _accum = _accum % FIXED_DT;
     render();
     uiTick();
   } else {

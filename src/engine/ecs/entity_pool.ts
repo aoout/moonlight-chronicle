@@ -243,8 +243,9 @@ export class EntityPool<T extends BaseEntityView> {
     arr.length = w;
   }
 
-  /** 重置池（清空所有实体） */
+  /** 重置池（清空所有实体，同时清理 _meta 引用防止内存泄漏） */
   reset(): void {
+    for (let i = 0; i < this.count; i++) this._meta[i] = {};
     this.count = 0;
   }
 }

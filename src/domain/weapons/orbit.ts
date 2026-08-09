@@ -32,9 +32,9 @@ export function orbitTick(): void {
   p.effects.orbits = p.effects.orbits || [];
   if (orbitW) {
     const def = WEAPONS.orbit as any;
-    const n = (def.blades || 2) + orbitW.lv;
-    const angularSpd = def.angularSpd || 1.6;
-    const orbitR = (def.radius || 120) * p.area;
+    const n = (def.blades ?? 2) + orbitW.lv;
+    const angularSpd = def.angularSpd ?? 1.6;
+    const orbitR = (def.radius ?? 120) * p.area;
     p.effects.orbits = [];
     for (let i = 0; i < n; i++) {
       const a = (i / n) * TAU + gSt().time * angularSpd;

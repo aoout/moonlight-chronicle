@@ -70,7 +70,7 @@ export { BLESSINGS };
  * 观察「每局 legend 期望数」是否仍低于 1.5，防止稀有度通胀]
  */
 export function luckWeight(weight: number, tier: string, luck: number): number {
-  const l = Math.max(0, luck || 1);
+  const l = Math.max(0, luck ?? 1);
   if (tier === 'legend') return weight * (1 + l * 2);
   if (tier === 'epic') return weight * (1 + l);
   return weight;
@@ -79,7 +79,7 @@ export function luckWeight(weight: number, tier: string, luck: number): number {
 /** 按权重抽取 n 个祝福；可选排除项 + 幸运修正（config 层保持纯函数，不读 state） */
 export function pickBlessings(n: number, opts?: { excludeIds?: string[]; luck?: number }): BlessingDef[] {
   const ex = (opts && opts.excludeIds) || [];
-  const luck = (opts && opts.luck) || 1;
+  const luck = (opts && opts.luck) ?? 1;
   const pool = BLESSINGS.filter(b => !ex.includes(b.id));
   const chosen: BlessingDef[] = [];
   while (chosen.length < n && pool.length) {

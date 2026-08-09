@@ -114,7 +114,7 @@ export const ON_HIT: Record<string, (args: OnHitArgs) => boolean> = {
       spawnGlow(e.x, e.y, 12, '#cfe0f8', 0.25);
       spawnSpark(e.x, e.y, PALETTE.icePale, 3, 90);
     } else if (w === 'arc' && pr.chain) {
-      chainLightning(p, e, pr.dmg, pr.chainCount || 0, pr.chainFall || 0.65, pr.chainRange || 340, pr.color || PALETTE.white, pr.wId || 'arc');
+      chainLightning(p, e, pr.dmg, pr.chainCount ?? 0, pr.chainFall ?? 0.65, pr.chainRange ?? 340, pr.color ?? PALETTE.white, pr.wId || 'arc');
     }
     return false;
   },

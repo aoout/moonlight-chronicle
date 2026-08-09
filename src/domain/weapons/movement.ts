@@ -182,7 +182,7 @@ export const MOVEMENT: Record<string, (pr: Projectile, dt: number, p: Player) =>
   /** 蚀潮巨兽 · 浪花弹：速度随潮汐呼吸波动（涨潮快 / 退潮滞涩） */
   enemyWave(pr, dt, _p) {
     pr.t = (pr.t || 0) + dt;
-    const base = pr.baseSpeed || 200;
+    const base = pr.baseSpeed ?? 200;
     const f = 1 + 0.45 * Math.sin(pr.t * 2.4 + (pr.phase || 0));
     const ang = Math.atan2(pr.vy || 0, pr.vx || 0);
     pr.vx = Math.cos(ang) * base * f;
@@ -210,7 +210,7 @@ export function eggSplitBurst(pr: Projectile): Array<Record<string, unknown>> {
     out.push({
       enemy: true, x: pr.x, y: pr.y,
       vx: Math.cos(a) * 200, vy: Math.sin(a) * 200,
-      r: 5, dmg: (pr.dmg || 1) * 0.7, color: pr.color || PALETTE.teal,
+      r: 5, dmg: (pr.dmg ?? 1) * 0.7, color: pr.color || PALETTE.teal,
       hit: new Set(), life: 1.8, wId: 'enemy_tri',
     });
   }
@@ -224,7 +224,7 @@ export function eggSplitBurst(pr: Projectile): Array<Record<string, unknown>> {
    敌方封锁技能全部打在小怪身上，对玩家的走位封锁完全失效。
    ========================================================= */
 function explodeGround(pr: Projectile): void {
-  const x = pr.x, y = pr.y, r = pr.r || 60;
+  const x = pr.x, y = pr.y, r = pr.r ?? 60;
   // 蚀焰喷发：火柱碎片 + 双冲击环 + 白炽火花 + 光晕
   spawnBurst(x, y, pr.color || PALETTE.coral, 14);
   spawnShard(x, y, PALETTE.heavy, 6, 220);
@@ -232,7 +232,7 @@ function explodeGround(pr: Projectile): void {
   spawnRing(x, y, pr.color || PALETTE.coral, 0.36, r * 1.35, 3);
   spawnRing(x, y, PALETTE.cream, 0.22, r * 0.85, 1.8);
   spawnGlow(x, y, 20, pr.color || PALETTE.coral, 0.35);
-  const dmg = pr.dmg || 1;
+  const dmg = pr.dmg ?? 1;
   if (pr.enemy) {
     // 敌方落点：对玩家造成范围伤害（封锁走位的真实目的）
     const p = pSt().player;
@@ -245,5 +245,6 @@ function explodeGround(pr: Projectile): void {
       if (e.dead) continue;
       damageEnemy(e, dmg, RNG() < (pSt().player?.effCrit ?? 0.1), 'ground', pr.wId);
     }
+  }
   }
 }

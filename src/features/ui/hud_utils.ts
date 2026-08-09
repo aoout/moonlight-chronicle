@@ -49,7 +49,7 @@ export function addDmgNumber(x: number, y: number, n: number | string, crit: boo
   d.style.left = x + 'px';
   d.style.top = y + 'px';
   layer.appendChild(d);
-  setTimeout(() => d.remove(), 950);
+  setTimeout(() => { if (document.contains(d)) d.remove(); }, 950);
 }
 
 export function spawnText(x: number, y: number, str: string, color?: string): void {
@@ -61,7 +61,7 @@ export function spawnText(x: number, y: number, str: string, color?: string): vo
   d.style.top = y + 'px';
   if (color) d.style.color = color;
   layer.appendChild(d);
-  setTimeout(() => d.remove(), 950);
+  setTimeout(() => { if (document.contains(d)) d.remove(); }, 950);
 }
 
 /* ---------- 关卡横幅 ---------- */
@@ -77,7 +77,7 @@ export function showStageBanner(stageName: string, isBoss: boolean, bossName?: s
       : '<div class="sb-sub">噬光之潮将至</div>'}
   `;
   wrap.appendChild(b);
-  setTimeout(() => b.remove(), 2300);
+  setTimeout(() => { if (document.contains(b)) b.remove(); }, 2300);
 }
 
 /* ---------- Toast ---------- */
@@ -85,6 +85,6 @@ export function toast(msg: string): void {
   const wrap = $('toast');
   const t = el('div', 'toast', msg);
   wrap.appendChild(t);
-  setTimeout(() => { t.classList.add('out'); }, 2200);
-  setTimeout(() => t.remove(), 2800);
+  setTimeout(() => { if (document.contains(t)) t.classList.add('out'); }, 2200);
+  setTimeout(() => { if (document.contains(t)) t.remove(); }, 2800);
 }

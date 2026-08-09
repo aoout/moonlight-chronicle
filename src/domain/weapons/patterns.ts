@@ -40,7 +40,7 @@ export const PATTERNS: Record<string, (p: Player, target: TargetingResult, cfg: 
       ? Math.atan2(target.y - p.y, target.x - p.x)
       : p.facing;
     const pr = Math.max(1, Math.floor(p.projCount * 0.6) + 1);
-    const spreadAngle = cfg.spread || 0.3;
+    const spreadAngle = cfg.spread ?? 0.3;
     const list = [];
     for (let i = 0; i < pr; i++) {
       list.push(createProjectile(p, target, cfg, a + (i - (pr - 1) / 2) * spreadAngle, baseDmg, wId, i, pr));
@@ -78,10 +78,10 @@ export const PATTERNS: Record<string, (p: Player, target: TargetingResult, cfg: 
   /** 召唤分身 */
   phantom(p, _target, cfg, baseDmg, wId) {
     const def = WEAPONS[wId] as any;
-    const n = 2 + Math.floor((cfg.lv || 1) / 2);
-    const posOffset = def?.posOffset || 42;
-    const duration = def?.duration || 5;
-    const initFireT = def?.initFireT || 0.5;
+    const n = 2 + Math.floor((cfg.lv ?? 1) / 2);
+    const posOffset = def?.posOffset ?? 42;
+    const duration = def?.duration ?? 5;
+    const initFireT = def?.initFireT ?? 0.5;
     const list = [];
     for (let i = 0; i < n; i++) {
       const a = (i / n) * TAU + RNG();
@@ -89,7 +89,7 @@ export const PATTERNS: Record<string, (p: Player, target: TargetingResult, cfg: 
         ...Position(p.x + Math.cos(a) * posOffset, p.y + Math.sin(a) * posOffset),
         ...Combat(baseDmg / n),
         ...Timer(0, duration),
-        fireT: rand(0, initFireT), lv: cfg.lv || 1,
+        fireT: rand(0, initFireT), lv: cfg.lv ?? 1,
       });
       list.push(ph);
     }
@@ -118,12 +118,12 @@ function resolveCount(count: number | string | ((p: Player) => number) | undefin
 /* 辅助：创建单个投射物 */
 function createProjectile(p: Player, target: TargetingResult, cfg: WeaponFireConfig, angle: number, baseDmg: number, wId: string, _idx: number, _total: number): any {
   const projCfg = (cfg.projectile || cfg) as ProjectileConfig;
-  const speed = projCfg.speed || 300;
-  const range = projCfg.range || 300;
-  const pierceVal = projCfg.pierce === -1 ? Infinity : (projCfg.pierce || 0);
-  const pierce = pierceVal + (p.pierce || 0);
-  const color = projCfg.color || PALETTE.white;
-  const r = projCfg.radius || 6;
+  const speed = projCfg.speed ?? 300;
+  const range = projCfg.range ?? 300;
+  const pierceVal = projCfg.pierce === -1 ? Infinity : (projCfg.pierce ?? 0);
+  const pierce = pierceVal + (p.pierce ?? 0);
+  const color = projCfg.color ?? PALETTE.white;
+  const r = projCfg.radius ?? 6;
 
   // 从注册表获取投射物类型配置
   const typeName = projCfg.type || 'linear';

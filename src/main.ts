@@ -72,7 +72,7 @@ function loadPlanet(): Promise<typeof import('./features/ui/planet.js')> {
 }
 planetBtn.onclick = () => {
   // 首次点击：加载模块并绑定面板事件后打开；之后 initPlanetUI 已接管按钮 onclick
-  void loadPlanet().then(m => { m.initPlanetUI(); m.openPlanet(); });
+  void loadPlanet().then(m => { m.initPlanetUI(); m.openPlanet(); }).catch(e => console.error('loadPlanet failed', e));
 };
 // 残月与主菜单同生共死：只在 MENU 状态显形，战斗/升级/商店/结算/暂停一律隐去
 function setPlanetVisible(visible: boolean): void {

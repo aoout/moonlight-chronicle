@@ -45,7 +45,7 @@ export function blessingById(id: string): BlessingDef | undefined {
 /** 某格在「幸运修正后」的权重（决定扇区面积与落点概率） */
 export function slotWeight(slot: WheelSlot, luck: number): number {
   if (slot.kind === 'blank') return BLANK_WEIGHT;
-  const b = blessingById(slot.blessingId!);
+  const b = slot.blessingId ? blessingById(slot.blessingId) : undefined;
   if (!b) return 0;
   return luckWeight(b.weight, b.tier, luck);
 }

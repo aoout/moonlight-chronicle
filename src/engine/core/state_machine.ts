@@ -60,6 +60,10 @@ export class StateMachine {
       console.warn(`[StateMachine] 非法转换: ${from} → ${to}`);
       return false;
     }
+    if (!this._config.states[to]) {
+      console.warn(`[StateMachine] 目标状态 "${to}" 不存在于配置中`);
+      return false;
+    }
     const fromHooks = this._hooks[from];
     if (fromHooks) for (const fn of fromHooks.onExit) fn(data);
     this._current = to;

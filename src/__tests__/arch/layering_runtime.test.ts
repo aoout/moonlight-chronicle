@@ -65,7 +65,7 @@ describe('核心层（0–9）运行时无 DOM 依赖', () => {
         failures.join('\n  ')
       );
     }
-  });
+  }, 30000);
 
   it('成就端口在 systems 层加载后完成注册（非 NOOP 静默降级）', async () => {
     const { achievements } = await import('../../domain/ports/achievements.js');

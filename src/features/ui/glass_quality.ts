@@ -15,8 +15,17 @@ function syncPresetAttribute(): void {
   document.documentElement.dataset.preset = settingsState.state.preset;
 }
 
+/** 保存 Store.on() 取消订阅函数，供 destroyGlassQuality 清理 */
+let _glassUnsub: (() => void) | null = null;
+
 /** 订阅档位变更并立即同步一次（模块加载即生效，含 localStorage 恢复的档位） */
 export function initGlassQuality(): void {
+  destroyGlassQuality();
   syncPresetAttribute();
-  settingsState.on('preset', syncPresetAttribute);
+  _glassUnsub = settingsState.on('preset', syncPresetAttribute);
+}
+
+/** 销毁玻璃品质订阅，防止重复累积 */
+export function destroyGlassQuality(): void {
+  if (_glassUnsub) { _glassUnsub(); _glassUnsub = null; }
 }

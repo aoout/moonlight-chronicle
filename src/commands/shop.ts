@@ -95,12 +95,15 @@ export function refillShop(): Result & { price?: number } {
   const st = shopState.state;
   const price = refillCost(p, st.refills + 1);
   const god = isDevMode();
-  if (!god && price > 0 && s.gold < price) return { ok: false, reason: '金币不足' };
-  if (!god && price > 0) statsState.set('gold', s.gold - price);
   // 消耗退潮拾贝的免费次数（免费刷新也计入刷新计数，价格照常递增）
-  if ((p.effects.nextRefillFree || 0) > 0) {
+  // 必须在金币扣除之前检查，否则免费次数被浪费且金币被误扣
+  let actualPrice = price;
+  if (!god && (p.effects.nextRefillFree || 0) > 0) {
     p.effects.nextRefillFree = (p.effects.nextRefillFree || 0) - 1;
+    actualPrice = 0;
   }
+  if (!god && actualPrice > 0 && s.gold < actualPrice) return { ok: false, reason: '金币不足' };
+  if (!god && actualPrice > 0) statsState.set('gold', s.gold - actualPrice);
   shopState.set('refills', st.refills + 1);
   // 潮生之珠：每次补货 +1 生命上限 / +1% 暴击伤害
   if (p.effects.tideGrowth) {

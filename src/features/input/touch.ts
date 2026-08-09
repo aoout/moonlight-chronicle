@@ -87,7 +87,8 @@ function showJoystickAt(x: number, y: number): void {
   const half = size / 2;
 
   // 将摇杆放置在触摸点，但限制在感应区内
-  const zoneRect = _zoneEl!.getBoundingClientRect();
+  if (!_zoneEl) return;
+  const zoneRect = _zoneEl.getBoundingClientRect();
   const clampedX = Math.max(zoneRect.left + half, Math.min(zoneRect.right - half, x));
   const clampedY = Math.max(zoneRect.top + half, Math.min(zoneRect.bottom - half, y));
 
@@ -273,10 +274,11 @@ export function initTouch(): void {
   createJoystick();
 
   // 摇杆区域事件（优先捕获）
-  _zoneEl!.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true });
-  _zoneEl!.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
-  _zoneEl!.addEventListener('touchend', handleTouchEnd, { passive: false, capture: true });
-  _zoneEl!.addEventListener('touchcancel', handleTouchCancel, { passive: false, capture: true });
+  if (!_zoneEl) return;
+  _zoneEl.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true });
+  _zoneEl.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
+  _zoneEl.addEventListener('touchend', handleTouchEnd, { passive: false, capture: true });
+  _zoneEl.addEventListener('touchcancel', handleTouchCancel, { passive: false, capture: true });
 
   // 窗口尺寸变化时刷新
   window.addEventListener('resize', () => {

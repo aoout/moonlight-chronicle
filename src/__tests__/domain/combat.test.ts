@@ -591,7 +591,7 @@ describe('hurtPlayer · 保命词条', () => {
     noProc();
     hurtPlayer(makeEnemy(), 500);
 
-    expect(p.invuln).toBeGreaterThanOrEqual(1);
+    expect(p.invuln).toBeCloseTo(1);
   });
 
   it('nearDeath（濒死月魄）在跌破 25% 时回血并给 3 秒无敌，只触发一次', () => {

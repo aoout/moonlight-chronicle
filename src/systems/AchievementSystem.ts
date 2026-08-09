@@ -7,6 +7,7 @@ import { ACHIEVEMENTS, type AchievementDef } from '../config/achievements.js';
 import { loadAch, saveAch } from '../infra/persistence/achievements.js';
 import { EventBus } from '../engine/core/event_bus.js';
 import { setAchievementSink } from '../domain/ports/achievements.js';
+import { stageState } from '../state/stage.js';
 
 /* ---------- 单局会话统计（每局重置） ---------- */
 const session: Record<string, number> = {};
@@ -30,6 +31,7 @@ let _fastStageCheck = false;
 let _runDepth = 0;
 let _moonOnly = true;        // 本局是否仅初始武器
 let _winStage = 0;
+let _stageClearTime = 0;     // 最近一次 cleared 时的游戏时间（用于 a_fast_boss 近似检查）
 
 function persist(): void {
   saveAch({ counts: accum, earned, best });
@@ -93,6 +95,7 @@ export function achOnStageStart(): void { _hitThisStage = false; _fastStageCheck
 export function achOnStageCleared(): void {
   if (!_hitThisStage) inc('noHitStages', 1);
   _fastStageCheck = true;
+  _stageClearTime = stageState.state.stageTime;  // 记录通关时间戳（供 a_fast_boss 近似检查）
 }
 
 export function achOnLevel(level: number): void {
@@ -104,30 +107,44 @@ export function achOnGold(gold: number): void {
 export function achOnTimestop(): void { inc('timestop', 1); }
 
 /* ---------- 事件订阅 ---------- */
+
+/** 保存所有 EventBus 取消订阅函数，供 destroyAchievements 清理 */
+let _achUnsubs: (() => void)[] = [];
+
 export function initAchievements(): void {
-  EventBus.on(EVENTS.ENEMY_KILLED, (d: any) => achOnKill(d.type || '', '', !!d.boss));
-  EventBus.on(EVENTS.BOSS_KILLED, (d: any) => achOnKill(d.type || '', '', true));
-  EventBus.on(EVENTS.PLAYER_DIED, () => { _died = true; achSessionEnd(); });
-  EventBus.on(EVENTS.PLAYER_LEVELUP, (d: any) => achOnLevel(d.level || 0));
-  EventBus.on(EVENTS.STAGE_START, () => { achOnStageStart(); tryUnlock(); });
-  EventBus.on(EVENTS.STAGE_CLEARED, () => achOnStageCleared());
-  EventBus.on(EVENTS.GAME_RUN_END, (d: any) => {
-    if (d && d.win) {
-      _winStage = d.stage || 0;
-      session['winStage'] = d.stage || 0;
-      session['gold'] = d.gold || 0;
-      if (!_hitThisRun) session['noDeath'] = 1;
-      if (_moonOnly) session['moonOnly'] = 1;
-      inc('run', 1);
-      // 夜数累计（按通关夜数）
-      inc('stage', d.stage || 0);
-      if ((d.stage || 0) >= 20) {
-        if (_runDepth >= 9) inc('depth9', 1);
+  // 如果已初始化，先清理旧监听器避免重复累积
+  destroyAchievements();
+  _achUnsubs = [
+    EventBus.on(EVENTS.ENEMY_KILLED, (d: any) => achOnKill(d.type || '', d.srcType || '', !!d.boss)),
+    EventBus.on(EVENTS.BOSS_KILLED, (d: any) => achOnKill(d.type || '', '', true)),
+    EventBus.on(EVENTS.PLAYER_DIED, () => { _died = true; achSessionEnd(); tryUnlock(); }),
+    EventBus.on(EVENTS.PLAYER_LEVELUP, (d: any) => achOnLevel(d.level || 0)),
+    EventBus.on(EVENTS.STAGE_START, () => { achOnStageStart(); tryUnlock(); }),
+    EventBus.on(EVENTS.STAGE_CLEARED, () => achOnStageCleared()),
+    EventBus.on(EVENTS.GAME_RUN_END, (d: any) => {
+      if (d && d.win) {
+        _winStage = d.stage || 0;
+        session['winStage'] = d.stage || 0;
+        session['gold'] = d.gold || 0;
+        if (!_hitThisRun) session['noDeath'] = 1;
+        if (_moonOnly) session['moonOnly'] = 1;
+        inc('run', 1);
+        // 夜数累计（按通关夜数）
+        inc('stage', d.stage || 0);
+        if ((d.stage || 0) >= 20) {
+          if (_runDepth >= 9) inc('depth9', 1);
+        }
       }
-    }
-    achSessionEnd();
-    tryUnlock();
-  });
+      achSessionEnd();
+      tryUnlock();
+    }),
+  ];
+}
+
+/** 销毁所有 EventBus 订阅，防止重复累积 */
+export function destroyAchievements(): void {
+  for (const unsub of _achUnsubs) unsub();
+  _achUnsubs = [];
 }
 
 /* ---------- 统计工具 ---------- */
@@ -181,6 +198,10 @@ function testOf(a: AchievementDef): number {
         case 'a_noHit_run': return (_winStage >= 20 && !_hitThisRun) ? 1 : 0;
         case 'a_moon_only': return (_winStage >= 20 && _moonOnly) ? 1 : 0;
         case 'a_no_death': return (_winStage >= 20 && !_died) ? 1 : 0;
+        // 已知问题：a_fast_boss 本应检查"90 秒内通关一个领主夜"，但当前实现
+        // 检查的是击杀数 ≥ 50 而非通关时间。由于缺少完整的跨帧时间追踪机制，
+        // 此处保留近似检查作为折中方案。_stageClearTime 记录了 cleared 时的
+        // stageState.state.stageTime（游戏内已用时间），可供后续精确实现使用。
         case 'a_fast_boss': return _fastStageCheck && session.stageKills >= 50 ? 1 : 0;
         case 'a_all': return achOtherEarned() >= ACHIEVEMENTS.length - 1 ? 1 : 0;
       }

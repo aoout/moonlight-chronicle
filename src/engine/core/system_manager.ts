@@ -62,13 +62,21 @@ export class SystemManager {
 
   render(ctx: CanvasRenderingContext2D): void {
     for (const sys of this._systems) {
-      if (sys.render) sys.render(ctx);
+      try {
+        if (sys.render) sys.render(ctx);
+      } catch (e) {
+        console.error(`[SystemManager] ${sys.name}.render 出错:`, e);
+      }
     }
   }
 
   notifyStateChange(from: string, to: string): void {
     for (const sys of this._systems) {
-      if (sys.onStateChange) sys.onStateChange(from, to);
+      try {
+        if (sys.onStateChange) sys.onStateChange(from, to);
+      } catch (e) {
+        console.error(`[SystemManager] ${sys.name}.onStateChange 出错:`, e);
+      }
     }
   }
 

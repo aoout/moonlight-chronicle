@@ -57,6 +57,9 @@ export class HintBar {
   /** 销毁 */
   destroy(): void {
     if (this._el) {
+      if ((this._el as any)._hintBarClick) {
+        this._el.removeEventListener('click', (this._el as any)._hintBarClick);
+      }
       this._el.remove();
       this._el = null;
     }
@@ -127,17 +130,24 @@ export class HintBar {
     });
     this._el.innerHTML = parts.join('');
 
-    // 绑定点击事件
+    // 绑定点击事件（事件委托到容器，避免重复绑定/累积）
     if (this._opts.pointerEvents === 'auto') {
-      this._el.querySelectorAll('.hb-clickable').forEach((el, i) => {
-        const item = this._items[+(el as HTMLElement).dataset.idx!];
+      const el = this._el;
+      if ((el as any)._hintBarClick) {
+        el.removeEventListener('click', (el as any)._hintBarClick);
+      }
+      (el as any)._hintBarClick = (e: Event) => {
+        const target = (e.target as HTMLElement).closest('.hb-clickable') as HTMLElement | null;
+        if (!target) return;
+        const idx = target.dataset.idx;
+        if (idx == null) return;
+        const item = this._items[+idx];
         if (item?.onClick) {
-          (el as HTMLElement).addEventListener('click', (e) => {
-            e.stopPropagation();
-            item.onClick!();
-          });
+          e.stopPropagation();
+          item.onClick();
         }
-      });
+      };
+        el.addEventListener('click', (el as any)._hintBarClick);
     }
 
     this._reposition();

@@ -12,8 +12,8 @@ export function drawSpatialDebug(ctx: any): void {
   ctx.strokeStyle = 'rgba(255,255,255,0.15)';
   ctx.lineWidth = 0.5;
 
-  const w = rSt().width || 800;
-  const h = rSt().height || 600;
+  const w = rSt().width ?? 800;
+  const h = rSt().height ?? 600;
   const cols = Math.ceil(w / CELL) + 2;
   const rows = Math.ceil(h / CELL) + 2;
   const ox = 0;

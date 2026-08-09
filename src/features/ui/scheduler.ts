@@ -114,7 +114,7 @@ function rollMenuDepthNum(el: HTMLElement, to: number): void {
   window.clearTimeout(numRollTimer);
   const reduced = typeof window.matchMedia === 'function' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const from = parseInt(el.textContent || '1', 10) || 1;
+  const from = parseInt(el.textContent ?? '1', 10) ?? 1;
   if (from === to || reduced) {
     el.textContent = String(to);
     return;
@@ -239,17 +239,17 @@ export function bindUI(): void {
   $('btn-codex').onclick = () => {
     AudioEngine.playSfx('open');
     _codexLoading ??= import('./codex.js').then(m => { _codexMod = m; return m; });
-    void _codexLoading.then(m => { m.bindCodex(); m.openCodex(); });
+    void _codexLoading.then(m => { m.bindCodex(); m.openCodex(); }).catch(e => console.error('codex load failed', e));
   };
   $('btn-achievements').onclick = () => {
     AudioEngine.playSfx('open');
     _achvLoading ??= import('./achievements.js').then(m => { _achvMod = m; return m; });
-    void _achvLoading.then(m => { m.bindAchievements(); m.openAchievements(); });
+    void _achvLoading.then(m => { m.bindAchievements(); m.openAchievements(); }).catch(e => console.error('achv load failed', e));
   };
   $('btn-settings').onclick = () => {
     AudioEngine.playSfx('click');
     _settingsLoading ??= import('./settings_panel.js').then(m => { _settingsMod = m; return m; });
-    void _settingsLoading.then(m => { m.bindSettingsUI(); m.openSettings(); });
+    void _settingsLoading.then(m => { m.bindSettingsUI(); m.openSettings(); }).catch(e => console.error('settings load failed', e));
   };
   // 功勋达成提示：常驻轻量监听（面板模块懒加载，提示必须游戏运行期即时生效）
   EventBus.on(EVENTS.ACHIEVEMENT_UNLOCKED, (d: any) => {

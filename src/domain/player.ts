@@ -101,7 +101,9 @@ export function gainXp(n: number): void {
   const amt = n * p.xpGain;
   statsState.set('xp', statsState.get('xp') + amt);
   while (statsState.get('xp') >= statsState.get('xpNeeded')) {
-    statsState.set('xp', statsState.get('xp') - statsState.get('xpNeeded'));
+    const xpNeededVal = statsState.get('xpNeeded');
+    if (xpNeededVal <= 0) break;
+    statsState.set('xp', statsState.get('xp') - xpNeededVal);
     statsState.set('xpNeeded', xpNeeded(p.level + 1));
     p.level++;
     if (p.onLevelUpHp) p.hp = Math.min(p.maxHp, p.hp + p.onLevelUpHp);

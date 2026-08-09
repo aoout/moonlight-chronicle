@@ -47,7 +47,7 @@ function revertMoonEffects(p: Player): void {
   const target = p as unknown as Record<string, number>;
   if (spec) {
     for (const k of Object.keys(spec.add || {})) if (b[k] !== undefined) target[k] -= b[k];
-    for (const k of Object.keys(spec.mul || {})) if (b[k] !== undefined) target[k] /= b[k];
+    for (const k of Object.keys(spec.mul || {})) if (b[k] !== undefined && b[k] !== 0) target[k] /= b[k];
   } else {
     /* 兜底：未知相位（旧存档）按加法还原 */
     for (const [k, v] of Object.entries(b)) target[k] -= v;
