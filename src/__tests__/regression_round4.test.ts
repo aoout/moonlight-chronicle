@@ -81,7 +81,7 @@ describe('HIT_DETECTION · ?? 修复', () => {
   });
 
   it('radius 碰撞: pr.maxR 为 undefined 时使用 pr.r', () => {
-    const pr = makeProjectile({ x: 0, y: 0, r: 50, enemy: false });
+    const pr = makeProjectile({ x: 0, y: 0, r: 50, enemy: 0 });
     delete (pr as any).maxR;
     expect((pr as any).maxR).toBeUndefined();
     // 不抛异常即可
@@ -89,7 +89,7 @@ describe('HIT_DETECTION · ?? 修复', () => {
   });
 
   it('aoe 碰撞: pr.maxR 为 undefined 时使用默认值 200', () => {
-    const pr = makeProjectile({ x: 0, y: 0, r: 50, enemy: false });
+    const pr = makeProjectile({ x: 0, y: 0, r: 50, enemy: 0 });
     delete (pr as any).maxR;
     const e = makeDummy({ x: 100, y: 0 });
     spawnEnemies(e);
@@ -100,7 +100,7 @@ describe('HIT_DETECTION · ?? 修复', () => {
   });
 
   it('aoe 碰撞: pr.maxR 为 0 时保留 0（?? 修复）', () => {
-    const pr = makeProjectile({ x: 0, y: 0, r: 50, maxR: 0, enemy: false });
+    const pr = makeProjectile({ x: 0, y: 0, r: 50, maxR: 0, enemy: 0 });
     const e = makeDummy({ x: 100, y: 0 });
     spawnEnemies(e);
     const p = installPlayer();

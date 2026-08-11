@@ -21,7 +21,7 @@ describe('combat · || 代替 ?? 修复', () => {
 
   it('killEnemy · gold 为 0 时不掉落金币（0 || 1 → 0 ?? 1 修复）', () => {
     const p = installPlayer({ maxHp: 100 });
-    const e = makeEnemy('rat', { gold: 0, xp: 10 });
+    const e = makeEnemy({ type: 'rat', gold: 0, exp: 10 });
     // 不触发 split 等额外逻辑
     e.dead = 0;
     // killEnemy 应处理 gold=0 正确

@@ -83,10 +83,10 @@ describe('辉光调校 · 设置状态', () => {
     expect(s.preset).toBe('custom');
   });
 
-  it('四档预设互相独立且覆盖全部 8 项', () => {
+  it('四档预设互相独立且覆盖全部 9 项', () => {
     for (const id of Object.keys(PRESETS) as Array<keyof typeof PRESETS>) {
       const p = PRESETS[id];
-      expect(Object.keys(p).length).toBe(8);
+      expect(Object.keys(p).length).toBe(9);
       expect(typeof p.renderScale).toBe('number');
       expect(typeof p.particleDensity).toBe('number');
       expect(typeof p.glowFx).toBe('boolean');
@@ -95,6 +95,8 @@ describe('辉光调校 · 设置状态', () => {
       expect(typeof p.bgDetail).toBe('boolean');
       expect(typeof p.fpsLimit).toBe('number');
       expect([1, 2, 4]).toContain(p.enemyAnimStride);
+      expect(p.rumbleIntensity).toBeGreaterThanOrEqual(0);
+      expect(p.rumbleIntensity).toBeLessThanOrEqual(1);
     }
   });
 

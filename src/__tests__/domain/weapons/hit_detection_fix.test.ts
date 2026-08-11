@@ -17,7 +17,7 @@ describe('AOE 碰撞检测 · maxR 默认值', () => {
   });
 
   it('pr.maxR 为 undefined 时使用默认值 200，不产生 NaN', () => {
-    const pr = makeProjectile({ x: 0, y: 0, r: 50, enemy: false });
+    const pr = makeProjectile({ x: 0, y: 0, r: 50, enemy: 0 });
     // 确保 maxR 是 undefined（zeroed 会设成 0，这里显式删除）
     delete (pr as any).maxR;
     expect((pr as any).maxR).toBeUndefined();
@@ -34,7 +34,7 @@ describe('AOE 碰撞检测 · maxR 默认值', () => {
   });
 
   it('pr.maxR 为 0 时保留 0（?? 修复：0 是合法值，不应替换为 200）', () => {
-    const pr = makeProjectile({ x: 0, y: 0, r: 50, maxR: 0, enemy: false });
+    const pr = makeProjectile({ x: 0, y: 0, r: 50, maxR: 0, enemy: 0 });
     const e = makeDummy({ x: 100, y: 0 });
     spawnEnemies(e);
 
