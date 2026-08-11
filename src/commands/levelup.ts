@@ -7,7 +7,7 @@ import { STATE, sm } from '../engine/core/states.js';
 import { statsState } from '../state/stats.js';
 import { playerState } from '../state/player.js';
 import { computeDerived } from '../domain/player.js';
-import type { Player } from '../types/core.d.ts';
+import type { Player, BlessingDef } from '../types/core.d.ts';
 
 export interface BlessingResult {
   ok: boolean;
@@ -32,7 +32,7 @@ export function resumeAfterLevelUp(): void {
 }
 
 /** 施加祝福并处理升级队列 */
-export function applyBlessing(blessing: any): BlessingResult {
+export function applyBlessing(blessing: BlessingDef): BlessingResult {
   const p = playerState.state.player;
   if (!p) return { ok: false, hasMore: false };
   blessing.apply(p);

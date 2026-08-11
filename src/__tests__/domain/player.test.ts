@@ -10,6 +10,7 @@ import {
   addWeapon, upgradeWeapon, removeWeapon, addGold, gainXp,
 } from '../../domain/player.js';
 import { makePlayer, installPlayer, enterPlaying, captureEvent } from '../_harness/index.js';
+import { BLESSINGS } from '../../config/blessings.js';
 import { STATE, sm } from '../../engine/core/states.js';
 import { playerState } from '../../state/player.js';
 import { statsState } from '../../state/stats.js';
@@ -339,5 +340,35 @@ describe('gainXp', () => {
 
     gainXp(1);
     expect(log.count).toBe(0);
+  });
+});
+
+/* ========== 祝福生命语义（blessings.json 的 apply 配置） ========== */
+
+describe('祝福生命语义', () => {
+  const bless = (id: string) => BLESSINGS.find(b => b.id === id)!;
+
+  it('月髓（b_hp）：+12 上限同时回 12 血', () => {
+    const p = createPlayer();
+    p.maxHp = 100; p.hp = 50;
+    bless('b_hp').apply(p);
+    expect(p.maxHp).toBe(112);
+    expect(p.hp).toBe(62);
+  });
+
+  it('不朽之脉（b_hp2）：+10% 上限同时按 10% 回血，且不越过新上限', () => {
+    const p = createPlayer();
+    p.maxHp = 100; p.hp = 50;
+    bless('b_hp2').apply(p);
+    expect(p.maxHp).toBe(110);
+    expect(p.hp).toBe(60);          // 50 + 100×0.1，与月髓/道具 hp1 的「同量回血」语义一致
+  });
+
+  it('不朽之脉在满血时仍按 10% 回血（等效上限 +10% 不回溢）', () => {
+    const p = createPlayer();
+    p.maxHp = 200; p.hp = 200;
+    bless('b_hp2').apply(p);
+    expect(p.maxHp).toBe(220);
+    expect(p.hp).toBe(220);
   });
 });

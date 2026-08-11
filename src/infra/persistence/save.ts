@@ -10,6 +10,7 @@ import { CURSES, LEVELS } from '../../config/index.js';
 import { isDevMode } from '../../engine/env.js';
 
 import { gSt, sSt, pSt, gmSt } from '../../state/accessors.js';
+import { fSt } from '../../state/fortune.js';
 
 /* ---------- 解锁进度存档（localStorage） ---------- */
 const SAVE_KEY = 'eclipse_cycle_save';
@@ -43,6 +44,8 @@ export function saveRun(): void {
       xpNeeded: sSt().xpNeeded,
       runStats: sSt().runStats,
       player: p,
+      // 月契经济随档：追忆月痕续局时恢复（无此字段的旧档回退为开局初始值）
+      fortune: { moonPacts: fSt().moonPacts, enhanced: fSt().enhanced },
     };
     localStorage.setItem(RUN_SAVE_KEY, JSON.stringify(data));
   } catch (e) { /* 存档失败静默 */ }

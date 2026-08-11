@@ -70,7 +70,13 @@ export const PROJECTILE_TYPES: Record<string, ProjectileTypeDef> = {
 
   /** 范围爆炸 */
   aoe: {
-    createFlags: (ctx) => ({ aoe: true, maxR: (ctx.projCfg.aoe || 200) * ctx.p.area, slow: ctx.projCfg.slow || 0 }),
+    createFlags: (ctx) => ({
+      aoe: true, maxR: (ctx.projCfg.aoe || 200) * ctx.p.area, slow: ctx.projCfg.slow || 0,
+      // 持续扩展型 AOE 不得被穿透机制判死：createProjectile 会把「未配置 pierce」
+      // 归一为 0（patterns.ts pierceVal），导致霜华之环命中第一个敌人即 dead，
+      // 群伤武器退化为单体。这里显式置 Infinity 覆盖。
+      pierce: Infinity,
+    }),
     movement: 'stationary',
     hit: 'aoe',
     onHit: ['damage', 'slow'],

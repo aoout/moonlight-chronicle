@@ -275,9 +275,11 @@ export function hurtPlayer(e: { x: number; y: number; dmg: number } | EnemyInsta
   if ((p.effects.oath ?? 0) > 0 && p.hp - dmg <= 0) {
     p.effects.oath = (p.effects.oath ?? 0) - 1;
     p.hp = 1;
-    dmg = 0;
     p.invuln = Math.max(p.invuln, 1);
     EventBus.emit(EVENTS.UI_SPAWN_TEXT, { x: p.x, y: p.y - 26, text: '守月之约', color: PALETTE.gold });
+    // 必须提前返回：否则函数尾部的 `p.invuln = HIT_INVULN(0.45)` 会覆盖保命的 1s 无敌，
+    // 且还会播放受击音效 / 飘 "-0" 伤害字（守月之约本应完全免伤）。
+    return;
   }
   if ((p.effects.nearDeath ?? 0) > 0 && p.hp - dmg <= p.maxHp * NEAR_DEATH_THRESHOLD) {
     p.effects.nearDeath = 0;

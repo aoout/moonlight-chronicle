@@ -134,8 +134,8 @@ export function drawEnemies(rc: RenderContext): void {
       ctx.beginPath(); ctx.arc(0, 0, s + 5 + Math.sin(rc.time * 14) * 2, 0, TAU); ctx.stroke();
       ctx.globalAlpha = 1;
     }
-    // Boss 低血狂暴（红环）
-    if (e.boss && hp / maxHp < 0.3) {
+    // Boss 低血狂暴（红环）；maxHp 为 0 时跳过（防御：避免 NaN 比较恒 false）
+    if (e.boss && maxHp > 0 && hp / maxHp < 0.3) {
       ctx.globalAlpha = 0.3 + 0.3 * Math.sin(rc.time * 10);
       ctx.strokeStyle = PALETTE.blood;
       ctx.lineWidth = 2.5;

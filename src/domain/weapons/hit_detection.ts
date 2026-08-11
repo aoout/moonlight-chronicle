@@ -102,12 +102,15 @@ export const HIT_DETECTION: Record<string, (pr: Projectile, dt: number, p: Playe
     if (!p) return [];
     // 更新半径
     pr.r = Math.min(pr.maxR, (pr.r || 0) + (pr.maxR || 200) * dt * (pr.enemy ? 1.7 : 2.4 / (p.duration || 1)));
-    const candidates = neighborEnemies(pr.x, pr.y, pr.maxR || 200);
-    for (const e of candidates) {
-      if (e.dead || pr.hit!.has(e)) continue;
-      if (distSq(e, pr) < pr.r * pr.r) {
-        hits.push({ target: e, isPlayer: false });
-        pr.hit!.add(e);
+    // 玩家弹：检测敌人；敌方弹（酸雾等）不得误伤己方小怪
+    if (!pr.enemy) {
+      const candidates = neighborEnemies(pr.x, pr.y, pr.maxR || 200);
+      for (const e of candidates) {
+        if (e.dead || pr.hit!.has(e)) continue;
+        if (distSq(e, pr) < pr.r * pr.r) {
+          hits.push({ target: e, isPlayer: false });
+          pr.hit!.add(e);
+        }
       }
     }
     // 玩家检测（敌人 AOE）

@@ -409,6 +409,14 @@ describe('操作 5 · 命运筛选', () => {
     expect(statsState.get('levelQueue')).toBe(1);
   });
 
+  it('未提供轮盘（prevSlots 缺失）时拒绝，防索引错位', () => {
+    statsState.set('levelQueue', 1);
+    const r = sieveTake(undefined as any, 2, 0);
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe('wheel');
+    expect(statsState.get('levelQueue')).toBe(1); /* 不减队列 */
+  });
+
   it('三选一选中已强化的 common：效果翻倍（apply 两次）', () => {
     const slots = [
       { kind: 'blessing' as const, blessingId: 'b_hp' },

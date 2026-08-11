@@ -94,7 +94,7 @@ function groundStrike(e: any, n: number, r: number, delay: number, color: string
   const spread = opts.spread ?? 110;
   for (let i = 0; i < n; i++) {
     eSt().projectiles.push(PROJECTILE_POOL.addWith({
-      ground: true, x: p.x + rand(-spread, spread), y: p.y + rand(-spread, spread),
+      ground: true, enemy: true, x: p.x + rand(-spread, spread), y: p.y + rand(-spread, spread),
       t: i * (opts.stagger ?? 0.15), delay, r, dmg: e.dmg * (opts.dmgMul ?? 0.8),
       color, lightning: !!opts.lightning,
     }));
@@ -154,7 +154,7 @@ const BOSS_SKILLS: Record<string, (e: EnemyInstance) => void> = {
     bossDash(e);
     // 轮辐弹：旋转十字辐条凌空碾过（车轮意象）
     ringShot(e, 5, 145, PALETTE.steel, { r: 6, dmgMul: 0.55, life: 3, wId: 'enemy_spoke' });
-    eSt().projectiles.push(PROJECTILE_POOL.addWith({ ground: true, x: e.x, y: e.y, t: 0, delay: 0.5, r: 120, dmg: e.dmg * 0.88, color: PALETTE.slate }));
+    eSt().projectiles.push(PROJECTILE_POOL.addWith({ ground: true, enemy: true, x: e.x, y: e.y, t: 0, delay: 0.5, r: 120, dmg: e.dmg * 0.88, color: PALETTE.slate }));
   },
   /* 噬月君主：双波扇形斩 + X 形弹网 + 追踪 */
   moonSlash(e: EnemyInstance) {
@@ -314,7 +314,8 @@ export function bossTick(e: EnemyInstance, dt: number): void {
   if (e.state === 'dashMove') {
     e.x += e.vx * dt;
     e.y += e.vy * dt;
-    e.stateT -= dt;
+    // 注意：stateT 已在函数开头统一 -= dt，这里不得再减——
+    // 否则冲撞段时长每帧被扣两次（0.75s → 实际 ≈0.375s），冲刺节奏翻倍。
     if (e.stateT <= 0) {
       // 连续冲撞：剩余次数内重新瞄准玩家（转弯限幅：弧形追击可预判、可侧甩）
       if ((e.dashCount || 0) > 0) {
@@ -328,7 +329,7 @@ export function bossTick(e: EnemyInstance, dt: number): void {
         const na = cur + Math.max(-1.6, Math.min(1.6, diff));
         e.vx = Math.cos(na) * 366; e.vy = Math.sin(na) * 366;
         e.stateT = 0.75;   // 冲撞间隔 0.5→0.75s：玩家躲完一撞后有走位窗口
-        eSt().projectiles.push(PROJECTILE_POOL.addWith({ ground: true, x: e.x, y: e.y, t: 0, delay: 0.45, r: 110, dmg: e.dmg * 0.79, color: PALETTE.slate }));
+        eSt().projectiles.push(PROJECTILE_POOL.addWith({ ground: true, enemy: true, x: e.x, y: e.y, t: 0, delay: 0.45, r: 110, dmg: e.dmg * 0.79, color: PALETTE.slate }));
         shakeScreen(6);
       } else {
         e.state = 'chase';

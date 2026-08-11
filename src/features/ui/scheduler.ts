@@ -66,8 +66,8 @@ export function enterGame(stage?: number): void {
   ['result', 'pause', 'levelup', 'shop', 'levelselect'].forEach(id => closeOverlay(id));
   startRun(stage);
   showScreen('game');
-  const curse = gSt().curse;
-  if (curse) { showCurseBanner(curse); AudioEngine.playSfx('curse'); }
+  // 诅咒横幅不由此处显示：startRun 已把 curse 清空（深度 ≥1 走 CURSE 状态，
+  // 立契后由 state_hooks 的 CURSE 退出钩子统一展示）。此处读到恒为 null。
   showStageBanner(gSt().stageName, false);
   // god 模式：整备商店把 stage 摆到 目标夜-1，toast 直接读「下一夜」；
   // 正式模式恒为第 1 夜。

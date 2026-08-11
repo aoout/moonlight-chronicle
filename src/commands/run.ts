@@ -16,6 +16,7 @@ import { stageState } from '../state/stage.js';
 import { statsState } from '../state/stats.js';
 import { playerState } from '../state/player.js';
 import { gameState } from '../state/flow.js';
+import { fortuneState } from '../state/fortune.js';
 import { pSt, sSt, gSt, rSt } from '../state/accessors.js';
 import { computeDerived, createPlayer, xpNeeded, addWeapon } from '../domain/player.js';
 import { spawnBoss, spawnEnemy } from '../domain/spawn.js';
@@ -78,6 +79,10 @@ export function startStage(n: number): void {
 /* ---------- 开始一局 ---------- */
 export function startRun(atStage?: number): void {
   godStartStage = isDevMode() ? clampStage(atStage ?? 1) : 1;
+  /* 月契经济随局重置：上一局的月契余额与强化印记不得带入新局
+     （fortuneState 是模块级单例，页内重开若不重置会残留——曾经的隐性跨局泄漏） */
+  fortuneState.set('moonPacts', 0);
+  fortuneState.set('enhanced', {});
   initAchievements();
   stageState.set('stage', 1);
   statsState.patch({
@@ -150,7 +155,15 @@ export function resumeRun(): boolean {
   const d = loadRunMeta();
   if (!d || !d.player) return false;
   try {
-    playerState.set('player', d.player);
+    // 水合净化：以 createPlayer 的完整默认值为基座，覆盖存档字段。
+    // 旧版本档可能缺新字段（effects 子项 / 派生属性等），直接裸水合会得到
+    // undefined → computeDerived 产出 NaN、combat 访问 p.effects 崩溃。
+    const saved = d.player;
+    playerState.set('player', {
+      ...createPlayer(),
+      ...saved,
+      effects: { ...(saved.effects || {}) },
+    });
     stageState.set('stage', d.stage);
     stageState.set('depth', d.depth);
     statsState.set('gold', d.gold);
@@ -177,6 +190,16 @@ export function resumeRun(): boolean {
     playerState.set('weaponCd', {});
     playerState.set('weaponCdFull', {});
     gameState.set('_resumeState', STATE.PLAYING);
+    // 月契 / 强化印记随档恢复：续局保留局内已攒的轮盘经济（旧档无 fortune 字段 → 保持初始）
+    const fortune = d.fortune;
+    if (fortune) {
+      if (typeof fortune.moonPacts === 'number' && Number.isFinite(fortune.moonPacts)) {
+        fortuneState.set('moonPacts', Math.max(0, Math.floor(fortune.moonPacts)));
+      }
+      if (fortune.enhanced && typeof fortune.enhanced === 'object') {
+        fortuneState.set('enhanced', { ...fortune.enhanced });
+      }
+    }
     const p = pSt().player;
     if (!p) return false;
     computeDerived(p);

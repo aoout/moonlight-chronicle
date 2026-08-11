@@ -135,6 +135,11 @@ describe('doubleDescNums 强化数值翻倍（详情浮层展示用）', () => {
     expect(doubleDescNums('幸运 <span class="stat-up">+15%</span>（提升非凡/命运祝福权重）'))
       .toBe('幸运 <span class="stat-up">+30%</span>（提升非凡/命运祝福权重）');
   });
+
+  it('负值翻倍保留负号（-0.4/s → -0.8/s）', () => {
+    expect(doubleDescNums('生命恢复 <span class="stat-up">-0.4/s</span>'))
+      .toBe('生命恢复 <span class="stat-up">-0.8/s</span>');
+  });
 });
 
 describe('enhanceNoteFor 强化说明', () => {

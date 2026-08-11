@@ -7,7 +7,7 @@ import { RNG, dist, angTo, TAU } from '../../engine/util/utils.js';
 import { rSt, pSt, eSt } from '../../state/accessors.js';
 import { PROJECTILE_POOL } from '../../engine/ecs/entity_pool.js';
 import { spawnBurst, spawnShard, spawnSpark, spawnRing, spawnGlow } from '../../platform/fx/fx.js';
-import { damageEnemy } from '../combat.js';
+import { damageEnemy, hurtPlayer } from '../combat.js';
 import { queryRadius } from '../../engine/spatial/SpatialSystem.js';
 import type { Player, Projectile, EnemyInstance } from '../../types/core.d.ts';
 
@@ -159,9 +159,15 @@ export const MOVEMENT: Record<string, (pr: Projectile, dt: number, p: Player) =>
     // 蓄力进度交给渲染层（发亮）
     pr.charge = Math.min(1, pr.t / (pr.chargeT || 0.9));
     if (pr.t >= (pr.chargeT || 0.9)) {
-      const f = 1 + 2.4 * dt;   // 引导完成：持续加速
-      pr.vx = (pr.vx || 0) * f;
-      pr.vy = (pr.vy || 0) * f;
+      // 引导完成：线性加速（保持方向，300px/s²）。
+      // 修复前用乘性 (1+2.4dt) 逐帧缩放 → 指数爆炸（≈e^2.4t，
+      // 2 秒内 ~120 倍），符箓弹近乎瞬移且随帧率漂移。
+      const spd = Math.hypot(pr.vx || 0, pr.vy || 0);
+      if (spd > 0) {
+        const ns = spd + 300 * dt;
+        pr.vx = (pr.vx / spd) * ns;
+        pr.vy = (pr.vy / spd) * ns;
+      }
     }
     pr.x += (pr.vx || 0) * dt;
     pr.y += (pr.vy || 0) * dt;
@@ -213,6 +219,9 @@ export function eggSplitBurst(pr: Projectile): Array<Record<string, unknown>> {
 
 /* =========================================================
    蚀痕喷发：地面延迟圈到期时的爆裂
+   敌我分派：敌方落点（enemy: true，蚀痕/落雷/战车蚀痕）对玩家造成范围伤害，
+   玩家落点（无 enemy）才打敌人。修复前这里无条件 damageEnemy ——
+   敌方封锁技能全部打在小怪身上，对玩家的走位封锁完全失效。
    ========================================================= */
 function explodeGround(pr: Projectile): void {
   const x = pr.x, y = pr.y, r = pr.r || 60;
@@ -223,10 +232,18 @@ function explodeGround(pr: Projectile): void {
   spawnRing(x, y, pr.color || PALETTE.coral, 0.36, r * 1.35, 3);
   spawnRing(x, y, PALETTE.cream, 0.22, r * 0.85, 1.8);
   spawnGlow(x, y, 20, pr.color || PALETTE.coral, 0.35);
-  // 范围内伤害
-  const p = pSt().player;
-  for (const e of (queryRadius(x, y, r) as EnemyInstance[])) {
-    if (e.dead) continue;
-    damageEnemy(e, pr.dmg || 1, RNG() < (p?.effCrit ?? 0.1), 'ground', pr.wId);
+  const dmg = pr.dmg || 1;
+  if (pr.enemy) {
+    // 敌方落点：对玩家造成范围伤害（封锁走位的真实目的）
+    const p = pSt().player;
+    if (p && dist({ x, y }, p) < r + p.r) {
+      hurtPlayer({ x, y, dmg }, dmg);
+    }
+  } else {
+    // 玩家落点：对范围内敌人造成伤害
+    for (const e of (queryRadius(x, y, r) as EnemyInstance[])) {
+      if (e.dead) continue;
+      damageEnemy(e, dmg, RNG() < (pSt().player?.effCrit ?? 0.1), 'ground', pr.wId);
+    }
   }
 }

@@ -12,16 +12,22 @@ import { STATE, sm } from '../../engine/core/states.js';
 import { statsState } from '../../state/stats.js';
 import { playerState } from '../../state/player.js';
 import { installPlayer } from '../_harness/index.js';
+import type { BlessingDef } from '../../types/core.d.ts';
 
 beforeEach(() => {
   installPlayer();
   sm.reset(); // → MENU
 });
 
+/** 构造一个最小完整 BlessingDef（applyBlessing 已收口为 BlessingDef 类型） */
+const mkBlessing = (apply: (p: any) => void): BlessingDef => ({
+  id: 'test', name: '测试祝福', icon: 'x', tier: 'common', weight: 1, desc: '', apply,
+});
+
 describe('applyBlessing', () => {
   it('无玩家时安全返回，不掷骰子', () => {
     playerState.set('player', null);
-    expect(applyBlessing({ apply: () => {} })).toEqual({ ok: false, hasMore: false });
+    expect(applyBlessing(mkBlessing(() => {}))).toEqual({ ok: false, hasMore: false });
   });
 
   it('施加祝福、递增属性、递减队列；队列清空不切状态（由面板关闭时切回）', () => {
@@ -29,7 +35,7 @@ describe('applyBlessing', () => {
     const before = p.atk;
     statsState.set('levelQueue', 1);
 
-    const r = applyBlessing({ apply: (pl: any) => { pl.atk += 10; } });
+    const r = applyBlessing(mkBlessing(pl => { pl.atk += 10; }));
 
     expect(r.ok).toBe(true);
     expect(r.hasMore).toBe(false);
@@ -41,12 +47,12 @@ describe('applyBlessing', () => {
   it('队列还有剩余时不切状态', () => {
     statsState.set('levelQueue', 2);
 
-    const r1 = applyBlessing({ apply: () => {} });
+    const r1 = applyBlessing(mkBlessing(() => {}));
     expect(r1.hasMore).toBe(true);
     expect(statsState.get('levelQueue')).toBe(1);
     expect(sm.is(STATE.MENU)).toBe(true); // 尚未清空，停留在菜单等待下一个祝福
 
-    const r2 = applyBlessing({ apply: () => {} });
+    const r2 = applyBlessing(mkBlessing(() => {}));
     expect(r2.hasMore).toBe(false);
     expect(statsState.get('levelQueue')).toBe(0);
     expect(sm.is(STATE.PLAYING)).toBe(false); // 冻结保持，等待面板关闭

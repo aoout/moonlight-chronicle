@@ -210,7 +210,10 @@ export function navTick(): void {
     renderFocus(ctx);
     return;
   }
-  // 同上下文：若条目数量变化导致索引越界，则钳制并重绘
+  // 同上下文：若条目数量变化导致索引越界/失效，则钳制并重绘
+  // 修复：items 从空变非空（如商店货架刷新）时，_focusIndex 可能仍是 -1，
+  // 旧逻辑 min(-1, len-1) = -1 恒不变，焦点永远不落到第一个条目。
+  if (ctx.items.length && _focusIndex < 0) _focusIndex = 0;
   const clamped = ctx.items.length ? Math.min(_focusIndex, ctx.items.length - 1) : -1;
   if (clamped !== _focusIndex) {
     _focusIndex = clamped;

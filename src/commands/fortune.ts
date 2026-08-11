@@ -118,7 +118,12 @@ export function spinWheelTake(prevSlots?: WheelSlot[], prevIdx?: number): WheelT
 export function sieveTake(prevSlots: WheelSlot[], prevIdx: number, choice: number): WheelTakeResult {
   const p = pSt().player;
   if (!p) return { ok: false, hasMore: false, kind: 'blank', spinPacts: 0, reason: 'player' };
-  const slots = prevSlots || buildWheel(p.luck);
+  // 命运筛选依赖调用方提供的同一轮盘与落点（指针停在哪 = 三选一围绕哪）。
+  // prevSlots 缺失时不能退化为自建轮盘：旧 prevIdx 会错位指向新轮盘的格子。
+  if (!prevSlots || prevSlots.length === 0) {
+    return { ok: false, hasMore: false, kind: 'blank', spinPacts: 0, reason: 'wheel' };
+  }
+  const slots = prevSlots;
   const idx = prevIdx >= 0 && prevIdx < slots.length ? prevIdx : spinWheel(slots, p.luck);
   const cands = sieveCandidates(slots, idx);
   if (choice < 0 || choice >= cands.length) {

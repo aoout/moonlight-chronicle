@@ -85,7 +85,9 @@ export function substituteBlessing(onWheelIds: string[], luck: number, rng: () =
   if (!pool.length) return null;
   const total = pool.reduce((s, b) => s + luckWeight(b.weight, b.tier, luck), 0);
   let r = rng() * total;
-  let idx = 0;
+  // 默认指向末位：浮点累减误差可能使 r 永不 ≤ 0（rng()≈1 时），
+  // 此时应回落末位（与 spinWheel 的兜底语义一致），而非错选首位。
+  let idx = pool.length - 1;
   for (let i = 0; i < pool.length; i++) {
     r -= luckWeight(pool[i].weight, pool[i].tier, luck);
     if (r <= 0) { idx = i; break; }
@@ -119,7 +121,7 @@ export function sieveCandidates(slots: WheelSlot[], idx: number): number[] {
 
 /** 把 desc 里的数值全部 ×2（保留 +/- 前缀与小数，整数去掉 .0） */
 export function doubleDescNums(desc: string): string {
-  return String(desc).replace(/(\+?)(\d+(?:\.\d+)?)/g, (m, sign: string, num: string) => {
+  return String(desc).replace(/([+-]?)(\d+(?:\.\d+)?)/g, (m, sign: string, num: string) => {
     const v = parseFloat(num) * 2;
     const fmt = Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100);
     return (sign || '') + fmt;

@@ -69,7 +69,10 @@ function updateNavRepeat(dir: string | null, dt: number): void {
     if (dir) handleNav(dir as 'up' | 'down' | 'left' | 'right');
     _navDir = dir;
     _navHoldTime = 0;
-    _navRepeatTimer = REPEAT_DELAY;
+    // 重复定时器从 0 起算：hold 满 REPEAT_DELAY 的当帧即触发首次重复。
+    // 修复前这里设为 REPEAT_DELAY，且要先等 hold 攒满才开始递减，
+    // 实际首重复 ≈ 0.7s（两段 0.35s），与「350ms 后每 120ms 重复」的注释不符。
+    _navRepeatTimer = 0;
     return;
   }
   if (!dir) return;

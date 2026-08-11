@@ -926,8 +926,9 @@ const PROJ_RENDER: Record<string, (ctx: CanvasRenderingContext2D, pr: any) => vo
   breath(ctx, pr) {
     const k = Math.max(0, 1 - pr.t / pr.dur);
     const ang = pr.dir || 0;
-    const len = pr.range || 260;
-    const w = pr.width || 58;
+    // 用 ?? 而非 ||：合法 0 值（如 range=0 表示无距离）不应被替换为默认值
+    const len = pr.range ?? 260;
+    const w = pr.width ?? 58;
     ctx.save();
     ctx.rotate(ang);
     ctx.globalAlpha = k;

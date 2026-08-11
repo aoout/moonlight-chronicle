@@ -26,7 +26,13 @@ const APPLY_FN: Record<string, (p: Player) => void> = {
   b_area:     p => { p.area += 0.1; },
   b_cdr:      p => { p.cdr += 0.04; },
   b_xp:       p => { p.xpGain += 0.15; },
-  b_hp2:      p => { p.maxHp = Math.round(p.maxHp * 1.1); },
+  b_hp2:      p => {
+    // 不朽之脉：+10% 生命上限并同步回 10% 当前血（与其他生命祝福一致：
+    // b_hp 加 12 上限同时回 12 血、道具 hp1 加 25 同时回 25，避免拿到后血量百分比隐降）
+    const gain = Math.round(p.maxHp * 0.1);
+    p.maxHp = Math.round(p.maxHp * 1.1);
+    p.hp = Math.min(p.maxHp, p.hp + gain);
+  },
   b_atk2:     p => { p.atk = Math.round(p.atk * 1.08); },
   b_legend:   p => { p.luck += 0.3; p.atkSpd += 0.18; },
   b_moonwall: p => { p.maxHp += 18; p.hp += 18; p.armor += 2; },
@@ -79,7 +85,9 @@ export function pickBlessings(n: number, opts?: { excludeIds?: string[]; luck?: 
   while (chosen.length < n && pool.length) {
     const total = pool.reduce((s, b) => s + luckWeight(b.weight, b.tier, luck), 0);
     let r = Math.random() * total;
-    let idx = 0;
+    // 默认指向末位：浮点累减误差可能使 r 永不 ≤ 0（rng()≈1 时），
+    // 此时应回落到末位（与 spinWheel 的兜底语义一致），而非错选首位。
+    let idx = pool.length - 1;
     for (let i = 0; i < pool.length; i++) {
       r -= luckWeight(pool[i].weight, pool[i].tier, luck);
       if (r <= 0) { idx = i; break; }

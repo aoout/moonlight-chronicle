@@ -24,6 +24,7 @@ import { entityState } from '../../state/entities.js';
 import { statsState } from '../../state/stats.js';
 import { stageState } from '../../state/stage.js';
 import { renderState } from '../../state/render.js';
+import { fortuneState } from '../../state/fortune.js';
 import { bindWorld, installPlayer, enableDevMode, captureEvent, resetAllStores } from '../_harness/index.js';
 
 const bossStage = CONFIG.BOSS_STAGES[0];
@@ -57,6 +58,18 @@ describe('startRun', () => {
     startRun();
     expect(log.count).toBe(1);
     expect(log.last.depth).toBe(0);
+  });
+
+  it('重开一局时清空上一局的月契与强化印记（页内重开不残留跨局经济）', () => {
+    startRun();
+    // 模拟上一局攒下的轮盘经济
+    fortuneState.set('moonPacts', 7);
+    fortuneState.set('enhanced', { b_hp: true, b_legend: true });
+    // 页内重开（btn-retry 路径：enterGame → startRun）
+    sm.reset(); // 回 MENU，允许状态机重新开局
+    startRun();
+    expect(fortuneState.get('moonPacts')).toBe(0);
+    expect(fortuneState.get('enhanced')).toEqual({});
   });
 
   it('深度 ≥1 时先进蚀潮索价（CURSE 状态），诅咒待立契', () => {
@@ -221,6 +234,37 @@ describe('resumeRun', () => {
     expect(gSt().time).toBeCloseTo(55.5);
     expect(gSt().curse?.id).toBe(curse.id);
     expect(sm.is(STATE.PLAYING)).toBe(true);
+  });
+
+  it('续局恢复月契与强化印记（追忆月痕保留轮盘经济）', () => {
+    installPlayer();
+    stageState.set('stage', 2);
+    stageState.set('depth', 1);
+    fortuneState.set('moonPacts', 6);
+    fortuneState.set('enhanced', { b_legend: true });
+    saveRun(); // 写入月光烙记（含 fortune 字段）
+
+    resetAllStores(); // 模拟全新会话
+
+    expect(resumeRun()).toBe(true);
+    expect(fortuneState.get('moonPacts')).toBe(6);
+    expect(fortuneState.get('enhanced')).toEqual({ b_legend: true });
+  });
+
+  it('旧档无 fortune 字段时月契保持初始值（v1 存档兼容）', () => {
+    installPlayer();
+    const p = pSt().player!;
+    p.level = 3; p.hp = 100; p.maxHp = 100;
+    stageState.set('stage', 2);
+    stageState.set('depth', 1);
+    // 手工构造不含 fortune 的 v1 存档
+    const data = { v: 1, stage: 2, depth: 1, curseId: null, curseIds: [], gold: 50, kills: 3, time: 10, xp: 5, xpNeeded: 20, runStats: { totalDmg: 0, bossKills: 0, win: false, wDmg: {} }, player: p };
+    localStorage.setItem('eclipse_run_save_v1', JSON.stringify(data));
+    resetAllStores();
+
+    expect(resumeRun()).toBe(true);
+    expect(fortuneState.get('moonPacts')).toBe(0); // 回退开局初始值
+    expect(fortuneState.get('enhanced')).toEqual({});
   });
 
   it('没有存档时返回 false', () => {

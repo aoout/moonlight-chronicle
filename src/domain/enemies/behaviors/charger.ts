@@ -29,7 +29,7 @@ export function chargerMove(e: EnemyInstance, dt: number, p: Player, slowF: numb
     e.vx = Math.cos(a) * sp; e.vy = Math.sin(a) * sp;
     if (RNG() < 0.28) {
       world.add('projectiles', {
-        ground: true, erode: true, x: e.x, y: e.y, t: 0, delay: 0.7,
+        ground: true, enemy: true, erode: true, x: e.x, y: e.y, t: 0, delay: 0.7,
         r: 44, dmg: e.dmg * 0.9, color: PALETTE.coral,
       });
     }

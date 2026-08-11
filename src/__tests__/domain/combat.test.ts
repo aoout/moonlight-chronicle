@@ -580,17 +580,10 @@ describe('hurtPlayer · 保命词条', () => {
     expect(p.effects.oath).toBe(1);
   });
 
-  /* ⚠️ 已知生产缺陷（本用例把现状钉死，改动前先看这段说明）
-     combat.ts 的 oath 分支写了 `p.invuln = Math.max(p.invuln, 1)`，
-     意图是保命后给 1 秒无敌喘息。但该分支**没有 early return**，
-     函数结尾的 `p.invuln = 0.45` 会无条件覆盖掉它 —— 这行意图直接失效。
-
-     对比：nearDeath 分支设完 invuln 就 return，它的 3 秒无敌是生效的。
-
-     这属于数值/手感层面的行为变更，不在「完善测试」的授权范围内，
-     故此处只锁定现状。要修就是把 oath 分支也改成 early return，
-     届时把下面的期望改回 1。 */
-  it('oath 保命后的无敌帧被结尾赋值覆盖，实际只有 0.45s（现状锁定）', () => {
+  /* ✅ 已修复（2026-08-11）：oath 分支改为 early return 后，
+     保命的 1s 无敌不再被函数尾部的 `p.invuln = 0.45` 覆盖，
+     受击音效 / "-0" 飘字也不再在免伤时出现。 */
+  it('oath 保命后保留 1 秒无敌帧（不再被结尾赋值覆盖）', () => {
     const p = installPlayer({ maxHp: 100, armor: 0, dodge: 0 });
     p.hp = 20;
     p.effects.oath = 1;
@@ -598,7 +591,7 @@ describe('hurtPlayer · 保命词条', () => {
     noProc();
     hurtPlayer(makeEnemy(), 500);
 
-    expect(p.invuln).toBeCloseTo(0.45);
+    expect(p.invuln).toBeGreaterThanOrEqual(1);
   });
 
   it('nearDeath（濒死月魄）在跌破 25% 时回血并给 3 秒无敌，只触发一次', () => {
