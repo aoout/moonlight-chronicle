@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蚀月远征 · 手柄连接方式检测</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+    background: #0d0d12; color: #e0e0e8; min-height: 100vh; display: flex;
+    align-items: center; justify-content: center; padding: 1rem;
+  }
+  .card {
+    max-width: 780px; width: 100%; margin: 1rem; padding: 2rem;
+    background: #1a1a24; border-radius: 16px; border: 1px solid #2a2a3a;
+    box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  }
+  h1 { font-size: 1.4rem; margin-bottom: .25rem; }
+  .subtitle { color: #888; font-size: .85rem; margin-bottom: 1.5rem; }
+
+  /* 状态栏 */
+  .status-bar {
+    display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+  }
+  .badge {
+    padding: .35rem .75rem; border-radius: 8px; font-size: .8rem;
+    display: inline-flex; align-items: center; gap: .4rem;
+  }
+  .badge.ok { background: #1a3a2a; color: #4ade80; border: 1px solid #2a5a3a; }
+  .badge.fail { background: #3a1a1a; color: #f87171; border: 1px solid #5a2a2a; }
+  .badge.warn { background: #3a2a1a; color: #fbbf24; border: 1px solid #5a3a2a; }
+  .badge.info { background: #1a2a3a; color: #60a5fa; border: 1px solid #2a4a5a; }
+  .badge.bt { background: #1a3a3a; color: #34d399; border: 1px solid #2a5a5a; }
+  .badge.usb { background: #2a1a3a; color: #c084fc; border: 1px solid #3a2a5a; }
+
+  /* 面板折叠 */
+  .panel { margin-bottom: 1rem; }
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .65rem 1rem; background: #22222e; border-radius: 8px;
+    cursor: pointer; user-select: none; font-size: .85rem; font-weight: 600;
+    border: 1px solid #2a2a3a; transition: background .15s;
+  }
+  .panel-header:hover { background: #2a2a3a; }
+  .panel-header .arrow { transition: transform .2s; font-size: .7rem; color: #666; }
+  .panel-header.open .arrow { transform: rotate(90deg); }
+  .panel-body {
+    display: none; padding: .75rem 1rem; background: #12121c;
+    border: 1px solid #2a2a3a; border-top: none; border-radius: 0 0 8px 8px;
+    font-size: .8rem; line-height: 1.7;
+  }
+  .panel-body.open { display: block; }
+
+  /* 属性表格 */
+  .prop-table { width: 100%; border-collapse: collapse; }
+  .prop-table td { padding: .2rem .5rem; border-bottom: 1px solid #1a1a1a; vertical-align: top; }
+  .prop-table .key { color: #888; width: 160px; white-space: nowrap; }
+  .prop-table .val { color: #e0e0e8; font-family: 'SF Mono', 'Cascadia Code', monospace; font-size: .75rem; word-break: break-all; }
+  .prop-table .val.highlight { color: #fbbf24; }
+  .prop-table .val.ok { color: #4ade80; }
+  .prop-table .val.fail { color: #f87171; }
+  .prop-table .val.bt { color: #34d399; }
+  .prop-table .val.usb { color: #c084fc; }
+
+  /* 按钮区 */
+  .btn-row {
+    display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .75rem;
+  }
+  .btn {
+    padding: .6rem 1rem; border: 1px solid #333; border-radius: 8px;
+    background: #22222e; color: #e0e0e8; font-size: .8rem; cursor: pointer;
+    transition: all .15s; text-align: center; flex: 1; min-width: 80px;
+  }
+  .btn:hover { background: #2a2a3a; border-color: #555; }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+  .btn.primary { border-color: #4a6af0; }
+  .btn.primary:hover { background: #2a2a4a; border-color: #6a8aff; }
+  .btn.primary:disabled { border-color: #333; }
+  .btn.danger { border-color: #e04040; }
+  .btn.danger:hover { background: #3a2a2a; border-color: #ff6060; }
+
+  /* 日志 */
+  .log-box {
+    margin-top: 1rem; max-height: 200px; overflow-y: auto;
+    font-size: .75rem; color: #666; background: #0a0a0f;
+    border-radius: 8px; padding: .5rem; border: 1px solid #1a1a1a;
+  }
+  .log-box div { padding: 2px 4px; border-bottom: 1px solid #111; }
+  .log-box .info { color: #60a5fa; background: none; padding: 2px 4px; }
+  .log-box .ok { color: #4ade80; }
+  .log-box .warn { color: #fbbf24; }
+  .log-box .err { color: #f87171; }
+  .log-box .bt { color: #34d399; }
+  .log-box .usb { color: #c084fc; }
+
+  /* 连接方式提示 */
+  .conn-hint {
+    margin-top: 1rem; padding: 1rem; border-radius: 8px;
+    border: 1px solid #2a2a3a; background: #12121c; font-size: .85rem; line-height: 1.7;
+  }
+  .conn-hint strong { color: #f4ecd8; }
+  .conn-hint ol { margin: .5rem 0 0 1.2rem; }
+  .conn-hint li { margin-bottom: .3rem; }
+  .conn-hint code { background: #222; padding: 1px 5px; border-radius: 4px; font-size: .75rem; }
+
+  @media (max-width: 480px) {
+    .card { padding: 1rem; margin: .5rem; }
+    .prop-table .key { width: 100px; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>蚀月远征 · 手柄连接方式检测</h1>
+  <div class="subtitle">验证蓝牙连接是否能让 Firefox 识别震动致动器</div>
+
+  <!-- 状态栏 -->
+  <div class="status-bar" id="statusBar">
+    <span class="badge fail" id="sGamepad">手柄 未连接</span>
+    <span class="badge fail" id="sHaptic">hapticActuators 无</span>
+    <span class="badge fail" id="sVibrationActuator">vibrationActuator 无</span>
+    <span class="badge info" id="sConnType">连接方式 未知</span>
+    <span class="badge info" id="sBrowser">浏览器 检测中</span>
+  </div>
+
+  <!-- 连接方式结论 -->
+  <div class="conn-hint" id="connConclusion">
+    <strong>尚未检测到手柄</strong>
+    <p style="margin-top: .5rem; color: #888;">请连接手柄，按任意按钮激活后等待检测。</p>
+  </div>
+
+  <!-- 手柄详情面板 -->
+  <div class="panel">
+    <div class="panel-header open" data-panel-toggle>
+      <span>手柄 0 详情</span>
+      <span class="arrow">&#9654;</span>
+    </div>
+    <div class="panel-body open" id="panelPad0">
+      <table class="prop-table" id="propPad0">
+        <tr><td class="key">未连接</td><td class="val">——</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 所有手柄列表 -->
+  <div class="panel">
+    <div class="panel-header" data-panel-toggle>
+      <span>全部已连接手柄</span>
+      <span class="arrow">&#9654;</span>
+    </div>
+    <div class="panel-body" id="panelAllPads">
+      <div id="allPadsContent">无</div>
+    </div>
+  </div>
+
+  <!-- 浏览器信息 -->
+  <div class="panel">
+    <div class="panel-header" data-panel-toggle>
+      <span>浏览器 / 平台信息</span>
+      <span class="arrow">&#9654;</span>
+    </div>
+    <div class="panel-body" id="panelBrowser">
+      <div id="browserInfo">检测中...</div>
+    </div>
+  </div>
+
+  <!-- 测试按钮 -->
+  <div class="btn-row">
+    <button class="btn primary" id="btnRumbleTest" disabled>震动测试</button>
+    <button class="btn danger" id="btnStop" disabled>停止震动</button>
+    <button class="btn" id="btnRefresh">刷新诊断</button>
+    <button class="btn" id="btnClearLog">清除日志</button>
+  </div>
+
+  <div class="log-box" id="logBox"></div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const $ = s => document.querySelector(s);
+  const logBox = document.getElementById('logBox');
+
+  // ---------- 日志 ----------
+  function log(msg, cls = '') {
+    const d = document.createElement('div');
+    d.className = cls;
+    d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    logBox.appendChild(d);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  // ---------- 面板折叠（事件委托） ----------
+  document.addEventListener('click', function(e) {
+    var header = e.target.closest('[data-panel-toggle]');
+    if (header) {
+      header.classList.toggle('open');
+      var body = header.nextElementSibling;
+      if (body) body.classList.toggle('open');
+    }
+  });
+
+  // ---------- 连接类型推断 ----------
+  function detectConnectionType(p) {
+    const id = (p.id || '').toLowerCase();
+    // 关键词匹配
+    const bt = ['bluetooth', 'bt', 'wireless', 'xbox wireless', 'dualsense', 'ds4', 'nintendo pro'];
+    const usb = ['usb', 'xbox 360', 'xbox one', 'xinput', 'wired', 'xbox series'];
+
+    let score = { bt: 0, usb: 0, unknown: true };
+
+    // 从 id 推断
+    if (/bluetooth|bt[^a-z]|wireless[^a-z]|\(bt\)|\(bluetooth\)/i.test(id)) { score.bt += 3; score.unknown = false; }
+    if (/usb[^a-z]|wired|xinput/i.test(id)) { score.usb += 3; score.unknown = false; }
+    if (/xbox (wireless|bluetooth)/i.test(id)) { score.bt += 2; score.unknown = false; }
+    if (/xbox (360|one)( controller)?$/i.test(id)) { score.usb += 2; score.unknown = false; }
+    if (/xbox 360/i.test(id)) { score.usb += 3; score.unknown = false; } // 360 只有有线
+    if (/xbox series/i.test(id) && !/wireless|bluetooth/i.test(id)) { score.usb += 1; score.unknown = false; }
+    if (/xbox series.*wireless/i.test(id)) { score.bt += 1; score.unknown = false; }
+
+    // 从 buttons 数量推断 — Xbox 手柄 USB 通常 17 buttons, BT 有时不同
+    // 但这不是确定性的，仅供参考
+
+    // 从 axes 数量推断
+    if (p.axes && p.axes.length >= 6) { score.usb += 1; } // Xbox USB 通常 6 axes
+    if (p.axes && p.axes.length <= 4) { score.bt += 1; } // 蓝牙有时减少
+
+    // 综合判断
+    if (score.unknown) return { type: 'unknown', detail: '无法从设备信息推断', id: p.id };
+    if (score.bt > score.usb) return { type: 'bt', detail: '蓝牙连接', id: p.id };
+    if (score.usb > score.bt) return { type: 'usb', detail: 'USB 有线连接', id: p.id };
+    return { type: 'unknown', detail: '特征不明确', id: p.id };
+  }
+
+  // ---------- 从 hapticActuators 数组中提取 ----------
+  function getHapticActuator(p) {
+    const ha = p.hapticActuators;
+    if (ha && ha.length > 0 && ha[0]) return ha[0];
+    return null;
+  }
+
+  // ---------- 获取震动致动器（跨浏览器） ----------
+  function getActuator(p) {
+    // Chrome 路径
+    if (p.vibrationActuator) return p.vibrationActuator;
+    // Firefox 路径
+    const ha = getHapticActuator(p);
+    if (ha) return ha;
+    // 兼容：某些浏览器可能存为复数
+    if (p.hapticActuators && p.hapticActuators.length > 0) return p.hapticActuators[0];
+    return null;
+  }
+
+  // ---------- 渲染手柄详情 ----------
+  function renderPadDetail(p, index) {
+    const conn = detectConnectionType(p);
+    const actuator = getActuator(p);
+    const ha = p.hapticActuators;
+    const va = p.vibrationActuator;
+
+    const connLabel = conn.type === 'bt' ? '蓝牙' : conn.type === 'usb' ? 'USB 有线' : '未知';
+    const connCls = conn.type === 'bt' ? 'bt' : conn.type === 'usb' ? 'usb' : 'warn';
+
+    const rows = [
+      { k: 'index', v: p.index },
+      { k: 'id', v: p.id, cls: 'highlight' },
+      { k: '连接方式（推断）', v: connLabel, cls: connCls },
+      { k: '推断依据', v: conn.detail },
+      { k: 'connected', v: p.connected, cls: p.connected ? 'ok' : 'fail' },
+      { k: 'hand', v: p.hand || '(none)' },
+      { k: 'displayId', v: p.displayId ?? '(none)' },
+      { k: 'buttons', v: p.buttons ? p.buttons.length + ' 个' : '—' },
+      { k: 'axes', v: p.axes ? p.axes.length + ' 个' : '—' },
+      { k: 'timestamp', v: p.timestamp?.toFixed?.(0) ?? '—' },
+      { k: 'vibrationActuator', v: va ? '存在' : 'undefined', cls: va ? 'ok' : 'fail' },
+      { k: 'hapticActuators', v: ha ? JSON.stringify(ha.length) + ' 项' : 'undefined', cls: ha && ha.length > 0 ? 'ok' : 'fail' },
+      { k: 'hapticActuators 内容', v: ha && ha.length > 0 ? 'Array[' + ha.length + ']' : '(空/不存在)' },
+      { k: 'actuator (可用)', v: actuator ? '可用' : 'null', cls: actuator ? 'ok' : 'fail' },
+    ];
+
+    if (actuator) {
+      rows.push({ k: 'actuator.type', v: actuator.type || '(无 type)' });
+      rows.push({ k: 'actuator.effects', v: actuator.effects ? Array.from(actuator.effects).join(', ') : '(无 effects)' });
+      rows.push({ k: 'canPlayEffect', v: typeof actuator.playEffect === 'function' ? 'yes' : 'no', cls: 'ok' });
+    }
+
+    // 如果有 Firefox 特定的 hapticActuators 详细信息
+    if (ha) {
+      rows.push({ k: 'hapticActuators 类型', v: typeof ha });
+      rows.push({ k: 'hapticActuators 原型', v: Object.prototype.toString.call(ha) });
+      // 尝试枚举属性
+      try {
+        const keys = Object.keys(ha);
+        if (keys.length > 0) rows.push({ k: 'hapticActuators 自有属性', v: keys.join(', ') });
+      } catch (e) {
+        rows.push({ k: 'hapticActuators 枚举', v: '失败: ' + e.message });
+      }
+    }
+
+    // 额外调试信息 - 检查挂载在原型链上的可能
+    try {
+      const proto = Object.getPrototypeOf(p);
+      const protoKeys = Object.getOwnPropertyNames(proto).filter(k => k.includes('haptic') || k.includes('vibr') || k.includes('actuator'));
+      if (protoKeys.length > 0) {
+        rows.push({ k: '原型链候选属性', v: protoKeys.join(', '), cls: 'warn' });
+      }
+    } catch (e) {}
+
+    return rows.map(r => {
+      const cls = r.cls ? ` class="${r.cls}"` : '';
+      return `<tr><td class="key">${r.k}</td><td class="val"${cls}>${r.v}</td></tr>`;
+    }).join('');
+  }
+
+  // ---------- 更新所有 UI ----------
+  function updateAll() {
+    const pads = navigator.getGamepads?.() || [];
+    const padList = Array.from(pads).filter(p => p !== null);
+
+    // 状态栏
+    const sGamepad = document.getElementById('sGamepad');
+    const sHaptic = document.getElementById('sHaptic');
+    const sVibration = document.getElementById('sVibrationActuator');
+    const sConnType = document.getElementById('sConnType');
+    const sBrowser = document.getElementById('sBrowser');
+
+    const connected = padList.length > 0;
+    sGamepad.textContent = `手柄 ${connected ? '已连接 (' + padList.length + ')' : '未连接'}`;
+    sGamepad.className = `badge ${connected ? 'ok' : 'fail'}`;
+
+    // 检测所有手柄的 actuator
+    let anyHaptic = false, anyVibration = false, anyActuator = false;
+    let connTypes = [];
+    for (const p of padList) {
+      if (p.hapticActuators && p.hapticActuators.length > 0) anyHaptic = true;
+      if (p.vibrationActuator) anyVibration = true;
+      if (getActuator(p)) anyActuator = true;
+      const c = detectConnectionType(p);
+      connTypes.push(c.type);
+    }
+
+    sHaptic.textContent = `hapticActuators ${anyHaptic ? '有' : '无'}`;
+    sHaptic.className = `badge ${anyHaptic ? 'ok' : 'fail'}`;
+    sVibrationActuator.textContent = `vibrationActuator ${anyVibration ? '有' : '无'}`;
+    sVibrationActuator.className = `badge ${anyVibration ? 'ok' : 'fail'}`;
+
+    // 连接方式
+    const hasBt = connTypes.includes('bt');
+    const hasUsb = connTypes.includes('usb');
+    let connLabel = '未知', connCls = 'info';
+    if (hasBt && hasUsb) { connLabel = '蓝牙 + USB'; connCls = 'warn'; }
+    else if (hasBt) { connLabel = '蓝牙'; connCls = 'bt'; }
+    else if (hasUsb) { connLabel = 'USB'; connCls = 'usb'; }
+    sConnType.textContent = `连接方式 ${connLabel}`;
+    sConnType.className = `badge ${connCls}`;
+
+    // 浏览器
+    const ua = navigator.userAgent;
+    let browserLabel = '其他', browserCls = 'info';
+    if (/Chrome/.test(ua) && !/Edg/.test(ua)) { browserLabel = 'Chrome'; browserCls = 'ok'; }
+    else if (/Edg/.test(ua)) { browserLabel = 'Edge'; browserCls = 'ok'; }
+    else if (/Firefox/.test(ua)) { browserLabel = 'Firefox'; browserCls = 'warn'; }
+    else if (/Safari/.test(ua)) { browserLabel = 'Safari'; browserCls = 'fail'; }
+    sBrowser.textContent = `浏览器 ${browserLabel}`;
+    sBrowser.className = `badge ${browserCls}`;
+
+    // 连接结论
+    const conclusion = document.getElementById('connConclusion');
+    if (!connected) {
+      conclusion.innerHTML = `
+        <strong>尚未检测到手柄</strong>
+        <p style="margin-top: .5rem; color: #888;">请连接手柄，按任意按钮激活后等待检测。</p>
+        <p style="color: #888; font-size: .8rem;">测试方法：先用 USB 连接测试一次，记下结果；然后拔掉 USB，改用蓝牙连接，再测一次，对比 hapticActuators 是否有变化。</p>`;
+    } else {
+      const p = padList[0];
+      const conn = detectConnectionType(p);
+      const actuator = getActuator(p);
+      const hasActuator = actuator !== null;
+
+      let vibHtml = '';
+      if (hasActuator) {
+        const effects = actuator.effects ? Array.from(actuator.effects).join(', ') : '(无 effects)';
+        vibHtml = `<span style="color:#4ade80;font-weight:600">震动致动器可用</span> (effects: ${effects})`;
+      } else {
+        vibHtml = `<span style="color:#f87171;font-weight:600">震动致动器不可用</span>`;
+        if (/Firefox/.test(ua)) {
+          vibHtml += '<br><span style="color:#fbbf24;font-size:.8rem;">'
+            + 'Firefox 的 hapticActuators 返回空数组。'
+            + '如果当前是蓝牙连接仍不可用，说明 Firefox 的 XInput 限制同样影响蓝牙模式。'
+            + '</span>';
+        }
+      }
+
+      const connEmoji = conn.type === 'bt' ? '&#128264;' : conn.type === 'usb' ? '&#128188;' : '&#10068;';
+      const connColor = conn.type === 'bt' ? '#34d399' : conn.type === 'usb' ? '#c084fc' : '#fbbf24';
+
+      conclusion.innerHTML = `
+        <strong>手柄已连接</strong>
+        <table style="margin-top:.5rem;width:100%;border-collapse:collapse;font-size:.85rem;">
+          <tr><td style="padding:.3rem .5rem;color:#888;width:100px;">设备名</td>
+              <td style="padding:.3rem .5rem;font-family:monospace;font-size:.78rem;">${p.id}</td></tr>
+          <tr><td style="padding:.3rem .5rem;color:#888;">连接方式</td>
+              <td style="padding:.3rem .5rem;color:${connColor};font-weight:600;">
+                ${connEmoji} ${conn.detail}</td></tr>
+          <tr><td style="padding:.3rem .5rem;color:#888;">震动</td>
+              <td style="padding:.3rem .5rem;">${vibHtml}</td></tr>
+        </table>
+        <p style="margin-top:.5rem;color:#888;font-size:.8rem;">
+          <strong>如何测试：</strong>先<strong>拔掉 USB 线</strong>（如果已连接），按住手柄上的<strong>配对键</strong>（Xbox 顶部）直到指示灯快闪，
+          在 Windows 蓝牙设置中添加设备。连接成功后刷新本页，检测连接方式和震动状态。
+        </p>`;
+    }
+
+    // 手柄 0 详情
+    const propPad0 = document.getElementById('propPad0');
+    if (padList.length > 0) {
+      propPad0.innerHTML = renderPadDetail(padList[0], 0);
+    } else {
+      propPad0.innerHTML = '<tr><td class="key">未连接</td><td class="val">——</td></tr>';
+    }
+
+    // 全部手柄
+    const allPadsContent = document.getElementById('allPadsContent');
+    if (padList.length > 1) {
+      let html = '';
+      for (let i = 0; i < padList.length; i++) {
+        const p = padList[i];
+        const conn = detectConnectionType(p);
+        const connLabel = conn.type === 'bt' ? '蓝牙' : conn.type === 'usb' ? 'USB' : '?';
+        html += `<div style="margin-bottom:.5rem;padding:.5rem;background:#1a1a24;border-radius:6px;border:1px solid #2a2a3a;">
+          <strong>手柄 ${i}</strong> &nbsp; ${p.id} &nbsp;
+          <span style="color:${conn.type === 'bt' ? '#34d399' : '#c084fc'}">${connLabel}</span>
+          &nbsp; hapticActuators: <span style="color:${p.hapticActuators?.length > 0 ? '#4ade80' : '#f87171'}">${p.hapticActuators?.length ?? 0}</span>
+          &nbsp; vibrationActuator: <span style="color:${p.vibrationActuator ? '#4ade80' : '#f87171'}">${p.vibrationActuator ? '有' : '无'}</span>
+        </div>`;
+      }
+      allPadsContent.innerHTML = html;
+    } else if (connected) {
+      allPadsContent.innerHTML = '<div style="color:#888;">仅连接了 1 个手柄</div>';
+    } else {
+      allPadsContent.innerHTML = '<div style="color:#666;">无</div>';
+    }
+
+    // 浏览器信息
+    const browserInfo = document.getElementById('browserInfo');
+    browserInfo.innerHTML = `
+      <table class="prop-table">
+        <tr><td class="key">userAgent</td><td class="val" style="word-break:break-all;font-size:.7rem;">${ua}</td></tr>
+        <tr><td class="key">gamepad 支持</td><td class="val ${typeof navigator.getGamepads === 'function' ? 'ok' : 'fail'}">${typeof navigator.getGamepads === 'function' ? '支持' : '不支持'}</td></tr>
+        <tr><td class="key">secureContext</td><td class="val ${window.isSecureContext ? 'ok' : 'warn'}">${window.isSecureContext ? '是 (HTTPS/localhost)' : '否'}</td></tr>
+        <tr><td class="key">platform</td><td class="val">${navigator.platform || '(无)'}</td></tr>
+        <tr><td class="key">vendor</td><td class="val">${navigator.vendor || '(无)'}</td></tr>
+      </table>`;
+
+    // 按钮状态
+    document.getElementById('btnRumbleTest').disabled = !anyActuator;
+    document.getElementById('btnStop').disabled = !anyActuator;
+  }
+
+  // ---------- 震动测试 ----------
+  let _currentActuator = null;
+
+  async function rumbleTest() {
+    const pads = Array.from(navigator.getGamepads?.() || []).filter(p => p);
+    if (pads.length === 0) { log('无手柄', 'err'); return; }
+
+    const p = pads[0];
+    const act = getActuator(p);
+    if (!act) { log('无震动致动器', 'err'); return; }
+
+    _currentActuator = act;
+
+    // 尝试不同模式
+    log('=== 震动测试 ===', 'info');
+    log('尝试 playEffect("dual-rumble")...', 'info');
+
+    try {
+      await act.playEffect('dual-rumble', {
+        duration: 300,
+        strongMagnitude: 1.0,
+        weakMagnitude: 0.5,
+        startDelay: 0,
+      });
+      log('playEffect("dual-rumble") 成功', 'ok');
+      setTimeout(() => {
+        try { act.reset(); } catch {}
+      }, 350);
+    } catch (e) {
+      log('playEffect 失败: ' + e.message, 'err');
+      // 降级 pulse
+      if (typeof act.pulse === 'function') {
+        log('尝试 pulse() 降级...', 'info');
+        try {
+          await act.pulse(0.8, 300);
+          log('pulse() 降级成功', 'ok');
+        } catch (e2) {
+          log('pulse() 也失败: ' + e2.message, 'err');
+        }
+      } else {
+        log('无 pulse() 降级路径', 'warn');
+      }
+    }
+
+    log('=== 震动测试完成 ===', 'info');
+  }
+
+  function stopRumble() {
+    if (_currentActuator) {
+      try { _currentActuator.reset(); log('震动已停止', 'ok'); } catch (e) { log('停止失败: ' + e.message, 'err'); }
+    }
+  }
+
+  // ---------- 自动轮询 ----------
+  let _lastState = '';
+
+  function poll() {
+    const pads = Array.from(navigator.getGamepads?.() || []).filter(p => p);
+    const state = pads.map(p => p.id + '|' + (p.hapticActuators?.length ?? -1) + '|' + (!!p.vibrationActuator)).join(';');
+    if (state !== _lastState) {
+      _lastState = state;
+      if (pads.length > 0) {
+        const p = pads[0];
+        const haLen = p.hapticActuators?.length ?? 'N/A';
+        const va = p.vibrationActuator ? '有' : '无';
+        const conn = detectConnectionType(p);
+        const connLabel = conn.type === 'bt' ? '蓝牙' : conn.type === 'usb' ? 'USB' : '未知';
+        log(`状态更新: ${p.id} | 连接=${connLabel} | hapticActuators=${haLen} | vibrationActuator=${va}`, 'info');
+      }
+      updateAll();
+    }
+  }
+
+  // ---------- 事件绑定 ----------
+  window.addEventListener('gamepadconnected', (e) => {
+    const p = e.gamepad;
+    const conn = detectConnectionType(p);
+    const connLabel = conn.type === 'bt' ? '蓝牙' : conn.type === 'usb' ? 'USB' : '未知';
+    log(`手柄已连接: ${p.id}`, 'ok');
+    log(`  推断连接方式: ${connLabel}`, conn.type === 'bt' ? 'bt' : 'usb');
+    log(`  hapticActuators: ${p.hapticActuators?.length ?? 0} 项`, p.hapticActuators?.length > 0 ? 'ok' : 'warn');
+    log(`  vibrationActuator: ${p.vibrationActuator ? '存在' : 'undefined'}`, p.vibrationActuator ? 'ok' : 'warn');
+    updateAll();
+  });
+
+  window.addEventListener('gamepaddisconnected', (e) => {
+    log(`手柄已断开: ${e.gamepad.id}`, 'err');
+    _lastState = '';
+    setTimeout(updateAll, 100);
+  });
+
+  // 按钮
+  document.getElementById('btnRumbleTest').addEventListener('click', rumbleTest);
+  document.getElementById('btnStop').addEventListener('click', stopRumble);
+  document.getElementById('btnRefresh').addEventListener('click', () => {
+    _lastState = '';
+    poll();
+    log('手动刷新诊断', 'info');
+  });
+  document.getElementById('btnClearLog').addEventListener('click', () => {
+    logBox.innerHTML = '';
+  });
+
+  // 启动
+  log('=== 蚀月远征 · 手柄连接方式检测 ===', 'info');
+  log('浏览器: ' + navigator.userAgent, 'info');
+  log('SecureContext: ' + window.isSecureContext, window.isSecureContext ? 'ok' : 'warn');
+  log('请连接手柄，按任意按钮激活', 'info');
+  log('', '');
+  log('测试步骤：', 'info');
+  log('  1. USB 连接 → 刷新 → 观察 hapticActuators 状态', '');
+  log('  2. 拔掉 USB，用蓝牙连接 → 刷新 → 对比结果', '');
+  log('', '');
+  updateAll();
+  setInterval(poll, 2000);
+})();
+</script>
+</body>
+</html>

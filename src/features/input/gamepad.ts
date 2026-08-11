@@ -13,6 +13,8 @@ import {
   handlePrev, handleNext, handleStart,
 } from '../ui/gamepad_nav.js';
 import { refreshHint } from '../ui/gamepad_hint.js';
+import { refreshVibration, rumbleConfirm, isVibrationAvailable, getVibrationSupportLevel } from './gamepad_vibration.js';
+import { initVibrationIntegration } from './gamepad_vibration_integration.js';
 
 const DEAD = 0.28;             // 摇杆死区
 const REPEAT_DELAY = 0.35;     // 首次触发后等待
@@ -27,11 +29,28 @@ let _hasNotifiedConnect = false;
 /* ---------- 连接事件 ---------- */
 
 export function initGamepad(): void {
+  // 初始化震动战斗集成
+  initVibrationIntegration();
+
   window.addEventListener('gamepadconnected', () => {
     inputState.patch({ gamepad: { ...inputState.get('gamepad'), connected: true } });
+    refreshVibration();
     if (!_hasNotifiedConnect) {
       _hasNotifiedConnect = true;
-      toast('手柄已接入 · 守月人，月下同行');
+      const vib = isVibrationAvailable();
+      const level = getVibrationSupportLevel();
+      let vibMsg: string;
+      if (vib) {
+        vibMsg = '振魄可用';
+        rumbleConfirm();
+      } else if (level === 'partial') {
+        vibMsg = '振魄：Firefox 需开启 dom.gamepad.extensions.enabled';
+      } else if (level === 'none') {
+        vibMsg = '振魄：当前浏览器不支持';
+      } else {
+        vibMsg = '振魄不可用';
+      }
+      toast('手柄已接入 · 守月人，月下同行 [' + vibMsg + ']');
     }
     refreshHint();
   });
@@ -119,6 +138,7 @@ export function pollGamepad(ts: number, dt: number): void {
   // 静默置位 connected（事件负责 toast）
   if (!gs.connected) {
     gs.connected = true;
+    refreshVibration();
     refreshHint();
   }
   gs.lastInputAt = ts;

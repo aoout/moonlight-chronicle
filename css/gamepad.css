@@ -155,3 +155,42 @@
   /* 覆盖 hint-bar::before，避免双线叠加 */
   background: linear-gradient(90deg, transparent, rgba(var(--gold-rgb), .75), transparent);
 }
+
+/* ---------- 振魄状态指示器 ---------- */
+.gamepad-vib-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 8px;
+  padding: 2px 8px 2px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  transition: all .3s ease;
+  animation: fadeIn .35s ease both;
+}
+.gamepad-vib-indicator.vib-ok {
+  color: #4ade80;
+  background: rgba(74, 222, 128, .10);
+  border: 1px solid rgba(74, 222, 128, .20);
+}
+.gamepad-vib-indicator.vib-muted {
+  color: #f87171;
+  background: rgba(248, 113, 113, .08);
+  border: 1px solid rgba(248, 113, 113, .15);
+}
+.gamepad-vib-indicator.vib-unknown {
+  color: #6b7280;
+  background: rgba(107, 114, 128, .08);
+  border: 1px solid rgba(107, 114, 128, .15);
+}
+.gamepad-vib-indicator.hidden { display: none !important; }
+
+.gamepad-vib-indicator svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+  flex: none;
+}

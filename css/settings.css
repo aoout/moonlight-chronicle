@@ -190,6 +190,69 @@
   color: rgba(var(--ice-rgb), .55);
 }
 
+/* ---------- 振魄 · 月鸣（手柄震动设置） ---------- */
+.set-rumble-slider {
+  display: flex; align-items: center; gap: 10px;
+  flex: none;
+}
+.set-rumble-val {
+  font-family: var(--font-mono);
+  font-size: 15px; font-weight: 700; letter-spacing: .04em;
+  color: var(--gold);
+  min-width: 2.5em; text-align: right;
+  text-shadow: 0 0 8px var(--gold-glow);
+}
+.rumble-range {
+  -webkit-appearance: none; appearance: none;
+  width: 120px; height: 6px;
+  border-radius: 3px;
+  background: rgba(var(--gold-rgb), .15);
+  outline: none;
+  cursor: pointer;
+  transition: background .2s;
+}
+.rumble-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: radial-gradient(circle at 40% 35%, rgba(var(--gold-rgb), .4), rgba(var(--gold-rgb), .1) 70%);
+  box-shadow: 0 0 10px var(--gold-glow), inset 0 0 6px rgba(var(--gold-rgb), .15);
+  cursor: pointer;
+  transition: transform .15s;
+}
+.rumble-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.rumble-range::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: radial-gradient(circle at 40% 35%, rgba(var(--gold-rgb), .4), rgba(var(--gold-rgb), .1) 70%);
+  box-shadow: 0 0 10px var(--gold-glow);
+  cursor: pointer;
+}
+.rumble-range::-moz-range-track {
+  height: 6px; border-radius: 3px;
+  background: rgba(var(--gold-rgb), .15);
+}
+.rumble-range:active::-webkit-slider-thumb { transform: scale(1.08); }
+.set-rumble-status {
+  display: flex; align-items: center; gap: 8px;
+  flex: none;
+}
+.rumble-dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  transition: all .3s;
+}
+.rumble-dot.dot-avail { background: #4ade80; box-shadow: 0 0 6px rgba(74,222,128,.5); }
+.rumble-dot.dot-unavail { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,.4); }
+.rumble-dot.dot-unknown { background: #6b7280; box-shadow: 0 0 6px rgba(107,114,128,.3); }
+.rumble-label {
+  font-size: 12px; letter-spacing: .12em;
+  color: var(--moon); font-weight: 600;
+}
+
 /* 主菜单按钮图标 */
 .menu-btn .ic {
   display: inline-block;

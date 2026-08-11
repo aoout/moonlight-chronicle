@@ -29,12 +29,17 @@ export interface SettingsState {
    * 因此交由玩家取舍，默认保持逐帧。
    */
   enemyAnimStride: number;
+  /**
+   * 振魄：手柄震动强度（0 = 关闭，1 = 满强度）。
+   * 仅 Chrome/Edge 完整支持，Firefox 部分支持，Safari 不支持（静默降级）。
+   */
+  rumbleIntensity: number;
 }
 
 /** 可调细项的全部键 —— 新增设置项时在此登记一次即可 */
 const TUNABLE_KEYS = [
   'renderScale', 'particleDensity', 'glowFx', 'shake',
-  'dmgNumbers', 'bgDetail', 'fpsLimit', 'enemyAnimStride',
+  'dmgNumbers', 'bgDetail', 'fpsLimit', 'enemyAnimStride', 'rumbleIntensity',
 ] as const satisfies readonly (keyof Omit<SettingsState, 'preset'>)[];
 
 /** v1 存档里已有的键：给老存档补齐新增字段时，只比对这些 */
@@ -51,25 +56,25 @@ export const PRESETS: Record<Exclude<PresetId, 'custom'>, Omit<SettingsState, 'p
   low: {
     renderScale: 0.5, particleDensity: 0.5,
     glowFx: false, shake: false, dmgNumbers: false, bgDetail: false,
-    fpsLimit: 30, enemyAnimStride: 4,
+    fpsLimit: 30, enemyAnimStride: 4, rumbleIntensity: 1,
   },
   /* 月芒 · 清冷：月轮半掩，寒光流转 */
   medium: {
     renderScale: 0.75, particleDensity: 0.75,
     glowFx: false, shake: true, dmgNumbers: true, bgDetail: false,
-    fpsLimit: 60, enemyAnimStride: 2,
+    fpsLimit: 60, enemyAnimStride: 2, rumbleIntensity: 1,
   },
   /* 皎月 · 澄明：皓月当空，万物分明 */
   high: {
     renderScale: 1, particleDensity: 1,
     glowFx: true, shake: true, dmgNumbers: true, bgDetail: true,
-    fpsLimit: 60, enemyAnimStride: 1,
+    fpsLimit: 60, enemyAnimStride: 1, rumbleIntensity: 1,
   },
   /* 满月 · 辉耀：蚀月盛放，辉光无羁 */
   ultra: {
     renderScale: 1, particleDensity: 1,
     glowFx: true, shake: true, dmgNumbers: true, bgDetail: true,
-    fpsLimit: 0, enemyAnimStride: 1,
+    fpsLimit: 0, enemyAnimStride: 1, rumbleIntensity: 1,
   },
 };
 
@@ -102,6 +107,9 @@ export function loadSettings(): void {
         : PRESETS[legacy].enemyAnimStride;
     }
     merged.enemyAnimStride = [1, 2, 4].includes(merged.enemyAnimStride) ? merged.enemyAnimStride : 1;
+    merged.rumbleIntensity = typeof merged.rumbleIntensity === 'number'
+      ? Math.max(0, Math.min(1, merged.rumbleIntensity))
+      : 1;
     // 以细项组合重算档位，杜绝「preset 名称与细项矛盾」的脏数据
     merged.preset = matchPresetFor(merged);
     settingsState.patch(merged);

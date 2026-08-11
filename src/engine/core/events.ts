@@ -9,12 +9,14 @@
 export const EVENTS = {
   /* ---- 战斗 ---- */
   COMBAT_HIT: 'combat:hit',
+  COMBAT_MELEE: 'combat:melee',
   ENEMY_KILLED: 'enemy:killed',
   BOSS_KILLED: 'boss:killed',
   PLAYER_HURT: 'player:hurt',
   PLAYER_HEAL: 'player:heal',
   PLAYER_DIED: 'player:died',
   PLAYER_LEVELUP: 'player:levelup',
+  VFX_EXPLOSION: 'vfx:explosion',
 
   /* ---- 流程 ---- */
   GAME_RUN_START: 'game:runStart',

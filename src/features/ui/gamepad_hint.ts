@@ -8,6 +8,7 @@
 import { inputState } from '../../state/input.js';
 import { getActiveContextKey } from './gamepad_nav.js';
 import { HintBar } from './components/HintBar.js';
+import { isVibrationAvailable, getVibrationSupportLevel } from '../input/gamepad_vibration.js';
 
 interface HintItem { b: string; l: string }
 
@@ -91,6 +92,64 @@ function btnGlyph(name: string): string {
   }
 }
 
+/* ---------- 振魄状态指示器 ---------- */
+
+/** 静默月（震动不可用）—— 月轮被一道斜线贯穿 */
+function glyphVibMuted(): string {
+  return '<svg viewBox="0 0 16 16" fill="none">' +
+    '<circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2" opacity=".6"/>' +
+    '<path d="M5 11 L11 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".6"/>' +
+    '<circle cx="8" cy="8" r="2" fill="currentColor" opacity=".25"/></svg>';
+}
+
+/** 振魄可用（月轮 + 震波弧线） */
+function glyphVibOk(): string {
+  return '<svg viewBox="0 0 16 16" fill="none">' +
+    '<circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.2" opacity=".7"/>' +
+    '<path d="M11 5 A5 5 0 0 1 11 11" stroke="currentColor" stroke-width="1" opacity=".5" stroke-linecap="round"/>' +
+    '<path d="M12.5 3.5 A7 7 0 0 1 12.5 12.5" stroke="currentColor" stroke-width=".8" opacity=".3" stroke-linecap="round"/>' +
+    '<circle cx="8" cy="8" r="1.5" fill="currentColor" opacity=".6"/></svg>';
+}
+
+let _vibIndicator: HTMLElement | null = null;
+
+function ensureVibIndicator(): HTMLElement {
+  if (!_vibIndicator) {
+    _vibIndicator = document.createElement('span');
+    _vibIndicator.className = 'gamepad-vib-indicator hidden';
+    // 由 refreshHint 在显示 hint-bar 时追加到其父容器
+  }
+  return _vibIndicator;
+}
+
+function updateVibIndicator(): void {
+  const el = ensureVibIndicator();
+  const gp = inputState.state.gamepad;
+  if (!gp.connected || !hintBar?.el) {
+    el.classList.add('hidden');
+    return;
+  }
+  // 确保指示器在 hint-bar 容器内
+  if (el.parentElement !== hintBar.el) {
+    hintBar.el.appendChild(el);
+  }
+  const avail = isVibrationAvailable();
+  const level = getVibrationSupportLevel();
+  if (avail) {
+    el.className = 'gamepad-vib-indicator vib-ok';
+    el.innerHTML = glyphVibOk() + '振魄';
+  } else if (level === 'partial') {
+    el.className = 'gamepad-vib-indicator vib-muted';
+    el.innerHTML = glyphVibMuted() + '振魄需开启flags';
+  } else if (level === 'none') {
+    el.className = 'gamepad-vib-indicator vib-muted';
+    el.innerHTML = glyphVibMuted() + '振魄不支持';
+  } else {
+    el.className = 'gamepad-vib-indicator vib-unknown';
+    el.innerHTML = glyphVibMuted() + '振魄未知';
+  }
+}
+
 /* ---------- 初始化与刷新 ---------- */
 
 export function initHint(): void {
@@ -120,18 +179,27 @@ export function refreshHint(): void {
         label: it.l,
       })));
       hintBar.show();
+      updateVibIndicator();
     } else {
       hintBar.hide();
+      updateVibIndicator();
     }
     return;
   }
-  if (!gp.connected) return;
+  if (!gp.connected) {
+    updateVibIndicator();
+    return;
+  }
   const key = getActiveContextKey();
-  if (key === _lastKey) return;
+  if (key === _lastKey) {
+    updateVibIndicator();
+    return;
+  }
   _lastKey = key;
   const items = HINTS[key] || [];
   hintBar.setItems(items.map(it => ({
     icon: btnGlyph(it.b),
     label: it.l,
   })));
+  updateVibIndicator();
 }

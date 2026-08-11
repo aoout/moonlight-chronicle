@@ -360,6 +360,7 @@ export function meleeHit(x: number, y: number, r: number, dmg: number, opts?: { 
   }
   EventBus.emit(EVENTS.VISUAL_RING, { x, y, color: PALETTE.blood, life: 0.26, radius: r, width: 3 });
   EventBus.emit(EVENTS.VISUAL_BURST, { x, y, color: PALETTE.blood, count: 8 });
+  EventBus.emit(EVENTS.COMBAT_MELEE, { x, y, radius: r, damage: dmg });
   shakeScreen((opts && opts.shake) ?? 6);
 }
 
@@ -384,6 +385,8 @@ export function boomExplosion(x: number, y: number, p: Player): void {
   EventBus.emit(EVENTS.VISUAL_SHARD, { x, y, color: PALETTE.heavy, count: 8, speed: 240 });
   EventBus.emit(EVENTS.VISUAL_SPARK, { x, y, color: PALETTE.warmWhite, count: 10, speed: 220 });
   EventBus.emit(EVENTS.VISUAL_STREAK, { x, y, color: PALETTE.peach, ang: 0, len: 34, w: 2.4, life: 0.3 });
+  // 通知震动模块
+  EventBus.emit(EVENTS.VFX_EXPLOSION, { x, y, radius: 90 * p.area });
   for (const e of queryRadius(x, y, 90 * p.area)) {
     if (e.dead || e.boss) continue;
     damageEnemy(e, p.effAtk * p.boom * (0.7 + RNG() * 0.6), false, 'boom');

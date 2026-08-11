@@ -30,6 +30,9 @@ export class HintBar {
   private _items: HintBarItem[] = [];
   private _opts: HintBarOptions;
 
+  /** 公开 DOM 元素引用（供振魄指示器等子组件挂载） */
+  get el(): HTMLElement | null { return this._el; }
+
   constructor(opts: HintBarOptions = {}) {
     this._opts = {
       position: { top: '18px', centerOffsetX: 280 },

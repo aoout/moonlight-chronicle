@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手柄震动 · 可行性验证</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0d0d12; color: #e0e0e8; min-height: 100vh; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .card {
+    max-width: 680px; width: 100%; margin: 2rem; padding: 2rem;
+    background: #1a1a24; border-radius: 16px; border: 1px solid #2a2a3a;
+    box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  }
+  h1 { font-size: 1.5rem; margin-bottom: .25rem; }
+  .subtitle { color: #888; font-size: .85rem; margin-bottom: 1.5rem; }
+  .status { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .badge {
+    padding: .35rem .75rem; border-radius: 8px; font-size: .8rem;
+    display: inline-flex; align-items: center; gap: .4rem;
+  }
+  .badge.ok { background: #1a3a2a; color: #4ade80; border: 1px solid #2a5a3a; }
+  .badge.fail { background: #3a1a1a; color: #f87171; border: 1px solid #5a2a2a; }
+  .badge.warn { background: #3a2a1a; color: #fbbf24; border: 1px solid #5a3a2a; }
+  .badge.pulse { animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.5 } }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  .btn {
+    padding: 1rem; border: 1px solid #333; border-radius: 10px;
+    background: #22222e; color: #e0e0e8; font-size: .9rem; cursor: pointer;
+    transition: all .15s; text-align: center;
+  }
+  .btn:hover { background: #2a2a3a; border-color: #555; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn .label { font-size: .7rem; color: #888; }
+  .btn .val { font-size: 1.1rem; font-weight: 600; }
+  .btn.full { grid-column: 1 / -1; }
+  .btn.primary { border-color: #4a6af0; }
+  .btn.primary:hover { border-color: #6a8aff; background: #2a2a4a; }
+  .btn.danger { border-color: #e04040; }
+  .btn.danger:hover { border-color: #ff6060; background: #3a2a2a; }
+  .info { margin-top: 1.5rem; padding: 1rem; background: #12121c; border-radius: 10px; font-size: .8rem; line-height: 1.6; }
+  .info code { background: #222; padding: 1px 5px; border-radius: 4px; font-size: .75rem; }
+  .info table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+  .info th, .info td { padding: .35rem .5rem; text-align: left; border-bottom: 1px solid #222; }
+  .info th { color: #888; font-weight: 400; font-size: .75rem; }
+  .log { margin-top: 1rem; max-height: 120px; overflow-y: auto; font-size: .75rem; color: #666; }
+  .log div { padding: 2px 0; border-bottom: 1px solid #1a1a1a; }
+  @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>蚀月远征 · 手柄震动验证</h1>
+  <div class="subtitle">基于 GamepadHapticActuator API &nbsp;|&nbsp; 需 HTTPS 或 localhost</div>
+
+  <div class="status" id="status">
+    <span class="badge fail" id="s-gamepad">🕹️ 未连接</span>
+    <span class="badge fail" id="s-vibration">⚡ 未检测</span>
+    <span class="badge fail" id="s-browser">🌐 待检测</span>
+  </div>
+
+  <div class="grid" id="controls">
+    <button class="btn" data-rumble='{"duration":80,"strongMagnitude":0.6,"weakMagnitude":0.3}'>
+      <div class="label">轻击</div><div class="val">HIT</div>
+    </button>
+    <button class="btn" data-rumble='{"duration":150,"strongMagnitude":1.0,"weakMagnitude":0.5}'>
+      <div class="label">重击</div><div class="val">HEAVY</div>
+    </button>
+    <button class="btn" data-rumble='{"duration":120,"strongMagnitude":0.8,"weakMagnitude":0.4}'>
+      <div class="label">受击</div><div class="val">DAMAGE</div>
+    </button>
+    <button class="btn" data-rumble='{"duration":300,"strongMagnitude":1.0,"weakMagnitude":0.8}'>
+      <div class="label">爆炸</div><div class="val">EXPLOSION</div>
+    </button>
+    <button class="btn" data-rumble='{"duration":40,"strongMagnitude":0.2,"weakMagnitude":0.5}'>
+      <div class="label">确认</div><div class="val">CONFIRM</div>
+    </button>
+    <button class="btn" data-rumble='{"duration":60,"strongMagnitude":0.5,"weakMagnitude":0.1}'>
+      <div class="label">取消</div><div class="val">CANCEL</div>
+    </button>
+    <button class="btn primary full" id="btn-custom" data-rumble='{"duration":200,"strongMagnitude":0.7,"weakMagnitude":0.4}'>
+      <div class="label">自定义参数</div><div class="val">200ms · 强 0.7 · 弱 0.4</div>
+    </button>
+    <button class="btn danger full" id="btn-stop">
+      <div class="label">紧急停止</div><div class="val">STOP</div>
+    </button>
+  </div>
+
+  <div class="info">
+    <strong>浏览器兼容性（2026）</strong>
+    <table>
+      <tr><th>浏览器</th><th>支持</th><th>备注</th></tr>
+      <tr><td>Chrome 117+</td><td style="color:#4ade80">完整</td><td>默认启用</td></tr>
+      <tr><td>Edge</td><td style="color:#4ade80">完整</td><td>Chromium 内核</td></tr>
+      <tr><td>Firefox</td><td style="color:#fbbf24">部分</td><td>需开启 <code>dom.gamepad.haptics.enabled</code></td></tr>
+      <tr><td>Safari</td><td style="color:#f87171">不支持</td><td>截至 2026 尚无</td></tr>
+    </table>
+    <div style="margin-top: .5rem; color: #888;">
+      ⚠️ 需要 <strong>HTTPS</strong> 或 <strong>localhost</strong> 才能访问 Gamepad API。<br>
+      ⚠️ 某些浏览器需要先按一下手柄按钮才会暴露 API。
+    </div>
+  </div>
+
+  <div class="log" id="log"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const logEl = document.getElementById('log');
+
+function log(msg) {
+  const d = document.createElement('div');
+  d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function getActuator() {
+  const pads = navigator.getGamepads?.();
+  if (!pads) return null;
+  for (const p of pads) {
+    if (p?.vibrationActuator) return p.vibrationActuator;
+  }
+  return null;
+}
+
+function updateStatus() {
+  const pads = navigator.getGamepads?.();
+  const connected = pads && Array.from(pads).some(p => p);
+  const act = getActuator();
+  const sG = document.getElementById('s-gamepad');
+  const sV = document.getElementById('s-vibration');
+  const sB = document.getElementById('s-browser');
+  sG.textContent = connected ? '🕹️ 已连接' : '🕹️ 未连接';
+  sG.className = `badge ${connected ? 'ok' : 'fail'}`;
+  sV.textContent = act ? '⚡ 可用' : '⚡ 不可用';
+  sV.className = `badge ${act ? 'ok' : 'fail'}`;
+  const chrome = navigator.userAgent.includes('Chrome');
+  const edge = navigator.userAgent.includes('Edg');
+  const ff = navigator.userAgent.includes('Firefox');
+  let label = '待检测', cls = 'fail';
+  if (chrome || edge) { label = 'Chrome/Edge ✓'; cls = 'ok'; }
+  else if (ff) { label = 'Firefox ⚠️'; cls = 'warn'; }
+  else if (navigator.userAgent.includes('Safari')) { label = 'Safari ✗'; cls = 'fail'; }
+  sB.textContent = `🌐 ${label}`;
+  sB.className = `badge ${cls}`;
+  if (act) sV.classList.add('pulse');
+}
+
+async function rumble(params) {
+  const act = getActuator();
+  if (!act) { log('❌ 未检测到震动致动器'); return; }
+  if (act.effects?.includes('dual-rumble')) {
+    try {
+      await act.playEffect('dual-rumble', {
+        duration: params.duration,
+        strongMagnitude: params.strongMagnitude ?? 0.5,
+        weakMagnitude: params.weakMagnitude ?? 0.5,
+        startDelay: params.startDelay ?? 0,
+      });
+      log(`✅ dual-rumble: ${params.duration}ms strong=${params.strongMagnitude} weak=${params.weakMagnitude}`);
+    } catch (e) {
+      log(`❌ playEffect 失败: ${e.message}`);
+    }
+  } else if (typeof act.pulse === 'function') {
+    try {
+      await act.pulse(params.strongMagnitude ?? 0.5, params.duration);
+      log(`✅ pulse 降级: ${params.duration}ms`);
+    } catch (e) {
+      log(`❌ pulse 失败: ${e.message}`);
+    }
+  } else {
+    log('❌ 该控制器不支持震动');
+  }
+}
+
+function stopRumble() {
+  const act = getActuator();
+  if (!act) return;
+  try { act.reset(); log('⏹️ 震动已停止'); } catch {}
+}
+
+// 事件绑定
+$$('[data-rumble]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const params = JSON.parse(btn.dataset.rumble);
+    rumble(params);
+  });
+});
+document.getElementById('btn-stop').addEventListener('click', stopRumble);
+
+// 连接事件
+window.addEventListener('gamepadconnected', (e) => {
+  log(`🟢 手柄已连接: ${e.gamepad.id}`);
+  const act = e.gamepad.vibrationActuator;
+  if (act) {
+    const effects = act.effects ? Array.from(act.effects).join(', ') : '未知';
+    log(`   ⚡ 震动致动器: effects=[${effects}]`);
+    // 自动发一个确认震动
+    rumble({ duration: 40, strongMagnitude: 0.3, weakMagnitude: 0.5 });
+  } else {
+    log(`   ❌ 该手柄无震动致动器`);
+  }
+  updateStatus();
+});
+window.addEventListener('gamepaddisconnected', () => {
+  log('🔴 手柄已断开');
+  updateStatus();
+});
+
+// 轮询状态
+setInterval(updateStatus, 1000);
+updateStatus();
+
+// 初始检测
+setTimeout(() => {
+  const pads = navigator.getGamepads?.();
+  if (pads) {
+    for (const p of pads) {
+      if (p) log(`检测到已连接手柄: ${p.id}`);
+    }
+  }
+  updateStatus();
+}, 500);
+
+log('🔌 请连接手柄并按任意按钮激活');
+</script>
+</body>
+</html>
