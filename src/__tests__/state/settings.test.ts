@@ -65,10 +65,13 @@ describe('辉光调校 · 设置状态', () => {
   });
 
   it('脏数据加载时回退到合法值', () => {
-    localStorage.setItem('eclipse_settings_v1', JSON.stringify({ renderScale: 1.7, fpsLimit: 999 }));
+    localStorage.setItem('eclipse_settings_v1', JSON.stringify({
+      renderScale: 1.7, particleDensity: 0.9, fpsLimit: 999,
+    }));
     loadSettings();
     const s = settingsState.state;
     expect(s.renderScale).toBe(1);
+    expect(s.particleDensity).toBe(1);
     expect(s.fpsLimit).toBe(60);
   });
 
@@ -145,5 +148,43 @@ describe('辉光调校 · 设置状态', () => {
     loadSettings();
     expect(settingsState.state.enemyAnimStride).toBe(1);
     expect(settingsState.state.preset).toBe('high');
+  });
+
+  it('越界的振魄强度被钳制到 [0, 1]', () => {
+    localStorage.setItem('eclipse_settings_v1', JSON.stringify({
+      preset: 'high', renderScale: 1, particleDensity: 1,
+      glowFx: true, shake: true, dmgNumbers: true, bgDetail: true, fpsLimit: 60,
+      enemyAnimStride: 1, rumbleIntensity: 1.7,
+    }));
+    loadSettings();
+    expect(settingsState.state.rumbleIntensity).toBe(1);
+    localStorage.setItem('eclipse_settings_v1', JSON.stringify({
+      preset: 'high', renderScale: 1, particleDensity: 1,
+      glowFx: true, shake: true, dmgNumbers: true, bgDetail: true, fpsLimit: 60,
+      enemyAnimStride: 1, rumbleIntensity: -0.5,
+    }));
+    loadSettings();
+    expect(settingsState.state.rumbleIntensity).toBe(0);
+  });
+
+  it('老存档缺振魄强度字段时默认满强度（=1）', () => {
+    localStorage.setItem('eclipse_settings_v1', JSON.stringify({
+      preset: 'high', renderScale: 1, particleDensity: 1,
+      glowFx: true, shake: true, dmgNumbers: true, bgDetail: true, fpsLimit: 60,
+      enemyAnimStride: 1, rumbleIntensity: 'high',
+      // 非 number 的振魄强度（脏数据）：typeof 判否 → 默认满强度 1
+    }));
+    loadSettings();
+    expect(settingsState.state.rumbleIntensity).toBe(1);
+    expect(settingsState.state.preset).toBe('high');
+  });
+
+  it('无存档时 loadSettings 直接返回，不改变默认设置', () => {
+    // beforeEach 已清空 localStorage → raw 为 null，走 `if (!raw) return` 早退
+    loadSettings();
+    const s = settingsState.state;
+    expect(s.preset).toBe('high');
+    expect(s.rumbleIntensity).toBe(1);
+    expect(s.renderScale).toBe(1);
   });
 });

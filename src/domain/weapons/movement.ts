@@ -246,5 +246,4 @@ function explodeGround(pr: Projectile): void {
       damageEnemy(e, dmg, RNG() < (pSt().player?.effCrit ?? 0.1), 'ground', pr.wId);
     }
   }
-  }
 }
