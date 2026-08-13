@@ -25,6 +25,14 @@ function fingerprintOfCurrentLocal(): string {
   return (h >>> 0).toString(36);
 }
 
+/** 构造一份驿站残卷（unlocked 为 eclipse_cycle_save 域内容） */
+function remoteArchive(exportedAt: number, unlocked: number): string {
+  return JSON.stringify({
+    app: 'moonlight-chronicle', v: 1, exportedAt,
+    domains: { eclipse_cycle_save: JSON.stringify({ unlocked, exportedAt }) },
+  });
+}
+
 const CFG = { url: 'https://dav.example.com/eclipse/', username: 'moon', password: 'waxing' };
 
 interface MockFetchCall {
@@ -113,6 +121,11 @@ describe('probeWebdav', () => {
     await expect(probeWebdav(CFG)).resolves.toBe(true);
   });
 
+  it('服务器不支持 OPTIONS（501）仍视为可达（驿站应答了即算可达）', async () => {
+    mockFetch(async () => new Response('', { status: 501 }));
+    await expect(probeWebdav(CFG)).resolves.toBe(true);
+  });
+
   it('网络中断返回 false', async () => {
     mockFetch(async () => { throw new TypeError('network down'); });
     await expect(probeWebdav(CFG)).resolves.toBe(false);
@@ -183,6 +196,15 @@ describe('pullFromWebdav（收月）', () => {
     expect(JSON.parse(localStorage.getItem('eclipse_cycle_save')!).unlocked).toBe(2);
   });
 
+  it('驿站返回 405（URL 指向目录而非文件）→ error 而非 no-remote', async () => {
+    localStorage.setItem('eclipse_cycle_save', '{"unlocked":2}');
+    mockFetch(async () => new Response('', { status: 405 }));
+    const res = await pullFromWebdav(CFG);
+    expect(res.status).toBe('error');
+    expect(res.message).toContain('405');
+    expect(JSON.parse(localStorage.getItem('eclipse_cycle_save')!).unlocked).toBe(2);
+  });
+
   it('远端残卷损坏则拒绝且不写回', async () => {
     localStorage.setItem('eclipse_cycle_save', '{"unlocked":3}');
     mockFetch(async () => okRes('garbage'));
@@ -223,18 +245,17 @@ describe('syncTide（潮汐）', () => {
   });
 
   it('本地改动且远端未更新 → 寄月', async () => {
-    localStorage.setItem('eclipse_cycle_save', '{"unlocked":6}');
-    // 先模拟上次同步：元数据里 lastRemoteAt = 1000，本地指纹与现在不同
-    localStorage.setItem('eclipse_sync_meta_v1', JSON.stringify({ lastRemoteAt: 1000, lastFingerprint: 'stale-fp' }));
-    const remote = JSON.stringify({
-      app: 'moonlight-chronicle', v: 1, exportedAt: 1000,
-      domains: { eclipse_cycle_save: '{"unlocked":6}' },
-    });
+    // 基线：上次同步时本地与远端同为 unlocked:6（域原文一致）
+    localStorage.setItem('eclipse_cycle_save', '{"unlocked":6,"exportedAt":1000}');
+    const baseFp = fingerprintOfCurrentLocal();
+    localStorage.setItem('eclipse_sync_meta_v1', JSON.stringify({ lastRemoteAt: 1000, lastFingerprint: baseFp }));
+    // 之后本地又打了一局（unlocked:7），远端仍停留于基线内容
+    localStorage.setItem('eclipse_cycle_save', '{"unlocked":7,"exportedAt":1000}');
     let putSeen = false;
     mockFetch(async (url, init) => {
       if (init.method === 'MKCOL') return new Response('', { status: 201 });
       if (init.method === 'PUT') { putSeen = true; return okRes(); }
-      return okRes(remote);
+      return okRes(remoteArchive(1000, 6));
     });
     const res = await syncTide(CFG);
     expect(putSeen).toBe(true);
@@ -270,5 +291,77 @@ describe('syncTide（潮汐）', () => {
     expect(putSeen).toBe(false);
     expect(res.status).toBe('ok');
     expect(res.message).toContain('无需往返');
+  });
+
+  it('首次同步 + 驿站已有旧卷 + 本地亦有月光 → 冲突择一，不静默覆写本地', async () => {
+    // 本地存档较新（unlocked:10），但从未同步过（meta 为空）
+    localStorage.setItem('eclipse_cycle_save', '{"unlocked":10,"exportedAt":9000}');
+    // 驿站是陈旧残卷（exportedAt=1000）
+    mockFetch(async () => okRes(remoteArchive(1000, 3)));
+    const res = await syncTide(CFG);
+    expect(res.status).toBe('conflict');
+    // 本地与远端均未被自动改动
+    expect(JSON.parse(localStorage.getItem('eclipse_cycle_save')!).unlocked).toBe(10);
+  });
+
+  it('首次同步 + 驿站有卷 + 本地空卷 → 收月', async () => {
+    mockFetch(async () => okRes(remoteArchive(5000, 8)));
+    const res = await syncTide(CFG);
+    expect(res.status).toBe('ok');
+    expect(res.applied).toBe(true);
+    expect(JSON.parse(localStorage.getItem('eclipse_cycle_save')!).unlocked).toBe(8);
+  });
+
+  it('驿站无卷 + 本地亦无月光 → 不寄空卷', async () => {
+    let putSeen = false;
+    mockFetch(async (url, init) => {
+      if (init.method === 'PUT') { putSeen = true; return okRes(); }
+      return new Response('', { status: 404 });
+    });
+    const res = await syncTide(CFG);
+    expect(putSeen).toBe(false);
+    expect(res.status).toBe('no-remote');
+  });
+
+  it('另一设备时钟偏慢：远端内容已改但拓印时间更旧 → 仍按内容判改收月', async () => {
+    // 上次同步基线：远端 exportedAt=5000，指纹与本地一致
+    localStorage.setItem('eclipse_cycle_save', '{"unlocked":5,"exportedAt":5000}');
+    const baseFp = fingerprintOfCurrentLocal();
+    localStorage.setItem('eclipse_sync_meta_v1', JSON.stringify({ lastRemoteAt: 5000, lastFingerprint: baseFp }));
+    // 另一设备（时钟慢 1 小时）推了新内容：exportedAt=2000 数值上更旧
+    mockFetch(async () => okRes(remoteArchive(2000, 8)));
+    const res = await syncTide(CFG);
+    expect(res.status).toBe('ok');
+    expect(res.applied).toBe(true);
+    expect(JSON.parse(localStorage.getItem('eclipse_cycle_save')!).unlocked).toBe(8);
+  });
+
+  it('另一设备时钟偏慢且本地亦有改动 → 冲突，不静默覆盖远端', async () => {
+    localStorage.setItem('eclipse_cycle_save', '{"unlocked":5,"exportedAt":5000}');
+    const baseFp = fingerprintOfCurrentLocal();
+    localStorage.setItem('eclipse_sync_meta_v1', JSON.stringify({ lastRemoteAt: 5000, lastFingerprint: baseFp }));
+    // 本地又打了一局
+    localStorage.setItem('eclipse_cycle_save', '{"unlocked":6,"exportedAt":5000}');
+    let putSeen = false;
+    mockFetch(async (url, init) => {
+      if (init.method === 'PUT') { putSeen = true; return okRes(); }
+      return okRes(remoteArchive(2000, 8));
+    });
+    const res = await syncTide(CFG);
+    expect(res.status).toBe('conflict');
+    expect(putSeen).toBe(false);
+    expect(JSON.parse(localStorage.getItem('eclipse_cycle_save')!).unlocked).toBe(6);
+  });
+
+  it('潮汐遇 405（URL 指向目录）→ error，不视为无卷而寄月', async () => {
+    localStorage.setItem('eclipse_cycle_save', '{"unlocked":4}');
+    let putSeen = false;
+    mockFetch(async (url, init) => {
+      if (init.method === 'PUT') { putSeen = true; return okRes(); }
+      return new Response('', { status: 405 });
+    });
+    const res = await syncTide(CFG);
+    expect(res.status).toBe('error');
+    expect(putSeen).toBe(false);
   });
 });

@@ -23,7 +23,8 @@ export interface WebdavConfig {
 interface SyncMeta {
   /** 上次从驿站看到远端残卷的拓印时间 */
   lastRemoteAt: number;
-  /** 上次本地拓印的指纹（判断本地是否自上次同步后有改动） */
+  /** 上次同步完成后的共同基线指纹 —— 同步完成后本地与远端内容一致，
+   *  据此判断任一侧是否自上次同步后有改动（时间戳受设备时钟偏差影响，不可作判定依据） */
   lastFingerprint: string;
 }
 
@@ -196,15 +197,16 @@ async function request(cfg: WebdavConfig, method: string, path: string, body?: s
   });
 }
 
-/** 探测驿站连通性（OPTIONS 或 GET，任一 2xx/401/403/404 均视为可达） */
+/** 探测驿站连通性（OPTIONS 或 GET，任一收到 HTTP 应答即视为可达；
+ *  仅网络层失败（fetch 抛错）才视为不可达 —— 501/5xx 说明驿站仍应答了） */
 export async function probeWebdav(cfg: WebdavConfig): Promise<boolean> {
   try {
-    const res = await request(cfg, 'OPTIONS', dirUrl(cfg));
-    return res.status < 500;
+    await request(cfg, 'OPTIONS', dirUrl(cfg));
+    return true;
   } catch {
     try {
-      const res = await request(cfg, 'GET', dirUrl(cfg));
-      return res.status < 500;
+      await request(cfg, 'GET', dirUrl(cfg));
+      return true;
     } catch {
       return false;
     }
@@ -244,9 +246,10 @@ export async function pushToWebdav(cfg: WebdavConfig): Promise<SyncResult> {
 export async function pullFromWebdav(cfg: WebdavConfig): Promise<SyncResult> {
   try {
     const res = await request(cfg, 'GET', fileUrl(cfg));
-    if (res.status === 404 || res.status === 405) {
+    if (res.status === 404) {
       return { status: 'no-remote', message: '驿站尚无一页残卷', applied: false };
     }
+    // 405 及一切 3xx/4xx/5xx 均按驿站异常处理（405 多为 URL 指向目录而非文件）
     if (res.status >= 300) {
       return { status: 'error', message: `驿站闭门（HTTP ${res.status}）`, applied: false };
     }
@@ -271,17 +274,37 @@ export async function pullFromWebdav(cfg: WebdavConfig): Promise<SyncResult> {
   }
 }
 
-/** 潮汐：自动同步。远端无卷 → 寄月；远端更晚 → 收月；双方各有改动 → 冲突 */
+/** 收月并落记基线（潮汐各收月分支复用；pullFromWebdav 内部已写 meta） */
+async function pullAndCommit(cfg: WebdavConfig, remoteAt: number, msg: string): Promise<SyncResult> {
+  const pulled = await pullFromWebdav(cfg);
+  if (!pulled.applied) return pulled;
+  return { status: 'ok', message: msg, applied: true, remoteAt, localAt: localExportedAt() };
+}
+
+/** 潮汐：自动同步。
+ *  改动的判定一律基于内容指纹（时间戳受设备时钟偏差影响，不可信）：
+ *    - 远端无卷：本地有月光则寄出；两处皆空则不动
+ *    - 内容同源（指纹一致）：无需往返，即使基线已陈旧
+ *    - 本地空卷（首次相认或存储被清）而驿站有月光 → 收月
+ *    - 仅远端改动 → 收月；仅本地改动 → 寄月；双方各改 → 冲突
+ *    - 首次相认且双方各有月光 → 交由玩家决断
+ */
 export async function syncTide(cfg: WebdavConfig): Promise<SyncResult> {
   const localArchive = exportFullSave();
   const localFp = fingerprint(localArchive);
+  const localParsed = parseArchive(localArchive);
+  // 本地是否持有任何域数据（避免把空卷寄上驿站、污染其他设备基线）
+  const localHasData = !!localParsed.ok && !!localParsed.archive && Object.keys(localParsed.archive.domains).length > 0;
   const meta = loadMeta();
   // 从未与这座驿站同步过：本地指纹与空基线必然不同，不能据此判冲突
   const firstSync = meta.lastRemoteAt === 0 && meta.lastFingerprint === '';
   try {
     const res = await request(cfg, 'GET', fileUrl(cfg));
-    if (res.status === 404 || res.status === 405) {
-      // 驿站无卷：本地有月光则寄出
+    if (res.status === 404) {
+      // 驿站无卷
+      if (!localHasData) {
+        return { status: 'no-remote', message: '两轮皆空，尚无月光可寄', applied: false };
+      }
       return pushToWebdav(cfg);
     }
     if (res.status >= 300) {
@@ -293,27 +316,35 @@ export async function syncTide(cfg: WebdavConfig): Promise<SyncResult> {
       return { status: 'error', message: '驿站残卷字迹已毁', applied: false };
     }
     const remoteAt = parsed.archive.exportedAt;
-    const localChanged = !firstSync && localFp !== meta.lastFingerprint;
-    const remoteNewer = remoteAt > meta.lastRemoteAt;
-
-    if (remoteNewer && !localChanged) {
-      // 远端有更新且本地未动 → 收月
-      const pulled = await pullFromWebdav(cfg);
-      if (pulled.applied) {
-        saveMeta({ lastRemoteAt: remoteAt, lastFingerprint: fingerprint(exportFullSave()) });
-        return { status: 'ok', message: '潮汐带回更晚的月光，已唤醒', applied: true, remoteAt, localAt: localExportedAt() };
-      }
-      return pulled;
+    const remoteFp = fingerprint(text);
+    // 双方内容同源即相合，无需往返（含双方同时改为相同内容的情形）
+    if (localFp === remoteFp) {
+      return { status: 'ok', message: '两轮月光本已相合，无需往返', applied: false, remoteAt, localAt: localExportedAt() };
     }
-    if (localChanged && !remoteNewer) {
-      // 本地有改动且远端未更新 → 寄月
+    const localChanged = !firstSync && localFp !== meta.lastFingerprint;
+    const remoteChanged = !firstSync && remoteFp !== meta.lastFingerprint;
+    if (!localHasData) {
+      // 本地空卷（首次相认，或本地存储被清）而驿站有月光 → 唤回，勿把空卷寄上驿站
+      return pullAndCommit(cfg, remoteAt, '月光已自星海唤回，从此两轮同辉');
+    }
+    if (remoteChanged && !localChanged) {
+      // 远端有改动且本地未动 → 收月
+      return pullAndCommit(cfg, remoteAt, '潮汐带回更晚的月光，已唤醒');
+    }
+    if (localChanged && !remoteChanged) {
+      // 本地有改动且远端未动 → 寄月
       return pushToWebdav(cfg);
     }
-    if (localChanged && remoteNewer) {
-      // 双方都新 → 冲突，交由玩家决断
-      return { status: 'conflict', message: '两轮月亮各持新月光，需择一相认', applied: false, remoteAt, localAt: localExportedAt() };
-    }
-    return { status: 'ok', message: '两轮月光本已相合，无需往返', applied: false, remoteAt, localAt: localExportedAt() };
+    // 双方各有新月光（含首次相认时两处各有数据）→ 冲突，交由玩家决断
+    return {
+      status: 'conflict',
+      message: firstSync
+        ? '初次相认：驿站与本地各有一卷月光，需择一为准'
+        : '两轮月亮各持新月光，需择一相认',
+      applied: false,
+      remoteAt,
+      localAt: localExportedAt(),
+    };
   } catch {
     return { status: 'error', message: '星海无应答，潮汐未起', applied: false };
   }
